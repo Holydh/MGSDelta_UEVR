@@ -11,6 +11,8 @@
 
 #include "Plugin.hpp"
 
+
+
 using namespace uevr;
 
 #define MAX_DEBUG_MESSAGE_SIZE 2048
@@ -35,13 +37,13 @@ static void DebugPrint(const char* Format, ...)
   }
 }
 
-std::unique_ptr<MGS3Plugin> g_plugin = std::make_unique<MGS3Plugin>();
+std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGS3Plugin::~MGS3Plugin() {
+MGSDeltaPlugin::~MGSDeltaPlugin() {
 
 }
 
-void MGS3Plugin::on_initialize() {
+void MGSDeltaPlugin::on_initialize() {
     // Logs to the appdata UnrealVRMod log.txt file
     API::get()->log_info("%s", "Birria ramen");
     
@@ -104,11 +106,11 @@ int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* d
     return API::get()->param()->functions->register_inline_hook((void*)function_address, (void*)destination, original);
 }
 
-void MGS3Plugin::hook_fire_fn() {
+void MGSDeltaPlugin::hook_fire_fn() {
     m_fire_hook_id = hook_fn(L"Class /Script/Gsr.GsrEquipController",L"Fire", on_get_fire, (void**)&m_fire_hook_fn);
 }
 
-void* MGS3Plugin::on_get_fire_internal(uevr::API::UObject* equipcontroller, FGsrFireRequest* FireRequest) {    
+void* MGSDeltaPlugin::on_get_fire_internal(uevr::API::UObject* equipcontroller, FGsrFireRequest* FireRequest) {    
     
     DebugPrint("Function hooked\n");
 
@@ -173,7 +175,7 @@ void* MGS3Plugin::on_get_fire_internal(uevr::API::UObject* equipcontroller, FGsr
     return result;
 }
 
-void MGS3Plugin::SetGunAdjustValuesFromConfig(const std::filesystem::path& ConfigFile) {
+void MGSDeltaPlugin::SetGunAdjustValuesFromConfig(const std::filesystem::path& ConfigFile) {
     // Check if the file exists
     if (!std::filesystem::exists(ConfigFile)) {
         g_AdjustValueV = 0.0f;
