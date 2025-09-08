@@ -18,6 +18,8 @@ bool g_DebugEnabled = false;
 float g_AdjustValueV = 0;
 float g_AdjustValueH = 0;
 
+bool imguiEnabled = false;
+
 static void DebugPrint(const char* Format, ...)
 {
 	char FormattedMessage[MAX_DEBUG_MESSAGE_SIZE];
@@ -43,7 +45,7 @@ MGSDeltaPlugin::~MGSDeltaPlugin() {
 
 void MGSDeltaPlugin::on_initialize() {
 	// Logs to the appdata UnrealVRMod log.txt file
-	API::get()->log_info("%s", "Birria ramen");
+	API::get()->log_info("%s", "on_initialize");
 
 	std::filesystem::path config_file = API::get()->get_persistent_dir() / "plugins" / "aimfix.txt";
 	std::filesystem::path debug_file = API::get()->get_persistent_dir() / "debug";
@@ -632,6 +634,9 @@ void MGSDeltaPlugin::on_post_viewport_client_draw(UEVR_UGameViewportClientHandle
 }
 
 bool MGSDeltaPlugin::initialize_imgui() {
+	if (!imguiEnabled)
+		return false;
+
 	if (m_initialized) {
 		return true;
 	}
