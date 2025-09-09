@@ -1,0 +1,13 @@
+[project]
+name = "interface"
+description = "Header-only library"
+
+[target.mylib]
+type = "interface"
+include-directories = ["include"]
+compile-features = ["cxx_std_11"]
+
+[target.example]
+type = "executable"
+sources = ["src/main.cpp"]
+link-libraries = ["mylib"]
