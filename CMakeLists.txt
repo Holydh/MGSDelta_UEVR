@@ -113,8 +113,8 @@ set(CMKR_TARGET sh2r)
 set(sh2r_SOURCES "")
 
 list(APPEND sh2r_SOURCES
-	"src/Plugin.cpp"
-	"src/Plugin.hpp"
+	"src/MGSDeltaPlugin.cpp"
+	"src/MGSDeltaPlugin.hpp"
 	"src/uevr/API.hpp"
 	"src/uevr/Plugin.hpp"
 	"src/uevr/API.h"

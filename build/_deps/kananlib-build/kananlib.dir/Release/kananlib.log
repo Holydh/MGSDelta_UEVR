@@ -1,17 +1,1 @@
-﻿  Building Custom Rule C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-src/CMakeLists.txt
-  Address.cpp
-  Config.cpp
-  Emulation.cpp
-  Input.cpp
-  Memory.cpp
-  Module.cpp
-  Patch.cpp
-  Pattern.cpp
-  PointerHook.cpp
-  RTTI.cpp
-  Registry.cpp
-  Scan.cpp
-  String.cpp
-  Thread.cpp
-  VtableHook.cpp
-  kananlib.vcxproj -> C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\kananlib-build\Release\kananlib.lib
+﻿  kananlib.vcxproj -> C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\kananlib-build\Release\kananlib.lib

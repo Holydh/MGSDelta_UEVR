@@ -27,11 +27,12 @@
 *.out
 *.app
 
-build/MGSDelta_UEVR.dir/*
+build/mgsdelta.dir/*
 build/glm_static.dir/*
 build/Release/*
 build/.vscode/*
 build/out/*
 build/.vs/*
+build/Debug/*
 
 dependencies/steelsdk/*

@@ -1,138 +1,138 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\src\MGSDeltaPlugin.cpp">
+    <ClCompile Include="src\MGSDeltaPlugin.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="renderlib\IMGUI\BACKENDS\imgui_impl_dx11.cpp">
-      <Filter>renderlib\imgui\backends</Filter>
+    <ClCompile Include="src\renderlib\IMGUI\BACKENDS\imgui_impl_dx12.cpp">
+      <Filter>src\renderlib\IMGUI\BACKENDS</Filter>
     </ClCompile>
-    <ClCompile Include="renderlib\IMGUI\BACKENDS\imgui_impl_dx12.cpp">
-      <Filter>renderlib\imgui\backends</Filter>
+    <ClCompile Include="src\renderlib\IMGUI\BACKENDS\imgui_impl_win32.cpp">
+      <Filter>src\renderlib\IMGUI\BACKENDS</Filter>
     </ClCompile>
-    <ClCompile Include="renderlib\IMGUI\BACKENDS\imgui_impl_win32.cpp">
-      <Filter>renderlib\imgui\backends</Filter>
+    <ClCompile Include="src\renderlib\IMGUI\BACKENDS\imgui_impl_dx11.cpp">
+      <Filter>src\renderlib\IMGUI\BACKENDS</Filter>
     </ClCompile>
-    <ClCompile Include="renderlib\IMGUI\imgui_tables.cpp">
-      <Filter>renderlib\imgui</Filter>
+    <ClCompile Include="src\renderlib\IMGUI\imgui_demo.cpp">
+      <Filter>src\renderlib\IMGUI</Filter>
     </ClCompile>
-    <ClCompile Include="renderlib\IMGUI\imgui_widgets.cpp">
-      <Filter>renderlib\imgui</Filter>
+    <ClCompile Include="src\renderlib\IMGUI\imgui_draw.cpp">
+      <Filter>src\renderlib\IMGUI</Filter>
     </ClCompile>
-    <ClCompile Include="renderlib\IMGUI\imgui.cpp">
-      <Filter>renderlib\imgui</Filter>
+    <ClCompile Include="src\renderlib\IMGUI\imgui_tables.cpp">
+      <Filter>src\renderlib\IMGUI</Filter>
     </ClCompile>
-    <ClCompile Include="renderlib\IMGUI\imgui_demo.cpp">
-      <Filter>renderlib\imgui</Filter>
+    <ClCompile Include="src\renderlib\IMGUI\imgui_widgets.cpp">
+      <Filter>src\renderlib\IMGUI</Filter>
     </ClCompile>
-    <ClCompile Include="renderlib\IMGUI\imgui_draw.cpp">
-      <Filter>renderlib\imgui</Filter>
+    <ClCompile Include="src\renderlib\IMGUI\imgui.cpp">
+      <Filter>src\renderlib\IMGUI</Filter>
     </ClCompile>
-    <ClCompile Include="renderlib\RENDERING\d3d12.cpp">
-      <Filter>renderlib\rendering</Filter>
+    <ClCompile Include="src\renderlib\RENDERING\d3d12.cpp">
+      <Filter>src\renderlib\RENDERING</Filter>
     </ClCompile>
-    <ClCompile Include="renderlib\RENDERING\d3d11.cpp">
-      <Filter>renderlib\rendering</Filter>
+    <ClCompile Include="src\renderlib\RENDERING\d3d11.cpp">
+      <Filter>src\renderlib\RENDERING</Filter>
     </ClCompile>
-    <ClCompile Include="renderlib\UEVR_IMGUI\imgui_impl_win32.cpp">
-      <Filter>renderlib\uevr_imgui</Filter>
+    <ClCompile Include="src\renderlib\UEVR_IMGUI\imgui_impl_dx12.cpp">
+      <Filter>src\renderlib\UEVR_IMGUI</Filter>
     </ClCompile>
-    <ClCompile Include="renderlib\UEVR_IMGUI\imgui_impl_dx11.cpp">
-      <Filter>renderlib\uevr_imgui</Filter>
+    <ClCompile Include="src\renderlib\UEVR_IMGUI\imgui_impl_win32.cpp">
+      <Filter>src\renderlib\UEVR_IMGUI</Filter>
     </ClCompile>
-    <ClCompile Include="renderlib\UEVR_IMGUI\imgui_impl_dx12.cpp">
-      <Filter>renderlib\uevr_imgui</Filter>
+    <ClCompile Include="src\renderlib\UEVR_IMGUI\imgui_impl_dx11.cpp">
+      <Filter>src\renderlib\UEVR_IMGUI</Filter>
     </ClCompile>
-    <ClCompile Include="ImguiMenu.cpp">
+    <ClCompile Include="src\ImguiMenu.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="CameraController.cpp">
+    <ClCompile Include="src\Logger.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="Utilities.cpp">
+    <ClCompile Include="src\Utilities.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="Logger.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="Globals.hpp">
+    <ClCompile Include="src\CameraController.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\MGSDeltaPlugin.hpp">
+    <ClInclude Include="src\MGSDeltaPlugin.hpp">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\src\uevr\API.hpp">
+    <ClInclude Include="src\uevr\API.hpp">
       <Filter>src\uevr</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\src\uevr\Plugin.hpp">
+    <ClInclude Include="src\uevr\Plugin.hpp">
       <Filter>src\uevr</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\src\uevr\API.h">
+    <ClInclude Include="src\uevr\API.h">
       <Filter>src\uevr</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\IMGUI\BACKENDS\imgui_impl_dx11.h">
-      <Filter>renderlib\imgui\backends</Filter>
+    <ClInclude Include="src\renderlib\IMGUI\BACKENDS\imgui_impl_dx11.h">
+      <Filter>src\renderlib\IMGUI\BACKENDS</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\IMGUI\BACKENDS\imgui_impl_dx12.h">
-      <Filter>renderlib\imgui\backends</Filter>
+    <ClInclude Include="src\renderlib\IMGUI\BACKENDS\imgui_impl_dx12.h">
+      <Filter>src\renderlib\IMGUI\BACKENDS</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\IMGUI\BACKENDS\imgui_impl_win32.h">
-      <Filter>renderlib\imgui\backends</Filter>
+    <ClInclude Include="src\renderlib\IMGUI\BACKENDS\imgui_impl_win32.h">
+      <Filter>src\renderlib\IMGUI\BACKENDS</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\IMGUI\imgui_internal.h">
-      <Filter>renderlib\imgui</Filter>
+    <ClInclude Include="src\renderlib\IMGUI\imgui_internal.h">
+      <Filter>src\renderlib\IMGUI</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\IMGUI\imstb_rectpack.h">
-      <Filter>renderlib\imgui</Filter>
+    <ClInclude Include="src\renderlib\IMGUI\imstb_rectpack.h">
+      <Filter>src\renderlib\IMGUI</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\IMGUI\imstb_textedit.h">
-      <Filter>renderlib\imgui</Filter>
+    <ClInclude Include="src\renderlib\IMGUI\imstb_textedit.h">
+      <Filter>src\renderlib\IMGUI</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\IMGUI\imstb_truetype.h">
-      <Filter>renderlib\imgui</Filter>
+    <ClInclude Include="src\renderlib\IMGUI\imstb_truetype.h">
+      <Filter>src\renderlib\IMGUI</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\IMGUI\imconfig.h">
-      <Filter>renderlib\imgui</Filter>
+    <ClInclude Include="src\renderlib\IMGUI\imconfig.h">
+      <Filter>src\renderlib\IMGUI</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\IMGUI\imgui.h">
-      <Filter>renderlib\imgui</Filter>
+    <ClInclude Include="src\renderlib\IMGUI\imgui.h">
+      <Filter>src\renderlib\IMGUI</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\RENDERING\d3d12.hpp">
-      <Filter>renderlib\rendering</Filter>
+    <ClInclude Include="src\renderlib\RENDERING\d3d12.hpp">
+      <Filter>src\renderlib\RENDERING</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\RENDERING\shared.hpp">
-      <Filter>renderlib\rendering</Filter>
+    <ClInclude Include="src\renderlib\RENDERING\shared.hpp">
+      <Filter>src\renderlib\RENDERING</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\RENDERING\d3d11.hpp">
-      <Filter>renderlib\rendering</Filter>
+    <ClInclude Include="src\renderlib\RENDERING\d3d11.hpp">
+      <Filter>src\renderlib\RENDERING</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\UEVR_IMGUI\imgui_impl_dx12.h">
-      <Filter>renderlib\uevr_imgui</Filter>
+    <ClInclude Include="src\renderlib\UEVR_IMGUI\imgui_impl_dx11.h">
+      <Filter>src\renderlib\UEVR_IMGUI</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\UEVR_IMGUI\imgui_impl_win32.h">
-      <Filter>renderlib\uevr_imgui</Filter>
+    <ClInclude Include="src\renderlib\UEVR_IMGUI\imgui_impl_dx12.h">
+      <Filter>src\renderlib\UEVR_IMGUI</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\UEVR_IMGUI\uevr_imconfig.hpp">
-      <Filter>renderlib\uevr_imgui</Filter>
+    <ClInclude Include="src\renderlib\UEVR_IMGUI\imgui_impl_win32.h">
+      <Filter>src\renderlib\UEVR_IMGUI</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\UEVR_IMGUI\font_robotomedium.hpp">
-      <Filter>renderlib\uevr_imgui</Filter>
+    <ClInclude Include="src\renderlib\UEVR_IMGUI\uevr_imconfig.hpp">
+      <Filter>src\renderlib\UEVR_IMGUI</Filter>
     </ClInclude>
-    <ClInclude Include="renderlib\UEVR_IMGUI\imgui_impl_dx11.h">
-      <Filter>renderlib\uevr_imgui</Filter>
+    <ClInclude Include="src\renderlib\UEVR_IMGUI\font_robotomedium.hpp">
+      <Filter>src\renderlib\UEVR_IMGUI</Filter>
     </ClInclude>
-    <ClInclude Include="ImguiMenu.hpp">
+    <ClInclude Include="src\Globals.hpp">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="CameraController.hpp">
+    <ClInclude Include="src\ImguiMenu.hpp">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities.hpp">
+    <ClInclude Include="src\Logger.hpp">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="Logger.hpp">
+    <ClInclude Include="src\Utilities.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CameraController.hpp">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
@@ -141,23 +141,23 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\cmake.toml" />
-    <None Include="renderlib\IMGUI\DOCS\FAQ.md">
-      <Filter>renderlib\imgui\docs</Filter>
+    <None Include="src\renderlib\IMGUI\DOCS\CONTRIBUTING.md">
+      <Filter>src\renderlib\IMGUI\DOCS</Filter>
     </None>
-    <None Include="renderlib\IMGUI\DOCS\FONTS.md">
-      <Filter>renderlib\imgui\docs</Filter>
+    <None Include="src\renderlib\IMGUI\DOCS\EXAMPLES.md">
+      <Filter>src\renderlib\IMGUI\DOCS</Filter>
     </None>
-    <None Include="renderlib\IMGUI\DOCS\README.md">
-      <Filter>renderlib\imgui\docs</Filter>
+    <None Include="src\renderlib\IMGUI\DOCS\FAQ.md">
+      <Filter>src\renderlib\IMGUI\DOCS</Filter>
     </None>
-    <None Include="renderlib\IMGUI\DOCS\BACKENDS.md">
-      <Filter>renderlib\imgui\docs</Filter>
+    <None Include="src\renderlib\IMGUI\DOCS\FONTS.md">
+      <Filter>src\renderlib\IMGUI\DOCS</Filter>
     </None>
-    <None Include="renderlib\IMGUI\DOCS\CONTRIBUTING.md">
-      <Filter>renderlib\imgui\docs</Filter>
+    <None Include="src\renderlib\IMGUI\DOCS\README.md">
+      <Filter>src\renderlib\IMGUI\DOCS</Filter>
     </None>
-    <None Include="renderlib\IMGUI\DOCS\EXAMPLES.md">
-      <Filter>renderlib\imgui\docs</Filter>
+    <None Include="src\renderlib\IMGUI\DOCS\BACKENDS.md">
+      <Filter>src\renderlib\IMGUI\DOCS</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -167,34 +167,34 @@
     <Filter Include="src\uevr">
       <UniqueIdentifier>{4E7646CB-E033-3D34-B280-5D6628D84083}</UniqueIdentifier>
     </Filter>
-    <Filter Include="renderlib">
-      <UniqueIdentifier>{11a052fd-878d-407f-9d64-1d00e0bd7f3a}</UniqueIdentifier>
+    <Filter Include="src\renderlib">
+      <UniqueIdentifier>{660fc6cc-771e-434f-a63e-2afd5bf998f0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="renderlib\imgui">
-      <UniqueIdentifier>{0eb89a16-37db-4d05-9b1e-04e101d9a7db}</UniqueIdentifier>
+    <Filter Include="src\renderlib\IMGUI">
+      <UniqueIdentifier>{a550b777-4c18-4a0c-93db-5a5233c20ca6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="renderlib\rendering">
-      <UniqueIdentifier>{27e1069c-57e1-4da1-817b-8953ce4dfea1}</UniqueIdentifier>
+    <Filter Include="src\renderlib\IMGUI\BACKENDS">
+      <UniqueIdentifier>{cb882539-e05e-4398-a5a6-d0706085b9bc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="renderlib\uevr_imgui">
-      <UniqueIdentifier>{8f8d36b1-c55e-4692-9726-09fe27f4739a}</UniqueIdentifier>
+    <Filter Include="src\renderlib\IMGUI\DOCS">
+      <UniqueIdentifier>{7fa8e9d6-292d-40f4-a68e-b1a9bc27ec18}</UniqueIdentifier>
     </Filter>
-    <Filter Include="renderlib\imgui\backends">
-      <UniqueIdentifier>{196f4ba3-1fdc-4bd4-8d2c-def1a16cbfc5}</UniqueIdentifier>
+    <Filter Include="src\renderlib\RENDERING">
+      <UniqueIdentifier>{6a330e5e-1ffa-4aa3-9b50-2b74098b1d3f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="renderlib\imgui\docs">
-      <UniqueIdentifier>{21d0f6b0-971c-4916-93c1-8363b26d1fe9}</UniqueIdentifier>
+    <Filter Include="src\renderlib\UEVR_IMGUI">
+      <UniqueIdentifier>{ee606598-025c-4c52-a4fd-7fdacdb8c568}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="renderlib\IMGUI\DOCS\TODO.txt">
-      <Filter>renderlib\imgui\docs</Filter>
+    <Text Include="src\renderlib\IMGUI\DOCS\TODO.txt">
+      <Filter>src\renderlib\IMGUI\DOCS</Filter>
     </Text>
-    <Text Include="renderlib\IMGUI\DOCS\CHANGELOG.txt">
-      <Filter>renderlib\imgui\docs</Filter>
+    <Text Include="src\renderlib\IMGUI\DOCS\CHANGELOG.txt">
+      <Filter>src\renderlib\IMGUI\DOCS</Filter>
     </Text>
-    <Text Include="renderlib\IMGUI\LICENSE.txt">
-      <Filter>renderlib\imgui</Filter>
+    <Text Include="src\renderlib\IMGUI\LICENSE.txt">
+      <Filter>src\renderlib\IMGUI</Filter>
     </Text>
   </ItemGroup>
 </Project>

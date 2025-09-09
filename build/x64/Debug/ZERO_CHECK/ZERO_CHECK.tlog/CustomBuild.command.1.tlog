@@ -1,0 +1,10 @@
+^C:\USERS\DAM\DEV\CPP\UEVR_BASECPPPROJECT\MGSDELTA_UEVR\BUILD\CMAKEFILES\92850D102D36C90555551A345B1BA926\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR -BC:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/sh2r-proj.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
