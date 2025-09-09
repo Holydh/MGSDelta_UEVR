@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-subbuild\CMakeFiles\516e004daada5946bcf3dfab42e3c286\bddisasm-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-subbuild\CMakeFiles\516e004daada5946bcf3dfab42e3c286\bddisasm-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-subbuild\CMakeFiles\516e004daada5946bcf3dfab42e3c286\bddisasm-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-subbuild\CMakeFiles\516e004daada5946bcf3dfab42e3c286\bddisasm-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-subbuild\CMakeFiles\516e004daada5946bcf3dfab42e3c286\bddisasm-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-subbuild\CMakeFiles\516e004daada5946bcf3dfab42e3c286\bddisasm-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-subbuild\CMakeFiles\516e004daada5946bcf3dfab42e3c286\bddisasm-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-subbuild\CMakeFiles\516e004daada5946bcf3dfab42e3c286\bddisasm-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-subbuild\CMakeFiles\fda3ab119f53b33d9c360290518a51fe\bddisasm-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-subbuild\CMakeFiles\10f71e9f5cc76aca25cff4322759d6ba\bddisasm-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-subbuild\CMakeFiles\bddisasm-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{E44CFB62-2A16-34B4-A24B-A53C4841B042}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

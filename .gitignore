@@ -27,9 +27,11 @@
 *.out
 *.app
 
-build/*
-.vscode/*
-out/*
-.vs/*
+build/MGSDelta_UEVR.dir/*
+build/glm_static.dir/*
+build/Release/*
+build/.vscode/*
+build/out/*
+build/.vs/*
 
 dependencies/steelsdk/*

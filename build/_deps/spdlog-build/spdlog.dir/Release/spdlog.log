@@ -1,0 +1,9 @@
+﻿  Building Custom Rule C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-src/CMakeLists.txt
+  spdlog.cpp
+  stdout_sinks.cpp
+  color_sinks.cpp
+  file_sinks.cpp
+  async.cpp
+  cfg.cpp
+  fmt.cpp
+  spdlog.vcxproj -> C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\spdlog-build\Release\spdlog.lib

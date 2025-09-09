@@ -1,0 +1,150 @@
+^C:\USERS\DAM\DEV\CPP\UEVR_BASECPPPROJECT\MGSDELTA_UEVR\BUILD\_DEPS\KANANLIB-SUBBUILD\CMAKEFILES\2704AB8A8D237ABC8034967AE75ADF85\KANANLIB-POPULATE-MKDIR.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -Dcfgdir=/Debug -P C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/kananlib-populate-prefix/tmp/kananlib-populate-mkdirs.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/kananlib-populate-prefix/src/kananlib-populate-stamp/Debug/kananlib-populate-mkdir
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\DAM\DEV\CPP\UEVR_BASECPPPROJECT\MGSDELTA_UEVR\BUILD\_DEPS\KANANLIB-SUBBUILD\CMAKEFILES\2704AB8A8D237ABC8034967AE75ADF85\KANANLIB-POPULATE-DOWNLOAD.RULE
+setlocal
+cd C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -P C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/kananlib-populate-prefix/tmp/kananlib-populate-gitclone.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/kananlib-populate-prefix/src/kananlib-populate-stamp/Debug/kananlib-populate-download
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\DAM\DEV\CPP\UEVR_BASECPPPROJECT\MGSDELTA_UEVR\BUILD\_DEPS\KANANLIB-SUBBUILD\CMAKEFILES\2704AB8A8D237ABC8034967AE75ADF85\KANANLIB-POPULATE-UPDATE.RULE
+setlocal
+cd C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\kananlib-src
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -Dcan_fetch=YES -P C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/kananlib-populate-prefix/tmp/kananlib-populate-gitupdate.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\DAM\DEV\CPP\UEVR_BASECPPPROJECT\MGSDELTA_UEVR\BUILD\_DEPS\KANANLIB-SUBBUILD\CMAKEFILES\2704AB8A8D237ABC8034967AE75ADF85\KANANLIB-POPULATE-PATCH.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/kananlib-populate-prefix/src/kananlib-populate-stamp/Debug/kananlib-populate-patch
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\DAM\DEV\CPP\UEVR_BASECPPPROJECT\MGSDELTA_UEVR\BUILD\_DEPS\KANANLIB-SUBBUILD\CMAKEFILES\2704AB8A8D237ABC8034967AE75ADF85\KANANLIB-POPULATE-CONFIGURE.RULE
+setlocal
+cd C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\kananlib-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/kananlib-populate-prefix/src/kananlib-populate-stamp/Debug/kananlib-populate-configure
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\DAM\DEV\CPP\UEVR_BASECPPPROJECT\MGSDELTA_UEVR\BUILD\_DEPS\KANANLIB-SUBBUILD\CMAKEFILES\2704AB8A8D237ABC8034967AE75ADF85\KANANLIB-POPULATE-BUILD.RULE
+setlocal
+cd C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\kananlib-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/kananlib-populate-prefix/src/kananlib-populate-stamp/Debug/kananlib-populate-build
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\DAM\DEV\CPP\UEVR_BASECPPPROJECT\MGSDELTA_UEVR\BUILD\_DEPS\KANANLIB-SUBBUILD\CMAKEFILES\2704AB8A8D237ABC8034967AE75ADF85\KANANLIB-POPULATE-INSTALL.RULE
+setlocal
+cd C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\kananlib-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/kananlib-populate-prefix/src/kananlib-populate-stamp/Debug/kananlib-populate-install
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\DAM\DEV\CPP\UEVR_BASECPPPROJECT\MGSDELTA_UEVR\BUILD\_DEPS\KANANLIB-SUBBUILD\CMAKEFILES\2704AB8A8D237ABC8034967AE75ADF85\KANANLIB-POPULATE-TEST.RULE
+setlocal
+cd C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\kananlib-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/kananlib-populate-prefix/src/kananlib-populate-stamp/Debug/kananlib-populate-test
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\DAM\DEV\CPP\UEVR_BASECPPPROJECT\MGSDELTA_UEVR\BUILD\_DEPS\KANANLIB-SUBBUILD\CMAKEFILES\843C59897A5E2236954F832293FAA088\KANANLIB-POPULATE-COMPLETE.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/CMakeFiles/Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/CMakeFiles/Debug/kananlib-populate-complete
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/kananlib-populate-prefix/src/kananlib-populate-stamp/Debug/kananlib-populate-done
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\DAM\DEV\CPP\UEVR_BASECPPPROJECT\MGSDELTA_UEVR\BUILD\_DEPS\KANANLIB-SUBBUILD\CMAKEFILES\42888A2CA4A3D4781B6814859A8DEB02\KANANLIB-POPULATE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\DAM\DEV\CPP\UEVR_BASECPPPROJECT\MGSDELTA_UEVR\BUILD\_DEPS\KANANLIB-SUBBUILD\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild -BC:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild --check-stamp-file C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-subbuild/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

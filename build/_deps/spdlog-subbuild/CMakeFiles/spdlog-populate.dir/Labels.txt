@@ -1,0 +1,14 @@
+# Target labels
+ spdlog-populate
+# Source files and their labels
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-subbuild/CMakeFiles/spdlog-populate
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-subbuild/CMakeFiles/3ef8421a4e6d20356a1005865e5c62ff/spdlog-populate.rule
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-subbuild/CMakeFiles/af606782a1f4c5f5da0197539e0a62fd/spdlog-populate-complete.rule
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-subbuild/CMakeFiles/ee55f1790a57f363e3c9e5d5b90e9201/spdlog-populate-build.rule
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-subbuild/CMakeFiles/ee55f1790a57f363e3c9e5d5b90e9201/spdlog-populate-configure.rule
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-subbuild/CMakeFiles/ee55f1790a57f363e3c9e5d5b90e9201/spdlog-populate-download.rule
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-subbuild/CMakeFiles/ee55f1790a57f363e3c9e5d5b90e9201/spdlog-populate-install.rule
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-subbuild/CMakeFiles/ee55f1790a57f363e3c9e5d5b90e9201/spdlog-populate-mkdir.rule
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-subbuild/CMakeFiles/ee55f1790a57f363e3c9e5d5b90e9201/spdlog-populate-patch.rule
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-subbuild/CMakeFiles/ee55f1790a57f363e3c9e5d5b90e9201/spdlog-populate-test.rule
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-subbuild/CMakeFiles/ee55f1790a57f363e3c9e5d5b90e9201/spdlog-populate-update.rule

@@ -1,0 +1,6 @@
+﻿  Building Custom Rule C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/bddisasm-src/CMakeLists.txt
+  crt.c
+  bddisasm.c
+  bdformat.c
+  bdhelpers.c
+  bddisasm.vcxproj -> C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-build\Release\bddisasm.lib

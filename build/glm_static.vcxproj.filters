@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\dependencies\glm\glm\detail\glm.cpp">
+      <Filter>dependencies\glm\glm\detail</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\cmake.toml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="dependencies">
+      <UniqueIdentifier>{E605DC92-3707-30B4-B6BD-0266A50C5C9C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dependencies\glm">
+      <UniqueIdentifier>{1319EE24-D1B6-3526-8C7C-1C1B45331D6A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dependencies\glm\glm">
+      <UniqueIdentifier>{AB6CBDEE-5696-3678-9F1D-3691B49887AB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dependencies\glm\glm\detail">
+      <UniqueIdentifier>{B129C874-8127-3510-B9F1-D9100414F800}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,12 @@
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/CMakeFiles/glm_static.dir
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/CMakeFiles/sh2r.dir
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/CMakeFiles/ZERO_CHECK.dir
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/bddisasm-build/CMakeFiles/bddisasm.dir
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/bddisasm-build/CMakeFiles/bdshemu.dir
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/bddisasm-build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-build/CMakeFiles/spdlog.dir
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/spdlog-build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-build/CMakeFiles/kananlib.dir
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-build/CMakeFiles/kananlib-nolog.dir
+C:/Users/Dam/Dev/Cpp/UEVR_BaseCPPproject/MGSDelta_UEVR/build/_deps/kananlib-build/CMakeFiles/ALL_BUILD.dir
