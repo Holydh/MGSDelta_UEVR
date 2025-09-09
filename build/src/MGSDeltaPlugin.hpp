@@ -88,8 +88,6 @@ extern std::unique_ptr<MGSDeltaPlugin> g_plugin;
 
 class MGSDeltaPlugin : public uevr::Plugin {
 private:
-    CameraController cameraController;
-
     bool initialize_imgui();
     void internal_frame();
 
@@ -121,8 +119,11 @@ public:
     MGSDeltaPlugin() : cameraController() {};
     virtual ~MGSDeltaPlugin();
 
+    CameraController cameraController;
+
     void on_initialize() override;
     //void on_dllmain(HMODULE hmod) override;
+	void on_detach(HMODULE hmod) override;
     void on_present() override;
     void reset_height();
     void on_device_reset() override;

@@ -10,5 +10,5 @@ public:
 	CameraController() {};
 	//virtual ~CameraController() = default;
 
-	void FixCameraShake();
+	void ToggleCameraWobblingController(bool enabled);
 };

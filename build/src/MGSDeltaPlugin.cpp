@@ -16,6 +16,11 @@ MGSDeltaPlugin::~MGSDeltaPlugin() {
 
 }
 
+void MGSDeltaPlugin::on_detach(HMODULE hmod)
+{
+	cameraController.ToggleCameraWobblingController(true);
+}
+
 void MGSDeltaPlugin::on_initialize() {
 	// Logs to the appdata UnrealVRMod log.txt file
 	API::get()->log_info("%s", "on_initialize");
@@ -34,7 +39,6 @@ void MGSDeltaPlugin::on_initialize() {
 	}
 	Logger::DebugPrint("Hello, console!\n");
 	hook_fire_fn();
-	cameraController.FixCameraShake();
 }
 
 int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* destination, void** original) {
@@ -86,7 +90,9 @@ void MGSDeltaPlugin::hook_fire_fn() {
 
 void* MGSDeltaPlugin::on_get_fire_internal(uevr::API::UObject* equipcontroller, FGsrFireRequest* FireRequest) {
 
-	//DebugPrint("Function hooked\n");
+	Logger::DebugPrint("Function hooked\n");
+
+	g_plugin->cameraController.ToggleCameraWobblingController(false);
 
 	struct {
 		API::UObject* value{ nullptr };
@@ -133,11 +139,11 @@ void* MGSDeltaPlugin::on_get_fire_internal(uevr::API::UObject* equipcontroller, 
 			forward_params = rotate_params.Result;
 			//DebugPrint("Forward Params: %f, %f, %f\n", forward_params.x, forward_params.y, forward_params.z);
 
-			//DebugPrint("Old Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
+			Logger::DebugPrint("Old Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
 			FireRequest->AimPosition.x = location_params.x + (forward_params.x * scaler);
 			FireRequest->AimPosition.y = location_params.y + (forward_params.y * scaler) - g_AimOffsetValueHorizontal;
 			FireRequest->AimPosition.z = location_params.z + (forward_params.z * scaler) - g_AimOffsetValueVertical;
-			//DebugPrint("New Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
+			Logger::DebugPrint("New Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
 		}
 	}
 
