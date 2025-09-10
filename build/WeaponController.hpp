@@ -2,13 +2,26 @@
 #include "Utilities.hpp"
 #include "uevr/API.hpp"
 #include "Logger.hpp"
+#include "glm/glm.hpp"
+#include <glm/gtc/type_ptr.hpp>
+#define GLM_FORCE_QUAT_DATA_XYZW
+#include <cstdlib>
 
 class WeaponController {
 private:
-	void ApplyRecoil(uevr::API::UObject* weaponMesh, bool isShooting, float delta);
+	void ApplyRecoil(float delta);
+	float RandomRange(float min, float max);
 public:
 	bool IsShooting;
-	uevr::API::UObject* equipController;
+	uevr::API::UObject* EquipController;
+	uevr::API::UObject* CurrentWeapon;
+	uevr::API::UObject* WeaponHook;
+
+	glm::dvec3 defaultWeaponRotationEuler;
+	glm::dvec3 currentWeaponRotationEuler;
+	glm::dvec3 defaultWeaponPosition;
+	glm::dvec3 currentWeaponPosition;
+
 
 	enum EGsrEquipId : uint8_t
 	{
@@ -252,7 +265,8 @@ public:
 		WP_MAX_OTHER = 73,
 		EGsrEquipId_MAX = 223,
 	};
-	EGsrEquipId currentWeaponEquippedID = WP_None;
+	EGsrEquipId CurrentWeaponEquippedID = WP_None;
 
-	void ProcessWeapon();
+	void Initialize();
+	void ProcessWeapon(float delta);
 };

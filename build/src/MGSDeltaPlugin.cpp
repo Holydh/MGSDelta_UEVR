@@ -40,6 +40,8 @@ void MGSDeltaPlugin::on_initialize() {
 	Logger::DebugPrint("Hello, console!\n");
 	hook_fire_fn();
 	//hook_bp_fn(L"Class /Script/Gsr.GsrWobblingController", L"UpdateCameraRecoil", (UEVR_UFunction_NativePostFn)mod_update_camera_recoil_pre, NULL, true);
+
+	weaponController.Initialize();
 }
 
 	//bool MGSDeltaPlugin::mod_update_camera_recoil_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
@@ -155,61 +157,69 @@ void* MGSDeltaPlugin::on_get_fire_internal(uevr::API::UObject* equipController, 
 
 	Logger::DebugPrint("Function hooked\n");
 
-	g_plugin->weaponController.equipController = equipController;
-	g_plugin->cameraController.ToggleCameraWobblingController(false);
+	if (equipController != g_plugin->weaponController.EquipController)
+	{
+		Logger::DebugPrint("Not the player equip controller. Do nothing");
+	}
+	else
+	{
+		g_plugin->weaponController.IsShooting = true;
+		g_plugin->cameraController.ToggleCameraWobblingController(false);
 
-	struct {
-		API::UObject* value{ nullptr };
-	} obj;
+		struct {
+			API::UObject* value{ nullptr };
+		} obj;
 
-	equipController->call_function(L"GetCurrentWeapon", &obj);
+		equipController->call_function(L"GetCurrentWeapon", &obj);
 
-	auto weapon = obj.value;
+		auto weapon = obj.value;
 
-	if (weapon != nullptr) {
-		const auto weapon_name = weapon->get_full_name();
-		//DebugPrint("Weapon: %ls\n", weapon_name.c_str());
+		if (weapon != nullptr) {
+			const auto weapon_name = weapon->get_full_name();
+			//DebugPrint("Weapon: %ls\n", weapon_name.c_str());
 
-		auto root_component = weapon->get_property<API::UObject*>(L"RootComponent");
+			auto root_component = weapon->get_property<API::UObject*>(L"RootComponent");
+			g_plugin->weaponController.CurrentWeapon = root_component;
+			if (root_component != nullptr) {
+				UEVR_Vector3d forward_params;
 
-		if (root_component != nullptr) {
-			UEVR_Vector3d forward_params;
+				root_component->call_function(L"GetForwardVector", &forward_params);
+				//DebugPrint("Forward params: %f, %f, %f\n", forward_params.x, forward_params.y, forward_params.z);
 
-			root_component->call_function(L"GetForwardVector", &forward_params);
-			//DebugPrint("Forward params: %f, %f, %f\n", forward_params.x, forward_params.y, forward_params.z);
+				FTransform muzzle_transform;
 
-			FTransform muzzle_transform;
+				weapon->call_function(L"GetMuzzleTransform", &muzzle_transform);
+				auto location_params = muzzle_transform.Translation;
+				//DebugPrint("Location params: %f, %f, %f\n", location_params.x, location_params.y, location_params.z);
 
-			weapon->call_function(L"GetMuzzleTransform", &muzzle_transform);
-			auto location_params = muzzle_transform.Translation;
-			//DebugPrint("Location params: %f, %f, %f\n", location_params.x, location_params.y, location_params.z);
+				FireRequest->FirePosition.x = location_params.x;
+				FireRequest->FirePosition.y = location_params.y;
+				FireRequest->FirePosition.z = location_params.z;
 
-			FireRequest->FirePosition.x = location_params.x;
-			FireRequest->FirePosition.y = location_params.y;
-			FireRequest->FirePosition.z = location_params.z;
+				float scaler = 8192.0;
 
-			float scaler = 8192.0;
+				RotateAngleAxis rotate_params;
+				static auto kismet_math_library_c = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetMathLibrary");
+				static auto kismet_math_library = kismet_math_library_c->get_class_default_object();
 
-			RotateAngleAxis rotate_params;
-			static auto kismet_math_library_c = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetMathLibrary");
-			static auto kismet_math_library = kismet_math_library_c->get_class_default_object();
+				rotate_params.InVect = forward_params;
+				rotate_params.AngleDeg = 90.0f;
+				root_component->call_function(L"GetUpVector", &rotate_params.Axis);
+				//DebugPrint("Up Vector: %f, %f, %f\n", rotate_params.Axis.x, rotate_params.Axis.y, rotate_params.Axis.z);
 
-			rotate_params.InVect = forward_params;
-			rotate_params.AngleDeg = 90.0f;
-			root_component->call_function(L"GetUpVector", &rotate_params.Axis);
-			//DebugPrint("Up Vector: %f, %f, %f\n", rotate_params.Axis.x, rotate_params.Axis.y, rotate_params.Axis.z);
+				kismet_math_library->call_function(L"RotateAngleAxis", &rotate_params);
+				forward_params = rotate_params.Result;
+				//DebugPrint("Forward Params: %f, %f, %f\n", forward_params.x, forward_params.y, forward_params.z);
 
-			kismet_math_library->call_function(L"RotateAngleAxis", &rotate_params);
-			forward_params = rotate_params.Result;
-			//DebugPrint("Forward Params: %f, %f, %f\n", forward_params.x, forward_params.y, forward_params.z);
-
-			Logger::DebugPrint("Old Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
-			FireRequest->AimPosition.x = location_params.x + (forward_params.x * scaler);
-			FireRequest->AimPosition.y = location_params.y + (forward_params.y * scaler) - g_AimOffsetValueHorizontal;
-			FireRequest->AimPosition.z = location_params.z + (forward_params.z * scaler) - g_AimOffsetValueVertical;
-			Logger::DebugPrint("New Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
+				Logger::DebugPrint("Old Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
+				FireRequest->AimPosition.x = location_params.x + (forward_params.x * scaler);
+				FireRequest->AimPosition.y = location_params.y + (forward_params.y * scaler) - g_AimOffsetValueHorizontal;
+				FireRequest->AimPosition.z = location_params.z + (forward_params.z * scaler) - g_AimOffsetValueVertical;
+				Logger::DebugPrint("New Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
+			}
 		}
 	}
+
 
 
 	//Call original function with our replaced parameters
@@ -603,8 +613,7 @@ void MGSDeltaPlugin::test_engine(API::UGameEngine* engine) {
 
 void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
-	
-	weaponController.ProcessWeapon();
+	weaponController.ProcessWeapon(delta);
 
 	if (m_initialized) {
 		std::scoped_lock _{ m_imgui_mutex };
