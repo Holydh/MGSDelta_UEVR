@@ -2,7 +2,7 @@
 
 
 void CameraController::ToggleCameraWobblingController(bool enabled) {
-	static auto pawn = uevr::API::get()->get_local_pawn(0);
+	//static auto pawn = uevr::API::get()->get_local_pawn(0);
 	//Logger::DebugPrint("Camera Recoil : " + enabled);
 	static auto wobblingController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrWobblingController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
 	static auto wobblingController = wobblingController_c->get_first_object_matching(false);

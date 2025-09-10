@@ -28,6 +28,7 @@
 #include <codecvt>
 
 #include "CameraController.hpp"
+#include "WeaponController.hpp"
 #include "Logger.hpp"
 
 #define _CRT_SECURE_NO_WARNINGS 1
@@ -110,16 +111,19 @@ private:
     using FireFn = void*(*)(uevr::API::UObject*, FGsrFireRequest*);
     inline static FireFn m_fire_hook_fn{};
 
-    //bool m_recoil_hooked{false};
-    //int32_t m_recoil_hook_id{};
-    //using OnEvaluateRecoilAdjustementFn = void*(*)(uevr::API::UObject*, FGsrFireRequest*);
-    //inline static FireFn m_fire_hook_fn{};
+    bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native);
+    static bool mod_update_camera_recoil_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    //bool m_update_camera_recoil_hooked{false};
+    //int32_t m_update_camera_recoil_hook_id{};
+    //using UpdateCameraRecoilFn = void*(*)(float*);
+    //inline static UpdateCameraRecoilFn m_update_camera_recoil_hook_fn{};
 
 public:
-    MGSDeltaPlugin() : cameraController() {};
+    MGSDeltaPlugin() : cameraController(), weaponController() {};
     virtual ~MGSDeltaPlugin();
 
     CameraController cameraController;
+	WeaponController weaponController;
 
     void on_initialize() override;
     //void on_dllmain(HMODULE hmod) override;

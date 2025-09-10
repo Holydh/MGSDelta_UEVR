@@ -55,6 +55,9 @@
     <ClCompile Include="src\CameraController.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="WeaponController.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\MGSDeltaPlugin.hpp">
@@ -133,6 +136,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\CameraController.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="WeaponController.hpp">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

@@ -348,6 +348,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="src\renderlib\UEVR_IMGUI\imgui_impl_dx12.cpp" />
     <ClCompile Include="src\renderlib\UEVR_IMGUI\imgui_impl_win32.cpp" />
     <ClCompile Include="src\Utilities.cpp" />
+    <ClCompile Include="WeaponController.cpp" />
     <ClInclude Include="src\CameraController.hpp" />
     <ClInclude Include="src\Globals.hpp" />
     <ClInclude Include="src\ImguiMenu.hpp" />
@@ -374,6 +375,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="src\uevr\API.hpp" />
     <ClInclude Include="src\uevr\Plugin.hpp" />
     <ClInclude Include="src\Utilities.hpp" />
+    <ClInclude Include="WeaponController.hpp" />
     <None Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\cmake.toml">
     </None>
     <None Include="src\renderlib\IMGUI\DOCS\BACKENDS.md" />

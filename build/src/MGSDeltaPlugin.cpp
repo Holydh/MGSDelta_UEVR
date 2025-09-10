@@ -39,7 +39,70 @@ void MGSDeltaPlugin::on_initialize() {
 	}
 	Logger::DebugPrint("Hello, console!\n");
 	hook_fire_fn();
+	//hook_bp_fn(L"Class /Script/Gsr.GsrWobblingController", L"UpdateCameraRecoil", (UEVR_UFunction_NativePostFn)mod_update_camera_recoil_pre, NULL, true);
 }
+
+	//bool MGSDeltaPlugin::mod_update_camera_recoil_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+ //  {
+ //      Logger::DebugPrint("In mod_update_camera_recoil_pre");
+ //      /*if (obj != nullptr)
+ //      {
+ //          const auto objname = obj->get_full_name();
+ //         API::get()->log_info("mod_onfire_post - Current Weapon: %ls", objname.c_str());
+ //      }
+
+ //      if (locals != nullptr)
+ //      {
+	//		makeFireRequest_params* params = (makeFireRequest_params*)locals;
+	//		API::get()->log_info("%s", "Params:");
+	//		params->AimPosition = new UEVR_Vector3d(0.0, 90.0, 180.0);
+ //          API::get()->log_info("%f", params->AimPosition->x);
+ //          API::get()->log_info("%f", params->AimPosition->y);
+ //          API::get()->log_info("%f", params->AimPosition->z);
+ //      }
+ //      else
+ //      {
+	//		API::get()->log_info("mod_onfire_post - locals is null");
+ //      }
+
+ //      API::get()->log_info("mod_onfire_post returning false");*/
+	//	return false;
+ //  }
+	//bool MGSDeltaPlugin::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native)
+	//{
+	//	API::get()->log_info("Entering hook_bp_fn");
+	//	auto obj = (API::UClass*)API::get()->find_uobject(class_name);
+
+	//	if (obj == nullptr) {
+	//		API::get()->log_info("Failed to find %ls", class_name.data());
+	//		return false;
+	//	}
+
+	//	auto fn = obj->find_function(fn_name);
+
+	//	if (fn == nullptr) {
+	//		API::get()->log_info("Failed to find %ls", fn_name.data());
+	//		return false;
+	//	}
+
+	//	API::get()->log_info("getting function flags");
+	//	uint32_t flags = fn->get_function_flags();
+
+	//	if (use_native)
+	//	{
+	//		flags = flags | 0x400;
+	//	}
+	//	else
+	//	{
+	//		flags = flags & ~0x400;
+	//	}
+
+	//	API::get()->log_info("Setting function flags to 0x%08x", flags);
+	//	fn->set_function_flags(flags);
+
+	//	API::get()->log_info("Calling hook_ptr for %ls", fn_name.data());
+	//	return API::get()->param()->sdk->ufunction->hook_ptr((UEVR_UFunctionHandle)fn, pre, post);
+	//}
 
 int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* destination, void** original) {
 	auto obj = (API::UClass*)API::get()->find_uobject(class_name);
@@ -88,17 +151,18 @@ void MGSDeltaPlugin::hook_fire_fn() {
 	m_fire_hook_id = hook_fn(L"Class /Script/Gsr.GsrEquipController", L"Fire", on_get_fire, (void**)&m_fire_hook_fn);
 }
 
-void* MGSDeltaPlugin::on_get_fire_internal(uevr::API::UObject* equipcontroller, FGsrFireRequest* FireRequest) {
+void* MGSDeltaPlugin::on_get_fire_internal(uevr::API::UObject* equipController, FGsrFireRequest* FireRequest) {
 
 	Logger::DebugPrint("Function hooked\n");
 
+	g_plugin->weaponController.equipController = equipController;
 	g_plugin->cameraController.ToggleCameraWobblingController(false);
 
 	struct {
 		API::UObject* value{ nullptr };
 	} obj;
 
-	equipcontroller->call_function(L"GetCurrentWeapon", &obj);
+	equipController->call_function(L"GetCurrentWeapon", &obj);
 
 	auto weapon = obj.value;
 
@@ -149,7 +213,7 @@ void* MGSDeltaPlugin::on_get_fire_internal(uevr::API::UObject* equipcontroller, 
 
 
 	//Call original function with our replaced parameters
-	auto result = m_fire_hook_fn(equipcontroller, FireRequest);
+	auto result = m_fire_hook_fn(equipController, FireRequest);
 	//PLUGIN_LOG_ONCE("Result: 0x%p", result);
 
 	return result;
@@ -539,24 +603,8 @@ void MGSDeltaPlugin::test_engine(API::UGameEngine* engine) {
 
 void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
-
-	static bool once = true;
-
-	// Unit tests for the API basically.
-	if (once) {
-		once = false;
-
-		API::get()->log_info("Running once on pre engine tick");
-		API::get()->execute_command(L"stat fps");
-
-		API::FName test_name{ L"Left" };
-		std::string name_narrow{ std::wstring_convert<std::codecvt_utf8<wchar_t>>{}.to_bytes(test_name.to_string()) };
-		API::get()->log_info("Test FName: %s", name_narrow.c_str());
-
-		//print_all_objects();
-		//test_console_manager();
-		//test_engine(engine);
-	}
+	
+	weaponController.ProcessWeapon();
 
 	if (m_initialized) {
 		std::scoped_lock _{ m_imgui_mutex };

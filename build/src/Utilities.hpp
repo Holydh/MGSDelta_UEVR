@@ -48,6 +48,14 @@ public:
 		Utilities::FRotator outRotation;
 	};
 
+	struct ParameterWobbledAim
+	{
+		UEVR_Rotatord* wobblingDirection = new UEVR_Rotatord();
+		UEVR_Vector3d* wobblingTartgetPosition = new UEVR_Vector3d();
+		UEVR_Vector3d& TargetPosition;
+		UEVR_Vector3d& emitPosition;
+	};
+
 //Parameters taken from Dumper7 dump of the game. Padding allows to align with the size Unreal Engine expects for each parameters.
 #pragma pack(push, 1)
 	struct Parameter_K2_SetWorldOrRelativeLocation final
