@@ -6,10 +6,18 @@
 #include <windows.h>
 #include <array>
 
+#include "Logger.hpp"
+
 // Define the OriginalByte struct
 struct OriginalByte {
     uintptr_t address; // The memory address (offset)
     uint8_t value;     // The original byte value
+};
+
+struct Vector3Addresses {
+	uintptr_t x;
+	uintptr_t y;
+	uintptr_t z;
 };
 
 struct MemoryBlock {
@@ -32,18 +40,20 @@ struct MemoryBlock {
 class MemoryManager {
 private:
 	uintptr_t GetModuleBaseAddress(LPCTSTR moduleName);
-    void AdjustAddresses();
+	uintptr_t FindAddressFromPointerOffsets(uintptr_t baseAddress, const std::vector<unsigned int>& offsets);
+	void NopMemory(const std::vector<MemoryBlock>& memoryBlocks);
+	void RestoreMemory(const std::vector<MemoryBlock>& memoryBlocks);
 	uintptr_t baseAddressGameEXE = NULL;
 
 public:
-	std::array<uintptr_t, 3> AimPositionAddresses; // x, y, z
-
-	uintptr_t AimPositionXAddress = 0x53E2580;
+	Vector3Addresses AimPositionAddresses{0x53E2580, 0x0, 0x0}; // x, y, z
 
 	void InitMemoryManager();
-	void ToggleAimPositionMemoryInstructions(bool enableOriginalInstructions);
+	void ResolveAddresses();
 
-	bool AimPositionMemoryInstructionsNoped = true;
+
+	void ToggleAimPositionMemoryInstructions(bool enableOriginalInstructions);
+	bool AimPositionMemoryInstructionsNoped = false;
 
 	//void GetAllBytes();
 	//void WriteBytesToIniFile(const char* header, const std::vector<std::pair<uintptr_t, size_t>>& addresses);

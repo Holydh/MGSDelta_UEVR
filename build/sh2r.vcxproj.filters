@@ -58,6 +58,9 @@
     <ClCompile Include="WeaponController.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="MemoryManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\MGSDeltaPlugin.hpp">
@@ -139,6 +142,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="WeaponController.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryManager.hpp">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

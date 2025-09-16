@@ -29,6 +29,7 @@
 
 #include "CameraController.hpp"
 #include "WeaponController.hpp"
+#include "MemoryManager.hpp"
 #include "Logger.hpp"
 
 #define _CRT_SECURE_NO_WARNINGS 1
@@ -133,11 +134,12 @@ private:
     static bool mod_GetCurrentAimPitch_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
 
 public:
-    MGSDeltaPlugin() : cameraController(), weaponController() {};
+    MGSDeltaPlugin() : cameraController(), weaponController(), memoryManager() {};
     virtual ~MGSDeltaPlugin();
 
     CameraController cameraController;
 	WeaponController weaponController;
+	MemoryManager memoryManager;
 
     void on_initialize() override;
     //void on_dllmain(HMODULE hmod) override;
