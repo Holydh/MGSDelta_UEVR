@@ -39,74 +39,103 @@ void MGSDeltaPlugin::on_initialize() {
 	}
 	Logger::DebugPrint("Hello, console!\n");
 	hook_fire_fn();
-	//hook_bp_fn(L"Class /Script/Gsr.GsrWobblingController", L"UpdateCameraRecoil", (UEVR_UFunction_NativePostFn)mod_update_camera_recoil_pre, NULL, true);
-
+	//hook_bp_fn(L"Class /Script/Gsr.GsrPlayerActionCore", L"SetAimDirection", (UEVR_UFunction_NativePostFn)mod_GetCurrentAimPitch_post, NULL, true, false);
+	//hook_get_current_aim_pitch_fn();
 	weaponController.Initialize();
 }
 
-	//bool MGSDeltaPlugin::mod_update_camera_recoil_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
- //  {
- //      Logger::DebugPrint("In mod_update_camera_recoil_pre");
- //      /*if (obj != nullptr)
- //      {
- //          const auto objname = obj->get_full_name();
- //         API::get()->log_info("mod_onfire_post - Current Weapon: %ls", objname.c_str());
- //      }
 
- //      if (locals != nullptr)
- //      {
-	//		makeFireRequest_params* params = (makeFireRequest_params*)locals;
-	//		API::get()->log_info("%s", "Params:");
-	//		params->AimPosition = new UEVR_Vector3d(0.0, 90.0, 180.0);
- //          API::get()->log_info("%f", params->AimPosition->x);
- //          API::get()->log_info("%f", params->AimPosition->y);
- //          API::get()->log_info("%f", params->AimPosition->z);
- //      }
- //      else
- //      {
-	//		API::get()->log_info("mod_onfire_post - locals is null");
- //      }
 
- //      API::get()->log_info("mod_onfire_post returning false");*/
-	//	return false;
- //  }
-	//bool MGSDeltaPlugin::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native)
+bool MGSDeltaPlugin::mod_GetCurrentAimPitch_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+
+	Logger::DebugPrint("fuck ye");
+   //Logger::DebugPrint("In mod_GetCurrentAimPitch_post");
+   //if (obj != nullptr)
+   //{
+   //    const auto objname = obj->get_full_name();
+   //   API::get()->log_info("mod_GetCurrentAimPitch_post - Current Weapon: %ls", objname.c_str());
+   //}
+
+	//if (locals != nullptr)
 	//{
-	//	API::get()->log_info("Entering hook_bp_fn");
-	//	auto obj = (API::UClass*)API::get()->find_uobject(class_name);
-
-	//	if (obj == nullptr) {
-	//		API::get()->log_info("Failed to find %ls", class_name.data());
-	//		return false;
-	//	}
-
-	//	auto fn = obj->find_function(fn_name);
-
-	//	if (fn == nullptr) {
-	//		API::get()->log_info("Failed to find %ls", fn_name.data());
-	//		return false;
-	//	}
-
-	//	API::get()->log_info("getting function flags");
-	//	uint32_t flags = fn->get_function_flags();
-
-	//	if (use_native)
-	//	{
-	//		flags = flags | 0x400;
-	//	}
-	//	else
-	//	{
-	//		flags = flags & ~0x400;
-	//	}
-
-	//	API::get()->log_info("Setting function flags to 0x%08x", flags);
-	//	fn->set_function_flags(flags);
-
-	//	API::get()->log_info("Calling hook_ptr for %ls", fn_name.data());
-	//	return API::get()->param()->sdk->ufunction->hook_ptr((UEVR_UFunctionHandle)fn, pre, post);
+	//	/*		struct Test {
+	//				Utilities::FRotator ReturnValue;
+	//			};*/
+	//	Utilities::PlayerCameraManager_BlueprintUpdateCamera* params = (Utilities::PlayerCameraManager_BlueprintUpdateCamera*)locals;
+	//	params->NewCameraRotation.pitch = 170.0f;
+	//	Logger::DebugPrint("%f", params->NewCameraRotation.pitch);
+	//	//Logger::DebugPrint("pitch : %f"/*," roll : %f"," yaw : %f"*/, params->pitch/*, params->ReturnValue.roll, params->ReturnValue.yaw*/);
+	//}
+	//else
+	//{
+	//	API::get()->log_info("mod_GetCurrentAimPitch_post - locals is null");
 	//}
 
-int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* destination, void** original) {
+	//API::get()->log_info("mod_GetCurrentAimPitch_post returning false");
+	return false;
+}
+
+bool MGSDeltaPlugin::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native, bool findRealCall)
+{
+	Logger::DebugPrint("Entering hook_bp_fn");
+	auto obj = (API::UClass*)API::get()->find_uobject(class_name);
+
+	if (obj == nullptr) {
+		Logger::DebugPrint("Failed to find %ls", class_name.data());
+		return false;
+	}
+
+	auto fn = obj->find_function(fn_name);
+
+	if (fn == nullptr) {
+		Logger::DebugPrint("Failed to find %ls", fn_name.data());
+		return false;
+	}
+
+	Logger::DebugPrint("getting function flags");
+	uint32_t flags = fn->get_function_flags();
+
+	if (use_native)
+	{
+		flags = flags | 0x400;
+	}
+	else
+	{
+		flags = flags & ~0x400;
+	}
+
+	Logger::DebugPrint("Setting function flags to 0x%08x", flags);
+	fn->set_function_flags(flags);
+
+	if (!findRealCall)
+	{
+		Logger::DebugPrint("Calling hook_ptr for %ls", fn_name.data());
+		return API::get()->param()->sdk->ufunction->hook_ptr((UEVR_UFunctionHandle)fn, pre, post);
+	}
+
+	auto native = fn->get_native_function();
+
+	auto insn = utility::scan_disasm((uintptr_t)native, 0x1000, "E8 ? ? ? ?");
+
+	if (!insn) {
+		PLUGIN_LOG_ONCE_ERROR("Failed to find the instruction");
+		Logger::DebugPrint("Not found");
+		return -1;
+	}
+
+	uintptr_t insn_val = insn.value();
+
+	auto relative_offset = *(int32_t*)(insn_val + 1);
+
+	uintptr_t function_address = (insn_val + 5) + relative_offset;
+
+	Logger::DebugPrint("Calling hook_ptr for %ls", fn_name.data());
+	return API::get()->param()->sdk->ufunction->hook_ptr((UEVR_UFunctionHandle)function_address, pre, post);
+}
+
+
+int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* destination, void** original, bool findRealCall) {
 	auto obj = (API::UClass*)API::get()->find_uobject(class_name);
 
 	if (obj == nullptr) {
@@ -130,6 +159,10 @@ int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* d
 
 	Logger::DebugPrint("%ls native: 0x%p", fn_name.data(), native);
 
+	if (!findRealCall){
+		return API::get()->param()->functions->register_inline_hook((void*)native, (void*)destination, original);
+	}
+
 	auto insn = utility::scan_disasm((uintptr_t)native, 0x1000, "E8 ? ? ? ?");
 
 	if (!insn) {
@@ -145,12 +178,32 @@ int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* d
 	uintptr_t function_address = (insn_val + 5) + relative_offset;
 
 	Logger::DebugPrint("Function address: 0x%p\n", (void*)function_address);
-
 	return API::get()->param()->functions->register_inline_hook((void*)function_address, (void*)destination, original);
 }
+//
+//void MGSDeltaPlugin::hook_get_current_aim_pitch_fn() {
+//	m_GetCurrectAimPitch_hook_id = hook_fn(
+//		L"Class /Script/Cobra.CobraPlayerCameraManager", 
+//		L"BlueprintUpdateCamera", 
+//		on_get_current_aim_pitch, 
+//		(void**)&m_GetCurrentAimPitch_hook_fn, 
+//		true);
+//}
+//
+//void MGSDeltaPlugin::on_get_current_aim_pitch_internal(uevr::API::UObject* self/*, Utilities::FRotator* rotation*/) {
+//	Logger::DebugPrint("Function hooked\n");
+//	//Logger::DebugPrint("%f", rotation->pitch);
+//	/*auto result = *//*m_GetCurrentAimPitch_hook_fn(self, rotation);*/
+//	//return result;
+//}
 
 void MGSDeltaPlugin::hook_fire_fn() {
-	m_fire_hook_id = hook_fn(L"Class /Script/Gsr.GsrEquipController", L"Fire", on_get_fire, (void**)&m_fire_hook_fn);
+	m_fire_hook_id = hook_fn(
+		L"Class /Script/Gsr.GsrEquipController", 
+		L"Fire", 
+		on_get_fire, 
+		(void**)&m_fire_hook_fn, 
+		true);
 }
 
 void* MGSDeltaPlugin::on_get_fire_internal(uevr::API::UObject* equipController, FGsrFireRequest* FireRequest) {
@@ -668,6 +721,18 @@ void MGSDeltaPlugin::on_pre_viewport_client_draw(UEVR_UGameViewportClientHandle 
 
 void MGSDeltaPlugin::on_post_viewport_client_draw(UEVR_UGameViewportClientHandle viewport_client, UEVR_FViewportHandle viewport, UEVR_FCanvasHandle canvas) {
 	PLUGIN_LOG_ONCE("Post Viewport Client Draw");
+}
+
+void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, XINPUT_STATE* state)
+{
+	PLUGIN_LOG_ONCE("XInput Get State");
+	//if (state->Gamepad.sThumbRY != 0.0)
+	//	state->Gamepad.sThumbRY = 0;
+}
+
+void MGSDeltaPlugin::on_xinput_set_state(uint32_t* retval, uint32_t user_index, XINPUT_VIBRATION* vibration)
+{
+	PLUGIN_LOG_ONCE("XInput Set State");
 }
 
 bool MGSDeltaPlugin::initialize_imgui() {

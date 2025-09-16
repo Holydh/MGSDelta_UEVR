@@ -111,12 +111,26 @@ private:
     using FireFn = void*(*)(uevr::API::UObject*, FGsrFireRequest*);
     inline static FireFn m_fire_hook_fn{};
 
-    bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native);
-    static bool mod_update_camera_recoil_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+
     //bool m_update_camera_recoil_hooked{false};
     //int32_t m_update_camera_recoil_hook_id{};
     //using UpdateCameraRecoilFn = void*(*)(float*);
     //inline static UpdateCameraRecoilFn m_update_camera_recoil_hook_fn{};
+
+    //inline hook:
+    //void hook_get_current_aim_pitch_fn();
+    //static void on_get_current_aim_pitch_internal(uevr::API::UObject* self/*, Utilities::FRotator* rotation*/);
+    //static void on_get_current_aim_pitch(uevr::API::UObject* self/*, Utilities::FRotator* rotation*/){
+    //    return on_get_current_aim_pitch_internal(self/*, rotation*/);
+    //};
+    //bool m_GetCurrectAimPitch_hooked{false};
+    //int32_t m_GetCurrectAimPitch_hook_id{};
+    //using GetCurrentAimPitchFn = void(*)(uevr::API::UObject*, Utilities::FRotator*);
+    //inline static GetCurrentAimPitchFn m_GetCurrentAimPitch_hook_fn{};
+
+    // Standard hook :
+    bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native, bool findRealCall);
+    static bool mod_GetCurrentAimPitch_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
 
 public:
     MGSDeltaPlugin() : cameraController(), weaponController() {};
@@ -151,4 +165,7 @@ public:
         UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double);
     void on_pre_viewport_client_draw(UEVR_UGameViewportClientHandle viewport_client, UEVR_FViewportHandle viewport, UEVR_FCanvasHandle canvas);
     void on_post_viewport_client_draw(UEVR_UGameViewportClientHandle viewport_client, UEVR_FViewportHandle viewport, UEVR_FCanvasHandle canvas);
+
+	void on_xinput_get_state(uint32_t* retval, uint32_t user_index, XINPUT_STATE* state) override;
+	void on_xinput_set_state(uint32_t* retval, uint32_t user_index, XINPUT_VIBRATION* vibration) override;
 };

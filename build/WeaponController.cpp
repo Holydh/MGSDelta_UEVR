@@ -174,7 +174,7 @@ void WeaponController::ApplyRecoil(float delta)
 
 	auto motionState = uevr::API::UObjectHook::get_motion_controller_state(WeaponHook);
 	
-	Logger::DebugPrint("%d", IsShooting);
+	//Logger::DebugPrint("%d", IsShooting);
 	if (IsShooting)
 	{
 		currentWeaponPosition += positionRecoilForce;

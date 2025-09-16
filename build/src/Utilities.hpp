@@ -24,9 +24,9 @@ public:
 		bool boolValue = false;
 	};
 
-	struct ParameterSingleVector3
+	struct ParameterSingleVector3d
 	{
-		glm::fvec3 vec3Value{};
+		UEVR_Vector3d vec3Value{};
 	};
 
 	struct ParameterGetSocketLocation
@@ -48,13 +48,26 @@ public:
 		Utilities::FRotator outRotation;
 	};
 
-	struct ParameterWobbledAim
-	{
-		UEVR_Rotatord* wobblingDirection = new UEVR_Rotatord();
-		UEVR_Vector3d* wobblingTartgetPosition = new UEVR_Vector3d();
-		UEVR_Vector3d& TargetPosition;
-		UEVR_Vector3d& emitPosition;
-	};
+	//struct ParameterWobbledAim
+	//{
+	//	UEVR_Rotatord* wobblingDirection = new UEVR_Rotatord();
+	//	UEVR_Vector3d* wobblingTartgetPosition = new UEVR_Vector3d();
+	//	UEVR_Vector3d& TargetPosition;
+	//	UEVR_Vector3d& emitPosition;
+	//};
+
+#pragma pack(push, 1)
+struct PlayerCameraManager_BlueprintUpdateCamera final
+{
+public:
+	class AActor*                                 CameraTarget;                                      // 0x0000(0x0008)(Parm, ZeroConstructor, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	UEVR_Vector3d                                NewCameraLocation;                                 // 0x0008(0x0018)(Parm, OutParm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	UEVR_Rotatord                               NewCameraRotation;                                 // 0x0020(0x0018)(Parm, OutParm, ZeroConstructor, IsPlainOldData, NoDestructor, NativeAccessSpecifierPublic)
+	float                                         NewCameraFOV;                                      // 0x0038(0x0004)(Parm, OutParm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	bool                                          ReturnValue;                                       // 0x003C(0x0001)(Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uint8_t                                         Pad_3D[0x3];                                       // 0x003D(0x0003)(Fixing Struct Size After Last Property [ Dumper-7 ])
+};
+#pragma pack(pop)
 
 //Parameters taken from Dumper7 dump of the game. Padding allows to align with the size Unreal Engine expects for each parameters.
 #pragma pack(push, 1)
