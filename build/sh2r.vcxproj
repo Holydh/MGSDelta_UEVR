@@ -330,6 +330,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="HookManager.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="src\CameraController.cpp" />
     <ClCompile Include="src\ImguiMenu.cpp" />
@@ -350,6 +351,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="src\renderlib\UEVR_IMGUI\imgui_impl_win32.cpp" />
     <ClCompile Include="src\Utilities.cpp" />
     <ClCompile Include="WeaponController.cpp" />
+    <ClInclude Include="HookManager.hpp" />
     <ClInclude Include="MemoryManager.hpp" />
     <ClInclude Include="src\CameraController.hpp" />
     <ClInclude Include="src\Globals.hpp" />

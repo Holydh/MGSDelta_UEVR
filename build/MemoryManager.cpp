@@ -38,8 +38,7 @@ void MemoryManager::ResolveAddresses()
 
 void MemoryManager::ToggleAimPositionMemoryInstructions(bool enableOriginalInstructions)
 {
-	Logger::DebugPrint("ToggleAimPositionMemoryInstructions called. enableOriginal=%d, noped=%d",
-    enableOriginalInstructions, AimPositionMemoryInstructionsNoped);
+	//Logger::DebugPrint("ToggleAimPositionMemoryInstructions called. enableOriginal=%d, noped=%d",enableOriginalInstructions, AimPositionMemoryInstructionsNoped);
 	if (!enableOriginalInstructions && !AimPositionMemoryInstructionsNoped)
 	{
 		NopMemory(aimPositionInstructionsAddresses);
