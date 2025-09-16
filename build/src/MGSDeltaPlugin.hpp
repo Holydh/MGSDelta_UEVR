@@ -1,8 +1,6 @@
 #pragma once
 
-
-
-#include <memory>
+//#include <memory>
 #include "uevr/API.hpp"
 #include "uevr/Plugin.hpp"
 
@@ -16,7 +14,7 @@
 #include "renderlib/rendering/d3d12.hpp"
 #include "renderlib/imgui/imgui.h"
 
-#include <codecvt>
+//#include <codecvt>
 
 #include "CameraController.hpp"
 #include "WeaponController.hpp"
@@ -25,9 +23,6 @@
 #include "Logger.hpp"
 
 #define _CRT_SECURE_NO_WARNINGS 1
-
-
-
 
 // Global accessor for our plugin.
 class MGSDeltaPlugin;

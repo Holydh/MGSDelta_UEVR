@@ -1,15 +1,9 @@
 #pragma once
-#include <windows.h>
-#include <stdio.h>
-#include <string.h>
-#include <iostream>
 #include <fstream>
-#include <string>
-#include <filesystem>
 #include <utility/Scan.hpp>
-#include <utility/Module.hpp>
-#include <utility/String.hpp>
-#include <utility/PointerHook.hpp>
+//#include <utility/Module.hpp>
+//#include <utility/String.hpp>
+//#include <utility/PointerHook.hpp>
 
 #include "uevr/API.hpp"
 #include "Logger.hpp"
