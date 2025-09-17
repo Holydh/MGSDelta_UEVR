@@ -25,7 +25,7 @@ void MGSDeltaPlugin::on_detach(HMODULE hmod)
 void MGSDeltaPlugin::on_initialize() {
 	// Logs to the appdata UnrealVRMod log.txt file
 	API::get()->log_info("%s", "on_initialize");
-
+	Utilities::InitHelperClasses();
 	std::filesystem::path config_file = API::get()->get_persistent_dir() / "plugins" / "aimfix.txt";
 	std::filesystem::path debug_file = API::get()->get_persistent_dir() / "debug";
 
@@ -40,7 +40,7 @@ void MGSDeltaPlugin::on_initialize() {
 		freopen("CONOUT$", "w", stdout);
 	}
 	Logger::DebugPrint("Hello, console!\n");
-	hookManager.hook_fire_fn();
+	hookManager.HookFireFunction();
 	//hook_bp_fn(L"Class /Script/Gsr.GsrPlayerActionCore", L"SetAimDirection", (UEVR_UFunction_NativePostFn)mod_GetCurrentAimPitch_post, NULL, true, false);
 	//hook_get_current_aim_pitch_fn();
 	weaponController.Initialize();
@@ -492,6 +492,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
 	memoryManager.ResolveAddresses();
 	weaponController.ProcessWeapon(delta);
+	Logger::DebugPrint("BeforeProcessAimPosition");
+	weaponController.ProcessAimPosition();
 
 	if (m_initialized) {
 		std::scoped_lock _{ m_imgui_mutex };

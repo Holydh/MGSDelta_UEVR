@@ -49,88 +49,48 @@ int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* d
 	return uevr::API::get()->param()->functions->register_inline_hook((void*)function_address, (void*)destination, original);
 }
 
-void HookManager::hook_fire_fn() {
+void HookManager::HookFireFunction() {
 	m_fire_hook_id = hook_fn(
 		L"Class /Script/Gsr.GsrEquipController", 
 		L"Fire", 
-		on_get_fire, 
+		OnFire, 
 		(void**)&m_fire_hook_fn, 
 		true);
 }
 
-void* HookManager::on_get_fire_internal(uevr::API::UObject* equipController, FGsrFireRequest* FireRequest) {
+void* HookManager::OnFireModded(uevr::API::UObject* equipController, Utilities::FGsrFireRequest* FireRequest) {
 
 	Logger::DebugPrint("Function hooked\n");
+	auto result = m_fire_hook_fn(equipController, FireRequest);
+	//if (equipController != s_weaponController->EquipController)
+	//{
+	//	Logger::DebugPrint("Not the player equip controller. Do nothing");
+	//	return result;
+	//}
 
-	if (equipController != s_weaponController->EquipController)
-	{
-		Logger::DebugPrint("Not the player equip controller. Do nothing");
-	}
-	else
-	{
-		s_weaponController->IsShooting = true;
-		s_cameraController->ToggleCameraWobblingController(false);
+	//s_weaponController->IsShooting = true;
+	//s_cameraController->ToggleCameraWobblingController(false);
 
-		struct {
-			uevr::API::UObject* value{ nullptr };
-		} obj;
+	//if (s_weaponController->CurrentWeapon == nullptr)
+	//{
+	//	Logger::DebugPrint("Current weapon is null. Shot aborted");
+	//	return result;
+	//}
+	//	
+	//FireRequest->FirePosition.x = s_weaponController->FirePosition.x;
+	//FireRequest->FirePosition.y = s_weaponController->FirePosition.y;
+	//FireRequest->FirePosition.z = s_weaponController->FirePosition.z;
 
-		equipController->call_function(L"GetCurrentWeapon", &obj);
-
-		auto weapon = obj.value;
-
-		if (weapon != nullptr) {
-			const auto weapon_name = weapon->get_full_name();
-			//DebugPrint("Weapon: %ls\n", weapon_name.c_str());
-
-			auto root_component = weapon->get_property<uevr::API::UObject*>(L"RootComponent");
-			s_weaponController->CurrentWeapon = root_component;
-			if (root_component != nullptr) {
-				UEVR_Vector3d forward_params;
-
-				root_component->call_function(L"GetForwardVector", &forward_params);
-				//DebugPrint("Forward params: %f, %f, %f\n", forward_params.x, forward_params.y, forward_params.z);
-
-				FTransform muzzle_transform;
-
-				weapon->call_function(L"GetMuzzleTransform", &muzzle_transform);
-				auto location_params = muzzle_transform.Translation;
-				//DebugPrint("Location params: %f, %f, %f\n", location_params.x, location_params.y, location_params.z);
-
-				FireRequest->FirePosition.x = location_params.x;
-				FireRequest->FirePosition.y = location_params.y;
-				FireRequest->FirePosition.z = location_params.z;
-
-				float scaler = 8192.0;
-
-				RotateAngleAxis rotate_params;
-				static auto kismet_math_library_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.KismetMathLibrary");
-				static auto kismet_math_library = kismet_math_library_c->get_class_default_object();
-
-				rotate_params.InVect = forward_params;
-				rotate_params.AngleDeg = 90.0f;
-				root_component->call_function(L"GetUpVector", &rotate_params.Axis);
-				//DebugPrint("Up Vector: %f, %f, %f\n", rotate_params.Axis.x, rotate_params.Axis.y, rotate_params.Axis.z);
-
-				kismet_math_library->call_function(L"RotateAngleAxis", &rotate_params);
-				forward_params = rotate_params.Result;
-				//DebugPrint("Forward Params: %f, %f, %f\n", forward_params.x, forward_params.y, forward_params.z);
-
-				Logger::DebugPrint("Old Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
-				FireRequest->AimPosition.x = location_params.x + (forward_params.x * scaler);
-				FireRequest->AimPosition.y = location_params.y + (forward_params.y * scaler) - g_AimOffsetValueHorizontal;
-				FireRequest->AimPosition.z = location_params.z + (forward_params.z * scaler) - g_AimOffsetValueVertical;
-				Logger::DebugPrint("New Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
-			}
-		}
-	}
-
-
+	//Logger::DebugPrint("Old Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
+	//FireRequest->AimPosition.x = s_weaponController->AimPosition.x;
+	//FireRequest->AimPosition.y = s_weaponController->AimPosition.y;
+	//FireRequest->AimPosition.z = s_weaponController->AimPosition.z;
+	//Logger::DebugPrint("New Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
+	//
 
 	//Call original function with our replaced parameters
-	auto result = m_fire_hook_fn(equipController, FireRequest);
+	result = m_fire_hook_fn(equipController, FireRequest);
 	//PLUGIN_LOG_ONCE("Result: 0x%p", result);
-
 	return result;
 }
 

@@ -17,10 +17,10 @@ void WeaponController::Initialize()
 		Logger::DebugPrint("EquipController found");
 	}
 
-	defaultWeaponPosition = glm::dvec3(-3.4766197204589844, 1.9591338634490967, 2.8622045516967773);
-	defaultWeaponRotationEuler = glm::eulerAngles(glm::fquat(-0.5478599071502686, -0.03995904326438904, 0.8305291533470154, -0.09205403923988342));
-	currentWeaponPosition = defaultWeaponPosition;
-	currentWeaponRotationEuler = defaultWeaponRotationEuler;
+	DefaultWeaponPosition = glm::dvec3(-3.4766197204589844, 1.9591338634490967, 2.8622045516967773);
+	DefaultWeaponRotationEuler = glm::eulerAngles(glm::fquat(-0.5478599071502686, -0.03995904326438904, 0.8305291533470154, -0.09205403923988342));
+	CurrentWeaponPosition = DefaultWeaponPosition;
+	CurrentWeaponRotationEuler = DefaultWeaponRotationEuler;
 }
 
 void WeaponController::ProcessWeapon(float delta)
@@ -56,8 +56,8 @@ void WeaponController::ProcessWeapon(float delta)
 		Logger::DebugPrint(WeaponHook->get_full_name());
 
 		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(WeaponHook);
-		glm::dquat rotQuat = glm::dquat(defaultWeaponRotationEuler);
-		UEVR_Vector3f pos = { defaultWeaponPosition.x, defaultWeaponPosition.y, defaultWeaponPosition.z };
+		glm::dquat rotQuat = glm::dquat(DefaultWeaponRotationEuler);
+		UEVR_Vector3f pos = { DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z };
 		UEVR_Quaternionf rot = { rotQuat.w, rotQuat.x, rotQuat.y, rotQuat.z };
 		motionState->set_location_offset(&pos);
 		motionState->set_rotation_offset(&rot);
@@ -66,6 +66,34 @@ void WeaponController::ProcessWeapon(float delta)
 
 	//Apply recoil
 	ApplyRecoil(delta);
+}
+
+void WeaponController::ProcessAimPosition()
+{
+	//if (CurrentWeapon == nullptr)
+	//{
+	//	Logger::DebugPrint("No CurrentWeapon found");
+	//	return;
+	//}
+	//UEVR_Vector3d forward_params;
+	//CurrentWeapon->call_function(L"GetForwardVector", &forward_params);
+	//Utilities::FTransform muzzle_transform;
+	//CurrentWeapon->call_function(L"GetMuzzleTransform", &muzzle_transform);
+	//FirePosition = { muzzle_transform.Translation.x, muzzle_transform.Translation.y, muzzle_transform.Translation.z };
+	//float scaler = 8192.0;
+
+	//Utilities::RotateAngleAxis rotate_params;
+	//rotate_params.InVect = forward_params;
+	//rotate_params.AngleDeg = 90.0f;
+	//CurrentWeapon->call_function(L"GetUpVector", &rotate_params.Axis);
+	//Utilities::KismetMathLibrary->call_function(L"RotateAngleAxis", &rotate_params);
+	//forward_params = rotate_params.Result;
+	//AimPosition = { 
+	//	FirePosition.x + forward_params.x * scaler, 
+	//	FirePosition.y + forward_params.y * scaler - g_AimOffsetValueHorizontal, 
+	//	FirePosition.z + forward_params.z * scaler - g_AimOffsetValueVertical 
+	//};
+	Logger::DebugPrint("Hello");
 }
 
 void WeaponController::ApplyRecoil(float delta)
@@ -177,11 +205,11 @@ void WeaponController::ApplyRecoil(float delta)
 	//Logger::DebugPrint("%d", IsShooting);
 	if (IsShooting)
 	{
-		currentWeaponPosition += positionRecoilForce;
-		currentWeaponRotationEuler += rotationRecoilForceEuler;
+		CurrentWeaponPosition += positionRecoilForce;
+		CurrentWeaponRotationEuler += rotationRecoilForceEuler;
 
-		glm::dquat rotQuat = glm::dquat(currentWeaponRotationEuler);
-		UEVR_Vector3f pos = { currentWeaponPosition.x, currentWeaponPosition.y, currentWeaponPosition.z };
+		glm::dquat rotQuat = glm::dquat(CurrentWeaponRotationEuler);
+		UEVR_Vector3f pos = { CurrentWeaponPosition.x, CurrentWeaponPosition.y, CurrentWeaponPosition.z };
 		UEVR_Quaternionf rot = { rotQuat.w, rotQuat.x, rotQuat.y, rotQuat.z };
 
 		motionState->set_location_offset(&pos);
@@ -192,14 +220,14 @@ void WeaponController::ApplyRecoil(float delta)
 	else
 	{
 		// Smoothly return position to base
-		currentWeaponPosition = glm::mix(currentWeaponPosition, defaultWeaponPosition, delta * recoilPositionRecoverySpeed);
+		CurrentWeaponPosition = glm::mix(CurrentWeaponPosition, DefaultWeaponPosition, delta * recoilPositionRecoverySpeed);
 
-		glm::fquat currentQuat = glm::fquat(currentWeaponRotationEuler);
-		glm::fquat targetQuat = glm::fquat(defaultWeaponRotationEuler);
+		glm::fquat currentQuat = glm::fquat(CurrentWeaponRotationEuler);
+		glm::fquat targetQuat = glm::fquat(DefaultWeaponRotationEuler);
 		glm::fquat smoothedQuat = glm::slerp(currentQuat, targetQuat, delta * recoilRotationRecoverySpeed);
-		currentWeaponRotationEuler = glm::eulerAngles(smoothedQuat);
+		CurrentWeaponRotationEuler = glm::eulerAngles(smoothedQuat);
 
-		UEVR_Vector3f pos = { currentWeaponPosition.x, currentWeaponPosition.y, currentWeaponPosition.z };
+		UEVR_Vector3f pos = { CurrentWeaponPosition.x, CurrentWeaponPosition.y, CurrentWeaponPosition.z };
 		UEVR_Quaternionf rot = { smoothedQuat.w, smoothedQuat.x, smoothedQuat.y, smoothedQuat.z };
 
 		motionState->set_location_offset(&pos);

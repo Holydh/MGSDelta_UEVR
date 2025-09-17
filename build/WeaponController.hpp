@@ -11,15 +11,18 @@ private:
 	void ApplyRecoil(float delta);
 	float RandomRange(float min, float max);
 public:
-	bool IsShooting;
-	uevr::API::UObject* EquipController;
-	uevr::API::UObject* CurrentWeapon;
-	uevr::API::UObject* WeaponHook;
+	bool IsShooting = false;
+	uevr::API::UObject* EquipController = nullptr;
+	uevr::API::UObject* CurrentWeapon = nullptr;;
+	uevr::API::UObject* WeaponHook = nullptr;;
 
-	glm::dvec3 defaultWeaponRotationEuler;
-	glm::dvec3 currentWeaponRotationEuler;
-	glm::dvec3 defaultWeaponPosition;
-	glm::dvec3 currentWeaponPosition;
+	glm::dvec3 DefaultWeaponRotationEuler{0,0,0};
+	glm::dvec3 CurrentWeaponRotationEuler{0,0,0};
+	glm::dvec3 DefaultWeaponPosition{0,0,0};
+	glm::dvec3 CurrentWeaponPosition{0,0,0};
+
+	glm::dvec3 FirePosition{0,0,0};
+	glm::dvec3 AimPosition{0,0,0};
 
 
 	enum EGsrEquipId : uint8_t
@@ -268,4 +271,5 @@ public:
 
 	void Initialize();
 	void ProcessWeapon(float delta);
+	void ProcessAimPosition();
 };
