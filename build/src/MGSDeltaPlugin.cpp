@@ -3,7 +3,7 @@
 using namespace uevr;
 
 #define MAX_DEBUG_MESSAGE_SIZE 2048
-bool g_DebugEnabled = false;
+bool g_DebugEnabled = true;
 float g_AimOffsetValueVertical = 0;
 float g_AimOffsetValueHorizontal = 0;
 
@@ -496,11 +496,11 @@ void MGSDeltaPlugin::test_engine(API::UGameEngine* engine) {
 
 void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
-	//memoryManager.ResolveAddresses();
-	//weaponController.ProcessWeapon(delta);
+	memoryManager.ResolveAddresses();
+	weaponController.ProcessWeapon(delta);
 	//Logger::DebugPrint("BeforeProcessAimPosition");
-	//weaponController.ProcessAimPosition();
-	//Logger::DebugPrint("m_initialized : %d", m_initialized);
+	weaponController.FetchWeaponMeshAimData();
+
 	if (m_initialized) {
 		std::scoped_lock _{ m_imgui_mutex };
 

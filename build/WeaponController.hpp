@@ -271,5 +271,6 @@ public:
 
 	void Initialize();
 	void ProcessWeapon(float delta);
-	void ProcessAimPosition();
+	void FetchWeaponMeshAimData();
+	void ApplyAimDataToMemory();
 };

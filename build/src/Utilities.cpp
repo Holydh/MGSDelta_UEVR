@@ -11,8 +11,8 @@ void Utilities::InitHelperClasses()
 		return;
 	}
 	KismetMathLibrary = kismetMathLibrary_c->get_class_default_object();
-	uevr::API::get()->log_info("KismetMathLibrary: %p", KismetMathLibrary);
-	Logger::DebugPrint("KismethMathLibraryFound");
+	//uevr::API::get()->log_info("KismetMathLibrary: %p", KismetMathLibrary);
+	//Logger::DebugPrint("%s", "KismethMathLibraryFound");
 }
 
 //glm::fvec3 Utilities::OffsetLocalPositionFromWorld(glm::fvec3 worldPosition, glm::fvec3 forwardVector, glm::fvec3 upVector, glm::fvec3 rightVector, glm::fvec3 offsets)

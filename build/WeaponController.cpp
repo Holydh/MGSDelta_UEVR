@@ -68,32 +68,41 @@ void WeaponController::ProcessWeapon(float delta)
 	ApplyRecoil(delta);
 }
 
-void WeaponController::ProcessAimPosition()
+void WeaponController::FetchWeaponMeshAimData()
 {
-	//if (CurrentWeapon == nullptr)
-	//{
-	//	Logger::DebugPrint("No CurrentWeapon found");
-	//	return;
-	//}
-	//UEVR_Vector3d forward_params;
-	//CurrentWeapon->call_function(L"GetForwardVector", &forward_params);
-	//Utilities::FTransform muzzle_transform;
-	//CurrentWeapon->call_function(L"GetMuzzleTransform", &muzzle_transform);
-	//FirePosition = { muzzle_transform.Translation.x, muzzle_transform.Translation.y, muzzle_transform.Translation.z };
-	//float scaler = 8192.0;
+	if (CurrentWeapon == nullptr)
+	{
+		Logger::DebugPrint("No CurrentWeapon found");
+		return;
+	}
+	auto root_component = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootComponent");
+	if (root_component != nullptr)
+	{
+		UEVR_Vector3d forward_params;
+		root_component->call_function(L"GetForwardVector", &forward_params);
+		//Logger::DebugPrint("ForwardVector.x : %f, ForwardVector.y : %f, ForwardVector.z : %f", forward_params.x, forward_params.y, forward_params.z);
+		Utilities::FTransform muzzle_transform;
+		root_component->call_function(L"GetMuzzleTransform", &muzzle_transform);
+		//Logger::DebugPrint("FirePosition.x : %f, FirePosition.y : %f, FirePosition.z : %f", muzzle_transform.Translation.x, muzzle_transform.Translation.y, muzzle_transform.Translation.z);
+		float scaler = 8192.0;
+		Utilities::RotateAngleAxis rotate_params;
+		rotate_params.InVect = forward_params;
+		rotate_params.AngleDeg = 90.0f;
+		root_component->call_function(L"GetUpVector", &rotate_params.Axis);
+		Utilities::KismetMathLibrary->call_function(L"RotateAngleAxis", &rotate_params);
+		forward_params = rotate_params.Result;
+		AimPosition = { 
+			FirePosition.x + forward_params.x * scaler, 
+			FirePosition.y + forward_params.y * scaler - g_AimOffsetValueHorizontal, 
+			FirePosition.z + forward_params.z * scaler - g_AimOffsetValueVertical 
+		};
+		//Logger::DebugPrint("AimPosition.x : %f, AimPosition.y : %f, AimPosition.z : %f", AimPosition.x, AimPosition.y, AimPosition.z);
+	}
+}
 
-	//Utilities::RotateAngleAxis rotate_params;
-	//rotate_params.InVect = forward_params;
-	//rotate_params.AngleDeg = 90.0f;
-	//CurrentWeapon->call_function(L"GetUpVector", &rotate_params.Axis);
-	//Utilities::KismetMathLibrary->call_function(L"RotateAngleAxis", &rotate_params);
-	//forward_params = rotate_params.Result;
-	//AimPosition = { 
-	//	FirePosition.x + forward_params.x * scaler, 
-	//	FirePosition.y + forward_params.y * scaler - g_AimOffsetValueHorizontal, 
-	//	FirePosition.z + forward_params.z * scaler - g_AimOffsetValueVertical 
-	//};
-	Logger::DebugPrint("Hello");
+void WeaponController::ApplyAimDataToMemory()
+{
+
 }
 
 void WeaponController::ApplyRecoil(float delta)
