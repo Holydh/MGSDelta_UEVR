@@ -1,5 +1,13 @@
 #pragma once
 
+#include <windows.h>
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <filesystem>
+
 //#include <memory>
 #include "uevr/API.hpp"
 #include "uevr/Plugin.hpp"
@@ -34,7 +42,7 @@ private:
     void internal_frame();
 
     HWND m_wnd;
-    bool m_initialized;
+    bool m_initialized = false;
     bool m_was_rendering_desktop;
     
     std::recursive_mutex m_imgui_mutex;
@@ -59,8 +67,8 @@ private:
     //inline static GetCurrentAimPitchFn m_GetCurrentAimPitch_hook_fn{};
 
     // Standard hook :
-    bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native, bool findRealCall);
-    static bool mod_GetCurrentAimPitch_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    //bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native, bool findRealCall);
+    //static bool mod_GetCurrentAimPitch_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
 
 public:
     MGSDeltaPlugin();

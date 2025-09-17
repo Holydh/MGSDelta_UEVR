@@ -160,8 +160,9 @@ void MGSDeltaPlugin::on_initialize() {
 
 
 void MGSDeltaPlugin::on_present() {
+	if (!imguiEnabled)
+		return;
 	std::scoped_lock _{ m_imgui_mutex };
-
 	if (!m_initialized) {
 		if (!initialize_imgui()) {
 			API::get()->log_info("Failed to initialize imgui");
@@ -259,6 +260,9 @@ void MGSDeltaPlugin::on_post_render_vr_framework_dx11(ID3D11DeviceContext* conte
 
 void MGSDeltaPlugin::on_post_render_vr_framework_dx12(ID3D12GraphicsCommandList* command_list, ID3D12Resource* rt, D3D12_CPU_DESCRIPTOR_HANDLE* rtv) {
 	PLUGIN_LOG_ONCE("Post Render VR Framework DX12");
+	
+	if (!imguiEnabled)
+		return;
 
 	const auto vr_active = API::get()->param()->vr->is_hmd_active();
 
@@ -279,6 +283,8 @@ void MGSDeltaPlugin::on_post_render_vr_framework_dx12(ID3D12GraphicsCommandList*
 }
 
 bool MGSDeltaPlugin::on_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+	if (!imguiEnabled)
+		return true;
 	ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
 
 	return !ImGui::GetIO().WantCaptureMouse && !ImGui::GetIO().WantCaptureKeyboard;
@@ -490,11 +496,11 @@ void MGSDeltaPlugin::test_engine(API::UGameEngine* engine) {
 
 void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
-	memoryManager.ResolveAddresses();
-	weaponController.ProcessWeapon(delta);
-	Logger::DebugPrint("BeforeProcessAimPosition");
-	weaponController.ProcessAimPosition();
-
+	//memoryManager.ResolveAddresses();
+	//weaponController.ProcessWeapon(delta);
+	//Logger::DebugPrint("BeforeProcessAimPosition");
+	//weaponController.ProcessAimPosition();
+	//Logger::DebugPrint("m_initialized : %d", m_initialized);
 	if (m_initialized) {
 		std::scoped_lock _{ m_imgui_mutex };
 
@@ -563,9 +569,6 @@ void MGSDeltaPlugin::on_xinput_set_state(uint32_t* retval, uint32_t user_index, 
 }
 
 bool MGSDeltaPlugin::initialize_imgui() {
-	if (!imguiEnabled)
-		return false;
-
 	if (m_initialized) {
 		return true;
 	}
