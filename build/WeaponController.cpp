@@ -99,10 +99,73 @@ void WeaponController::FetchWeaponMeshAimData()
 		root_component->call_function(L"GetUpVector", &rotate_params.Axis);
 		Utilities::KismetMathLibrary->call_function(L"RotateAngleAxis", &rotate_params);
 		forward_params = rotate_params.Result;
+
+		float aimOffsetValueHorizontal = 0.0f;
+		float aimOffsetValueVertical = 0.0f;
+		switch (CurrentWeaponEquippedID)
+		{
+		case WP_Mk22:
+			aimOffsetValueHorizontal = 150.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
+		case WP_Gove:
+			aimOffsetValueHorizontal = 150.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
+		case WP_EasyGun:
+			aimOffsetValueHorizontal = 0.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
+		case WP_SAArmy: //This one x is the z there for some reasons
+			aimOffsetValueHorizontal = 150.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
+		case WP_PatriotPostol:
+			aimOffsetValueHorizontal = 150.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
+		case WP_Scorpion:
+			aimOffsetValueHorizontal = 0.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
+		case WP_M16a1: // {forward,  up down, left right}
+			aimOffsetValueHorizontal = 150.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
+		case WP_Akm:
+			aimOffsetValueHorizontal = 150.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
+		case WP_M63:
+			aimOffsetValueHorizontal = 150.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
+		case WP_Ithaca:
+			aimOffsetValueHorizontal = -1000.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
+		case WP_Dragnov:
+			aimOffsetValueHorizontal = 150.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
+		case WP_MosinNagant:
+			aimOffsetValueHorizontal = 150.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
+		case WP_Rpg:
+			aimOffsetValueHorizontal = 150.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
+
+		default:
+			return;
+
+		}
+
 		AimPosition = { 
 			FirePosition.x + forward_params.x * scaler, 
-			FirePosition.y + forward_params.y * scaler - g_AimOffsetValueHorizontal, 
-			FirePosition.z + forward_params.z * scaler - g_AimOffsetValueVertical 
+			FirePosition.y + forward_params.y * scaler - aimOffsetValueHorizontal,
+			FirePosition.z + forward_params.z * scaler - aimOffsetValueVertical
 		};
 		//Logger::DebugPrint("AimPosition.x : %f, AimPosition.y : %f, AimPosition.z : %f", AimPosition.x, AimPosition.y, AimPosition.z);
 	}
@@ -185,35 +248,6 @@ void WeaponController::ApplyRecoil(float delta)
 		positionRecoilForce = { 5.0f, -0.005f, 0.0f };
 		rotationRecoilForceEuler = { -0.1f, 0.0f, 0.0f };
 		break;
-	//case RocketLauncher:
-	//	positionRecoilForce = { 0.0f, -0.005f, -3.0f };
-	//	rotationRecoilForceEuler = { -0.02f, 0.0f, 0.0f };
-	//	shootDetectionFromMemory = true;
-	//	break;
-	//case RocketLauncherHs : // RocketLauncherHeatSeek
-	//	positionRecoilForce = { 0.0f, -0.005f, -3.0f };
-	//	rotationRecoilForceEuler = { -0.02f, 0.0f, 0.0f };
-	//	shootDetectionFromMemory = true;
-	//	break;
-	//case Flamethrower:
-	//	positionRecoilForce = { -0.0f, 0.5f, -0.5f };
-	//	rotationRecoilForceEuler = { -0.0f, 0.0f, 0.0f };
-	//	break;
-	//case Minigun:	
-	//	//positionRecoilForce = { 0.0f, -0.005f, -5.0f };
-	//	//rotationRecoilForceEuler = { -0.3f, 0.0f, 0.0f };
-	//	positionRecoilForce = { 0.0f, -0.005f, -1.5f };
-	//	rotationRecoilForceEuler = { -0.01f, 0.0f, 0.0f };
-	//	break;
-	//case Detonator:
-	//	return;
-	//case SprayCan:
-	//	return;
-	//case Extinguisher:
-	//	return;
-	//case Camera:
-	//	HandleCameraWeaponAiming();
-	//	return;
 
 	default:
 		return;

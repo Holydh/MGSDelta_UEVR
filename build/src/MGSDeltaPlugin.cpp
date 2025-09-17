@@ -3,10 +3,10 @@
 using namespace uevr;
 
 #define MAX_DEBUG_MESSAGE_SIZE 2048
-bool g_DebugEnabled = true;
-float g_AimOffsetValueVertical = 0;
-float g_AimOffsetValueHorizontal = 0;
 
+//float g_AimOffsetValueVertical = 0;
+//float g_AimOffsetValueHorizontal = 0;
+bool g_DebugEnabled = true;
 bool imguiEnabled = false;
 
 
@@ -29,9 +29,8 @@ void MGSDeltaPlugin::on_initialize() {
 	std::filesystem::path config_file = API::get()->get_persistent_dir() / "plugins" / "aimfix.txt";
 	std::filesystem::path debug_file = API::get()->get_persistent_dir() / "debug";
 
-	hookManager.SetGunAdjustValuesFromConfig(config_file);
+	//hookManager.SetGunAdjustValuesFromConfig(config_file);
 	hookManager.Initialize();
-	API::get()->log_info("MGS3-AimFix.dll: using config file value for gun adjust v:%f h:%f", g_AimOffsetValueVertical, g_AimOffsetValueHorizontal);
 	// Check if the file exists
 	g_DebugEnabled = std::filesystem::exists(debug_file);
 

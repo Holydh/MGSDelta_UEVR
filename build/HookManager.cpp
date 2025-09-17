@@ -90,55 +90,55 @@ void HookManager::Initialize()
 	s_cameraController = cameraController;
 }
 
-void HookManager::SetGunAdjustValuesFromConfig(const std::filesystem::path& ConfigFile) {
-	// Check if the file exists
-	if (!std::filesystem::exists(ConfigFile)) {
-		g_AimOffsetValueVertical = 0.0f;
-		g_AimOffsetValueHorizontal = 0.0f;
-		return;
-	}
-
-	std::ifstream file(ConfigFile);
-	std::string line;
-
-	while (std::getline(file, line)) {
-		// Trim leading and trailing spaces
-		line.erase(0, line.find_first_not_of(" \t"));
-		line.erase(line.find_last_not_of(" \t") + 1);
-
-		// Skip comments and blank lines
-		if (line.empty() || line[0] == '#') {
-			continue;
-		}
-
-		// Look for the "GunAdjustV=" prefix
-		if (line.rfind("GunAdjustV=", 0) == 0) {
-			std::string value_str = line.substr(11); // Extract the value as a string
-			char* end_ptr = nullptr;
-			float value = std::strtof(value_str.c_str(), &end_ptr);
-
-			// Validate conversion
-			if (end_ptr != value_str.c_str() && *end_ptr == '\0') {
-				g_AimOffsetValueVertical = value; // Successfully parsed float
-			}
-			else {
-				g_AimOffsetValueVertical = 0.0f; // Invalid float
-			}
-		}
-
-		// Look for the "GunAdjustH=" prefix
-		if (line.rfind("GunAdjustH=", 0) == 0) {
-			std::string value_str = line.substr(11); // Extract the value as a string
-			char* end_ptr = nullptr;
-			float value = std::strtof(value_str.c_str(), &end_ptr);
-
-			// Validate conversion
-			if (end_ptr != value_str.c_str() && *end_ptr == '\0') {
-				g_AimOffsetValueHorizontal = value; // Successfully parsed float
-			}
-			else {
-				g_AimOffsetValueHorizontal = 0.0f; // Invalid float
-			}
-		}
-	}
-}
+//void HookManager::SetGunAdjustValuesFromConfig(const std::filesystem::path& ConfigFile) {
+//	// Check if the file exists
+//	if (!std::filesystem::exists(ConfigFile)) {
+//		g_AimOffsetValueVertical = 0.0f;
+//		g_AimOffsetValueHorizontal = 0.0f;
+//		return;
+//	}
+//
+//	std::ifstream file(ConfigFile);
+//	std::string line;
+//
+//	while (std::getline(file, line)) {
+//		// Trim leading and trailing spaces
+//		line.erase(0, line.find_first_not_of(" \t"));
+//		line.erase(line.find_last_not_of(" \t") + 1);
+//
+//		// Skip comments and blank lines
+//		if (line.empty() || line[0] == '#') {
+//			continue;
+//		}
+//
+//		// Look for the "GunAdjustV=" prefix
+//		if (line.rfind("GunAdjustV=", 0) == 0) {
+//			std::string value_str = line.substr(11); // Extract the value as a string
+//			char* end_ptr = nullptr;
+//			float value = std::strtof(value_str.c_str(), &end_ptr);
+//
+//			// Validate conversion
+//			if (end_ptr != value_str.c_str() && *end_ptr == '\0') {
+//				g_AimOffsetValueVertical = value; // Successfully parsed float
+//			}
+//			else {
+//				g_AimOffsetValueVertical = 0.0f; // Invalid float
+//			}
+//		}
+//
+//		// Look for the "GunAdjustH=" prefix
+//		if (line.rfind("GunAdjustH=", 0) == 0) {
+//			std::string value_str = line.substr(11); // Extract the value as a string
+//			char* end_ptr = nullptr;
+//			float value = std::strtof(value_str.c_str(), &end_ptr);
+//
+//			// Validate conversion
+//			if (end_ptr != value_str.c_str() && *end_ptr == '\0') {
+//				g_AimOffsetValueHorizontal = value; // Successfully parsed float
+//			}
+//			else {
+//				g_AimOffsetValueHorizontal = 0.0f; // Invalid float
+//			}
+//		}
+//	}
+//}

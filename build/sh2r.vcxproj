@@ -332,6 +332,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <ItemGroup>
     <ClCompile Include="HookManager.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
+    <ClCompile Include="SettingsManager.cpp" />
     <ClCompile Include="src\CameraController.cpp" />
     <ClCompile Include="src\ImguiMenu.cpp" />
     <ClCompile Include="src\Logger.cpp" />
@@ -353,6 +354,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="WeaponController.cpp" />
     <ClInclude Include="HookManager.hpp" />
     <ClInclude Include="MemoryManager.hpp" />
+    <ClInclude Include="SettingsManager.hpp" />
     <ClInclude Include="src\CameraController.hpp" />
     <ClInclude Include="src\Globals.hpp" />
     <ClInclude Include="src\ImguiMenu.hpp" />
