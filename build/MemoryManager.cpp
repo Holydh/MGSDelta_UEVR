@@ -8,7 +8,7 @@ std::vector<MemoryBlock> aimPositionInstructionsAddresses = {
 	{0x5DFDBD8, 8, 0xF20F118880030000},
 };
 
-std::vector<unsigned int> aimPositionXOffsets = { 0x143F3A10, 0xC8, 0x120, 0x570, 0x138, 0x58, 0x370 };
+std::vector<unsigned int> aimPositionXOffsets = { 0x0C7DE270, 0x10, 0x18, 0xE8, 0xA8, 0x98, 0x280, 0x370 };
 
 void MemoryManager::InitMemoryManager()
 {
@@ -84,7 +84,8 @@ void MemoryManager::RestoreMemory(const std::vector<MemoryBlock>& memoryBlocks) 
 //Finds address from pointer offsets found in cheat engine
 uintptr_t MemoryManager::FindAddressFromPointerOffsets(uintptr_t baseAddress, const std::vector<unsigned int>& offsets) {
 	uintptr_t addr = baseAddress + offsets[0]; //first offset is already an offset. No need to dereference the pointer here.
-	
+		//Logger::DebugPrint("addr 0x%p", addr);
+
 	for (size_t i = 1; i < offsets.size(); ++i) {
 		if (addr == 0) {
 			// If at any point the address is invalid, return 0
@@ -92,12 +93,13 @@ uintptr_t MemoryManager::FindAddressFromPointerOffsets(uintptr_t baseAddress, co
 			return 0;
 		}
 		//Logger::DebugPrint("Found address from pointer offsets %d : 0x%p", i, (void*)addr);
-		// 
+		
 		// Dereference the pointer
 		addr = *reinterpret_cast<uintptr_t*>(addr);
 
 		// Add the offset
 		addr += offsets[i];
 	}
+	//Logger::DebugPrint("Found address from pointer offsets 0x%p",addr);
 	return addr;
 }

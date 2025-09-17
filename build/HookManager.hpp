@@ -28,7 +28,7 @@ private:
     inline static FireFn m_fire_hook_fn{};
 public:
     HookManager(WeaponController* wp, CameraController* cc) : weaponController(wp), cameraController(cc) {};
-    void Init();
+    void Initialize();
     void SetGunAdjustValuesFromConfig(const std::filesystem::path& ConfigFile);
     void HookFireFunction();
 };

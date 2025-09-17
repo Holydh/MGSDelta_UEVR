@@ -2,25 +2,27 @@
 
 void WeaponController::Initialize()
 {
-	static auto pawn = uevr::API::get()->get_local_pawn(0);
+	FetchEquipController();
+	DefaultWeaponPosition = glm::dvec3(-3.4766197204589844, 1.9591338634490967, 2.8622045516967773);
+	DefaultWeaponRotationEuler = glm::eulerAngles(glm::fquat(-0.5478599071502686, -0.03995904326438904, 0.8305291533470154, -0.09205403923988342));
+	CurrentWeaponPosition = DefaultWeaponPosition;
+	CurrentWeaponRotationEuler = DefaultWeaponRotationEuler;
+}
+
+void WeaponController::FetchEquipController()
+{
+	auto pawn = uevr::API::get()->get_local_pawn(0);
 	struct ParameterEquipController {
 		uevr::API::UObject* ReturnValue;
 	}params;
 	pawn->call_function(L"GetEquipControllerBP", &params);
 	EquipController = params.ReturnValue;
+	//Logger::DebugPrint("Fetch : ");
+	//Logger::DebugPrint(EquipController->get_full_name());
 	if (EquipController == NULL)
 	{
 		Logger::DebugPrint("No equipController found");
 	}
-	else
-	{
-		Logger::DebugPrint("EquipController found");
-	}
-
-	DefaultWeaponPosition = glm::dvec3(-3.4766197204589844, 1.9591338634490967, 2.8622045516967773);
-	DefaultWeaponRotationEuler = glm::eulerAngles(glm::fquat(-0.5478599071502686, -0.03995904326438904, 0.8305291533470154, -0.09205403923988342));
-	CurrentWeaponPosition = DefaultWeaponPosition;
-	CurrentWeaponRotationEuler = DefaultWeaponRotationEuler;
 }
 
 void WeaponController::ProcessWeapon(float delta)
@@ -42,15 +44,18 @@ void WeaponController::ProcessWeapon(float delta)
 	{
 		CurrentWeaponEquippedID = params.ReturnValue;
 		Logger::DebugPrint("Weapon changed. New Weapon ID : %d", CurrentWeaponEquippedID);
-		struct ParameterCurrentWeapon {
-			uevr::API::UObject* ReturnValue;
-		}params1;
-		EquipController->call_function(L"GetCurrentWeapon", &params1);
+	}
+
+	struct ParameterCurrentWeapon {
+		uevr::API::UObject* ReturnValue;
+	}params1;
+	EquipController->call_function(L"GetCurrentWeapon", &params1);
+
+	if (CurrentWeapon != params1.ReturnValue)
+	{
 		CurrentWeapon = params1.ReturnValue;
-
-		if (CurrentWeapon == NULL) return;
+		Logger::DebugPrint("Updating Current weapon ptr");
 		Logger::DebugPrint(CurrentWeapon->get_full_name());
-
 		WeaponHook = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootSceneComponent");
 		if (WeaponHook == NULL) return;
 		Logger::DebugPrint(WeaponHook->get_full_name());
@@ -63,19 +68,22 @@ void WeaponController::ProcessWeapon(float delta)
 		motionState->set_rotation_offset(&rot);
 		motionState->set_permanent(true);
 	}
-
+	
 	//Apply recoil
-	ApplyRecoil(delta);
+	if (CurrentWeapon != NULL)
+		ApplyRecoil(delta);
 }
 
 void WeaponController::FetchWeaponMeshAimData()
 {
+	//Logger::DebugPrint(CurrentWeapon->get_full_name());
 	if (CurrentWeapon == nullptr)
 	{
 		Logger::DebugPrint("No CurrentWeapon found");
 		return;
 	}
 	auto root_component = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootComponent");
+	//Logger::DebugPrint(root_component->get_full_name());
 	if (root_component != nullptr)
 	{
 		UEVR_Vector3d forward_params;
@@ -102,7 +110,10 @@ void WeaponController::FetchWeaponMeshAimData()
 
 void WeaponController::ApplyAimDataToMemory()
 {
-
+	//Logger::DebugPrint("AimPosition.x : %f, AimPosition.y : %f, AimPosition.z : %f", AimPosition.x, AimPosition.y, AimPosition.z);
+	*(reinterpret_cast<double*>(memoryManager->AimPositionAddresses.x)) = AimPosition.x;
+	*(reinterpret_cast<double*>(memoryManager->AimPositionAddresses.y)) = AimPosition.y;
+	*(reinterpret_cast<double*>(memoryManager->AimPositionAddresses.z)) = AimPosition.z;
 }
 
 void WeaponController::ApplyRecoil(float delta)

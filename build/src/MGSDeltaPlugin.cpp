@@ -12,7 +12,7 @@ bool imguiEnabled = false;
 
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGSDeltaPlugin::MGSDeltaPlugin() : cameraController(), weaponController(), memoryManager(), 
+MGSDeltaPlugin::MGSDeltaPlugin() : cameraController(), weaponController(&memoryManager), memoryManager(), 
 hookManager(&weaponController, &cameraController) {}; //Constructor
 MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
 
@@ -30,7 +30,7 @@ void MGSDeltaPlugin::on_initialize() {
 	std::filesystem::path debug_file = API::get()->get_persistent_dir() / "debug";
 
 	hookManager.SetGunAdjustValuesFromConfig(config_file);
-	hookManager.Init();
+	hookManager.Initialize();
 	API::get()->log_info("MGS3-AimFix.dll: using config file value for gun adjust v:%f h:%f", g_AimOffsetValueVertical, g_AimOffsetValueHorizontal);
 	// Check if the file exists
 	g_DebugEnabled = std::filesystem::exists(debug_file);
@@ -496,10 +496,16 @@ void MGSDeltaPlugin::test_engine(API::UGameEngine* engine) {
 
 void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
+	//Logger::DebugPrint("Before ResolveAddresses");
 	memoryManager.ResolveAddresses();
+	//Logger::DebugPrint("Before FetchEquipController");
+	weaponController.FetchEquipController();
+	//Logger::DebugPrint("Before ProcessWeapon");
 	weaponController.ProcessWeapon(delta);
-	//Logger::DebugPrint("BeforeProcessAimPosition");
+	//Logger::DebugPrint("Before FetchWeaponMeshAimData");
 	weaponController.FetchWeaponMeshAimData();
+	//Logger::DebugPrint("Before ApplyAimDataToMemory");
+	weaponController.ApplyAimDataToMemory();
 
 	if (m_initialized) {
 		std::scoped_lock _{ m_imgui_mutex };

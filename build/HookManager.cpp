@@ -61,40 +61,30 @@ void HookManager::HookFireFunction() {
 void* HookManager::OnFireModded(uevr::API::UObject* equipController, Utilities::FGsrFireRequest* FireRequest) {
 
 	Logger::DebugPrint("Function hooked\n");
-	auto result = m_fire_hook_fn(equipController, FireRequest);
-	//if (equipController != s_weaponController->EquipController)
-	//{
-	//	Logger::DebugPrint("Not the player equip controller. Do nothing");
-	//	return result;
-	//}
+	Logger::DebugPrint("%d", s_weaponController->IsShooting);
+	s_weaponController->IsShooting = true;
+	s_cameraController->ToggleCameraWobblingController(false);
+	//Logger::DebugPrint("%f", s_weaponController->AimPosition.x);
+	FireRequest->FirePosition.x = s_weaponController->FirePosition.x;
+	FireRequest->FirePosition.y = s_weaponController->FirePosition.y;
+	FireRequest->FirePosition.z = s_weaponController->FirePosition.z;
 
-	//s_weaponController->IsShooting = true;
-	//s_cameraController->ToggleCameraWobblingController(false);
+	Logger::DebugPrint("s_weaponController->AimPosition.x.x : %f, s_weaponController->AimPosition.x.y : %f, s_weaponController->AimPosition.x.z : %f", 
+		s_weaponController->AimPosition.x, s_weaponController->AimPosition.y, s_weaponController->AimPosition.z);
+	Logger::DebugPrint("Old Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
+	FireRequest->AimPosition.x = s_weaponController->AimPosition.x;
+	FireRequest->AimPosition.y = s_weaponController->AimPosition.y;
+	FireRequest->AimPosition.z = s_weaponController->AimPosition.z;
+	Logger::DebugPrint("New Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
 
-	//if (s_weaponController->CurrentWeapon == nullptr)
-	//{
-	//	Logger::DebugPrint("Current weapon is null. Shot aborted");
-	//	return result;
-	//}
-	//	
-	//FireRequest->FirePosition.x = s_weaponController->FirePosition.x;
-	//FireRequest->FirePosition.y = s_weaponController->FirePosition.y;
-	//FireRequest->FirePosition.z = s_weaponController->FirePosition.z;
-
-	//Logger::DebugPrint("Old Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
-	//FireRequest->AimPosition.x = s_weaponController->AimPosition.x;
-	//FireRequest->AimPosition.y = s_weaponController->AimPosition.y;
-	//FireRequest->AimPosition.z = s_weaponController->AimPosition.z;
-	//Logger::DebugPrint("New Aim Position: %f, %f, %f\n", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
-	//
 
 	//Call original function with our replaced parameters
-	result = m_fire_hook_fn(equipController, FireRequest);
+	auto result = m_fire_hook_fn(equipController, FireRequest);
 	//PLUGIN_LOG_ONCE("Result: 0x%p", result);
 	return result;
 }
 
-void HookManager::Init()
+void HookManager::Initialize()
 {
 	s_weaponController = weaponController;
 	s_cameraController = cameraController;

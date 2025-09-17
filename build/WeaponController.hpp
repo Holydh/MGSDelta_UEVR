@@ -1,6 +1,7 @@
 #pragma once
 #include "Utilities.hpp"
 #include "uevr/API.hpp"
+#include "MemoryManager.hpp"
 #include "Logger.hpp"
 #include "glm/glm.hpp"
 #include <glm/gtc/type_ptr.hpp>
@@ -8,9 +9,11 @@
 
 class WeaponController {
 private:
+	MemoryManager* const memoryManager;
 	void ApplyRecoil(float delta);
 	float RandomRange(float min, float max);
 public:
+	WeaponController(MemoryManager* mm) : memoryManager(mm) {};
 	bool IsShooting = false;
 	uevr::API::UObject* EquipController = nullptr;
 	uevr::API::UObject* CurrentWeapon = nullptr;;
@@ -270,6 +273,7 @@ public:
 	EGsrEquipId CurrentWeaponEquippedID = WP_None;
 
 	void Initialize();
+	void FetchEquipController();
 	void ProcessWeapon(float delta);
 	void FetchWeaponMeshAimData();
 	void ApplyAimDataToMemory();
