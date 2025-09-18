@@ -90,26 +90,24 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, Utilities::
 	return result;
 }
 
-void HookManager::hook_ISetSmoothedAimPosition_fn() {
-	m_ISetSmoothedAimPosition_hook_id = hook_fn(
-		L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", 
-		L"ISetSmoothedAimPosition", 
-		on_ISetSmoothedAimPosition, 
-		(void**)&m_ISetSmoothedAimPosition_hook_fn, 
-		false);
-}
-
-void* HookManager::on_ISetSmoothedAimPosition_internal(uevr::API::UObject* self, UEVR_Vector3d* position) {
-	//Logger::DebugPrint("Function hooked\n");
-	//position->x = 100.0f;
-	//position->y = 1800.0f;
-	//position->z = 400.0f;
-	//Logger::DebugPrint("%f", position->z);
-	auto result = m_ISetSmoothedAimPosition_hook_fn(self, position);
-	return result;
-}
-
-
+//void HookManager::hook_ISetSmoothedAimPosition_fn() {
+//	m_ISetSmoothedAimPosition_hook_id = hook_fn(
+//		L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", 
+//		L"ISetSmoothedAimPosition", 
+//		on_ISetSmoothedAimPosition, 
+//		(void**)&m_ISetSmoothedAimPosition_hook_fn, 
+//		false);
+//}
+//
+//void* HookManager::on_ISetSmoothedAimPosition_internal(uevr::API::UObject* self, UEVR_Vector3d* position) {
+//	//Logger::DebugPrint("Function hooked\n");
+//	//position->x = 100.0f;
+//	//position->y = 1800.0f;
+//	//position->z = 400.0f;
+//	//Logger::DebugPrint("%f", position->z);
+//	auto result = m_ISetSmoothedAimPosition_hook_fn(self, position);
+//	return result;
+//}
 
 //bool HookManager::mod_ISetSmoothedAimPosition_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 //{
