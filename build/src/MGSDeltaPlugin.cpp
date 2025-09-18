@@ -19,7 +19,7 @@ MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
 void MGSDeltaPlugin::on_detach(HMODULE hmod)
 {
 	cameraController.ToggleCameraWobblingController(true);
-	memoryManager.ToggleAimPositionMemoryInstructions(true);
+	memoryManager.ToggleAimRelatedMemoryInstructions(true);
 }
 
 void MGSDeltaPlugin::on_initialize() {
@@ -40,11 +40,11 @@ void MGSDeltaPlugin::on_initialize() {
 	}
 	Logger::DebugPrint("Hello, console!\n");
 	hookManager.HookFireFunction();
-	hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetSmoothedAimPosition", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_ISetSmoothedAimPosition_pre, true, false);
-	//hookManager.hook_get_current_aim_pitch_fn();
+	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetSmoothedAimPosition", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_ISetSmoothedAimPosition_pre, true, false);
+	//hookManager.hook_ISetSmoothedAimPosition_fn();
 	weaponController.Initialize();
 	memoryManager.InitMemoryManager();
-	memoryManager.ToggleAimPositionMemoryInstructions(false);
+	memoryManager.ToggleAimRelatedMemoryInstructions(false);
 }
 
 void MGSDeltaPlugin::on_present() {

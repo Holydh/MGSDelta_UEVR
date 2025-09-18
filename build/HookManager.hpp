@@ -33,15 +33,15 @@ private:
     inline static UpdateCameraRecoilFn m_update_camera_recoil_hook_fn{};
 
     //inline hook:
-    //void hook_get_current_aim_pitch_fn();
-    //static void on_get_current_aim_pitch_internal(uevr::API::UObject* self/*, Utilities::FRotator* rotation*/);
-    //static void on_get_current_aim_pitch(uevr::API::UObject* self/*, Utilities::FRotator* rotation*/){
-    //    return on_get_current_aim_pitch_internal(self/*, rotation*/);
-    //};
-    //bool m_GetCurrectAimPitch_hooked{false};
-    //int32_t m_GetCurrectAimPitch_hook_id{};
-    //using GetCurrentAimPitchFn = void(*)(uevr::API::UObject*, Utilities::FRotator*);
-    //inline static GetCurrentAimPitchFn m_GetCurrentAimPitch_hook_fn{};
+    
+    static void* on_ISetSmoothedAimPosition_internal(uevr::API::UObject* self, UEVR_Vector3d* position);
+    static void* on_ISetSmoothedAimPosition(uevr::API::UObject* self, UEVR_Vector3d* position){
+        return on_ISetSmoothedAimPosition_internal(self, position);
+    };
+    bool m_ISetSmoothedAimPosition_hooked{false};
+    int32_t m_ISetSmoothedAimPosition_hook_id{};
+    using ISetSmoothedAimPositionFn = void*(*)(uevr::API::UObject*, UEVR_Vector3d*);
+    inline static ISetSmoothedAimPositionFn m_ISetSmoothedAimPosition_hook_fn{};
 
 
 
@@ -50,8 +50,9 @@ public:
     void Initialize();
     //void SetGunAdjustValuesFromConfig(const std::filesystem::path& ConfigFile);
     void HookFireFunction();
+    void hook_ISetSmoothedAimPosition_fn();
 
         // Standard hook :
-    bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native);
-    static bool mod_ISetSmoothedAimPosition_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    //bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native);
+    //static bool mod_ISetSmoothedAimPosition_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
 };

@@ -46,8 +46,8 @@ public:
 	void ResolveAddresses();
 
 
-	void ToggleAimPositionMemoryInstructions(bool enableOriginalInstructions);
-	bool AimPositionMemoryInstructionsNoped = false;
+	void ToggleAimRelatedMemoryInstructions(bool enableOriginalInstructions);
+	bool AimRelatedMemoryInstructionsNoped = false;
 
 	//void GetAllBytes();
 	//void WriteBytesToIniFile(const char* header, const std::vector<std::pair<uintptr_t, size_t>>& addresses);

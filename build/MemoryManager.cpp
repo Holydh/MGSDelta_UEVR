@@ -8,12 +8,19 @@ std::vector<MemoryBlock> aimPositionInstructionsAddresses = {
 	{0x5DFDBD8, 8, 0xF20F118880030000},
 };
 
+std::vector<MemoryBlock> cameraPitchInstructionsAddresses = {
+	{0x5DC7B66, 8, 0xF20F118730010000},
+	{0x5DC7B9E, 7, 0x0F118730010000},
+	{0x5DBEDF7, 7, 0x0F118730010000},
+};
+
 std::vector<unsigned int> aimPositionXOffsets = { 0x0C7DE270, 0x10, 0x18, 0xE8, 0xA8, 0x98, 0x280, 0x370 };
 
 void MemoryManager::InitMemoryManager()
 {
 	baseAddressGameEXE = GetModuleBaseAddress(nullptr);
 	for (auto& [address, size, bytes] : aimPositionInstructionsAddresses) { address += baseAddressGameEXE; }
+	for (auto& [address, size, bytes] : cameraPitchInstructionsAddresses) { address += baseAddressGameEXE; }
 }
 
 uintptr_t MemoryManager::GetModuleBaseAddress(LPCTSTR moduleName)
@@ -36,18 +43,20 @@ void MemoryManager::ResolveAddresses()
 
 
 
-void MemoryManager::ToggleAimPositionMemoryInstructions(bool enableOriginalInstructions)
+void MemoryManager::ToggleAimRelatedMemoryInstructions(bool enableOriginalInstructions)
 {
 	//Logger::DebugPrint("ToggleAimPositionMemoryInstructions called. enableOriginal=%d, noped=%d",enableOriginalInstructions, AimPositionMemoryInstructionsNoped);
-	if (!enableOriginalInstructions && !AimPositionMemoryInstructionsNoped)
+	if (!enableOriginalInstructions && !AimRelatedMemoryInstructionsNoped)
 	{
 		NopMemory(aimPositionInstructionsAddresses);
-		AimPositionMemoryInstructionsNoped = !enableOriginalInstructions;
+		NopMemory(cameraPitchInstructionsAddresses);
+		AimRelatedMemoryInstructionsNoped = !enableOriginalInstructions;
 	}
-	if (enableOriginalInstructions && AimPositionMemoryInstructionsNoped)
+	if (enableOriginalInstructions && AimRelatedMemoryInstructionsNoped)
 	{
 		RestoreMemory(aimPositionInstructionsAddresses);
-		AimPositionMemoryInstructionsNoped = !enableOriginalInstructions;
+		RestoreMemory(cameraPitchInstructionsAddresses);
+		AimRelatedMemoryInstructionsNoped = !enableOriginalInstructions;
 	}
 }
 

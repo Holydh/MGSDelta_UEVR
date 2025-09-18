@@ -3,6 +3,12 @@
 WeaponController* HookManager::s_weaponController = nullptr;
 CameraController* HookManager::s_cameraController = nullptr;
 
+void HookManager::Initialize()
+{
+	s_weaponController = weaponController;
+	s_cameraController = cameraController;
+}
+
 int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* destination, void** original, bool findRealCall) {
 	auto obj = (uevr::API::UClass*)uevr::API::get()->find_uobject(class_name);
 
@@ -84,84 +90,84 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, Utilities::
 	return result;
 }
 
-void HookManager::Initialize()
-{
-	s_weaponController = weaponController;
-	s_cameraController = cameraController;
+void HookManager::hook_ISetSmoothedAimPosition_fn() {
+	m_ISetSmoothedAimPosition_hook_id = hook_fn(
+		L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", 
+		L"ISetSmoothedAimPosition", 
+		on_ISetSmoothedAimPosition, 
+		(void**)&m_ISetSmoothedAimPosition_hook_fn, 
+		false);
 }
 
-bool HookManager::mod_ISetSmoothedAimPosition_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
-{
-	Logger::DebugPrint("fuck ye");
-
-	if (locals != nullptr)
-	{
-		UEVR_Vector3d* params = (UEVR_Vector3d*)locals;
-		Logger::DebugPrint("%f", params->z);
-	}
-	else
-	{
-		uevr::API::get()->log_info("mod_GetCurrentAimPitch_post - locals is null");
-	}
-
-	//API::get()->log_info("mod_GetCurrentAimPitch_post returning false");
-	return false;
+void* HookManager::on_ISetSmoothedAimPosition_internal(uevr::API::UObject* self, UEVR_Vector3d* position) {
+	//Logger::DebugPrint("Function hooked\n");
+	//position->x = 100.0f;
+	//position->y = 1800.0f;
+	//position->z = 400.0f;
+	//Logger::DebugPrint("%f", position->z);
+	auto result = m_ISetSmoothedAimPosition_hook_fn(self, position);
+	return result;
 }
 
-bool HookManager::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native)
-{
-	Logger::DebugPrint("Entering hook_bp_fn");
-	auto obj = (uevr::API::UClass*)uevr::API::get()->find_uobject(class_name);
 
-	if (obj == nullptr) {
-		Logger::DebugPrint("Failed to find %ls", class_name.data());
-		return false;
-	}
 
-	auto fn = obj->find_function(fn_name);
-
-	if (fn == nullptr) {
-		Logger::DebugPrint("Failed to find %ls", fn_name.data());
-		return false;
-	}
-
-	Logger::DebugPrint("getting function flags");
-	uint32_t flags = fn->get_function_flags();
-
-	if (use_native)
-	{
-		flags = flags | 0x400;
-	}
-	else
-	{
-		flags = flags & ~0x400;
-	}
-
-	Logger::DebugPrint("Setting function flags to 0x%08x", flags);
-	fn->set_function_flags(flags);
-
-	Logger::DebugPrint("Calling hook_ptr for %ls", fn_name.data());
-	return uevr::API::get()->param()->sdk->ufunction->hook_ptr((UEVR_UFunctionHandle)fn, pre, post);
-}
+//bool HookManager::mod_ISetSmoothedAimPosition_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+//{
+//	Logger::DebugPrint("fuck ye");
 //
+//	if (locals != nullptr)
+//	{
+//		UEVR_Vector3d* params = (UEVR_Vector3d*)locals;
+//		Logger::DebugPrint("%f", params->z);
+//	}
+//	else
+//	{
+//		uevr::API::get()->log_info("mod_GetCurrentAimPitch_post - locals is null");
+//	}
 //
-//
-//
-//void HookManager::hook_get_current_aim_pitch_fn() {
-//	m_GetCurrectAimPitch_hook_id = hook_fn(
-//		L"Class /Script/Cobra.CobraPlayerCameraManager", 
-//		L"BlueprintUpdateCamera", 
-//		on_get_current_aim_pitch, 
-//		(void**)&m_GetCurrentAimPitch_hook_fn, 
-//		true);
+//	//API::get()->log_info("mod_GetCurrentAimPitch_post returning false");
+//	return false;
 //}
 //
-//void HookManager::on_get_current_aim_pitch_internal(uevr::API::UObject* self/*, Utilities::FRotator* rotation*/) {
-//	Logger::DebugPrint("Function hooked\n");
-//	//Logger::DebugPrint("%f", rotation->pitch);
-//	/*auto result = *//*m_GetCurrentAimPitch_hook_fn(self, rotation);*/
-//	//return result;
+//bool HookManager::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native)
+//{
+//	Logger::DebugPrint("Entering hook_bp_fn");
+//	auto obj = (uevr::API::UClass*)uevr::API::get()->find_uobject(class_name);
+//
+//	if (obj == nullptr) {
+//		Logger::DebugPrint("Failed to find %ls", class_name.data());
+//		return false;
+//	}
+//
+//	auto fn = obj->find_function(fn_name);
+//
+//	if (fn == nullptr) {
+//		Logger::DebugPrint("Failed to find %ls", fn_name.data());
+//		return false;
+//	}
+//
+//	Logger::DebugPrint("getting function flags");
+//	uint32_t flags = fn->get_function_flags();
+//
+//	if (use_native)
+//	{
+//		flags = flags | 0x400;
+//	}
+//	else
+//	{
+//		flags = flags & ~0x400;
+//	}
+//
+//	Logger::DebugPrint("Setting function flags to 0x%08x", flags);
+//	fn->set_function_flags(flags);
+//
+//	Logger::DebugPrint("Calling hook_ptr for %ls", fn_name.data());
+//	return uevr::API::get()->param()->sdk->ufunction->hook_ptr((UEVR_UFunctionHandle)fn, pre, post);
 //}
+//
+//
+//
+//
 
 //void HookManager::SetGunAdjustValuesFromConfig(const std::filesystem::path& ConfigFile) {
 //	// Check if the file exists
