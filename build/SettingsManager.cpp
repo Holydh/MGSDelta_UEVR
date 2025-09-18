@@ -1,6 +1,75 @@
 #include "SettingsManager.hpp"
 
 bool debugMod = true;
+std::unordered_map<std::string, WeaponConfig> SettingsManager::g_weaponConfigs{};
+
+bool SettingsManager::LoadWeaponConfigFromFile(const fs::path& path, WeaponConfig& outCfg)
+{
+	 std::ifstream ifs(path);
+    if (!ifs.is_open())
+    {
+        Logger::DebugPrint("Failed to open %s", path);
+        return false;
+    }
+
+    json j;
+    try
+    {
+        ifs >> j;
+    }
+    catch (const std::exception& e)
+    {
+        Logger::DebugPrint("JSON parse error in %s : %s",path ,e.what());
+        return false;
+    }
+
+    if (!j.contains("state")) return false;
+    auto& state = j["state"];
+
+    if (state.contains("location_offset"))
+    {
+        auto& loc = state["location_offset"];
+        outCfg.location_offset.x = loc.value("x", 0.0);
+        outCfg.location_offset.y = loc.value("y", 0.0);
+        outCfg.location_offset.z = loc.value("z", 0.0);
+    }
+
+    if (state.contains("rotation_offset"))
+    {
+        auto& rot = state["rotation_offset"];
+        outCfg.rotation_offset.w = rot.value("w", 1.0);
+        outCfg.rotation_offset.x = rot.value("x", 0.0);
+        outCfg.rotation_offset.y = rot.value("y", 0.0);
+        outCfg.rotation_offset.z = rot.value("z", 0.0);
+    }
+
+    return true;
+}
+
+void SettingsManager::LoadAllWeaponConfigs(const std::filesystem::path& dir)
+{
+    g_weaponConfigs.clear();
+
+    if (!std::filesystem::exists(dir) || !std::filesystem::is_directory(dir))
+    {
+		Logger::DebugPrint("Config folder not found: %s", dir);
+        return;
+    }
+
+    for (auto& entry : std::filesystem::directory_iterator(dir))
+    {
+        if (!entry.is_regular_file()) continue;
+        if (entry.path().extension() != ".json") continue;
+
+        WeaponConfig cfg;
+        if (LoadWeaponConfigFromFile(entry.path(), cfg))
+        {
+            std::string key = entry.path().stem().string(); // e.g. "WP_Mk22"
+            g_weaponConfigs[key] = cfg;
+            Logger::DebugPrint("Loaded config for %s", key);
+        }
+    }
+}
 
 void SettingsManager::InitSettingsManager()
 {

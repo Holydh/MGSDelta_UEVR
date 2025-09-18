@@ -1,12 +1,59 @@
 #include "WeaponController.hpp"
 
+inline const char* WeaponController::WeaponIdToKey(EGsrEquipId id)
+{
+	switch (id)
+    {
+    case WP_Knife:         return "WP_Knife";
+    case WP_Fork:          return "WP_Fork";
+    case WP_CigarPistol:   return "WP_CigarPistol";
+    case WP_Handkerchief:  return "WP_Handkerchief";
+    case WP_Mk22:          return "WP_Mk22";
+    case WP_Gove:          return "WP_Gove";
+    case WP_EasyGun:       return "WP_EasyGun";
+    case WP_SAArmy:        return "WP_SAArmy";
+    case WP_PatriotPostol: return "WP_PatriotPostol";
+    case WP_Scorpion:      return "WP_Scorpion";
+    case WP_M16a1:         return "WP_M16a1";
+    case WP_Akm:           return "WP_Akm";
+    case WP_M63:           return "WP_M63";
+    case WP_Ithaca:        return "WP_Ithaca";
+    case WP_Dragnov:       return "WP_Dragnov";
+    case WP_MosinNagant:   return "WP_MosinNagant";
+    case WP_Rpg:           return "WP_Rpg";
+    case WP_Torch:         return "WP_Torch";
+    case WP_Grenade:       return "WP_Grenade";
+    case WP_FireGrenade:   return "WP_FireGrenade";
+    case WP_StunGrenade:   return "WP_StunGrenade";
+    case WP_ChaffGrenade:  return "WP_ChaffGrenade";
+    case WP_SmokeGrenade:  return "WP_SmokeGrenade";
+    case WP_Magazine:      return "WP_Magazine";
+    case WP_Tnt:           return "WP_Tnt";
+    case WP_C3:            return "WP_C3";
+    case WP_Claymore:      return "WP_Claymore";
+    case WP_Book:          return "WP_Book";
+    case WP_RatTrap:       return "WP_RatTrap";
+    case WP_Microphone:    return "WP_Microphone";
+    default: return nullptr;
+    }
+}
+
+void WeaponController::ApplyWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot)
+{
+	const char* key = WeaponIdToKey(currentWeapon);
+    if (!key) return;
+
+    auto it = settingsManager->g_weaponConfigs.find(key);
+    if (it == settingsManager->g_weaponConfigs.end()) return;
+
+    const WeaponConfig& cfg = it->second;
+    outPos = cfg.location_offset;
+    outRot = cfg.rotation_offset;
+}
+
 void WeaponController::Initialize()
 {
 	FetchEquipController();
-	DefaultWeaponPosition = glm::dvec3(-3.4766197204589844, 1.9591338634490967, 2.8622045516967773);
-	DefaultWeaponRotationEuler = glm::eulerAngles(glm::fquat(-0.5478599071502686, -0.03995904326438904, 0.8305291533470154, -0.09205403923988342));
-	CurrentWeaponPosition = DefaultWeaponPosition;
-	CurrentWeaponRotationEuler = DefaultWeaponRotationEuler;
 }
 
 void WeaponController::FetchEquipController()
@@ -60,12 +107,20 @@ void WeaponController::ProcessWeapon(float delta)
 		if (WeaponHook == NULL) return;
 		Logger::DebugPrint(WeaponHook->get_full_name());
 
+		ApplyWeaponOffsets(CurrentWeaponEquippedID, DefaultWeaponPosition, DefaultWeaponRotation);
+		Logger::DebugPrint("Applied weapon offsets from config");
+		Logger::DebugPrint("Position Offset : x=%f, y=%f, z=%f", DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z);
+		Logger::DebugPrint("Rotation Offset : w=%f, x=%f, y=%f, z=%f", DefaultWeaponRotation.w, DefaultWeaponRotation.x, DefaultWeaponRotation.y, DefaultWeaponRotation.z);
+		CurrentWeaponPosition = DefaultWeaponPosition;
+		CurrentWeaponRotation = DefaultWeaponRotation;
+		CurrentWeaponRotationEuler = glm::eulerAngles(CurrentWeaponRotation);
+
+		UEVR_Vector3f defaultPos = { DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z };
+		UEVR_Quaternionf defaultRot = { DefaultWeaponRotation.x, DefaultWeaponRotation.y, DefaultWeaponRotation.z, DefaultWeaponRotation.w };
+
 		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(WeaponHook);
-		glm::dquat rotQuat = glm::dquat(DefaultWeaponRotationEuler);
-		UEVR_Vector3f pos = { DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z };
-		UEVR_Quaternionf rot = { rotQuat.w, rotQuat.x, rotQuat.y, rotQuat.z };
-		motionState->set_location_offset(&pos);
-		motionState->set_rotation_offset(&rot);
+		motionState->set_location_offset(&defaultPos);
+		motionState->set_rotation_offset(&defaultRot);
 		motionState->set_permanent(true);
 	}
 	
@@ -261,7 +316,7 @@ void WeaponController::ApplyRecoil(float delta)
 	{
 		CurrentWeaponPosition += positionRecoilForce;
 		CurrentWeaponRotationEuler += rotationRecoilForceEuler;
-
+		CurrentWeaponRotation = glm::fquat(CurrentWeaponRotationEuler);
 		glm::dquat rotQuat = glm::dquat(CurrentWeaponRotationEuler);
 		UEVR_Vector3f pos = { CurrentWeaponPosition.x, CurrentWeaponPosition.y, CurrentWeaponPosition.z };
 		UEVR_Quaternionf rot = { rotQuat.w, rotQuat.x, rotQuat.y, rotQuat.z };
@@ -275,10 +330,8 @@ void WeaponController::ApplyRecoil(float delta)
 	{
 		// Smoothly return position to base
 		CurrentWeaponPosition = glm::mix(CurrentWeaponPosition, DefaultWeaponPosition, delta * recoilPositionRecoverySpeed);
-
-		glm::fquat currentQuat = glm::fquat(CurrentWeaponRotationEuler);
-		glm::fquat targetQuat = glm::fquat(DefaultWeaponRotationEuler);
-		glm::fquat smoothedQuat = glm::slerp(currentQuat, targetQuat, delta * recoilRotationRecoverySpeed);
+		glm::fquat smoothedQuat = glm::slerp(CurrentWeaponRotation, DefaultWeaponRotation, delta * recoilRotationRecoverySpeed);
+		CurrentWeaponRotation = smoothedQuat;
 		CurrentWeaponRotationEuler = glm::eulerAngles(smoothedQuat);
 
 		UEVR_Vector3f pos = { CurrentWeaponPosition.x, CurrentWeaponPosition.y, CurrentWeaponPosition.z };

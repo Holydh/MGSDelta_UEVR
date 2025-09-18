@@ -4,15 +4,13 @@ using namespace uevr;
 
 #define MAX_DEBUG_MESSAGE_SIZE 2048
 
-//float g_AimOffsetValueVertical = 0;
-//float g_AimOffsetValueHorizontal = 0;
 bool g_DebugEnabled = true;
 bool imguiEnabled = false;
 
 
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGSDeltaPlugin::MGSDeltaPlugin() : cameraController(), weaponController(&memoryManager), memoryManager(), 
+MGSDeltaPlugin::MGSDeltaPlugin() : cameraController(), weaponController(&memoryManager, &settingsManager), memoryManager(), 
 hookManager(&weaponController, &cameraController) {}; //Constructor
 MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
 
@@ -28,6 +26,8 @@ void MGSDeltaPlugin::on_initialize() {
 	Utilities::InitHelperClasses();
 	std::filesystem::path config_file = API::get()->get_persistent_dir() / "plugins" / "aimfix.txt";
 	std::filesystem::path debug_file = API::get()->get_persistent_dir() / "debug";
+
+	settingsManager.LoadAllWeaponConfigs(API::get()->get_persistent_dir() / "uobjecthook");
 
 	//hookManager.SetGunAdjustValuesFromConfig(config_file);
 	hookManager.Initialize();

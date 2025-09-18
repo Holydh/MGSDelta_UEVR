@@ -3,7 +3,26 @@
 #include <windows.h>
 #include <string>
 #include "uevr/API.hpp"
+#include "Utilities.hpp"
+#include "nlohmann/json.hpp"
 #include "Logger.hpp"
+
+#include <unordered_map>
+#include <vector>
+#include <filesystem>
+#include <fstream>
+#include "glm/glm.hpp"
+#include <glm/gtc/type_ptr.hpp>
+#define GLM_FORCE_QUAT_DATA_XYZW
+
+using json = nlohmann::json;
+namespace fs = std::filesystem;
+
+struct WeaponConfig
+{
+    glm::fvec3 location_offset{};
+    glm::fquat rotation_offset{};
+};
 
 class SettingsManager {
 public:
@@ -12,6 +31,11 @@ public:
 	void InitSettingsManager();
 	void GetAllConfigFilePaths();
 	void UpdateSettingsIfModifiedByPlayer();
+
+	static std::unordered_map<std::string, WeaponConfig> g_weaponConfigs;
+	bool LoadWeaponConfigFromFile(const fs::path& path, WeaponConfig& outCfg);
+	void LoadAllWeaponConfigs(const std::filesystem::path& baseDir);
+	
 
 private:
 	bool CheckSettingsModificationAndUpdate(const std::string& filePath, bool uevr);

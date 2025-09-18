@@ -55,6 +55,7 @@ public:
 	WeaponController weaponController;
 	MemoryManager memoryManager;
 	HookManager hookManager;
+	SettingsManager settingsManager;
 
     void on_initialize() override;
     //void on_dllmain(HMODULE hmod) override;
