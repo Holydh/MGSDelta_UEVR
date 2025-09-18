@@ -47,29 +47,6 @@ private:
     
     std::recursive_mutex m_imgui_mutex;
 
-
-
-
-    //bool m_update_camera_recoil_hooked{false};
-    //int32_t m_update_camera_recoil_hook_id{};
-    //using UpdateCameraRecoilFn = void*(*)(float*);
-    //inline static UpdateCameraRecoilFn m_update_camera_recoil_hook_fn{};
-
-    //inline hook:
-    //void hook_get_current_aim_pitch_fn();
-    //static void on_get_current_aim_pitch_internal(uevr::API::UObject* self/*, Utilities::FRotator* rotation*/);
-    //static void on_get_current_aim_pitch(uevr::API::UObject* self/*, Utilities::FRotator* rotation*/){
-    //    return on_get_current_aim_pitch_internal(self/*, rotation*/);
-    //};
-    //bool m_GetCurrectAimPitch_hooked{false};
-    //int32_t m_GetCurrectAimPitch_hook_id{};
-    //using GetCurrentAimPitchFn = void(*)(uevr::API::UObject*, Utilities::FRotator*);
-    //inline static GetCurrentAimPitchFn m_GetCurrentAimPitch_hook_fn{};
-
-    // Standard hook :
-    //bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native, bool findRealCall);
-    //static bool mod_GetCurrentAimPitch_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
-
 public:
     MGSDeltaPlugin();
     virtual ~MGSDeltaPlugin();
