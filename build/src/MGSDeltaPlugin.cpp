@@ -18,6 +18,7 @@ void MGSDeltaPlugin::on_detach(HMODULE hmod)
 {
 	cameraController.ToggleCameraWobblingController(true);
 	memoryManager.ToggleAimRelatedMemoryInstructions(true);
+	cameraController.ToggleMeshesVisibility(true);
 }
 
 void MGSDeltaPlugin::on_initialize() {
@@ -45,6 +46,7 @@ void MGSDeltaPlugin::on_initialize() {
 	weaponController.Initialize();
 	memoryManager.InitMemoryManager();
 	memoryManager.ToggleAimRelatedMemoryInstructions(false);
+	cameraController.ToggleMeshesVisibility(false);
 }
 
 void MGSDeltaPlugin::on_present() {

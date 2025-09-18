@@ -11,6 +11,5 @@ public:
 	//virtual ~CameraController() = default;
 
 	void ToggleCameraWobblingController(bool enabled);
-
-
+	void ToggleMeshesVisibility(bool visible);
 };
