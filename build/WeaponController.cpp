@@ -51,10 +51,10 @@ void WeaponController::ApplyWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3&
     outRot = cfg.rotation_offset;
 }
 
-void WeaponController::Initialize()
-{
-	FetchEquipController();
-}
+//void WeaponController::Initialize()
+//{
+//	FetchEquipController();
+//}
 
 void WeaponController::FetchEquipController()
 {
@@ -147,6 +147,7 @@ void WeaponController::FetchWeaponMeshAimData()
 		Utilities::FTransform muzzle_transform;
 		root_component->call_function(L"GetMuzzleTransform", &muzzle_transform);
 		//Logger::DebugPrint("FirePosition.x : %f, FirePosition.y : %f, FirePosition.z : %f", muzzle_transform.Translation.x, muzzle_transform.Translation.y, muzzle_transform.Translation.z);
+		FirePosition = { muzzle_transform.Translation.x, muzzle_transform.Translation.y, muzzle_transform.Translation.z };
 		float scaler = 8192.0;
 		Utilities::RotateAngleAxis rotate_params;
 		rotate_params.InVect = forward_params;
@@ -159,62 +160,63 @@ void WeaponController::FetchWeaponMeshAimData()
 		float aimOffsetValueVertical = 0.0f;
 		switch (CurrentWeaponEquippedID)
 		{
-		case WP_Mk22:
-			aimOffsetValueHorizontal = 150.0f;
-			aimOffsetValueVertical = 0.0f;
-			break;
-		case WP_Gove:
-			aimOffsetValueHorizontal = 150.0f;
-			aimOffsetValueVertical = 0.0f;
-			break;
-		case WP_EasyGun:
-			aimOffsetValueHorizontal = 0.0f;
-			aimOffsetValueVertical = 0.0f;
-			break;
-		case WP_SAArmy: //This one x is the z there for some reasons
-			aimOffsetValueHorizontal = 150.0f;
-			aimOffsetValueVertical = 0.0f;
-			break;
-		case WP_PatriotPostol:
-			aimOffsetValueHorizontal = 150.0f;
-			aimOffsetValueVertical = 0.0f;
-			break;
-		case WP_Scorpion:
-			aimOffsetValueHorizontal = 0.0f;
-			aimOffsetValueVertical = 0.0f;
-			break;
-		case WP_M16a1: // {forward,  up down, left right}
-			aimOffsetValueHorizontal = 150.0f;
-			aimOffsetValueVertical = 0.0f;
-			break;
-		case WP_Akm:
-			aimOffsetValueHorizontal = 150.0f;
-			aimOffsetValueVertical = 0.0f;
-			break;
-		case WP_M63:
-			aimOffsetValueHorizontal = 150.0f;
-			aimOffsetValueVertical = 0.0f;
-			break;
+		//case WP_Mk22:
+		//	aimOffsetValueHorizontal = 0.0f;
+		//	aimOffsetValueVertical = 0.0f;
+		//	break;
+		//case WP_Gove:
+		//	aimOffsetValueHorizontal = 0.0f;
+		//	aimOffsetValueVertical = 0.0f;
+		//	break;
+		//case WP_EasyGun:
+		//	aimOffsetValueHorizontal = 0.0f;
+		//	aimOffsetValueVertical = 0.0f;
+		//	break;
+		//case WP_SAArmy: //This one x is the z there for some reasons
+		//	aimOffsetValueHorizontal = 0.0f;
+		//	aimOffsetValueVertical = 0.0f;
+		//	break;
+		//case WP_PatriotPostol:
+		//	aimOffsetValueHorizontal = 0.0f;
+		//	aimOffsetValueVertical = 0.0f;
+		//	break;
+		//case WP_Scorpion:
+		//	aimOffsetValueHorizontal = 0.0f;
+		//	aimOffsetValueVertical = 0.0f;
+		//	break;
+		//case WP_M16a1: // {forward,  up down, left right}
+		//	aimOffsetValueHorizontal = 0.0f;
+		//	aimOffsetValueVertical = 0.0f;
+		//	break;
+		//case WP_Akm:
+		//	aimOffsetValueHorizontal = 0.0f;
+		//	aimOffsetValueVertical = 0.0f;
+		//	break;
+		//case WP_M63:
+		//	aimOffsetValueHorizontal = 0.0f;
+		//	aimOffsetValueVertical = 0.0f;
+		//	break;
 		case WP_Ithaca:
-			aimOffsetValueHorizontal = -1000.0f;
+			aimOffsetValueHorizontal = -150.0f;
 			aimOffsetValueVertical = 0.0f;
 			break;
-		case WP_Dragnov:
-			aimOffsetValueHorizontal = 150.0f;
-			aimOffsetValueVertical = 0.0f;
-			break;
-		case WP_MosinNagant:
-			aimOffsetValueHorizontal = 150.0f;
-			aimOffsetValueVertical = 0.0f;
-			break;
-		case WP_Rpg:
-			aimOffsetValueHorizontal = 150.0f;
-			aimOffsetValueVertical = 0.0f;
-			break;
+		//case WP_Dragnov:
+		//	aimOffsetValueHorizontal = 0.0f;
+		//	aimOffsetValueVertical = 0.0f;
+		//	break;
+		//case WP_MosinNagant:
+		//	aimOffsetValueHorizontal = 0.0f;
+		//	aimOffsetValueVertical = 0.0f;
+		//	break;
+		//case WP_Rpg:
+		//	aimOffsetValueHorizontal = 0.0f;
+		//	aimOffsetValueVertical = 0.0f;
+		//	break;
 
 		default:
-			return;
-
+			aimOffsetValueHorizontal = 0.0f;
+			aimOffsetValueVertical = 0.0f;
+			break;
 		}
 
 		AimPosition = { 

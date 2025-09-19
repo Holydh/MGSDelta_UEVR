@@ -10,43 +10,38 @@ bool imguiEnabled = false;
 
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGSDeltaPlugin::MGSDeltaPlugin() : cameraController(), weaponController(&memoryManager, &settingsManager), memoryManager(), 
-hookManager(&weaponController, &cameraController) {}; //Constructor
+MGSDeltaPlugin::MGSDeltaPlugin() : cameraController(), weaponController(&memoryManager, &settingsManager), memoryManager(),
+hookManager(&weaponController, &cameraController), playerManager() {}; //Constructor
 MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
 
 void MGSDeltaPlugin::on_detach(HMODULE hmod)
 {
-	cameraController.ToggleCameraWobblingController(true);
-	memoryManager.ToggleAimRelatedMemoryInstructions(true);
-	cameraController.ToggleMeshesVisibility(true);
+	Toggle6DOF(false);
 }
 
 void MGSDeltaPlugin::on_initialize() {
 	// Logs to the appdata UnrealVRMod log.txt file
 	API::get()->log_info("%s", "on_initialize");
-	Utilities::InitHelperClasses();
 	std::filesystem::path config_file = API::get()->get_persistent_dir() / "plugins" / "aimfix.txt";
 	std::filesystem::path debug_file = API::get()->get_persistent_dir() / "debug";
-
-	settingsManager.LoadAllWeaponConfigs(API::get()->get_persistent_dir() / "uobjecthook");
-
-	//hookManager.SetGunAdjustValuesFromConfig(config_file);
-	hookManager.Initialize();
+	std::filesystem::path uobjectHook_file = API::get()->get_persistent_dir() / "uobjecthook";
 	// Check if the file exists
 	g_DebugEnabled = std::filesystem::exists(debug_file);
-
 	if (g_DebugEnabled) {
 		AllocConsole();
 		freopen("CONOUT$", "w", stdout);
 	}
 	Logger::DebugPrint("Hello, console!\n");
-	hookManager.HookFireFunction();
+
+	//hookManager.SetGunAdjustValuesFromConfig(config_file);
 	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetSmoothedAimPosition", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_ISetSmoothedAimPosition_pre, true, false);
 	//hookManager.hook_ISetSmoothedAimPosition_fn();
-	weaponController.Initialize();
+	Utilities::InitHelperClasses();
+	settingsManager.LoadAllWeaponConfigs(uobjectHook_file);
+	hookManager.Initialize();
+	//weaponController.Initialize();
 	memoryManager.InitMemoryManager();
-	memoryManager.ToggleAimRelatedMemoryInstructions(false);
-	cameraController.ToggleMeshesVisibility(false);
+	hookManager.HookFireFunction();
 }
 
 void MGSDeltaPlugin::on_present() {
@@ -384,18 +379,54 @@ void MGSDeltaPlugin::test_engine(API::UGameEngine* engine) {
 	}
 }
 
+void MGSDeltaPlugin::Toggle6DOF(bool enable)
+{
+	if (enable)
+	{
+		cameraController.ToggleCameraWobblingController(false);
+		memoryManager.ToggleAimRelatedMemoryInstructions(false);
+		playerManager.ToggleMeshesVisibility(false);
+	}
+	else
+	{
+		cameraController.ToggleCameraWobblingController(true);
+		memoryManager.ToggleAimRelatedMemoryInstructions(true);
+		playerManager.ToggleMeshesVisibility(true);
+	}
+}
+
 void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
-	//Logger::DebugPrint("Before ResolveAddresses");
-	memoryManager.ResolveAddresses();
-	//Logger::DebugPrint("Before FetchEquipController");
-	weaponController.FetchEquipController();
-	//Logger::DebugPrint("Before ProcessWeapon");
-	weaponController.ProcessWeapon(delta);
-	//Logger::DebugPrint("Before FetchWeaponMeshAimData");
-	weaponController.FetchWeaponMeshAimData();
-	//Logger::DebugPrint("Before ApplyAimDataToMemory");
-	weaponController.ApplyAimDataToMemory();
+	playerManager.FetchGameState();
+
+	if (playerManager.isPlayerControlled && !playerManager.wasPlayerControlled)
+	{
+		Logger::DebugPrint("Player took control");
+		Toggle6DOF(true);
+	}
+
+	if (!playerManager.isPlayerControlled && playerManager.wasPlayerControlled)
+	{
+		Logger::DebugPrint("Player lost control");
+		Toggle6DOF(false);
+	}
+
+	if (playerManager.isPlayerControlled)
+	{
+		//Logger::DebugPrint("Before ResolveAddresses");
+		memoryManager.ResolveAddresses();
+		//Logger::DebugPrint("Before FetchEquipController");
+		weaponController.FetchEquipController();
+		//Logger::DebugPrint("Before ProcessWeapon");
+		weaponController.ProcessWeapon(delta);
+		//Logger::DebugPrint("Before FetchWeaponMeshAimData");
+		weaponController.FetchWeaponMeshAimData();
+		//Logger::DebugPrint("Before ApplyAimDataToMemory");
+		//weaponController.ApplyAimDataToMemory();
+	}
+
+
+
 
 	if (m_initialized) {
 		std::scoped_lock _{ m_imgui_mutex };
@@ -408,6 +439,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		ImGui::EndFrame();
 		ImGui::Render();
 	}
+
+	playerManager.wasPlayerControlled = playerManager.isPlayerControlled;
 }
 
 void MGSDeltaPlugin::on_post_engine_tick(API::UGameEngine* engine, float delta) {

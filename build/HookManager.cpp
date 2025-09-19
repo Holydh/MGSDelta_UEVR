@@ -69,7 +69,7 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, Utilities::
 	Logger::DebugPrint("Function hooked\n");
 	Logger::DebugPrint("%d", s_weaponController->IsShooting);
 	s_weaponController->IsShooting = true;
-	s_cameraController->ToggleCameraWobblingController(false);
+	//s_cameraController->ToggleCameraWobblingController(false);
 	//Logger::DebugPrint("%f", s_weaponController->AimPosition.x);
 	FireRequest->FirePosition.x = s_weaponController->FirePosition.x;
 	FireRequest->FirePosition.y = s_weaponController->FirePosition.y;

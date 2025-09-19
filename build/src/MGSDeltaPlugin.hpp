@@ -28,6 +28,7 @@
 #include "WeaponController.hpp"
 #include "MemoryManager.hpp"
 #include "HookManager.hpp"
+#include "PlayerManager.hpp"
 #include "Logger.hpp"
 
 #define _CRT_SECURE_NO_WARNINGS 1
@@ -47,6 +48,8 @@ private:
     
     std::recursive_mutex m_imgui_mutex;
 
+	void Toggle6DOF(bool enable);
+
 public:
     MGSDeltaPlugin();
     virtual ~MGSDeltaPlugin();
@@ -56,6 +59,7 @@ public:
 	MemoryManager memoryManager;
 	HookManager hookManager;
 	SettingsManager settingsManager;
+	PlayerManager playerManager;
 
     void on_initialize() override;
     //void on_dllmain(HMODULE hmod) override;

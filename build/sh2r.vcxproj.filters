@@ -67,6 +67,9 @@
     <ClCompile Include="SettingsManager.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="PlayerManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\MGSDeltaPlugin.hpp">
@@ -157,6 +160,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="SettingsManager.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerManager.hpp">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

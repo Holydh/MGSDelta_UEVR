@@ -324,7 +324,7 @@ public:
 		glm::fvec3& outPos,
 		glm::fquat& outRot);
 
-	void Initialize();
+	//void Initialize();
 	void FetchEquipController();
 	void ProcessWeapon(float delta);
 	void FetchWeaponMeshAimData();

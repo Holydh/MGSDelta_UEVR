@@ -45,18 +45,19 @@ void MemoryManager::ResolveAddresses()
 
 void MemoryManager::ToggleAimRelatedMemoryInstructions(bool enableOriginalInstructions)
 {
-	//Logger::DebugPrint("ToggleAimPositionMemoryInstructions called. enableOriginal=%d, noped=%d",enableOriginalInstructions, AimPositionMemoryInstructionsNoped);
+	//Logger::DebugPrint("ToggleAimPositionMemoryInstructions called. enableOriginal=%d, noped=%d",enableOriginalInstructions, AimRelatedMemoryInstructionsNoped);
 	if (!enableOriginalInstructions && !AimRelatedMemoryInstructionsNoped)
 	{
-		NopMemory(aimPositionInstructionsAddresses);
+		//NopMemory(aimPositionInstructionsAddresses);
 		NopMemory(cameraPitchInstructionsAddresses);
 		AimRelatedMemoryInstructionsNoped = !enableOriginalInstructions;
 	}
 	if (enableOriginalInstructions && AimRelatedMemoryInstructionsNoped)
 	{
-		RestoreMemory(aimPositionInstructionsAddresses);
+		//RestoreMemory(aimPositionInstructionsAddresses);
 		RestoreMemory(cameraPitchInstructionsAddresses);
 		AimRelatedMemoryInstructionsNoped = !enableOriginalInstructions;
+		Logger::DebugPrint("Memory restored");
 	}
 }
 
@@ -87,7 +88,6 @@ void MemoryManager::RestoreMemory(const std::vector<MemoryBlock>& memoryBlocks) 
 
 		VirtualProtect((LPVOID)block.address, block.size, oldProtect, &oldProtect);
 	}
-	Logger::DebugPrint("Memory restored");
 }
 
 //Finds address from pointer offsets found in cheat engine
