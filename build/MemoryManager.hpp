@@ -1,6 +1,7 @@
 #pragma once
 #include <windows.h>
 #include "Logger.hpp"
+#include "utility/Scan.hpp"
 
 // Define the OriginalByte struct
 struct OriginalByte {
