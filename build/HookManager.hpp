@@ -29,13 +29,13 @@ private:
     inline static FireFn m_fire_hook_fn{};
 
     //inline hook:
-    //static void* on_ISetSmoothedAimPosition_internal(uevr::API::UObject* self, UEVR_Vector3d* position);
-    //static void* on_ISetSmoothedAimPosition(uevr::API::UObject* self, UEVR_Vector3d* position){
-    //    return on_ISetSmoothedAimPosition_internal(self, position);
+    //static void* on_ISetSmoothedAimPosition_internal(uevr::API::UObject* self, UEVR_Rotatord* rotation);
+    //static void* on_ISetSmoothedAimPosition(uevr::API::UObject* self, UEVR_Rotatord* rotation){
+    //    return on_ISetSmoothedAimPosition_internal(self, rotation);
     //};
     //bool m_ISetSmoothedAimPosition_hooked{false};
     //int32_t m_ISetSmoothedAimPosition_hook_id{};
-    //using ISetSmoothedAimPositionFn = void*(*)(uevr::API::UObject*, UEVR_Vector3d*);
+    //using ISetSmoothedAimPositionFn = void*(*)(uevr::API::UObject*, UEVR_Rotatord*);
     //inline static ISetSmoothedAimPositionFn m_ISetSmoothedAimPosition_hook_fn{};
 
 
@@ -45,9 +45,9 @@ public:
     void Initialize();
     //void SetGunAdjustValuesFromConfig(const std::filesystem::path& ConfigFile);
     void HookFireFunction();
-    //void hook_ISetSmoothedAimPosition_fn();
+    /*void hook_ISetSmoothedAimPosition_fn();*/
 
     // Standard hook :
     //bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native);
-    //static bool mod_ISetSmoothedAimPosition_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    //static bool mod_ISetCameraRotation_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
 };

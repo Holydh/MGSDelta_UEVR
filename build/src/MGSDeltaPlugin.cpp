@@ -31,17 +31,21 @@ void MGSDeltaPlugin::on_initialize() {
 		AllocConsole();
 		freopen("CONOUT$", "w", stdout);
 	}
-	Logger::DebugPrint("Hello, console!\n");
+	Logger::DebugPrint("\nMGSDelta 6DOF plugin - This is a Work In Progress beta build !\n");
+	Logger::DebugPrint("Game hasn't been fully tested yet. Expect bugs and issues.");
+	Logger::DebugPrint("You can report issues and ask for help in the F2VR discord server in the UEVR MGS Delta channel.");
+	Logger::DebugPrint("Don't reupload this plugin elsewhere.\n");
 
 	//hookManager.SetGunAdjustValuesFromConfig(config_file);
 	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetSmoothedAimPosition", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_ISetSmoothedAimPosition_pre, true, false);
-	//hookManager.hook_ISetSmoothedAimPosition_fn();
+	/*hookManager.hook_ISetSmoothedAimPosition_fn();*/
 	Utilities::InitHelperClasses();
 	settingsManager.LoadAllWeaponConfigs(uobjectHook_file);
 	hookManager.Initialize();
 	//weaponController.Initialize();
 	memoryManager.InitMemoryManager();
 	hookManager.HookFireFunction();
+	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetCameraRotation", (UEVR_UFunction_NativePreFn)HookManager::mod_ISetCameraRotation_pre, NULL, true);
 }
 
 void MGSDeltaPlugin::on_present() {
@@ -386,12 +390,14 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.ToggleCameraWobblingController(false);
 		memoryManager.ToggleAimRelatedMemoryInstructions(false);
 		playerManager.ToggleMeshesVisibility(false);
+		playerManager.ToggleReticleVisibility(false);
 	}
 	else
 	{
 		cameraController.ToggleCameraWobblingController(true);
 		memoryManager.ToggleAimRelatedMemoryInstructions(true);
 		playerManager.ToggleMeshesVisibility(true);
+		playerManager.ToggleReticleVisibility(true);
 	}
 }
 
@@ -414,14 +420,14 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	if (playerManager.isPlayerControlled)
 	{
 		//Logger::DebugPrint("Before ResolveAddresses");
-		memoryManager.ResolveAddresses();
-		//Logger::DebugPrint("Before FetchEquipController");
+		/*memoryManager.ResolveAddresses();*/
+		/*Logger::DebugPrint("Before FetchEquipController");*/
 		weaponController.FetchEquipController();
-		//Logger::DebugPrint("Before ProcessWeapon");
+		/*Logger::DebugPrint("Before ProcessWeapon");*/
 		weaponController.ProcessWeapon(delta);
-		//Logger::DebugPrint("Before FetchWeaponMeshAimData");
+		/*Logger::DebugPrint("Before FetchWeaponMeshAimData");*/
 		weaponController.FetchWeaponMeshAimData();
-		//Logger::DebugPrint("Before ApplyAimDataToMemory");
+		/*Logger::DebugPrint("Before ApplyAimDataToMemory");*/
 		//weaponController.ApplyAimDataToMemory();
 	}
 

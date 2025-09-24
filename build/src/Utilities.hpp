@@ -11,6 +11,15 @@ public:
 	static void InitHelperClasses();
 	//static glm::fvec3 OffsetLocalPositionFromWorld(glm::fvec3 worldPosition, glm::fvec3 forwardVector, glm::fvec3 upVector, glm::fvec3 rightVector, glm::fvec3 offsets);
 
+enum ESlateVisibility : uint8_t
+{
+	Visible                                  = 0,
+	Collapsed                                = 1,
+	Hidden                                   = 2,
+	HitTestInvisible                         = 3,
+	SelfHitTestInvisible                     = 4,
+	ESlateVisibility_MAX                     = 5,
+};
 
 struct FGsrFireRequest 
 {

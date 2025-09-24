@@ -6,6 +6,7 @@
 class PlayerManager {
 public:
 	void ToggleMeshesVisibility(bool visible);
+	void ToggleReticleVisibility(bool visible);
 
 	bool wasPlayerControlled = false;
     bool isPlayerControlled = false;

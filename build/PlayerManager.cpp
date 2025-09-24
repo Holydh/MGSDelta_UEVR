@@ -24,6 +24,30 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	}
 }
 
+void PlayerManager::ToggleReticleVisibility(bool visible)
+{
+	auto bp_GsrTpsSightWidget_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrTpsSightWidget");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
+	//Logger::DebugPrint(bp_GsrTpsSightWidget_c->get_full_name());
+	if (bp_GsrTpsSightWidget_c == nullptr)
+	{
+		Logger::DebugPrint("GsrTpsSightWidget not found");
+		return;
+	}
+
+	auto bp_GsrTpsSightWidget = bp_GsrTpsSightWidget_c->get_objects_matching(false); //get_first_object_matching(false);
+	for (size_t i = 0; i < bp_GsrTpsSightWidget.size(); i++)
+	{
+		//Logger::DebugPrint(bp_GsrTpsSightWidget[i]->get_full_name());
+		struct SetVisibilityParams {
+			Utilities::ESlateVisibility InVisibility;
+		}params;
+		params.InVisibility = visible ? Utilities::ESlateVisibility::Visible : Utilities::ESlateVisibility::Hidden;
+
+		bp_GsrTpsSightWidget[i]->call_function(L"SetVisibility", &params);
+	}
+	Logger::DebugPrint("Crosshair visibility set to : %d", visible);
+}
+
 void PlayerManager::FetchGameState()
 {
 	auto pawn = uevr::API::get()->get_local_pawn(0);

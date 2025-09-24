@@ -9,9 +9,9 @@ std::vector<MemoryBlock> aimPositionInstructionsAddresses = {
 };
 
 std::vector<MemoryBlock> cameraPitchInstructionsAddresses = {
-	{0x5DC7B66, 8, 0xF20F118730010000},
-	{0x5DC7B9E, 7, 0x0F118730010000},
-	{0x5DBEDF7, 7, 0x0F118730010000},
+	{0x5DAE48F, 8, 0xF20F118730010000},
+	{0x5DAE4C7, 7, 0x0F118730010000},
+	{0x5DA5667, 7, 0x0F118730010000},
 };
 
 std::vector<unsigned int> aimPositionXOffsets = { 0x0C7DE270, 0x10, 0x18, 0xE8, 0xA8, 0x98, 0x280, 0x370 };
@@ -51,13 +51,14 @@ void MemoryManager::ToggleAimRelatedMemoryInstructions(bool enableOriginalInstru
 		//NopMemory(aimPositionInstructionsAddresses);
 		NopMemory(cameraPitchInstructionsAddresses);
 		AimRelatedMemoryInstructionsNoped = !enableOriginalInstructions;
+		Logger::DebugPrint("Memory successfully modified");
 	}
 	if (enableOriginalInstructions && AimRelatedMemoryInstructionsNoped)
 	{
 		//RestoreMemory(aimPositionInstructionsAddresses);
 		RestoreMemory(cameraPitchInstructionsAddresses);
 		AimRelatedMemoryInstructionsNoped = !enableOriginalInstructions;
-		Logger::DebugPrint("Memory restored");
+		Logger::DebugPrint("Memory successfully restored");
 	}
 }
 
