@@ -98,7 +98,7 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, Utilities::
 //		(void**)&m_ISetSmoothedAimPosition_hook_fn, 
 //		false);
 //}
-//
+
 //void* HookManager::on_ISetSmoothedAimPosition_internal(uevr::API::UObject* self, UEVR_Rotatord* rotation) {
 //	//Logger::DebugPrint("Function hooked\n");
 //	//position->x = 100.0f;

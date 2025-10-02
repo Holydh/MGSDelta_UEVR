@@ -106,6 +106,11 @@ typedef struct {
 } UEVR_Vector2f;
 
 typedef struct {
+    double x;
+    double y;
+} UEVR_Vector2d;
+
+typedef struct {
     float x;
     float y;
     float z;

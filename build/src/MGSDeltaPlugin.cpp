@@ -37,7 +37,7 @@ void MGSDeltaPlugin::on_initialize() {
 	Logger::DebugPrint("Don't reupload this plugin elsewhere.\n");
 
 	//hookManager.SetGunAdjustValuesFromConfig(config_file);
-	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetSmoothedAimPosition", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_ISetSmoothedAimPosition_pre, true, false);
+	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerController", L"SetControlRotation", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_ISetCameraRotation_pre, true);
 	/*hookManager.hook_ISetSmoothedAimPosition_fn();*/
 	Utilities::InitHelperClasses();
 	settingsManager.LoadAllWeaponConfigs(uobjectHook_file);
@@ -387,6 +387,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 {
 	if (enable)
 	{
+		cameraController.ToggleGameCameraController(false);
 		cameraController.ToggleCameraWobblingController(false);
 		memoryManager.ToggleAimRelatedMemoryInstructions(false);
 		playerManager.ToggleMeshesVisibility(false);
@@ -394,6 +395,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 	}
 	else
 	{
+		cameraController.ToggleGameCameraController(true);
 		cameraController.ToggleCameraWobblingController(true);
 		memoryManager.ToggleAimRelatedMemoryInstructions(true);
 		playerManager.ToggleMeshesVisibility(true);
@@ -419,7 +421,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 	if (playerManager.isPlayerControlled)
 	{
-		//Logger::DebugPrint("Before ResolveAddresses");
+		/*Logger::DebugPrint("Before ResolveAddresses");*/
 		/*memoryManager.ResolveAddresses();*/
 		/*Logger::DebugPrint("Before FetchEquipController");*/
 		weaponController.FetchEquipController();
@@ -466,7 +468,7 @@ void MGSDeltaPlugin::on_pre_calculate_stereo_view_offset(UEVR_StereoRenderingDev
 {
 	PLUGIN_LOG_ONCE("Pre Calculate Stereo View Offset");
 
-	//auto rotationd = (UEVR_Rotatord*)rotation;
+	auto rotationd = (UEVR_Rotatord*)rotation;
 
 	//// Decoupled pitch.
 	//if (!is_double) {
@@ -475,6 +477,14 @@ void MGSDeltaPlugin::on_pre_calculate_stereo_view_offset(UEVR_StereoRenderingDev
 	//else {
 	//    rotationd->pitch = 0.0;
 	//}
+	if (cameraController.YawInput != 0.0)
+		cameraController.actualYaw += cameraController.YawInput * cameraController.YawSpeed;
+	/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
+	rotationd->yaw = cameraController.actualYaw;
+	if (playerManager.isPlayerControlled)
+	{
+		cameraController.SetCameraRotation(rotationd->yaw);
+	}
 }
 
 void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters,
@@ -494,8 +504,10 @@ void MGSDeltaPlugin::on_post_viewport_client_draw(UEVR_UGameViewportClientHandle
 void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, XINPUT_STATE* state)
 {
 	PLUGIN_LOG_ONCE("XInput Get State");
-	//if (state->Gamepad.sThumbRY != 0.0)
-	//	state->Gamepad.sThumbRY = 0;
+	if (state->Gamepad.sThumbRX != 0.0)
+		Logger::DebugPrint("%d", state->Gamepad.sThumbRX);
+	float rawYawInput = (float)state->Gamepad.sThumbRX / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
+	cameraController.YawInput = rawYawInput > 0.2f || rawYawInput < -0.2f ? rawYawInput : 0.0f;
 }
 
 void MGSDeltaPlugin::on_xinput_set_state(uint32_t* retval, uint32_t user_index, XINPUT_VIBRATION* vibration)

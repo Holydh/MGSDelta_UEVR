@@ -329,4 +329,6 @@ public:
 	void ProcessWeapon(float delta);
 	void FetchWeaponMeshAimData();
 	void ApplyAimDataToMemory();
+
+	void SetAimDirection();
 };

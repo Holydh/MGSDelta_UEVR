@@ -236,6 +236,20 @@ void WeaponController::ApplyAimDataToMemory()
 	*(reinterpret_cast<double*>(memoryManager->AimPositionAddresses.z)) = AimPosition.z;
 }
 
+void WeaponController::SetAimDirection()
+{
+	//Will be used to control the grenades throw direction
+	//This controls only the aim when the camera controller is disabled. When cc enabled, it controls the camera rotation but the inputs are conflicting.
+	auto cameraController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
+	auto cameraController = cameraController_c->get_first_object_matching(false);
+	struct Rotator{
+		UEVR_Rotatord rotation;
+	}params;
+	params.rotation.yaw = 0.0f;
+	//cameraController.YawInput
+	cameraController->call_function(L"SetCameraRotation", &params);
+}
+
 void WeaponController::ApplyRecoil(float delta)
 {
 	glm::fvec3 positionRecoilForce = { 0.0f, 0.0f, 0.0f };
