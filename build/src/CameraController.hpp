@@ -17,5 +17,14 @@ public:
 	double actualYaw = 0.0f;
 	float YawInput = 0.0f;
 	float YawSpeed = 1.0f;
-	void SetCameraRotation(double yaw);
+	UEVR_Vector3d playerPosition = { 0.0, 0.0, 0.0 };
+	void SetCameraRotation();
+	//void SetCameraPosition();
+
+	uevr::API::UObject* CameraAttachementActor = nullptr;
+	void SpawnCameraAttachementActor();
+	void DestroyCameraAttachementActor();
+	void AttachCameraToAttachementActor();
+	void DetachCameraFromAttachementActor();
+	bool CameraAttachementActorAvailable = false;
 };

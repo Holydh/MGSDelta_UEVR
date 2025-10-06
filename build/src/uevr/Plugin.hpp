@@ -67,6 +67,9 @@ namespace uevr {
         virtual void on_post_engine_tick(API::UGameEngine* engine, float delta) {}
         virtual void on_pre_slate_draw_window(UEVR_FSlateRHIRendererHandle renderer, UEVR_FViewportInfoHandle viewport_info) {}
         virtual void on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle renderer, UEVR_FViewportInfoHandle viewport_info) {}
+        virtual void on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters,
+            UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double) {
+		};
         virtual void on_pre_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters,
             UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double) {
         };
@@ -160,6 +163,11 @@ extern "C" __declspec(dllexport) bool uevr_plugin_initialize(const UEVR_PluginIn
 
     sdk_callbacks->on_post_slate_draw_window_render_thread([](UEVR_FSlateRHIRendererHandle renderer, UEVR_FViewportInfoHandle viewport_info) {
         uevr::detail::g_plugin->on_post_slate_draw_window(renderer, viewport_info);
+        });
+
+     sdk_callbacks->on_early_calculate_stereo_view_offset([](UEVR_StereoRenderingDeviceHandle device, int view_index, float world_to_meters,
+        UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double) {
+            uevr::detail::g_plugin->on_early_calculate_stereo_view_offset(device, view_index, world_to_meters, position, rotation, is_double);
         });
 
     sdk_callbacks->on_pre_calculate_stereo_view_offset([](UEVR_StereoRenderingDeviceHandle device, int view_index, float world_to_meters,

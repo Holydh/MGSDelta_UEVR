@@ -121,6 +121,7 @@ void WeaponController::ProcessWeapon(float delta)
 		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(WeaponHook);
 		motionState->set_location_offset(&defaultPos);
 		motionState->set_rotation_offset(&defaultRot);
+		motionState->set_hand(1);
 		motionState->set_permanent(true);
 	}
 	
@@ -155,6 +156,20 @@ void WeaponController::FetchWeaponMeshAimData()
 		root_component->call_function(L"GetUpVector", &rotate_params.Axis);
 		Utilities::KismetMathLibrary->call_function(L"RotateAngleAxis", &rotate_params);
 		forward_params = rotate_params.Result;
+
+		 // Now, convert the final forward vector into a rotator.
+        Utilities::FRotator world_rotator;
+        
+        // This is a struct to pass the vector as a parameter to the function.
+        Utilities::MakeRotFromX makeRotFromX_params;
+
+        makeRotFromX_params.InVec = forward_params;
+
+        // Call the Kismet Math Library function to perform the conversion.
+        Utilities::KismetMathLibrary->call_function(L"MakeRotFromX", &makeRotFromX_params);
+        
+        // The resulting rotator is now in the 'Result' field.
+        CurrentWeaponWorldRotation = makeRotFromX_params.Result;
 
 		float aimOffsetValueHorizontal = 0.0f;
 		float aimOffsetValueVertical = 0.0f;
@@ -242,12 +257,18 @@ void WeaponController::SetAimDirection()
 	//This controls only the aim when the camera controller is disabled. When cc enabled, it controls the camera rotation but the inputs are conflicting.
 	auto cameraController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
 	auto cameraController = cameraController_c->get_first_object_matching(false);
-	struct Rotator{
+	struct Rotator {
 		UEVR_Rotatord rotation;
 	}params;
-	params.rotation.yaw = 0.0f;
-	//cameraController.YawInput
-	cameraController->call_function(L"SetCameraRotation", &params);
+
+	auto root_component = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootComponent");
+	//Logger::DebugPrint(root_component->get_full_name());
+	if (root_component != nullptr)
+	{
+		params.rotation = CurrentWeaponWorldRotation;
+		//cameraController.YawInput
+		cameraController->call_function(L"SetCameraRotation", &params);
+	}
 }
 
 void WeaponController::ApplyRecoil(float delta)

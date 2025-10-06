@@ -30,6 +30,7 @@ public:
 
 	glm::dvec3 FirePosition{};
 	glm::dvec3 AimPosition{};
+	UEVR_Rotatord CurrentWeaponWorldRotation{};
 
 	
 

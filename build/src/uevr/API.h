@@ -137,6 +137,13 @@ typedef struct {
 } UEVR_Quaternionf;
 
 typedef struct {
+    double w;
+    double x;
+    double y;
+    double z;
+} UEVR_Quaterniond;
+
+typedef struct {
     float pitch;
     float yaw;
     float roll;

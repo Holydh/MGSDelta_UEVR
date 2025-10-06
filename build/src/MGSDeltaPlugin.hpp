@@ -81,6 +81,8 @@ public:
     void on_post_engine_tick(uevr::API::UGameEngine* engine, float delta) override;
     void on_pre_slate_draw_window(UEVR_FSlateRHIRendererHandle renderer, UEVR_FViewportInfoHandle viewport_info) override;
     void on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle renderer, UEVR_FViewportInfoHandle viewport_info) override;
+    void on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters,
+        UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double) override;
     void on_pre_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters,
         UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double) override;
     void on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters,

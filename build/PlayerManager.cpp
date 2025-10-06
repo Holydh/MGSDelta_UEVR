@@ -7,20 +7,18 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	auto hairSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hair");
 	auto handsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hand");
 	auto armsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Arm");
-	Utilities::ParameterSingleBool singleBoolParams{
-	!visible ? true : false
-	};
+	bool SetOnlyOwnerSee = !visible ? true : false;
 	if (headSkeletalMesh) {
-		headSkeletalMesh->call_function(L"SetOnlyOwnerSee", &singleBoolParams);
+		headSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
 	}
 	if (hairSkeletalMesh) {
-		hairSkeletalMesh->call_function(L"SetOnlyOwnerSee", &singleBoolParams);
+		hairSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
 	}
 	if (handsSkeletalMesh) {
-		handsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &singleBoolParams);
+		handsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
 	}
 	if (armsSkeletalMesh) {
-		armsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &singleBoolParams);
+		armsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
 	}
 }
 
@@ -51,13 +49,10 @@ void PlayerManager::ToggleReticleVisibility(bool visible)
 void PlayerManager::FetchGameState()
 {
 	auto pawn = uevr::API::get()->get_local_pawn(0);
-
-	Utilities::ParameterSingleBool singleBoolParams{
-		false
-	};
+	bool playerControlled = {};
 	if (pawn) {
-		pawn->call_function(L"IsPlayerControlled", &singleBoolParams);
+		pawn->call_function(L"IsPlayerControlled", &playerControlled);
 	}
-	isPlayerControlled = singleBoolParams.boolValue;
+	isPlayerControlled = playerControlled;
 	//Logger::DebugPrint("IsPlayerControlled: %d", singleBoolParams);
 }

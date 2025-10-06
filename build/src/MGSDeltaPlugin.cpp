@@ -392,6 +392,8 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		memoryManager.ToggleAimRelatedMemoryInstructions(false);
 		playerManager.ToggleMeshesVisibility(false);
 		playerManager.ToggleReticleVisibility(false);
+		cameraController.SpawnCameraAttachementActor();
+		cameraController.AttachCameraToAttachementActor();
 	}
 	else
 	{
@@ -400,6 +402,8 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		memoryManager.ToggleAimRelatedMemoryInstructions(true);
 		playerManager.ToggleMeshesVisibility(true);
 		playerManager.ToggleReticleVisibility(true);
+		cameraController.DetachCameraFromAttachementActor();
+		cameraController.DestroyCameraAttachementActor();
 	}
 }
 
@@ -431,6 +435,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		weaponController.FetchWeaponMeshAimData();
 		/*Logger::DebugPrint("Before ApplyAimDataToMemory");*/
 		//weaponController.ApplyAimDataToMemory();
+		//cameraController.SetCameraRotationAndPosition();
+		weaponController.SetAimDirection();
 	}
 
 
@@ -463,12 +469,41 @@ void MGSDeltaPlugin::on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle rend
 	PLUGIN_LOG_ONCE("Post Slate Draw Window");
 }
 
+void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters, UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
+{
+	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
+		auto positiond = (UEVR_Vector3d*)position;
+	if (playerManager.isPlayerControlled)
+	{
+		auto pawn = uevr::API::get()->get_local_pawn(0);
+		UEVR_Vector3d pawnPosition;
+		pawn->call_function(L"K2_GetActorLocation", &pawnPosition);
+		//Logger::DebugPrint("Pawn Position : %f, %f, %f", pawnPosition.x, pawnPosition.y, pawnPosition.z);
+		auto grassVolumeCollisionHead = pawn->get_property<uevr::API::UObject*>(L"GrassVolumeCollisionHead");
+		UEVR_Vector3d headColliderPosition;
+		grassVolumeCollisionHead->call_function(L"K2_GetComponentLocation", &headColliderPosition);
+		auto newPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, headColliderPosition.z);
+		cameraController.playerPosition = newPosition;
+		positiond->x = newPosition.x;
+		positiond->y = newPosition.y;
+		positiond->z = newPosition.z;
+
+		auto rotationd = (UEVR_Rotatord*)rotation;
+
+		if (cameraController.YawInput != 0.0)
+			cameraController.actualYaw += cameraController.YawInput * cameraController.YawSpeed;
+		/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
+		rotationd->yaw = cameraController.actualYaw;
+		cameraController.SetCameraRotation();
+	}
+}
+
 void MGSDeltaPlugin::on_pre_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters,
 	UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Pre Calculate Stereo View Offset");
-
-	auto rotationd = (UEVR_Rotatord*)rotation;
+	
+	//auto rotationd = (UEVR_Rotatord*)rotation;
 
 	//// Decoupled pitch.
 	//if (!is_double) {
@@ -477,20 +512,42 @@ void MGSDeltaPlugin::on_pre_calculate_stereo_view_offset(UEVR_StereoRenderingDev
 	//else {
 	//    rotationd->pitch = 0.0;
 	//}
-	if (cameraController.YawInput != 0.0)
-		cameraController.actualYaw += cameraController.YawInput * cameraController.YawSpeed;
-	/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
-	rotationd->yaw = cameraController.actualYaw;
-	if (playerManager.isPlayerControlled)
-	{
-		cameraController.SetCameraRotation(rotationd->yaw);
-	}
+	//if (cameraController.YawInput != 0.0)
+	//	cameraController.actualYaw += cameraController.YawInput * cameraController.YawSpeed;
+	///*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
+	//rotationd->yaw = cameraController.actualYaw;
+	//if (playerManager.isPlayerControlled)
+	//{
+	//	cameraController.SetCameraRotation(rotationd->yaw);
+	//}
+	//Logger::DebugPrint("on_pre rotation->yaw: %f", rotation->yaw);
+
+
 }
 
 void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters,
 	UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Post Calculate Stereo View Offset");
+	//auto rotationd = (UEVR_Rotatord*)rotation;
+	//rotationd->yaw = 90.0f;
+	//Logger::DebugPrint("on_post rotation->yaw: %f", rotation->yaw);
+	//auto positiond = (UEVR_Vector3d*)position;
+	//if (playerManager.isPlayerControlled)
+	//{
+	//	auto pawn = uevr::API::get()->get_local_pawn(0);
+	//	UEVR_Vector3d pawnPosition;
+	//	pawn->call_function(L"K2_GetActorLocation", &pawnPosition);
+	//	//Logger::DebugPrint("Pawn Position : %f, %f, %f", pawnPosition.x, pawnPosition.y, pawnPosition.z);
+	//	auto grassVolumeCollisionHead = pawn->get_property<uevr::API::UObject*>(L"GrassVolumeCollisionHead");
+	//	UEVR_Vector3d headColliderPosition;
+	//	grassVolumeCollisionHead->call_function(L"K2_GetComponentLocation", &headColliderPosition);
+	//	auto newPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, headColliderPosition.z);
+	//	cameraController.playerPosition = newPosition;
+	//	positiond->x = newPosition.x;
+	//	positiond->y = newPosition.y;
+	//	positiond->z = newPosition.z;
+	//}
 }
 
 void MGSDeltaPlugin::on_pre_viewport_client_draw(UEVR_UGameViewportClientHandle viewport_client, UEVR_FViewportHandle viewport, UEVR_FCanvasHandle canvas) {
@@ -504,8 +561,8 @@ void MGSDeltaPlugin::on_post_viewport_client_draw(UEVR_UGameViewportClientHandle
 void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, XINPUT_STATE* state)
 {
 	PLUGIN_LOG_ONCE("XInput Get State");
-	if (state->Gamepad.sThumbRX != 0.0)
-		Logger::DebugPrint("%d", state->Gamepad.sThumbRX);
+	//if (state->Gamepad.sThumbRX != 0.0)
+	//	Logger::DebugPrint("%d", state->Gamepad.sThumbRX);
 	float rawYawInput = (float)state->Gamepad.sThumbRX / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
 	cameraController.YawInput = rawYawInput > 0.2f || rawYawInput < -0.2f ? rawYawInput : 0.0f;
 }

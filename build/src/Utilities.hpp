@@ -8,7 +8,13 @@ private:
 
 public:
 	static uevr::API::UObject* KismetMathLibrary;
+	static uevr::API::UObject* GameplayStatics;
+	static uevr::API::UClass* ActorClass;
+	static uevr::API::UClass* SceneComponentClass;
+
 	static void InitHelperClasses();
+	static uevr::API::UObject* SpawnActor(uevr::API::UObject* WorldContextObject, UEVR_Vector3d Position, uint8_t CollisionMethod, uevr::API::UObject* Owner);
+
 	//static glm::fvec3 OffsetLocalPositionFromWorld(glm::fvec3 worldPosition, glm::fvec3 forwardVector, glm::fvec3 upVector, glm::fvec3 rightVector, glm::fvec3 offsets);
 
 enum ESlateVisibility : uint8_t
@@ -42,7 +48,7 @@ struct FGsrFireRequest
 
 struct FTransform
 {
-	UEVR_Quaternionf    Rotation;
+	UEVR_Quaterniond    Rotation;
 	UEVR_Vector3d       Translation;
 	uint8_t             Pad_38[0x8];
 	UEVR_Vector3d       Scale3D;
@@ -55,6 +61,11 @@ struct RotateAngleAxis
     float               AngleDeg;
     UEVR_Vector3d       Axis;
     UEVR_Vector3d       Result;
+};
+
+struct MakeRotFromX {
+	UEVR_Vector3d InVec;
+	UEVR_Rotatord Result;
 };
 
 struct DummyPostProcessSettings
@@ -90,6 +101,35 @@ public:
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+struct GameplayStatics_BeginDeferredActorSpawnFromClass final
+{
+public:
+	uevr::API::UObject*                          WorldContextObject;                                // 0x0000(0x0008)(ConstParm, Parm, ZeroConstructor, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uevr::API::UClass*		                      ActorClass;                                        // 0x0008(0x0008)(Parm, ZeroConstructor, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	struct FTransform                             SpawnTransform;                                    // 0x0010(0x0060)(ConstParm, Parm, OutParm, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uint8_t							            CollisionHandlingOverride;  // set to 1                      // 0x0070(0x0001)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uint8_t                                         Pad_71[0x7];                                       // 0x0071(0x0007)(Fixing Size After Last Property [ Dumper-7 ])
+	uevr::API::UObject*	                                Owner;                                             // 0x0078(0x0008)(Parm, ZeroConstructor, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uint8_t			                        TransformScaleMethod; //Set to 0                              // 0x0080(0x0001)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uint8_t                                         Pad_81[0x7];                                       // 0x0081(0x0007)(Fixing Size After Last Property [ Dumper-7 ])
+	uevr::API::UObject*                                 ReturnValue;                                       // 0x0088(0x0008)(Parm, OutParm, ZeroConstructor, ReturnParm, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct GameplayStatics_FinishSpawningActor final
+{
+public:
+	uevr::API::UObject*                                 Actor;                                             // 0x0000(0x0008)(Parm, ZeroConstructor, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uint8_t                                         Pad_8[0x8];                                        // 0x0008(0x0008)(Fixing Size After Last Property [ Dumper-7 ])
+	struct FTransform                             SpawnTransform;                                    // 0x0010(0x0060)(ConstParm, Parm, OutParm, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uint8_t                        TransformScaleMethod;                              // 0x0070(0x0001)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uint8_t                                         Pad_71[0x7];                                       // 0x0071(0x0007)(Fixing Size After Last Property [ Dumper-7 ])
+	uevr::API::UObject*                                 ReturnValue;                                       // 0x0078(0x0008)(Parm, OutParm, ZeroConstructor, ReturnParm, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 struct FCameraCacheEntry final
 {
 public:
@@ -107,15 +147,6 @@ public:
 	};
 #pragma pack(pop)
 
-	struct ParameterSingleBool
-	{
-		bool boolValue = false;
-	};
-
-	struct ParameterSingleVector3d
-	{
-		UEVR_Vector3d vec3Value{};
-	};
 
 	struct ParameterGetSocketLocation
 	{
@@ -161,7 +192,7 @@ public:
 #pragma pack(push, 1)
 	struct Parameter_K2_SetWorldOrRelativeLocation final
 	{
-		glm::fvec3 newLocation;
+		UEVR_Vector3d newLocation;
 		bool bSweep;
 		uint8_t pad_D[3];
 		uint8_t padding[0x8C];
@@ -173,12 +204,12 @@ public:
 #pragma pack(push, 1)
 	struct Parameter_K2_SetWorldOrRelativeRotation final
 	{
-		FRotator newRotation;
+		UEVR_Rotatord newRotation;
 		bool bSweep;
-		uint8_t pad_D[3];
-		uint8_t padding[0x8C];
+		uint8_t pad_D[0x0007];
+		uint8_t SweepHitResult[0x00E8];
 		bool bTeleport;
-		uint8_t pad_9D[3];
+		uint8_t pad_9D[0x0007];
 	};
 #pragma pack(pop)
 };
