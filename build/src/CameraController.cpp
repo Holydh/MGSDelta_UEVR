@@ -121,7 +121,11 @@ void CameraController::FetchAnimationState()
 
 	if (!start)
 		return;
-	Logger::DebugPrint(AnimationState.NextStateName.to_string().c_str());
+	/*Logger::DebugPrint(AnimationState.NextStateName.to_string().c_str());*/
+
+	Utilities::KismetStringLibrary_Conv_StringToName params;
+	//params.InString = L"Fuuuuuuuuuolloo";
+	//Utilities::KismetStringLibrary->call_function(L"Conv_StringToName", &AnimationState.NextStateName);
 	//Utilities::KismetStringLibrary_Conv_NameToString params;
 	//params.InName = AnimationState.NextStateName;
 

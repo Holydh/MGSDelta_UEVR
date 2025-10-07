@@ -437,7 +437,10 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		//weaponController.ApplyAimDataToMemory();
 		//cameraController.SetCameraRotationAndPosition();
 		weaponController.SetAimDirection();
-		cameraController.FetchAnimationState();
+		//cameraController.FetchAnimationState();
+		SDK::UObject* test = (SDK::UObject*)cameraController.CameraAttachementActor;
+		auto test2 = test->GetFullName();
+		Logger::DebugPrint("World : %s", test2.c_str());
 	}
 
 

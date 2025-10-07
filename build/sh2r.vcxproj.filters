@@ -70,6 +70,15 @@
     <ClCompile Include="PlayerManager.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\SDK\Basic.cpp">
+      <Filter>src\sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SDK\Engine_functions.cpp">
+      <Filter>src\sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SDK\CoreUObject_functions.cpp">
+      <Filter>src\sdk</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\MGSDeltaPlugin.hpp">
@@ -214,6 +223,9 @@
     </Filter>
     <Filter Include="src\renderlib\UEVR_IMGUI">
       <UniqueIdentifier>{ee606598-025c-4c52-a4fd-7fdacdb8c568}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\sdk">
+      <UniqueIdentifier>{745fc108-29db-488d-90bd-ead7f360865d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

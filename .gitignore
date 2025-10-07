@@ -34,5 +34,13 @@ build/.vscode/*
 build/out/*
 build/.vs/*
 build/Debug/*
+build/src/SDK/*
+build/src/NameCollisions.inl
+build/src/PropertyFixup.hpp
+build/src/SDK.hpp
+build/src/UnrealContainers.hpp
+build/src/UtfN.hpp
+build/src/Assertions.inl
+
 
 dependencies/steelsdk/*

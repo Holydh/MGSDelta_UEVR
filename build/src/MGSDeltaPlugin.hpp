@@ -31,6 +31,10 @@
 #include "PlayerManager.hpp"
 #include "Logger.hpp"
 
+#include "SDK/Engine_classes.hpp"
+#include "SDK/CoreUObject_classes.hpp"
+#include "SDK/Basic.hpp"
+
 #define _CRT_SECURE_NO_WARNINGS 1
 
 // Global accessor for our plugin.
