@@ -37,7 +37,7 @@ void MGSDeltaPlugin::on_initialize() {
 	Logger::DebugPrint("Don't reupload this plugin elsewhere.\n");
 
 	//hookManager.SetGunAdjustValuesFromConfig(config_file);
-	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerController", L"SetControlRotation", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_ISetCameraRotation_pre, true);
+	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", (UEVR_UFunction_NativePostFn)HookManager::mod_ISetCameraRotation_pre, NULL, true);
 	/*hookManager.hook_ISetSmoothedAimPosition_fn();*/
 	Utilities::InitHelperClasses();
 	settingsManager.LoadAllWeaponConfigs(uobjectHook_file);
@@ -437,6 +437,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		//weaponController.ApplyAimDataToMemory();
 		//cameraController.SetCameraRotationAndPosition();
 		weaponController.SetAimDirection();
+		cameraController.FetchAnimationState();
 	}
 
 

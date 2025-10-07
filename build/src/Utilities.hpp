@@ -8,6 +8,7 @@ private:
 
 public:
 	static uevr::API::UObject* KismetMathLibrary;
+	static uevr::API::UObject* KismetStringLibrary;
 	static uevr::API::UObject* GameplayStatics;
 	static uevr::API::UClass* ActorClass;
 	static uevr::API::UClass* SceneComponentClass;
@@ -71,6 +72,41 @@ struct MakeRotFromX {
 struct DummyPostProcessSettings
 {
     uint8_t pad[0x06E0];
+};
+
+struct IcsAnimInstance_OnEnteredState
+{
+public:
+	uevr::API::FName                                   StateMachineName;                                  // 0x0000(0x0008)(ConstParm, Parm, OutParm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uevr::API::FName                                   PrevStateName;                                     // 0x0008(0x0008)(ConstParm, Parm, OutParm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uevr::API::FName                                   NextStateName;                                     // 0x0010(0x0008)(ConstParm, Parm, OutParm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+};
+
+struct FString {
+    wchar_t* Data;
+    int32_t NumElements;
+    int32_t MaxElements;
+
+	const wchar_t* CStr() const { return Data ? Data : L""; }
+
+    std::wstring ToWString() const {
+        if (!Data) return L"";
+        return std::wstring(Data, NumElements > 0 ? NumElements - 1 : 0);
+    }
+};
+
+struct KismetStringLibrary_Conv_NameToString final
+{
+public:
+	uevr::API::FName                                InName;                                            // 0x0000(0x0008)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	FString											ReturnValue;                                       // 0x0008(0x0010)(Parm, OutParm, ZeroConstructor, ReturnParm, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+};
+
+struct KismetStringLibrary_Conv_StringToName final
+{
+public:
+	class FString									InString;                                          // 0x0000(0x0010)(Parm, ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uevr::API::FName								ReturnValue;                                       // 0x0010(0x0008)(Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 };
 
 #pragma pack(push, 1)

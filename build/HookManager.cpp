@@ -109,72 +109,73 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, Utilities::
 //	return result;
 //}
 
-//bool HookManager::mod_ISetCameraRotation_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
-//{
-//	Logger::DebugPrint("fuck ye");
-//
-//	if (result != nullptr)
-//	{
-//		struct rotatortest {
-//			UEVR_Rotatord* Rotation;
-//		};
-//		rotatortest* params = (rotatortest*)result;
-//		Logger::DebugPrint("Result : %f", params->Rotation->pitch);
-//		//params->Rotation->pitch = 180.0f;
-//	}
-//
-//	if (locals != nullptr)
-//	{
-//		struct rotatortest {
-//			UEVR_Rotatord* Rotation;
-//		};
-//		rotatortest* params = (rotatortest*)locals;
-//		Logger::DebugPrint("Locals : %p", locals);
-//		//params->Rotation->pitch = 180.0f;
-//	}
-//	else
-//	{
-//		uevr::API::get()->log_info("mod_GetCurrentAimPitch_post - locals is null");
-//	}
-//	return false;
-//	//API::get()->log_info("mod_GetCurrentAimPitch_post returning false");
-//}
-//
-//bool HookManager::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native)
-//{
-//	Logger::DebugPrint("Entering hook_bp_fn");
-//	auto obj = (uevr::API::UClass*)uevr::API::get()->find_uobject(class_name);
-//
-//	if (obj == nullptr) {
-//		Logger::DebugPrint("Failed to find %ls", class_name.data());
-//		return false;
-//	}
-//
-//	auto fn = obj->find_function(fn_name);
-//
-//	if (fn == nullptr) {
-//		Logger::DebugPrint("Failed to find %ls", fn_name.data());
-//		return false;
-//	}
-//
-//	Logger::DebugPrint("getting function flags");
-//	uint32_t flags = fn->get_function_flags();
-//
-//	if (use_native)
-//	{
-//		flags = flags | 0x400;
-//	}
-//	else
-//	{
-//		flags = flags & ~0x400;
-//	}
-//
-//	Logger::DebugPrint("Setting function flags to 0x%08x", flags);
-//	fn->set_function_flags(flags);
-//
-//	Logger::DebugPrint("Calling hook_ptr for %ls", fn_name.data());
-//	return uevr::API::get()->param()->sdk->ufunction->hook_ptr((UEVR_UFunctionHandle)fn, pre, post);
-//}
+bool HookManager::mod_ISetCameraRotation_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+	Logger::DebugPrint("fuck ye");
+
+	//if (result != nullptr)
+	//{
+	//	struct rotatortest {
+	//		UEVR_Rotatord* Rotation;
+	//	};
+	//	rotatortest* params = (rotatortest*)result;
+	//	Logger::DebugPrint("Result : %f", params->Rotation->pitch);
+	//	//params->Rotation->pitch = 180.0f;
+	//}
+
+	if (locals != nullptr)
+	{
+		Utilities::IcsAnimInstance_OnEnteredState* params = (Utilities::IcsAnimInstance_OnEnteredState*)locals;
+		//Logger::DebugPrint("Locals : %p", locals);
+		s_cameraController->AnimationState.NextStateName = uevr::API::FName(L"helloFuckDatShitMan");
+		//s_cameraController->AnimationState.PrevStateName = params->PrevStateName;
+		//s_cameraController->AnimationState.StateMachineName = params->StateMachineName;
+		s_cameraController->start = true;
+		//params->Rotation->pitch = 180.0f;
+	}
+	else
+	{
+		uevr::API::get()->log_info("mod_GetCurrentAimPitch_post - locals is null");
+	}
+	return false;
+	//API::get()->log_info("mod_GetCurrentAimPitch_post returning false");
+}
+
+bool HookManager::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native)
+{
+	Logger::DebugPrint("Entering hook_bp_fn");
+	auto obj = (uevr::API::UClass*)uevr::API::get()->find_uobject(class_name);
+
+	if (obj == nullptr) {
+		Logger::DebugPrint("Failed to find %ls", class_name.data());
+		return false;
+	}
+
+	auto fn = obj->find_function(fn_name);
+
+	if (fn == nullptr) {
+		Logger::DebugPrint("Failed to find %ls", fn_name.data());
+		return false;
+	}
+
+	Logger::DebugPrint("getting function flags");
+	uint32_t flags = fn->get_function_flags();
+
+	if (use_native)
+	{
+		flags = flags | 0x400;
+	}
+	else
+	{
+		flags = flags & ~0x400;
+	}
+
+	Logger::DebugPrint("Setting function flags to 0x%08x", flags);
+	fn->set_function_flags(flags);
+
+	Logger::DebugPrint("Calling hook_ptr for %ls", fn_name.data());
+	return uevr::API::get()->param()->sdk->ufunction->hook_ptr((UEVR_UFunctionHandle)fn, pre, post);
+}
 
 
 

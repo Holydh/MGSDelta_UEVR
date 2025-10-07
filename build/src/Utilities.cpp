@@ -1,6 +1,7 @@
 #include "Utilities.hpp"
 
 uevr::API::UObject* Utilities::KismetMathLibrary = nullptr;
+uevr::API::UObject* Utilities::KismetStringLibrary = nullptr;
 uevr::API::UObject* Utilities::GameplayStatics = nullptr;
 uevr::API::UClass* Utilities::ActorClass = nullptr;
 uevr::API::UClass* Utilities::SceneComponentClass = nullptr;
@@ -14,6 +15,14 @@ void Utilities::InitHelperClasses()
 		return;
 	}
 	KismetMathLibrary = kismetMathLibrary_c->get_class_default_object();
+
+	static auto kismetStringLibrary_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.KismetStringLibrary");
+	if (!kismetStringLibrary_c)
+	{
+		uevr::API::get()->log_error("kismetStringLibrary_c not found");
+		return;
+	}
+	KismetStringLibrary = kismetMathLibrary_c->get_class_default_object();
 
 	static auto gameplayStatics_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.GameplayStatics");
 	if (!gameplayStatics_c)

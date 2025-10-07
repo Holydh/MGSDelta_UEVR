@@ -47,7 +47,7 @@ void CameraController::SetCameraRotation()
 
 	UEVR_Vector3d forwardVector;
 	CameraAttachementActor->call_function(L"GetActorForwardVector", &forwardVector);
-	Logger::DebugPrint("Forward Vector : %f, %f, %f", forwardVector.x, forwardVector.y, forwardVector.z);
+	//Logger::DebugPrint("Forward Vector : %f, %f, %f", forwardVector.x, forwardVector.y, forwardVector.z);
 
 	glm::dvec3 position = { playerPosition.x, playerPosition.y, playerPosition.z };
 	glm::dvec3 forward = { forwardVector.x, forwardVector.y, forwardVector.z };
@@ -105,3 +105,37 @@ void CameraController::DetachCameraFromAttachementActor()
 {
 	uevr::API::UObjectHook::remove_motion_controller_state(CameraAttachementActor);
 }
+
+void CameraController::FetchAnimationState()
+{
+	//Class /Script/Ics.IcsAnimInstance
+	//auto icsAnimInstance_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerBase.ABP_PlayerBase_C");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
+	//auto icsAnimInstance = icsAnimInstance_c->get_first_object_matching(false);
+
+	//Utilities::IcsAnimInstance_OnEnteredState param;
+	//icsAnimInstance->call_function(L"OnEnteredState", &param);
+	//auto stateName = param.NextStateName;
+	
+	//if (AnimationState.NextStateName)
+	//	return;
+
+	if (!start)
+		return;
+	Logger::DebugPrint(AnimationState.NextStateName.to_string().c_str());
+	//Utilities::KismetStringLibrary_Conv_NameToString params;
+	//params.InName = AnimationState.NextStateName;
+
+	//Utilities::KismetStringLibrary->call_function(L"Conv_NameToString", &params);
+	//const wchar_t* stateName = params.ReturnValue.CStr();
+	//if (stateName && *stateName)
+	//{
+	//	Logger::DebugPrint("Animation State: %ws", stateName);
+	//}
+	//else
+	//{
+	//	Logger::DebugPrint("Animation State: <empty>");
+	//}
+	//auto icsAnimInstance = cameraController->get_property<uevr::API::UObject*>(L"m_cameraActor");
+}
+
+

@@ -27,4 +27,8 @@ public:
 	void AttachCameraToAttachementActor();
 	void DetachCameraFromAttachementActor();
 	bool CameraAttachementActorAvailable = false;
+
+	void FetchAnimationState();
+	bool start = false;
+	Utilities::IcsAnimInstance_OnEnteredState AnimationState;
 };
