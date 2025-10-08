@@ -13,8 +13,8 @@ public:
 	void ToggleMeshesVisibility(bool visible);
 	void ToggleReticleVisibility(bool visible);
 
-	bool wasPlayerControlled = false;
-    bool isPlayerControlled = false;
+	bool WasPlayerControlled = false;
+    bool IsPlayerControlled = false;
     void FetchGameState();
 
 	enum EPlayerAnimState
@@ -37,7 +37,8 @@ public:
 	bool IsChangingStance = false;
 	SDK::EGsrPlayerStance CurrentStance = SDK::EGsrPlayerStance::Stand;
 	SDK::EGsrPlayerStance PreviousStance = SDK::EGsrPlayerStance::Stand;
-	float ChangeStanceTime = 0.0f;
+	float ChangeStanceTimer = 0.0f;
+	float PeepEndTimer = 0.0f;
 
 	/*SDK::Params::IcsAnimInstance_OnEnteredState debugParamsTest;*/
 

@@ -37,13 +37,15 @@ void CameraController::SetCameraRotation()
 	auto cameraActor = cameraController->get_property<uevr::API::UObject*>(L"m_cameraActor");
 	//Logger::DebugPrint(cameraActor->get_full_name());
 	//auto cameraComponent = cameraActor->get_property<uevr::API::UObject*>(L"RootComponent");
+
 	SDK::Params::Actor_K2_SetActorRelativeRotation params;
-	params.NewRelativeRotation = {0.0f,  actualYaw + YawInput * YawSpeed, 0.0f};
+	params.NewRelativeRotation = { 0.0f,  actualYaw, 0.0f };
 	params.bSweep = false;
-	params.bTeleport = true;
-	
+	params.bTeleport = false;
+
 	cameraActor->call_function(L"K2_SetActorRelativeRotation", &params);
 	actualYaw = params.NewRelativeRotation.Yaw;
+
 
 	UEVR_Vector3d forwardVector;
 	CameraAttachementActor->call_function(L"GetActorForwardVector", &forwardVector);
@@ -51,7 +53,7 @@ void CameraController::SetCameraRotation()
 
 	glm::dvec3 position = { CameraPosition.x, CameraPosition.y, CameraPosition.z };
 	glm::dvec3 forward = { forwardVector.x, forwardVector.y, forwardVector.z };
-	forward *= 50.0f;
+	forward *= 100.0f;
 	glm::dvec3 newPosition = position - forward;
 	
 	SDK::Params::Actor_K2_SetActorRelativeLocation params1;
@@ -121,31 +123,36 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 
 	//Logger::DebugPrint
 
-	if (!cameraInitialized)
+	if (InstantCameraPositionNeeded)
 	{
-		CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
-		cameraInitialized = true;
+		CameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
+		//CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
+		cameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
+
+		auto pawn = uevr::API::get()->get_local_pawn(0);
+		UEVR_Rotatord pawnRotation;
+		pawn->call_function(L"K2_GetActorRotation", &pawnRotation);
+		actualYaw = pawnRotation.yaw;
+		cameraRotation.yaw = actualYaw;
 		return;
 	}
-		
 	
-	if (playerManager->IsChangingStance || playerManager->IsHanging)
-	{
-		CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
-	}
+	//if (playerManager->IsChangingStance || playerManager->IsHanging)
+	//{
+	//	CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
+	//}
 
 	if (playerManager->IsPeeping)
 	{
-		tempPosition = UEVR_Vector3d(headColliderPosition.x, headColliderPosition.y, pawnPosition.z - CameraHeightOffset);
-		newPosition = glm::mix(CameraPosition, glm::fvec3(tempPosition.x, tempPosition.y, tempPosition.z), 0.1f);
+		newPosition = glm::mix(CameraPosition, glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z), 0.1f);
 	}
 	else
 	{
-		tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, pawnPosition.z - CameraHeightOffset);
+		tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, headColliderPosition.z);
 		newPosition = glm::fvec3(
 			glm::mix(CameraPosition.x, (float)tempPosition.x, 0.25f),
 			glm::mix(CameraPosition.y, (float)tempPosition.y, 0.25f),
-			glm::mix(CameraPosition.z, (float)tempPosition.z, 0.05f));
+			glm::mix(CameraPosition.z, (float)tempPosition.z, 0.04f));
 	}
 
 
@@ -162,6 +169,20 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 	/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
 	cameraRotation.yaw = actualYaw;
 	SetCameraRotation();
+}
+
+void CameraController::ProcessCameraResetTimer(float delta)
+{
+	if (playerManager->IsPlayerControlled && !playerManager->WasPlayerControlled)
+	{
+		InstantCameraPositionTimer = 1.0f;
+		InstantCameraPositionNeeded = true;
+	}
+	if (InstantCameraPositionTimer <= 0.0f)
+	{
+		InstantCameraPositionNeeded = false;
+	}
+	InstantCameraPositionTimer -= delta;
 }
 
 

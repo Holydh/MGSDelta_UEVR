@@ -14,8 +14,6 @@ class CameraController {
 private:
 	PlayerManager* const playerManager;
 
-	bool cameraInitialized = false;
-
 public:
 	CameraController(PlayerManager* pm) : playerManager(pm){};
 	//virtual ~CameraController() = default;
@@ -41,4 +39,7 @@ public:
 	bool CameraAttachementActorAvailable = false;
 
 	void ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotatord& cameraRotation);
+	float InstantCameraPositionTimer = 1.0f;
+	bool InstantCameraPositionNeeded = false;
+	void ProcessCameraResetTimer(float delta);
 };

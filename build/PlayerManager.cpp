@@ -55,7 +55,7 @@ void PlayerManager::FetchGameState()
 	if (pawn) {
 		pawn->call_function(L"IsPlayerControlled", &playerControlled);
 	}
-	isPlayerControlled = playerControlled;
+	IsPlayerControlled = playerControlled;
 	//Logger::DebugPrint("IsPlayerControlled: %d", singleBoolParams);
 }
 
@@ -66,14 +66,14 @@ void PlayerManager::GetCurrentPlayerStance(float deltaTime)
 	CurrentStance = gsrPlayer->GetCurrentStance();
 	if (CurrentStance != PreviousStance)
 	{
-		ChangeStanceTime = 0.0f;
+		ChangeStanceTimer = 0.0f;
 		IsChangingStance = true;
 	}
 
 	if (IsChangingStance)
 	{
-		ChangeStanceTime += deltaTime;
-		if (ChangeStanceTime >= 1.0f) //assuming the stance change animation takes 0.5 seconds
+		ChangeStanceTimer += deltaTime;
+		if (ChangeStanceTimer >= 1.0f) //assuming the stance change animation takes 0.5 seconds
 		{
 			IsChangingStance = false;
 		}

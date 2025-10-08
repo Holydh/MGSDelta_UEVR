@@ -394,7 +394,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.ToggleGameCameraController(false);
 		cameraController.ToggleCameraWobblingController(false);
 		memoryManager.ToggleAimRelatedMemoryInstructions(false);
-		playerManager.ToggleMeshesVisibility(false);
+		//playerManager.ToggleMeshesVisibility(false);
 		playerManager.ToggleReticleVisibility(false);
 		cameraController.SpawnCameraAttachementActor();
 		cameraController.AttachCameraToAttachementActor();
@@ -404,7 +404,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.ToggleGameCameraController(true);
 		cameraController.ToggleCameraWobblingController(true);
 		memoryManager.ToggleAimRelatedMemoryInstructions(true);
-		playerManager.ToggleMeshesVisibility(true);
+		//playerManager.ToggleMeshesVisibility(true);
 		playerManager.ToggleReticleVisibility(true);
 		cameraController.DetachCameraFromAttachementActor();
 		cameraController.DestroyCameraAttachementActor();
@@ -415,19 +415,19 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
 	playerManager.FetchGameState();
 
-	if (playerManager.isPlayerControlled && !playerManager.wasPlayerControlled)
+	if (playerManager.IsPlayerControlled && !playerManager.WasPlayerControlled)
 	{
 		Logger::DebugPrint("Player took control");
 		Toggle6DOF(true);
 	}
 
-	if (!playerManager.isPlayerControlled && playerManager.wasPlayerControlled)
+	if (!playerManager.IsPlayerControlled && playerManager.WasPlayerControlled)
 	{
 		Logger::DebugPrint("Player lost control");
 		Toggle6DOF(false);
 	}
 
-	if (playerManager.isPlayerControlled)
+	if (playerManager.IsPlayerControlled)
 	{
 		/*Logger::DebugPrint("Before ResolveAddresses");*/
 		/*memoryManager.ResolveAddresses();*/
@@ -445,7 +445,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		playerManager.GetCurrentPlayerStance(delta);
 	}
 
-
+	cameraController.ProcessCameraResetTimer(delta);
 
 
 	if (m_initialized) {
@@ -460,7 +460,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		ImGui::Render();
 	}
 
-	playerManager.wasPlayerControlled = playerManager.isPlayerControlled;
+	playerManager.WasPlayerControlled = playerManager.IsPlayerControlled;
 	playerManager.PreviousStance = playerManager.CurrentStance;
 }
 
@@ -480,7 +480,7 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 {
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
 
-	if (playerManager.isPlayerControlled)
+	if (playerManager.IsPlayerControlled)
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
