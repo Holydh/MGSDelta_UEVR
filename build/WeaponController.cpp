@@ -142,34 +142,34 @@ void WeaponController::FetchWeaponMeshAimData()
 	//Logger::DebugPrint(root_component->get_full_name());
 	if (root_component != nullptr)
 	{
-		UEVR_Vector3d forward_params;
+		SDK::FVector forward_params;
 		root_component->call_function(L"GetForwardVector", &forward_params);
 		//Logger::DebugPrint("ForwardVector.x : %f, ForwardVector.y : %f, ForwardVector.z : %f", forward_params.x, forward_params.y, forward_params.z);
-		Utilities::FTransform muzzle_transform;
+		SDK::FTransform muzzle_transform;
 		root_component->call_function(L"GetMuzzleTransform", &muzzle_transform);
 		//Logger::DebugPrint("FirePosition.x : %f, FirePosition.y : %f, FirePosition.z : %f", muzzle_transform.Translation.x, muzzle_transform.Translation.y, muzzle_transform.Translation.z);
-		FirePosition = { muzzle_transform.Translation.x, muzzle_transform.Translation.y, muzzle_transform.Translation.z };
+		FirePosition = { muzzle_transform.Translation.X, muzzle_transform.Translation.Y, muzzle_transform.Translation.Z };
 		float scaler = 8192.0;
-		Utilities::RotateAngleAxis rotate_params;
+		SDK::Params::KismetMathLibrary_RotateAngleAxis rotate_params;
 		rotate_params.InVect = forward_params;
 		rotate_params.AngleDeg = 90.0f;
 		root_component->call_function(L"GetUpVector", &rotate_params.Axis);
 		Utilities::KismetMathLibrary->call_function(L"RotateAngleAxis", &rotate_params);
-		forward_params = rotate_params.Result;
+		forward_params = { rotate_params.ReturnValue.X, rotate_params.ReturnValue.Y, rotate_params.ReturnValue.Z };
 
 		 // Now, convert the final forward vector into a rotator.
-        Utilities::FRotator world_rotator;
+        SDK::FRotator world_rotator;
         
         // This is a struct to pass the vector as a parameter to the function.
-        Utilities::MakeRotFromX makeRotFromX_params;
+        SDK::Params::KismetMathLibrary_MakeRotFromX makeRotFromX_params;
 
-        makeRotFromX_params.InVec = forward_params;
+        makeRotFromX_params.X = forward_params;
 
         // Call the Kismet Math Library function to perform the conversion.
         Utilities::KismetMathLibrary->call_function(L"MakeRotFromX", &makeRotFromX_params);
         
         // The resulting rotator is now in the 'Result' field.
-        CurrentWeaponWorldRotation = makeRotFromX_params.Result;
+        CurrentWeaponWorldRotation = makeRotFromX_params.ReturnValue;
 
 		float aimOffsetValueHorizontal = 0.0f;
 		float aimOffsetValueVertical = 0.0f;
@@ -235,9 +235,9 @@ void WeaponController::FetchWeaponMeshAimData()
 		}
 
 		AimPosition = { 
-			FirePosition.x + forward_params.x * scaler, 
-			FirePosition.y + forward_params.y * scaler - aimOffsetValueHorizontal,
-			FirePosition.z + forward_params.z * scaler - aimOffsetValueVertical
+			FirePosition.x + forward_params.X * scaler, 
+			FirePosition.y + forward_params.Y * scaler - aimOffsetValueHorizontal,
+			FirePosition.z + forward_params.Z * scaler - aimOffsetValueVertical
 		};
 		//Logger::DebugPrint("AimPosition.x : %f, AimPosition.y : %f, AimPosition.z : %f", AimPosition.x, AimPosition.y, AimPosition.z);
 	}
@@ -257,15 +257,13 @@ void WeaponController::SetAimDirection()
 	//This controls only the aim when the camera controller is disabled. When cc enabled, it controls the camera rotation but the inputs are conflicting.
 	auto cameraController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
 	auto cameraController = cameraController_c->get_first_object_matching(false);
-	struct Rotator {
-		UEVR_Rotatord rotation;
-	}params;
 
 	auto root_component = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootComponent");
 	//Logger::DebugPrint(root_component->get_full_name());
 	if (root_component != nullptr)
 	{
-		params.rotation = CurrentWeaponWorldRotation;
+		SDK::FRotator params;
+		params = CurrentWeaponWorldRotation;
 		//cameraController.YawInput
 		cameraController->call_function(L"SetCameraRotation", &params);
 	}

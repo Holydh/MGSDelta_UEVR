@@ -1,13 +1,20 @@
 #include "HookManager.hpp"
 
+#ifndef CPF_OutParm
+#define CPF_OutParm 0x0000000000000002
+#endif
+
 WeaponController* HookManager::s_weaponController = nullptr;
 CameraController* HookManager::s_cameraController = nullptr;
+PlayerManager* HookManager::s_playerManager = nullptr;
 
 void HookManager::Initialize()
 {
 	s_weaponController = weaponController;
 	s_cameraController = cameraController;
+	s_playerManager = playerManager;
 }
+
 
 int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* destination, void** original, bool findRealCall) {
 	auto obj = (uevr::API::UClass*)uevr::API::get()->find_uobject(class_name);
@@ -33,7 +40,7 @@ int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* d
 
 	Logger::DebugPrint("%ls native: 0x%p", fn_name.data(), native);
 
-	if (!findRealCall){
+	if (!findRealCall) {
 		return uevr::API::get()->param()->functions->register_inline_hook((void*)native, (void*)destination, original);
 	}
 
@@ -57,31 +64,31 @@ int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* d
 
 void HookManager::HookFireFunction() {
 	m_fire_hook_id = hook_fn(
-		L"Class /Script/Gsr.GsrEquipController", 
-		L"Fire", 
-		OnFire, 
-		(void**)&m_fire_hook_fn, 
+		L"Class /Script/Gsr.GsrEquipController",
+		L"Fire",
+		OnFire,
+		(void**)&m_fire_hook_fn,
 		true);
 }
 
-void* HookManager::OnFireModded(uevr::API::UObject* equipController, Utilities::FGsrFireRequest* FireRequest) {
+void* HookManager::OnFireModded(uevr::API::UObject* equipController, SDK::FGsrFireRequest* FireRequest) {
 
 	Logger::DebugPrint("OnFireHook");
 	//Logger::DebugPrint("%d", s_weaponController->IsShooting);
 	s_weaponController->IsShooting = true;
 	//s_cameraController->ToggleCameraWobblingController(false);
 	//Logger::DebugPrint("%f", s_weaponController->AimPosition.x);
-	FireRequest->FirePosition.x = s_weaponController->FirePosition.x;
-	FireRequest->FirePosition.y = s_weaponController->FirePosition.y;
-	FireRequest->FirePosition.z = s_weaponController->FirePosition.z;
+	FireRequest->FirePosition.X = s_weaponController->FirePosition.x;
+	FireRequest->FirePosition.Y = s_weaponController->FirePosition.y;
+	FireRequest->FirePosition.Z = s_weaponController->FirePosition.z;
 
 	//Logger::DebugPrint("s_weaponController->AimPosition.x.x : %f, s_weaponController->AimPosition.x.y : %f, s_weaponController->AimPosition.x.z : %f", 
 	//	s_weaponController->AimPosition.x, s_weaponController->AimPosition.y, s_weaponController->AimPosition.z);
-	Logger::DebugPrint("Old Aim Position: %f, %f, %f", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
-	FireRequest->AimPosition.x = s_weaponController->AimPosition.x;
-	FireRequest->AimPosition.y = s_weaponController->AimPosition.y;
-	FireRequest->AimPosition.z = s_weaponController->AimPosition.z;
-	Logger::DebugPrint("New Aim Position: %f, %f, %f", FireRequest->AimPosition.x, FireRequest->AimPosition.y, FireRequest->AimPosition.z);
+	Logger::DebugPrint("Old Aim Position: %f, %f, %f", FireRequest->AimPosition.X, FireRequest->AimPosition.Y, FireRequest->AimPosition.Z);
+	FireRequest->AimPosition.X = s_weaponController->AimPosition.x;
+	FireRequest->AimPosition.Y = s_weaponController->AimPosition.y;
+	FireRequest->AimPosition.Z = s_weaponController->AimPosition.z;
+	Logger::DebugPrint("New Aim Position: %f, %f, %f", FireRequest->AimPosition.X, FireRequest->AimPosition.Y, FireRequest->AimPosition.Z);
 
 
 	//Call original function with our replaced parameters
@@ -109,36 +116,25 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, Utilities::
 //	return result;
 //}
 
-bool HookManager::mod_ISetCameraRotation_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+bool HookManager::mod_OnStateEntered_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	Logger::DebugPrint("fuck ye");
-
-	//if (result != nullptr)
-	//{
-	//	struct rotatortest {
-	//		UEVR_Rotatord* Rotation;
-	//	};
-	//	rotatortest* params = (rotatortest*)result;
-	//	Logger::DebugPrint("Result : %f", params->Rotation->pitch);
-	//	//params->Rotation->pitch = 180.0f;
-	//}
-
 	if (locals != nullptr)
 	{
-		Utilities::IcsAnimInstance_OnEnteredState* params = (Utilities::IcsAnimInstance_OnEnteredState*)locals;
-		//Logger::DebugPrint("Locals : %p", locals);
-		s_cameraController->AnimationState.NextStateName = uevr::API::FName(L"helloFuckDatShitMan");
-		//s_cameraController->AnimationState.PrevStateName = params->PrevStateName;
-		//s_cameraController->AnimationState.StateMachineName = params->StateMachineName;
-		s_cameraController->start = true;
-		//params->Rotation->pitch = 180.0f;
+		auto true_locals = (char*)locals - 0x50;
+		SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
+		//Logger::DebugPrint("cpp params 1 : 0x%p", params);
+		if (params->NextStateName.IsNone())
+			Logger::DebugPrint("empty Fname");
+		else
+		{
+			//Logger::DebugPrint("params1 : %s", params1->NextStateName.ToString());
+			//s_playerManager->CurrentAnimState = s_playerManager->GetCurrentPlayerAnimState(params->NextStateName);
+			s_playerManager->SetIsPeeping(params->NextStateName);
+			//Logger::DebugPrint("State Machine Name %s", params->StateMachineName.ToString().c_str());
+			//Logger::DebugPrint("Next State Name %s", params->NextStateName.ToString().c_str());
+		}
 	}
-	else
-	{
-		uevr::API::get()->log_info("mod_GetCurrentAimPitch_post - locals is null");
-	}
-	return false;
-	//API::get()->log_info("mod_GetCurrentAimPitch_post returning false");
+	return true;
 }
 
 bool HookManager::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native)
@@ -172,64 +168,7 @@ bool HookManager::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_
 
 	Logger::DebugPrint("Setting function flags to 0x%08x", flags);
 	fn->set_function_flags(flags);
-
+	
 	Logger::DebugPrint("Calling hook_ptr for %ls", fn_name.data());
 	return uevr::API::get()->param()->sdk->ufunction->hook_ptr((UEVR_UFunctionHandle)fn, pre, post);
 }
-
-
-
-
-
-//void HookManager::SetGunAdjustValuesFromConfig(const std::filesystem::path& ConfigFile) {
-//	// Check if the file exists
-//	if (!std::filesystem::exists(ConfigFile)) {
-//		g_AimOffsetValueVertical = 0.0f;
-//		g_AimOffsetValueHorizontal = 0.0f;
-//		return;
-//	}
-//
-//	std::ifstream file(ConfigFile);
-//	std::string line;
-//
-//	while (std::getline(file, line)) {
-//		// Trim leading and trailing spaces
-//		line.erase(0, line.find_first_not_of(" \t"));
-//		line.erase(line.find_last_not_of(" \t") + 1);
-//
-//		// Skip comments and blank lines
-//		if (line.empty() || line[0] == '#') {
-//			continue;
-//		}
-//
-//		// Look for the "GunAdjustV=" prefix
-//		if (line.rfind("GunAdjustV=", 0) == 0) {
-//			std::string value_str = line.substr(11); // Extract the value as a string
-//			char* end_ptr = nullptr;
-//			float value = std::strtof(value_str.c_str(), &end_ptr);
-//
-//			// Validate conversion
-//			if (end_ptr != value_str.c_str() && *end_ptr == '\0') {
-//				g_AimOffsetValueVertical = value; // Successfully parsed float
-//			}
-//			else {
-//				g_AimOffsetValueVertical = 0.0f; // Invalid float
-//			}
-//		}
-//
-//		// Look for the "GunAdjustH=" prefix
-//		if (line.rfind("GunAdjustH=", 0) == 0) {
-//			std::string value_str = line.substr(11); // Extract the value as a string
-//			char* end_ptr = nullptr;
-//			float value = std::strtof(value_str.c_str(), &end_ptr);
-//
-//			// Validate conversion
-//			if (end_ptr != value_str.c_str() && *end_ptr == '\0') {
-//				g_AimOffsetValueHorizontal = value; // Successfully parsed float
-//			}
-//			else {
-//				g_AimOffsetValueHorizontal = 0.0f; // Invalid float
-//			}
-//		}
-//	}
-//}

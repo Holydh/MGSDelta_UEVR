@@ -354,6 +354,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="src\SDK\Basic.cpp" />
     <ClCompile Include="src\SDK\CoreUObject_functions.cpp" />
     <ClCompile Include="src\SDK\Engine_functions.cpp" />
+    <ClCompile Include="src\SDK\Gsr_functions.cpp" />
     <ClCompile Include="src\Utilities.cpp" />
     <ClCompile Include="WeaponController.cpp" />
     <ClInclude Include="HookManager.hpp" />

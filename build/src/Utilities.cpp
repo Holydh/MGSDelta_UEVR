@@ -54,18 +54,18 @@ void Utilities::InitHelperClasses()
 
 uevr::API::UObject* Utilities::SpawnActor(uevr::API::UObject* WorldContextObject, UEVR_Vector3d Position, uint8_t CollisionMethod, uevr::API::UObject* Owner)
 {
-	Utilities::FTransform SpawnTransform;
-	SpawnTransform.Translation = Position;
+	SDK::FTransform SpawnTransform;
+	SpawnTransform.Translation = {Position.x, Position.y, Position.z};
 	SpawnTransform.Rotation = { 0, 0, 0, 1 };
 	SpawnTransform.Scale3D = { 1, 1, 1 };
 
-	Utilities::GameplayStatics_BeginDeferredActorSpawnFromClass params;
-	params.WorldContextObject = WorldContextObject;
-	params.ActorClass = ActorClass;
+	SDK::Params::GameplayStatics_BeginDeferredActorSpawnFromClass params;
+	params.WorldContextObject = (SDK::UObject*)WorldContextObject;
+	params.ActorClass = (SDK::UClass*)ActorClass;
 	params.SpawnTransform = SpawnTransform;
-	params.CollisionHandlingOverride = CollisionMethod; // 1 = AdjustIfPossibleButAlwaysSpawn
-	params.Owner = Owner;
-	params.TransformScaleMethod = 0; // 0 = None
+	params.CollisionHandlingOverride = (SDK::ESpawnActorCollisionHandlingMethod)CollisionMethod; // 1 = AdjustIfPossibleButAlwaysSpawn
+	params.Owner = (SDK::AActor*)Owner;
+	params.TransformScaleMethod = SDK::ESpawnActorScaleMethod::OverrideRootScale;
 
 	GameplayStatics->call_function(L"BeginDeferredActorSpawnFromClass", &params);
 	if (!params.ReturnValue)
@@ -74,10 +74,10 @@ uevr::API::UObject* Utilities::SpawnActor(uevr::API::UObject* WorldContextObject
 		return nullptr;
 	}
 	
-	Utilities::GameplayStatics_FinishSpawningActor finishParams;
+	SDK::Params::GameplayStatics_FinishSpawningActor finishParams;
 	finishParams.Actor = params.ReturnValue;
 	finishParams.SpawnTransform = SpawnTransform;
-	finishParams.TransformScaleMethod = 0; // 0 = None
+	finishParams.TransformScaleMethod = SDK::ESpawnActorScaleMethod::OverrideRootScale;
 
 	Utilities::GameplayStatics->call_function(L"FinishSpawningActor", &finishParams);
 	Logger::DebugPrint("Actor Spawned");
@@ -85,9 +85,9 @@ uevr::API::UObject* Utilities::SpawnActor(uevr::API::UObject* WorldContextObject
 	//{
 	//	Logger::DebugPrint(finishParams.ReturnValue->get_full_name());
 	//}
-	
-	uevr::API::get()->sdk()->functions->add_component_by_class(finishParams.ReturnValue->to_handle(), SceneComponentClass->to_handle(), false);
-	return finishParams.ReturnValue;
+	auto actor = (uevr::API::UObject*)finishParams.ReturnValue;
+	uevr::API::get()->sdk()->functions->add_component_by_class(actor->to_handle(), SceneComponentClass->to_handle(), false);
+	return actor;
 }
 
 //glm::fvec3 Utilities::OffsetLocalPositionFromWorld(glm::fvec3 worldPosition, glm::fvec3 forwardVector, glm::fvec3 upVector, glm::fvec3 rightVector, glm::fvec3 offsets)

@@ -10,22 +10,28 @@
 #include "Utilities.hpp"
 #include "WeaponController.hpp"
 #include "CameraController.hpp"
+#include "PlayerManager.hpp"
+
+#include "SDK/Gsr_structs.hpp"
+#include "SDK/Ics_parameters.hpp"
 
 class HookManager {
 private:
-	WeaponController* const weaponController;
-	CameraController* const cameraController;
-	static WeaponController* s_weaponController;
-	static CameraController* s_cameraController;
+    WeaponController* const weaponController;
+    CameraController* const cameraController;
+    PlayerManager* const playerManager;
+    static WeaponController* s_weaponController;
+    static CameraController* s_cameraController;
+	static PlayerManager* s_playerManager;
 
 
-    static void* OnFireModded(uevr::API::UObject* equipcontroller, Utilities::FGsrFireRequest* FireRequest);
-    static void* OnFire(uevr::API::UObject* equipcontroller, Utilities::FGsrFireRequest* FireRequest){
+    static void* OnFireModded(uevr::API::UObject* equipcontroller, SDK::FGsrFireRequest* FireRequest);
+    static void* OnFire(uevr::API::UObject* equipcontroller, SDK::FGsrFireRequest* FireRequest) {
         return OnFireModded(equipcontroller, FireRequest);
     };
-    bool m_fire_hooked{false};
+    bool m_fire_hooked{ false };
     int32_t m_fire_hook_id{};
-    using FireFn = void*(*)(uevr::API::UObject*, Utilities::FGsrFireRequest*);
+    using FireFn = void* (*)(uevr::API::UObject*, SDK::FGsrFireRequest*);
     inline static FireFn m_fire_hook_fn{};
 
     //inline hook:
@@ -41,7 +47,7 @@ private:
 
 
 public:
-    HookManager(WeaponController* wp, CameraController* cc) : weaponController(wp), cameraController(cc) {};
+    HookManager(WeaponController* wp, CameraController* cc, PlayerManager* pm) : weaponController(wp), cameraController(cc), playerManager(pm) {};
     void Initialize();
     //void SetGunAdjustValuesFromConfig(const std::filesystem::path& ConfigFile);
     void HookFireFunction();
@@ -49,5 +55,5 @@ public:
 
     // Standard hook :
     bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native);
-    static bool mod_ISetCameraRotation_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_OnStateEntered_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
 };

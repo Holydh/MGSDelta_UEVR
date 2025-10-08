@@ -27,9 +27,9 @@ void CameraController::SetCameraRotation()
 	auto cameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.PlayerCameraManager");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
 	auto cameraManager = cameraManager_c->get_first_object_matching(false);
 
-	auto test = (reinterpret_cast<Utilities::FCameraCacheEntry*>(uevr::API::get()->sdk()->uobject->get_property_data(cameraManager->to_handle(), L"CameraCachePrivate")));
+	auto test = (reinterpret_cast<SDK::FCameraCacheEntry*>(uevr::API::get()->sdk()->uobject->get_property_data(cameraManager->to_handle(), L"CameraCachePrivate")));
 	if (test != NULL)
-		test->POV.Rotation.yaw = actualYaw;
+		test->POV.Rotation.Yaw = actualYaw;
 
 	//works to rotate camera :
 	auto cameraController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
@@ -37,26 +37,25 @@ void CameraController::SetCameraRotation()
 	auto cameraActor = cameraController->get_property<uevr::API::UObject*>(L"m_cameraActor");
 	//Logger::DebugPrint(cameraActor->get_full_name());
 	//auto cameraComponent = cameraActor->get_property<uevr::API::UObject*>(L"RootComponent");
-	Utilities::Parameter_K2_SetWorldOrRelativeRotation params;
-	params.newRotation = UEVR_Rotatord(0.0f, actualYaw + YawInput * YawSpeed, 0.0f);
+	SDK::Params::Actor_K2_SetActorRelativeRotation params;
+	params.NewRelativeRotation = {0.0f,  actualYaw + YawInput * YawSpeed, 0.0f};
 	params.bSweep = false;
 	params.bTeleport = true;
 	
 	cameraActor->call_function(L"K2_SetActorRelativeRotation", &params);
-	actualYaw = params.newRotation.yaw;
+	actualYaw = params.NewRelativeRotation.Yaw;
 
 	UEVR_Vector3d forwardVector;
 	CameraAttachementActor->call_function(L"GetActorForwardVector", &forwardVector);
 	//Logger::DebugPrint("Forward Vector : %f, %f, %f", forwardVector.x, forwardVector.y, forwardVector.z);
 
-	glm::dvec3 position = { playerPosition.x, playerPosition.y, playerPosition.z };
+	glm::dvec3 position = { CameraPosition.x, CameraPosition.y, CameraPosition.z };
 	glm::dvec3 forward = { forwardVector.x, forwardVector.y, forwardVector.z };
 	forward *= 50.0f;
-	glm::dvec3 newPosTemp = position - forward;
-	UEVR_Vector3d newPosition = { newPosTemp.x, newPosTemp.y, newPosTemp.z };
+	glm::dvec3 newPosition = position - forward;
 	
-	Utilities::Parameter_K2_SetWorldOrRelativeLocation params1;
-	params1.newLocation = newPosition;
+	SDK::Params::Actor_K2_SetActorRelativeLocation params1;
+	params1.NewRelativeLocation = {newPosition.x, newPosition.y, newPosition.z};
 	params1.bSweep = false;
 	params1.bTeleport = false;
 
@@ -73,7 +72,7 @@ void CameraController::SpawnCameraAttachementActor()
 	auto gameEngine = uevr::API::get()->get_engine();
 	auto world = gameEngine->get_property<uevr::API::UObject*>(L"GameViewport")->get_property<uevr::API::UObject*>(L"World");
 	Logger::DebugPrint(world->get_full_name());
-	CameraAttachementActor = Utilities::SpawnActor(world, playerPosition, 1, nullptr);
+	CameraAttachementActor = Utilities::SpawnActor(world, UEVR_Vector3d{ CameraPosition.x, CameraPosition.y, CameraPosition.z }, 1, nullptr);
 	Logger::DebugPrint(CameraAttachementActor->get_full_name());
 	CameraAttachementActorAvailable = true;
 }
@@ -106,40 +105,63 @@ void CameraController::DetachCameraFromAttachementActor()
 	uevr::API::UObjectHook::remove_motion_controller_state(CameraAttachementActor);
 }
 
-void CameraController::FetchAnimationState()
+void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotatord& cameraRotation)
 {
-	//Class /Script/Ics.IcsAnimInstance
-	//auto icsAnimInstance_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerBase.ABP_PlayerBase_C");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
-	//auto icsAnimInstance = icsAnimInstance_c->get_first_object_matching(false);
+	auto pawn = uevr::API::get()->get_local_pawn(0);
+	UEVR_Vector3d pawnPosition;
+	pawn->call_function(L"K2_GetActorLocation", &pawnPosition);
+	//Logger::DebugPrint("Pawn Position : %f, %f, %f", pawnPosition.x, pawnPosition.y, pawnPosition.z);
+	auto grassVolumeCollisionHead = pawn->get_property<uevr::API::UObject*>(L"GrassVolumeCollisionHead");
+	UEVR_Vector3d headColliderPosition;
+	grassVolumeCollisionHead->call_function(L"K2_GetComponentLocation", &headColliderPosition);
+	UEVR_Vector3d tempPosition;
+	glm::fvec3 newPosition;
+	//Logger::DebugPrint("Current Player Stance : %i", playerManager.CurrentStance);
+	//Logger::DebugPrint("Player Is Peeping: %i", playerManager.IsPeeping);
 
-	//Utilities::IcsAnimInstance_OnEnteredState param;
-	//icsAnimInstance->call_function(L"OnEnteredState", &param);
-	//auto stateName = param.NextStateName;
-	
-	//if (AnimationState.NextStateName)
-	//	return;
+	//Logger::DebugPrint
 
-	if (!start)
+	if (!cameraInitialized)
+	{
+		CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
+		cameraInitialized = true;
 		return;
-	/*Logger::DebugPrint(AnimationState.NextStateName.to_string().c_str());*/
+	}
+		
+	
+	if (playerManager->IsChangingStance)
+	{
+		CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
+	}
 
-	Utilities::KismetStringLibrary_Conv_StringToName params;
-	//params.InString = L"Fuuuuuuuuuolloo";
-	//Utilities::KismetStringLibrary->call_function(L"Conv_StringToName", &AnimationState.NextStateName);
-	//Utilities::KismetStringLibrary_Conv_NameToString params;
-	//params.InName = AnimationState.NextStateName;
+	if (playerManager->IsPeeping)
+	{
+		tempPosition = UEVR_Vector3d(headColliderPosition.x, headColliderPosition.y, pawnPosition.z - CameraHeightOffset);
+		newPosition = glm::mix(CameraPosition, glm::fvec3(tempPosition.x, tempPosition.y, tempPosition.z), 0.1f);
+	}
+	else
+	{
+		tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, pawnPosition.z - CameraHeightOffset);
+		newPosition = glm::fvec3(
+			glm::mix(CameraPosition.x, (float)tempPosition.x, 0.25f),
+			glm::mix(CameraPosition.y, (float)tempPosition.y, 0.25f),
+			glm::mix(CameraPosition.z, (float)tempPosition.z, 0.05f));
+	}
 
-	//Utilities::KismetStringLibrary->call_function(L"Conv_NameToString", &params);
-	//const wchar_t* stateName = params.ReturnValue.CStr();
-	//if (stateName && *stateName)
-	//{
-	//	Logger::DebugPrint("Animation State: %ws", stateName);
-	//}
-	//else
-	//{
-	//	Logger::DebugPrint("Animation State: <empty>");
-	//}
-	//auto icsAnimInstance = cameraController->get_property<uevr::API::UObject*>(L"m_cameraActor");
+
+
+
+	//Logger::DebugPrint("Camera Height Offset : %f", cameraController.CameraHeightOffset);
+	CameraPosition = { newPosition.x, newPosition.y, newPosition.z };
+	cameraPosition.x = newPosition.x;
+	cameraPosition.y = newPosition.y;
+	cameraPosition.z = newPosition.z;
+
+	if (YawInput != 0.0)
+		actualYaw += YawInput * YawSpeed;
+	/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
+	cameraRotation.yaw = actualYaw;
+	SetCameraRotation();
 }
 
 

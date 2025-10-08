@@ -79,6 +79,9 @@
     <ClCompile Include="src\SDK\CoreUObject_functions.cpp">
       <Filter>src\sdk</Filter>
     </ClCompile>
+    <ClCompile Include="src\SDK\Gsr_functions.cpp">
+      <Filter>src\sdk</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\MGSDeltaPlugin.hpp">

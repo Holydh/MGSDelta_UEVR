@@ -7,6 +7,7 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	auto hairSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hair");
 	auto handsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hand");
 	auto armsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Arm");
+	auto bodySkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Body");
 	bool SetOnlyOwnerSee = !visible ? true : false;
 	if (headSkeletalMesh) {
 		headSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
@@ -19,6 +20,9 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	}
 	if (armsSkeletalMesh) {
 		armsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (bodySkeletalMesh) {
+		bodySkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
 	}
 }
 
@@ -36,12 +40,10 @@ void PlayerManager::ToggleReticleVisibility(bool visible)
 	for (size_t i = 0; i < bp_GsrTpsSightWidget.size(); i++)
 	{
 		//Logger::DebugPrint(bp_GsrTpsSightWidget[i]->get_full_name());
-		struct SetVisibilityParams {
-			Utilities::ESlateVisibility InVisibility;
-		}params;
-		params.InVisibility = visible ? Utilities::ESlateVisibility::Visible : Utilities::ESlateVisibility::Hidden;
+		SDK::ESlateVisibility visibility;
+		visibility = visible ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden;
 
-		bp_GsrTpsSightWidget[i]->call_function(L"SetVisibility", &params);
+		bp_GsrTpsSightWidget[i]->call_function(L"SetVisibility", &visibility);
 	}
 	Logger::DebugPrint("Crosshair visibility set to : %d", visible);
 }
@@ -56,3 +58,42 @@ void PlayerManager::FetchGameState()
 	isPlayerControlled = playerControlled;
 	//Logger::DebugPrint("IsPlayerControlled: %d", singleBoolParams);
 }
+
+void PlayerManager::GetCurrentPlayerStance(float deltaTime)
+{
+	SDK::UWorld* World = SDK::UWorld::GetWorld();
+	SDK::AGsrPlayer* gsrPlayer = (SDK::AGsrPlayer*)World->OwningGameInstance->LocalPlayers[0]->PlayerController->AcknowledgedPawn;
+	CurrentStance = gsrPlayer->GetCurrentStance();
+	if (CurrentStance != PreviousStance)
+	{
+		ChangeStanceTime = 0.0f;
+		IsChangingStance = true;
+	}
+
+	if (IsChangingStance)
+	{
+		ChangeStanceTime += deltaTime;
+		if (ChangeStanceTime >= 1.0f) //assuming the stance change animation takes 0.5 seconds
+		{
+			IsChangingStance = false;
+		}
+	}
+	//Logger::DebugPrint("Current Stance: %d", (int)CurrentStance); //0=Stand, 1=Squat, 2=Crawl
+}
+
+void PlayerManager::SetIsPeeping(const SDK::FName& State)
+{
+	static const SDK::FName PeepStart = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepStart");
+    static const SDK::FName PeepLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepLoop");
+    static const SDK::FName PeepEnd = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepEnd");
+
+	if (State == PeepStart || State == PeepLoop || State == PeepEnd)
+		IsPeeping = true;
+	else
+		IsPeeping = false;
+}
+
+//PlayerManager::EPlayerAnimState PlayerManager::GetCurrentPlayerAnimState(const SDK::FName& State)
+//{
+//
+//}

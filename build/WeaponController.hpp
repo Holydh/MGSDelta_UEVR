@@ -8,6 +8,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #define GLM_FORCE_QUAT_DATA_XYZW
 
+#include "SDK/CoreUObject_structs.hpp"
+#include "SDK/Engine_parameters.hpp"
+
 class WeaponController {
 private:
 	MemoryManager* const memoryManager;
@@ -30,7 +33,7 @@ public:
 
 	glm::dvec3 FirePosition{};
 	glm::dvec3 AimPosition{};
-	UEVR_Rotatord CurrentWeaponWorldRotation{};
+	SDK::FRotator CurrentWeaponWorldRotation{};
 
 	
 

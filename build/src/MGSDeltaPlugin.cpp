@@ -10,8 +10,11 @@ bool imguiEnabled = false;
 
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGSDeltaPlugin::MGSDeltaPlugin() : cameraController(), weaponController(&memoryManager, &settingsManager), memoryManager(),
-hookManager(&weaponController, &cameraController), playerManager() {}; //Constructor
+MGSDeltaPlugin::MGSDeltaPlugin() : cameraController(&playerManager), 
+weaponController(&memoryManager, &settingsManager), 
+memoryManager(),
+hookManager(&weaponController, &cameraController, &playerManager), 
+playerManager() {}; //Constructor
 MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
 
 void MGSDeltaPlugin::on_detach(HMODULE hmod)
@@ -37,11 +40,12 @@ void MGSDeltaPlugin::on_initialize() {
 	Logger::DebugPrint("Don't reupload this plugin elsewhere.\n");
 
 	//hookManager.SetGunAdjustValuesFromConfig(config_file);
-	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", (UEVR_UFunction_NativePostFn)HookManager::mod_ISetCameraRotation_pre, NULL, true);
+	
 	/*hookManager.hook_ISetSmoothedAimPosition_fn();*/
 	Utilities::InitHelperClasses();
 	settingsManager.LoadAllWeaponConfigs(uobjectHook_file);
 	hookManager.Initialize();
+	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", (UEVR_UFunction_NativePostFn)HookManager::mod_OnStateEntered_pre, NULL, true);
 	//weaponController.Initialize();
 	memoryManager.InitMemoryManager();
 	hookManager.HookFireFunction();
@@ -437,10 +441,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		//weaponController.ApplyAimDataToMemory();
 		//cameraController.SetCameraRotationAndPosition();
 		weaponController.SetAimDirection();
-		//cameraController.FetchAnimationState();
-		SDK::UObject* test = (SDK::UObject*)cameraController.CameraAttachementActor;
-		auto test2 = test->GetFullName();
-		Logger::DebugPrint("World : %s", test2.c_str());
+		playerManager.GetCurrentPlayerStance(delta);
 	}
 
 
@@ -459,6 +460,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	}
 
 	playerManager.wasPlayerControlled = playerManager.isPlayerControlled;
+	playerManager.PreviousStance = playerManager.CurrentStance;
 }
 
 void MGSDeltaPlugin::on_post_engine_tick(API::UGameEngine* engine, float delta) {
@@ -476,29 +478,12 @@ void MGSDeltaPlugin::on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle rend
 void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters, UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
-		auto positiond = (UEVR_Vector3d*)position;
+
 	if (playerManager.isPlayerControlled)
 	{
-		auto pawn = uevr::API::get()->get_local_pawn(0);
-		UEVR_Vector3d pawnPosition;
-		pawn->call_function(L"K2_GetActorLocation", &pawnPosition);
-		//Logger::DebugPrint("Pawn Position : %f, %f, %f", pawnPosition.x, pawnPosition.y, pawnPosition.z);
-		auto grassVolumeCollisionHead = pawn->get_property<uevr::API::UObject*>(L"GrassVolumeCollisionHead");
-		UEVR_Vector3d headColliderPosition;
-		grassVolumeCollisionHead->call_function(L"K2_GetComponentLocation", &headColliderPosition);
-		auto newPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, headColliderPosition.z);
-		cameraController.playerPosition = newPosition;
-		positiond->x = newPosition.x;
-		positiond->y = newPosition.y;
-		positiond->z = newPosition.z;
-
-		auto rotationd = (UEVR_Rotatord*)rotation;
-
-		if (cameraController.YawInput != 0.0)
-			cameraController.actualYaw += cameraController.YawInput * cameraController.YawSpeed;
-		/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
-		rotationd->yaw = cameraController.actualYaw;
-		cameraController.SetCameraRotation();
+		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
+		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
+		cameraController.ProcessCamera(*pos, *rot);
 	}
 }
 
