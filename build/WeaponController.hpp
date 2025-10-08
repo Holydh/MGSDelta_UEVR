@@ -324,7 +324,7 @@ public:
 	EGsrEquipId CurrentWeaponEquippedID = WP_None;
 
 	inline const char* WeaponIdToKey(EGsrEquipId id);
-	void ApplyWeaponOffsets(EGsrEquipId currentWeapon,
+	void FetchWeaponOffsets(EGsrEquipId currentWeapon,
 		glm::fvec3& outPos,
 		glm::fquat& outRot);
 

@@ -129,7 +129,7 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 	}
 		
 	
-	if (playerManager->IsChangingStance)
+	if (playerManager->IsChangingStance || playerManager->IsHanging)
 	{
 		CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
 	}

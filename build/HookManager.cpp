@@ -116,23 +116,17 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, SDK::FGsrFi
 //	return result;
 //}
 
-bool HookManager::mod_OnStateEntered_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+bool HookManager::mod_OnStateEntered_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
+	//if (!s_playerManager->isPlayerControlled)
+	//	return true;
 	if (locals != nullptr)
 	{
 		auto true_locals = (char*)locals - 0x50;
 		SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
-		//Logger::DebugPrint("cpp params 1 : 0x%p", params);
-		if (params->NextStateName.IsNone())
-			Logger::DebugPrint("empty Fname");
-		else
-		{
-			//Logger::DebugPrint("params1 : %s", params1->NextStateName.ToString());
-			//s_playerManager->CurrentAnimState = s_playerManager->GetCurrentPlayerAnimState(params->NextStateName);
-			s_playerManager->SetIsPeeping(params->NextStateName);
-			//Logger::DebugPrint("State Machine Name %s", params->StateMachineName.ToString().c_str());
-			//Logger::DebugPrint("Next State Name %s", params->NextStateName.ToString().c_str());
-		}
+		//s_playerManager->debugParamsTest.NextStateName = params->NextStateName;
+		//s_playerManager->debugParamsTest.StateMachineName = params->StateMachineName;
+		s_playerManager->SetIsPeaking(params->NextStateName, params->StateMachineName);
 	}
 	return true;
 }

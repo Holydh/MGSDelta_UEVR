@@ -55,5 +55,5 @@ public:
 
     // Standard hook :
     bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native);
-    static bool mod_OnStateEntered_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_OnStateEntered_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
 };

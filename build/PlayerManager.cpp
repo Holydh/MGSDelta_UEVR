@@ -81,16 +81,24 @@ void PlayerManager::GetCurrentPlayerStance(float deltaTime)
 	//Logger::DebugPrint("Current Stance: %d", (int)CurrentStance); //0=Stand, 1=Squat, 2=Crawl
 }
 
-void PlayerManager::SetIsPeeping(const SDK::FName& State)
+void PlayerManager::SetIsPeaking(const SDK::FName& StateName, const SDK::FName& StateMachineName)
 {
 	static const SDK::FName PeepStart = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepStart");
     static const SDK::FName PeepLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepLoop");
     static const SDK::FName PeepEnd = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepEnd");
 
-	if (State == PeepStart || State == PeepLoop || State == PeepEnd)
+	static const SDK::FName Idle = SDK::UKismetStringLibrary::Conv_StringToName(L"Idle");
+	static const SDK::FName Basic = SDK::UKismetStringLibrary::Conv_StringToName(L"Basic");
+
+	if (StateName == PeepStart || StateName == PeepLoop || StateName == PeepEnd)
 		IsPeeping = true;
 	else
 		IsPeeping = false;
+
+	if (StateMachineName == Basic && StateName == Idle)
+		IsHanging = true;
+	else
+		IsHanging = false;
 }
 
 //PlayerManager::EPlayerAnimState PlayerManager::GetCurrentPlayerAnimState(const SDK::FName& State)

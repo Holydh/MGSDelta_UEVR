@@ -6,6 +6,7 @@
 #include "SDK/Engine_classes.hpp"
 #include "SDK/Gsr_structs.hpp"
 #include "SDK/Gsr_classes.hpp"
+#include "SDK/Ics_parameters.hpp"
 
 class PlayerManager {
 public:
@@ -32,13 +33,16 @@ public:
 	EPlayerAnimState CurrentAnimState = Default;
 
 	bool IsPeeping = false;
+	bool IsHanging = false;
 	bool IsChangingStance = false;
 	SDK::EGsrPlayerStance CurrentStance = SDK::EGsrPlayerStance::Stand;
 	SDK::EGsrPlayerStance PreviousStance = SDK::EGsrPlayerStance::Stand;
 	float ChangeStanceTime = 0.0f;
 
+	/*SDK::Params::IcsAnimInstance_OnEnteredState debugParamsTest;*/
+
 	void GetCurrentPlayerStance(float deltaTime);
-	void SetIsPeeping(const SDK::FName& State);
+	void SetIsPeaking(const SDK::FName& StateName, const SDK::FName& StateMachineName);
 	//EPlayerAnimState GetCurrentPlayerAnimState(const SDK::FName& State);
 private:
 

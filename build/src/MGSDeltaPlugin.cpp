@@ -45,7 +45,7 @@ void MGSDeltaPlugin::on_initialize() {
 	Utilities::InitHelperClasses();
 	settingsManager.LoadAllWeaponConfigs(uobjectHook_file);
 	hookManager.Initialize();
-	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", (UEVR_UFunction_NativePostFn)HookManager::mod_OnStateEntered_pre, NULL, true);
+	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_OnStateEntered_post, true);
 	//weaponController.Initialize();
 	memoryManager.InitMemoryManager();
 	hookManager.HookFireFunction();
@@ -439,8 +439,9 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		weaponController.FetchWeaponMeshAimData();
 		/*Logger::DebugPrint("Before ApplyAimDataToMemory");*/
 		//weaponController.ApplyAimDataToMemory();
-		//cameraController.SetCameraRotationAndPosition();
+		/*Logger::DebugPrint("Before SetAimDirection");*/
 		weaponController.SetAimDirection();
+		/*Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
 	}
 
@@ -485,6 +486,9 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
 		cameraController.ProcessCamera(*pos, *rot);
 	}
+
+	//Logger::DebugPrint("State Machine Name %s", playerManager.debugParamsTest.StateMachineName.ToString().c_str());
+	//Logger::DebugPrint("Next State Name %s", playerManager.debugParamsTest.NextStateName.ToString().c_str());
 }
 
 void MGSDeltaPlugin::on_pre_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters,

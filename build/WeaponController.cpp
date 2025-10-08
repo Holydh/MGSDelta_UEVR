@@ -38,14 +38,20 @@ inline const char* WeaponController::WeaponIdToKey(EGsrEquipId id)
     }
 }
 
-void WeaponController::ApplyWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot)
+void WeaponController::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot)
 {
 	const char* key = WeaponIdToKey(currentWeapon);
-    if (!key) return;
+	if (!key)
+	{
+		Logger::DebugPrint("No valid weapon key found for ID: %d", currentWeapon);
+		return;
+	}
 
     auto it = settingsManager->g_weaponConfigs.find(key);
+	Logger::DebugPrint("Fetching weapon config for key: %s", key);
     if (it == settingsManager->g_weaponConfigs.end()) return;
-
+	Logger::DebugPrint("Weapon config found for key: %s", it->first);
+	Logger::DebugPrint("Location Offset: x=%f, y=%f, z=%f", it->second.location_offset.x, it->second.location_offset.y, it->second.location_offset.z);
     const WeaponConfig& cfg = it->second;
     outPos = cfg.location_offset;
     outRot = cfg.rotation_offset;
@@ -107,7 +113,7 @@ void WeaponController::ProcessWeapon(float delta)
 		if (WeaponHook == NULL) return;
 		Logger::DebugPrint(WeaponHook->get_full_name());
 
-		ApplyWeaponOffsets(CurrentWeaponEquippedID, DefaultWeaponPosition, DefaultWeaponRotation);
+		FetchWeaponOffsets(CurrentWeaponEquippedID, DefaultWeaponPosition, DefaultWeaponRotation);
 		Logger::DebugPrint("Applied weapon offsets from config");
 		Logger::DebugPrint("Position Offset : x=%f, y=%f, z=%f", DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z);
 		Logger::DebugPrint("Rotation Offset : w=%f, x=%f, y=%f, z=%f", DefaultWeaponRotation.w, DefaultWeaponRotation.x, DefaultWeaponRotation.y, DefaultWeaponRotation.z);
