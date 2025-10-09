@@ -53,7 +53,7 @@ void CameraController::SetCameraRotation()
 
 	glm::dvec3 position = { CameraPosition.x, CameraPosition.y, CameraPosition.z };
 	glm::dvec3 forward = { forwardVector.x, forwardVector.y, forwardVector.z };
-	forward *= 100.0f;
+	forward *= 400.0f; // We need to move the camera 400 units back to prevent weapon mesh culling
 	glm::dvec3 newPosition = position - forward;
 	
 	SDK::Params::Actor_K2_SetActorRelativeLocation params1;
@@ -123,6 +123,7 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 
 	//Logger::DebugPrint
 
+	// Reset camera position and rotation when player respawn or teleport
 	if (InstantCameraPositionNeeded)
 	{
 		CameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
@@ -137,22 +138,59 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 		return;
 	}
 	
-	//if (playerManager->IsChangingStance || playerManager->IsHanging)
-	//{
-	//	CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
-	//}
+	//Logger::DebugPrint("State Machine Name : %s ", playerManager->debugParamsTest.StateMachineName.ToString().c_str());
+	//Logger::DebugPrint("Next State Name : %s ", playerManager->debugParamsTest.NextStateName.ToString().c_str());
+	//Logger::DebugPrint("Prev State Name : %s ", playerManager->debugParamsTest.PrevStateName.ToString().c_str());
+	//CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
+	//Logger::DebugPrint("Camera Height Offset : %f", CameraHeightOffset);
 
-	if (playerManager->IsPeeping)
+	switch (playerManager->CurrentStance)
 	{
-		newPosition = glm::mix(CameraPosition, glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z), 0.1f);
+	case SDK::EGsrPlayerStance::Stand:
+		CameraHeightOffset = -81.0f;
+		break;
+	case SDK::EGsrPlayerStance::Squat:
+		CameraHeightOffset = -8.0f;
+		break;
+	case SDK::EGsrPlayerStance::Crawl:
+		CameraHeightOffset = -19.0f;
+		break;
+	default:
+		break;
+	}
+
+	if (playerManager->IsChangingStance || playerManager->IsRolling || playerManager->IsHanging)
+	{
+		CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
+	}
+	//Logger::DebugPrint("IsHanging : %i", playerManager->IsHanging);
+	//if (playerManager->IsHanging)
+	//{
+	//	tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, headColliderPosition.z);
+	//	newPosition = glm::fvec3(
+	//		glm::mix(CameraPosition.x, (float)tempPosition.x, 0.25f),
+	//		glm::mix(CameraPosition.y, (float)tempPosition.y, 0.25f),
+	//		glm::mix(CameraPosition.z, (float)tempPosition.z, 0.05f));
+	//}
+	if (playerManager->IsPeepingInternal)
+	{
+		newPosition = glm::mix(CameraPosition, glm::fvec3(headColliderPosition.x, headColliderPosition.y, pawnPosition.z - CameraHeightOffset), 0.1f);
+	}
+	else if (playerManager->IsPeeping)
+	{
+		tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, pawnPosition.z - CameraHeightOffset);
+		newPosition = glm::fvec3(
+			glm::mix(CameraPosition.x, (float)tempPosition.x, 0.1f),
+			glm::mix(CameraPosition.y, (float)tempPosition.y, 0.1f),
+			glm::mix(CameraPosition.z, (float)tempPosition.z, 0.05f));
 	}
 	else
 	{
-		tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, headColliderPosition.z);
+		tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, pawnPosition.z - CameraHeightOffset);
 		newPosition = glm::fvec3(
 			glm::mix(CameraPosition.x, (float)tempPosition.x, 0.25f),
 			glm::mix(CameraPosition.y, (float)tempPosition.y, 0.25f),
-			glm::mix(CameraPosition.z, (float)tempPosition.z, 0.04f));
+			glm::mix(CameraPosition.z, (float)tempPosition.z, 0.05f));
 	}
 
 

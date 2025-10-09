@@ -32,18 +32,23 @@ public:
 	};
 	EPlayerAnimState CurrentAnimState = Default;
 
+	bool IsPeepingInternal = false;
+	bool WasPeepingInternal = false;
 	bool IsPeeping = false;
+	float ExtendPeepingStateTimer = 0.0f;
+	void UpdatePeepingState(float deltaTime);
+
 	bool IsHanging = false;
 	bool IsChangingStance = false;
+	bool IsRolling = false;
 	SDK::EGsrPlayerStance CurrentStance = SDK::EGsrPlayerStance::Stand;
 	SDK::EGsrPlayerStance PreviousStance = SDK::EGsrPlayerStance::Stand;
 	float ChangeStanceTimer = 0.0f;
-	float PeepEndTimer = 0.0f;
 
-	/*SDK::Params::IcsAnimInstance_OnEnteredState debugParamsTest;*/
+	SDK::Params::IcsAnimInstance_OnEnteredState debugParamsTest;
 
 	void GetCurrentPlayerStance(float deltaTime);
-	void SetIsPeaking(const SDK::FName& StateName, const SDK::FName& StateMachineName);
+	void ProcessPlayerCharacterState(const SDK::FName& StateName, const SDK::FName& StateMachineName);
 	//EPlayerAnimState GetCurrentPlayerAnimState(const SDK::FName& State);
 private:
 

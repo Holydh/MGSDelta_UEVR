@@ -45,7 +45,8 @@ void MGSDeltaPlugin::on_initialize() {
 	Utilities::InitHelperClasses();
 	settingsManager.LoadAllWeaponConfigs(uobjectHook_file);
 	hookManager.Initialize();
-	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_OnStateEntered_post, true);
+	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_OnEnteredState_post, true);
+	hookManager.hook_bp_fn(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerEludeAction.ABP_PlayerEludeAction_C", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_PlayerFalling_OnEnteredState_post, true);
 	//weaponController.Initialize();
 	memoryManager.InitMemoryManager();
 	hookManager.HookFireFunction();
@@ -394,7 +395,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.ToggleGameCameraController(false);
 		cameraController.ToggleCameraWobblingController(false);
 		memoryManager.ToggleAimRelatedMemoryInstructions(false);
-		//playerManager.ToggleMeshesVisibility(false);
+		playerManager.ToggleMeshesVisibility(false);
 		playerManager.ToggleReticleVisibility(false);
 		cameraController.SpawnCameraAttachementActor();
 		cameraController.AttachCameraToAttachementActor();
@@ -404,7 +405,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.ToggleGameCameraController(true);
 		cameraController.ToggleCameraWobblingController(true);
 		memoryManager.ToggleAimRelatedMemoryInstructions(true);
-		//playerManager.ToggleMeshesVisibility(true);
+		playerManager.ToggleMeshesVisibility(true);
 		playerManager.ToggleReticleVisibility(true);
 		cameraController.DetachCameraFromAttachementActor();
 		cameraController.DestroyCameraAttachementActor();
@@ -443,6 +444,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		weaponController.SetAimDirection();
 		/*Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
+		playerManager.UpdatePeepingState(delta);
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);
@@ -461,6 +463,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	}
 
 	playerManager.WasPlayerControlled = playerManager.IsPlayerControlled;
+	playerManager.WasPeepingInternal = playerManager.IsPeepingInternal;
 	playerManager.PreviousStance = playerManager.CurrentStance;
 }
 

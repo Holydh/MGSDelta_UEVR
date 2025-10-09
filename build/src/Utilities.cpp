@@ -5,6 +5,8 @@ uevr::API::UObject* Utilities::KismetStringLibrary = nullptr;
 uevr::API::UObject* Utilities::GameplayStatics = nullptr;
 uevr::API::UClass* Utilities::ActorClass = nullptr;
 uevr::API::UClass* Utilities::SceneComponentClass = nullptr;
+uevr::API::UClass* Utilities::ABP_SnakeBasicAction_C = nullptr;
+uevr::API::UClass* Utilities::ABP_PlayerEludeAction_C = nullptr;
 
 void Utilities::InitHelperClasses()
 {
@@ -48,6 +50,23 @@ void Utilities::InitHelperClasses()
 		return;
 	}
 	SceneComponentClass = sceneComponent_c;
+
+	static auto abp_SnakeBasicAction_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_SnakeBasicAction.ABP_SnakeBasicAction_C");
+	if (!abp_SnakeBasicAction_c)
+	{
+		uevr::API::get()->log_error("abp_SnakeBasicAction_c not found");
+		return;
+	}
+	ABP_SnakeBasicAction_C = abp_SnakeBasicAction_c;
+
+	static auto abp_PlayerEludeAction_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerEludeAction.ABP_PlayerEludeAction_C");
+	if (!abp_PlayerEludeAction_c)																
+	{
+		uevr::API::get()->log_error("abp_PlayerEludeAction_c not found");
+		return;
+	}
+	Logger::DebugPrint(abp_PlayerEludeAction_c->get_full_name());
+	ABP_PlayerEludeAction_C = abp_PlayerEludeAction_c;
 	//uevr::API::get()->log_info("KismetMathLibrary: %p", KismetMathLibrary);
 	//Logger::DebugPrint("%s", "KismethMathLibraryFound");
 }

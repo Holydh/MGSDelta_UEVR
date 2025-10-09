@@ -15,6 +15,8 @@ public:
 	static uevr::API::UObject* GameplayStatics;
 	static uevr::API::UClass* ActorClass;
 	static uevr::API::UClass* SceneComponentClass;
+	static uevr::API::UClass* ABP_SnakeBasicAction_C;
+	static uevr::API::UClass* ABP_PlayerEludeAction_C;
 
 	static void InitHelperClasses();
 	static uevr::API::UObject* SpawnActor(uevr::API::UObject* WorldContextObject, UEVR_Vector3d Position, uint8_t CollisionMethod, uevr::API::UObject* Owner);

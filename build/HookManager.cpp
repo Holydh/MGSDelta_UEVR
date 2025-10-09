@@ -116,17 +116,37 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, SDK::FGsrFi
 //	return result;
 //}
 
-bool HookManager::mod_OnStateEntered_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	//if (!s_playerManager->isPlayerControlled)
-	//	return true;
+	if (!obj->is_a(Utilities::ABP_SnakeBasicAction_C))
+		return true;
+
+
 	if (locals != nullptr)
 	{
 		auto true_locals = (char*)locals - 0x50;
 		SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
 		//s_playerManager->debugParamsTest.NextStateName = params->NextStateName;
 		//s_playerManager->debugParamsTest.StateMachineName = params->StateMachineName;
-		s_playerManager->SetIsPeaking(params->NextStateName, params->StateMachineName);
+		s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
+	}
+	return true;
+}
+
+bool HookManager::mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+	if (!obj->is_a(Utilities::ABP_PlayerEludeAction_C))
+		return true;
+
+	if (locals != nullptr)
+	{
+		auto true_locals = (char*)locals - 0x50;
+		SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
+		//s_playerManager->debugParamsTest.NextStateName = params->NextStateName;
+		//s_playerManager->debugParamsTest.StateMachineName = params->StateMachineName;
+		//Logger::DebugPrint("PlayerEludeAction StateMachineName: %s", s_playerManager->debugParamsTest.StateMachineName.ToString().c_str());
+		//Logger::DebugPrint("PlayerEludeAction NextStateName: %s", s_playerManager->debugParamsTest.NextStateName.ToString().c_str());
+		s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
 	}
 	return true;
 }

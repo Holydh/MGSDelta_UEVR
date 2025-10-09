@@ -8,6 +8,14 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	auto handsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hand");
 	auto armsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Arm");
 	auto bodySkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Body");
+	auto backpackSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Backpack");
+	auto bandanaSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Bandana");
+	auto lightning_legSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Lightning_Leg");
+	auto lightning_armSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Lightning_Arm");
+	auto beltLinkSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_BeltLink");
+	auto glassSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Glass");
+	auto waterBottleSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_WaterBottle");
+
 	bool SetOnlyOwnerSee = !visible ? true : false;
 	if (headSkeletalMesh) {
 		headSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
@@ -23,6 +31,27 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	}
 	if (bodySkeletalMesh) {
 		bodySkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (backpackSkeletalMesh) {
+		backpackSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (bandanaSkeletalMesh) {
+		bandanaSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (lightning_legSkeletalMesh) {
+		lightning_legSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (lightning_armSkeletalMesh) {
+		lightning_armSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (beltLinkSkeletalMesh) {
+		beltLinkSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (glassSkeletalMesh) {
+		glassSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (waterBottleSkeletalMesh) {
+		waterBottleSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
 	}
 }
 
@@ -59,6 +88,27 @@ void PlayerManager::FetchGameState()
 	//Logger::DebugPrint("IsPlayerControlled: %d", singleBoolParams);
 }
 
+void PlayerManager::UpdatePeepingState(float deltaTime)
+{
+	if (IsPeepingInternal)
+		IsPeeping = true;
+
+	//Must give some more time for the camera to come back smoothly to position
+	if (!IsPeepingInternal && WasPeepingInternal)
+	{
+		ExtendPeepingStateTimer = 2.0f;
+	}
+
+	if (!IsPeepingInternal)
+		ExtendPeepingStateTimer -= deltaTime;
+
+	if (ExtendPeepingStateTimer <= 0.0f)
+	{
+		IsPeeping = false;
+		ExtendPeepingStateTimer = 0.0f;
+	}
+}
+
 void PlayerManager::GetCurrentPlayerStance(float deltaTime)
 {
 	SDK::UWorld* World = SDK::UWorld::GetWorld();
@@ -81,7 +131,7 @@ void PlayerManager::GetCurrentPlayerStance(float deltaTime)
 	//Logger::DebugPrint("Current Stance: %d", (int)CurrentStance); //0=Stand, 1=Squat, 2=Crawl
 }
 
-void PlayerManager::SetIsPeaking(const SDK::FName& StateName, const SDK::FName& StateMachineName)
+void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, const SDK::FName& StateMachineName)
 {
 	static const SDK::FName PeepStart = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepStart");
     static const SDK::FName PeepLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepLoop");
@@ -89,16 +139,25 @@ void PlayerManager::SetIsPeaking(const SDK::FName& StateName, const SDK::FName& 
 
 	static const SDK::FName Idle = SDK::UKismetStringLibrary::Conv_StringToName(L"Idle");
 	static const SDK::FName Basic = SDK::UKismetStringLibrary::Conv_StringToName(L"Basic");
+	static const SDK::FName Rolling = SDK::UKismetStringLibrary::Conv_StringToName(L"Rolling");
 
+	static const SDK::FName Elude = SDK::UKismetStringLibrary::Conv_StringToName(L"Elude");
+
+	
 	if (StateName == PeepStart || StateName == PeepLoop || StateName == PeepEnd)
-		IsPeeping = true;
+		IsPeepingInternal = true;
 	else
-		IsPeeping = false;
+		IsPeepingInternal = false;
 
-	if (StateMachineName == Basic && StateName == Idle)
+	if (StateMachineName == Elude)
 		IsHanging = true;
 	else
 		IsHanging = false;
+
+	if (StateMachineName == Rolling)
+		IsRolling = true;
+	else
+		IsRolling = false;
 }
 
 //PlayerManager::EPlayerAnimState PlayerManager::GetCurrentPlayerAnimState(const SDK::FName& State)
