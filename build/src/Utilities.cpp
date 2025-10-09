@@ -7,6 +7,8 @@ uevr::API::UClass* Utilities::ActorClass = nullptr;
 uevr::API::UClass* Utilities::SceneComponentClass = nullptr;
 uevr::API::UClass* Utilities::ABP_SnakeBasicAction_C = nullptr;
 uevr::API::UClass* Utilities::ABP_PlayerEludeAction_C = nullptr;
+uevr::API::UClass* Utilities::ABP_PlayerRollingAction_C = nullptr;
+uevr::API::UClass* Utilities::ABP_PlayerBehindAction_C = nullptr;
 
 void Utilities::InitHelperClasses()
 {
@@ -67,6 +69,22 @@ void Utilities::InitHelperClasses()
 	}
 	Logger::DebugPrint(abp_PlayerEludeAction_c->get_full_name());
 	ABP_PlayerEludeAction_C = abp_PlayerEludeAction_c;
+
+	static auto abp_PlayerRollingAction_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerRollingAction.ABP_PlayerRollingAction_C");
+	if (!abp_PlayerRollingAction_c)
+	{
+		uevr::API::get()->log_error("abp_PlayerRollingAction_c not found");
+		return;
+	}
+	ABP_PlayerRollingAction_C = abp_PlayerRollingAction_c;
+
+	static auto abp_PlayerBehindAction_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerBehindAction.ABP_PlayerBehindAction_C");
+	if (!abp_PlayerBehindAction_c)
+	{
+		uevr::API::get()->log_error("abp_PlayerBehindAction_c not found");
+		return;
+	}
+	ABP_PlayerBehindAction_C = abp_PlayerBehindAction_c;
 	//uevr::API::get()->log_info("KismetMathLibrary: %p", KismetMathLibrary);
 	//Logger::DebugPrint("%s", "KismethMathLibraryFound");
 }

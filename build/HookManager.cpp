@@ -118,17 +118,17 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, SDK::FGsrFi
 
 bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	if (!obj->is_a(Utilities::ABP_SnakeBasicAction_C))
-		return true;
-
-
-	if (locals != nullptr)
+	Logger::DebugPrint(obj->get_full_name());
+	if (obj->is_a(Utilities::ABP_SnakeBasicAction_C) || obj->is_a(Utilities::ABP_PlayerRollingAction_C) || obj->is_a(Utilities::ABP_PlayerBehindAction_C))
 	{
-		auto true_locals = (char*)locals - 0x50;
-		SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
-		//s_playerManager->debugParamsTest.NextStateName = params->NextStateName;
-		//s_playerManager->debugParamsTest.StateMachineName = params->StateMachineName;
-		s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
+		if (locals != nullptr)
+		{
+			auto true_locals = (char*)locals - 0x50;
+			SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
+			//s_playerManager->debugParamsTest.NextStateName = params->NextStateName;
+			//s_playerManager->debugParamsTest.StateMachineName = params->StateMachineName;
+			s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
+		}
 	}
 	return true;
 }

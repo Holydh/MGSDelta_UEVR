@@ -158,6 +158,13 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 		IsRolling = true;
 	else
 		IsRolling = false;
+
+	//Logger::DebugPrint("IsRolling: %d", IsRolling);
+	//Logger::DebugPrint("IsHanging: %d", IsHanging);
+	//Logger::DebugPrint("IsPeepingInternal: %d", IsPeepingInternal);
+	//Logger::DebugPrint("IsPeeping: %d", IsPeeping);
+
+	Logger::DebugPrint("StateMachineName: %s, StateName: %s", StateMachineName.ToString().c_str(), StateName.ToString().c_str());
 }
 
 //PlayerManager::EPlayerAnimState PlayerManager::GetCurrentPlayerAnimState(const SDK::FName& State)
