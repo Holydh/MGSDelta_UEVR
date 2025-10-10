@@ -1,13 +1,6 @@
 #include "CameraController.hpp"
 
-
-void CameraController::ToggleGameCameraController(bool enabled)
-{
-	auto cameraController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
-	auto cameraController = cameraController_c->get_first_object_matching(false);
-	bool setActive = enabled ? true : false;
-	cameraController->call_function(L"SetActive", &setActive);
-}
+uevr::API::UObject* CameraController::CameraAttachementActor = nullptr;
 
 void CameraController::ToggleCameraWobblingController(bool enabled) {
 	//static auto pawn = uevr::API::get()->get_local_pawn(0);
@@ -21,65 +14,65 @@ void CameraController::ToggleCameraWobblingController(bool enabled) {
 
 
 
-void CameraController::SetCameraRotation()
-{
-	//Snake follows the POV camera cache rotation when walking forward
-	auto cameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.PlayerCameraManager");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
-	auto cameraManager = cameraManager_c->get_first_object_matching(false);
-
-	auto test = (reinterpret_cast<SDK::FCameraCacheEntry*>(uevr::API::get()->sdk()->uobject->get_property_data(cameraManager->to_handle(), L"CameraCachePrivate")));
-	if (test != NULL)
-		test->POV.Rotation.Yaw = ActualYaw;
-
-	//works to rotate camera :
-	auto cameraController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
-	auto cameraController = cameraController_c->get_first_object_matching(false);
-	auto cameraActor = cameraController->get_property<uevr::API::UObject*>(L"m_cameraActor");
-	//Logger::DebugPrint(cameraActor->get_full_name());
-	//auto cameraComponent = cameraActor->get_property<uevr::API::UObject*>(L"RootComponent");
-
-	SDK::Params::Actor_K2_SetActorRelativeRotation params;
-	params.NewRelativeRotation = { 0.0f,  ActualYaw, 0.0f };
-	params.bSweep = false;
-	params.bTeleport = false;
-
-	cameraActor->call_function(L"K2_SetActorRelativeRotation", &params);
-	ActualYaw = params.NewRelativeRotation.Yaw;
-
-	UEVR_Vector3d forwardVector;
-	CameraAttachementActor->call_function(L"GetActorForwardVector", &forwardVector);
-	//Logger::DebugPrint("Forward Vector : %f, %f, %f", forwardVector.x, forwardVector.y, forwardVector.z);
-
-	glm::dvec3 position = { CameraPosition.x, CameraPosition.y, CameraPosition.z };
-	glm::dvec3 forward = { forwardVector.x, forwardVector.y, forwardVector.z };
-	CameraForwardVector = { (float)forward.x, (float)forward.y, (float)forward.z };
-	forward *= 400.0f; // We need to move the camera 400 units back to prevent weapon mesh culling
-	glm::dvec3 newPosition = position - forward;
-	
-	SDK::Params::Actor_K2_SetActorRelativeLocation params1;
-	params1.NewRelativeLocation = {newPosition.x, newPosition.y, newPosition.z};
-	params1.bSweep = false;
-	params1.bTeleport = false;
-
-	cameraActor->call_function(L"K2_SetActorRelativeLocation", &params1);
-	//CameraAttachementActor->call_function(L"K2_GetActorLocation", &newPosition);
-	//Logger::DebugPrint("Camera Attachement Actor Position : %f, %f, %f", newPosition.x, newPosition.y, newPosition.z);
-}
+//void CameraController::SetCameraRotation()
+//{
+//	//Snake follows the POV camera cache rotation when walking forward
+//	auto cameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.PlayerCameraManager");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
+//	auto cameraManager = cameraManager_c->get_first_object_matching(false);
+//
+//	auto test = (reinterpret_cast<SDK::FCameraCacheEntry*>(uevr::API::get()->sdk()->uobject->get_property_data(cameraManager->to_handle(), L"CameraCachePrivate")));
+//	if (test != NULL)
+//		test->POV.Rotation.Yaw = ActualYaw;
+//
+//	//works to rotate camera :
+//	auto cameraController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
+//	auto cameraController = cameraController_c->get_first_object_matching(false);
+//	auto cameraActor = cameraController->get_property<uevr::API::UObject*>(L"m_cameraActor");
+//	//Logger::DebugPrint(cameraActor->get_full_name());
+//	//auto cameraComponent = cameraActor->get_property<uevr::API::UObject*>(L"RootComponent");
+//
+//	SDK::Params::Actor_K2_SetActorRelativeRotation params;
+//	params.NewRelativeRotation = { 0.0f,  ActualYaw, 0.0f };
+//	params.bSweep = false;
+//	params.bTeleport = false;
+//
+//	cameraActor->call_function(L"K2_SetActorRelativeRotation", &params);
+//	ActualYaw = params.NewRelativeRotation.Yaw;
+//
+//	UEVR_Vector3d forwardVector;
+//	CameraAttachementActor->call_function(L"GetActorForwardVector", &forwardVector);
+//	//Logger::DebugPrint("Forward Vector : %f, %f, %f", forwardVector.x, forwardVector.y, forwardVector.z);
+//
+//	glm::dvec3 position = { CameraPosition.x, CameraPosition.y, CameraPosition.z };
+//	glm::dvec3 forward = { forwardVector.x, forwardVector.y, forwardVector.z };
+//	CameraForwardVector = { (float)forward.x, (float)forward.y, (float)forward.z };
+//	forward *= 400.0f; // We need to move the camera 400 units back to prevent weapon mesh culling
+//	glm::dvec3 newPosition = position - forward;
+//	
+//	SDK::Params::Actor_K2_SetActorRelativeLocation params1;
+//	params1.NewRelativeLocation = {newPosition.x, newPosition.y, newPosition.z};
+//	params1.bSweep = false;
+//	params1.bTeleport = false;
+//
+//	cameraActor->call_function(L"K2_SetActorRelativeLocation", &params1);
+//	//CameraAttachementActor->call_function(L"K2_GetActorLocation", &newPosition);
+//	//Logger::DebugPrint("Camera Attachement Actor Position : %f, %f, %f", newPosition.x, newPosition.y, newPosition.z);
+//}
 
 
 
 
 void CameraController::SpawnCameraAttachementActor()
 {
-	CameraAttachementActor = Utilities::SpawnActor(UEVR_Vector3d{ CameraPosition.x, CameraPosition.y, CameraPosition.z }, 1, nullptr);
+	CameraController::CameraAttachementActor = Utilities::SpawnActor(UEVR_Vector3d{ CameraPosition.x, CameraPosition.y, CameraPosition.z }, 1, nullptr);
 	CameraAttachementActorAvailable = true;
 }
 
 void CameraController::DestroyCameraAttachementActor()
 {
-	if (CameraAttachementActor != nullptr) {
-		CameraAttachementActor->call_function(L"K2_DestroyActor", nullptr);
-		CameraAttachementActor = nullptr;
+	if (CameraController::CameraAttachementActor != nullptr) {
+		CameraController::CameraAttachementActor->call_function(L"K2_DestroyActor", nullptr);
+		CameraController::CameraAttachementActor = nullptr;
 		Logger::DebugPrint("Camera Attachement Actor Destroyed");
 	}
 	CameraAttachementActorAvailable = false;
@@ -87,7 +80,7 @@ void CameraController::DestroyCameraAttachementActor()
 
 void CameraController::AttachCameraToAttachementActor()
 {
-	auto rootComponent = CameraAttachementActor->get_property<uevr::API::UObject*>(L"RootComponent");
+	auto rootComponent = CameraController::CameraAttachementActor->get_property<uevr::API::UObject*>(L"RootComponent");
 	auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(rootComponent);
 	//UEVR_Vector3f test = { 0.0, 0.0, 0.0 };
 	//UEVR_Quaternionf testQ = { 0.0, 0.0, 0.0, 1.0 };
@@ -202,7 +195,7 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 		ActualYaw += YawInput * YawSpeed;
 	/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
 	cameraRotation.yaw = ActualYaw;
-	SetCameraRotation();
+	/*SetCameraRotation();*/
 }
 
 void CameraController::ProcessCameraResetTimer(float delta)

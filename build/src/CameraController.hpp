@@ -18,8 +18,6 @@ public:
 	CameraController(PlayerManager* pm) : playerManager(pm){};
 	//virtual ~CameraController() = default;
 
-	void ToggleGameCameraController(bool enabled);
-
 	void ToggleCameraWobblingController(bool enabled);
 
 	double ActualYaw = 0.0f;
@@ -27,15 +25,13 @@ public:
 	float YawInput = 0.0f;
 	float YawSpeed = 1.0f;
 	//UEVR_Vector3d playerPosition = { 0.0, 0.0, 0.0 };
-	void SetCameraRotation();
+	/*void SetCameraRotation();*/
 	//void SetCameraPosition();
 	float CameraHeightOffset = 0.0f;
 	glm::fvec3 CameraPosition = { 0.0f, 0.0f, 0.0f }; //need to clean up
 	SDK::FVector CameraForwardVector = { 1.0f, 0.0f, 0.0f };
 
-	SDK::FVector test;
-
-	uevr::API::UObject* CameraAttachementActor = nullptr;
+	static uevr::API::UObject* CameraAttachementActor;
 	void SpawnCameraAttachementActor();
 	void DestroyCameraAttachementActor();
 	void AttachCameraToAttachementActor();

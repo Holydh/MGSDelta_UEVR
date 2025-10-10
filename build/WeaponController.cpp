@@ -263,11 +263,12 @@ void WeaponController::SetAimDirection()
 	auto cameraController = cameraController_c->get_first_object_matching(false);
 
 	//Logger::DebugPrint(root_component->get_full_name());
-	if (cameraController != nullptr)
+	if (cameraController != nullptr && CameraController::CameraAttachementActor)
 	{
+		auto sdkActor = (SDK::AActor*)CameraController::CameraAttachementActor;
 		SDK::FRotator params;
-		params = CurrentWeaponWorldRotation;
-		//cameraController.YawInput
+		params = sdkActor->K2_GetActorRotation();
+		//Logger::DebugPrint("pitch : %f, yaw : %f, roll : %f", params.Pitch, params.Yaw, params.Roll);
 		cameraController->call_function(L"SetCameraRotation", &params);
 	}
 

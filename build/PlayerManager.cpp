@@ -168,6 +168,8 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 	static const SDK::FName PeepStart = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepStart");
     static const SDK::FName PeepLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepLoop");
     static const SDK::FName PeepEnd = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepEnd");
+	static const SDK::FName AimStart = SDK::UKismetStringLibrary::Conv_StringToName(L"AimStart");
+	static const SDK::FName AimLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"AimLoop");
 
 	static const SDK::FName Idle = SDK::UKismetStringLibrary::Conv_StringToName(L"Idle");
 	static const SDK::FName Basic = SDK::UKismetStringLibrary::Conv_StringToName(L"Basic");
@@ -176,7 +178,7 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 	static const SDK::FName Elude = SDK::UKismetStringLibrary::Conv_StringToName(L"Elude");
 
 	
-	if (StateName == PeepStart || StateName == PeepLoop || StateName == PeepEnd)
+	if (StateName == PeepStart || StateName == PeepLoop || StateName == PeepEnd || StateName == AimStart || StateName == AimLoop)
 		IsPeepingInternal = true;
 	else
 		IsPeepingInternal = false;

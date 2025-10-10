@@ -124,8 +124,10 @@ bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::U
 		{
 			auto true_locals = (char*)locals - 0x50;
 			SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
-			//s_playerManager->debugParamsTest.NextStateName = params->NextStateName;
-			//s_playerManager->debugParamsTest.StateMachineName = params->StateMachineName;
+	/*		SDK::FName nextState = params->NextStateName;
+			SDK::FName StateMachine = params->StateMachineName;
+			Logger::DebugPrint(nextState.ToString().c_str());
+			Logger::DebugPrint(StateMachine.ToString().c_str());*/
 			s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
 		}
 	}
@@ -150,41 +152,41 @@ bool HookManager::mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn
 	return true;
 }
 
-bool HookManager::mod_SetCameraRotation_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
-{
-	if (locals != nullptr)
-	{
-		auto true_locals = (char*)locals - 0x50;
-		SDK::Params::GsrPlayerCameraController_SetCameraRotation* params = (SDK::Params::GsrPlayerCameraController_SetCameraRotation*)true_locals;
-		auto cameraAttachementActor = (SDK::AActor*)s_cameraController->CameraAttachementActor;
-		params->EndRotation = cameraAttachementActor->K2_GetActorRotation();
-		Logger::DebugPrint("%f, %f, %f", params->EndRotation.Pitch, params->EndRotation.Yaw, params->EndRotation.Roll);
-		//s_playerManager->debugParamsTest.NextStateName = params->NextStateName;
-		//s_playerManager->debugParamsTest.StateMachineName = params->StateMachineName;
-		//s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
-	}
-	return true;
-}
+//bool HookManager::mod_SetCameraRotation_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+//{
+//	if (locals != nullptr)
+//	{
+//		auto true_locals = (char*)locals - 0x50;
+//		SDK::Params::GsrPlayerCameraController_SetCameraRotation* params = (SDK::Params::GsrPlayerCameraController_SetCameraRotation*)true_locals;
+//		auto cameraAttachementActor = (SDK::AActor*)s_cameraController->CameraAttachementActor;
+//		params->EndRotation = cameraAttachementActor->K2_GetActorRotation();
+//		Logger::DebugPrint("%f, %f, %f", params->EndRotation.Pitch, params->EndRotation.Yaw, params->EndRotation.Roll);
+//		//s_playerManager->debugParamsTest.NextStateName = params->NextStateName;
+//		//s_playerManager->debugParamsTest.StateMachineName = params->StateMachineName;
+//		//s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
+//	}
+//	return true;
+//}
 
-bool HookManager::mod_ISetAimPosition_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
-{
-	if (locals != nullptr)
-	{
-		auto true_locals = (char*)locals - 0x50;
-		SDK::Params::GsrPlayerCameraInfoInterface_ISetAimPosition* params = (SDK::Params::GsrPlayerCameraInfoInterface_ISetAimPosition*)true_locals;
-		s_cameraController->test = params->position;
-		
-		params->position.X = s_weaponController->AimPosition.x;
-		params->position.Y = s_weaponController->AimPosition.y;
-		params->position.Z = s_weaponController->AimPosition.z;
-
-		Logger::DebugPrint("%f, %f, %f", params->position.X, params->position.Y, params->position.Z);
-		//s_playerManager->debugParamsTest.NextStateName = params->NextStateName;
-		//s_playerManager->debugParamsTest.StateMachineName = params->StateMachineName;
-		//s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
-	}
-	return true;
-}
+//bool HookManager::mod_ISetAimPosition_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+//{
+//	if (locals != nullptr)
+//	{
+//		auto true_locals = (char*)locals - 0x50;
+//		SDK::Params::GsrPlayerCameraInfoInterface_ISetAimPosition* params = (SDK::Params::GsrPlayerCameraInfoInterface_ISetAimPosition*)true_locals;
+//		s_cameraController->test = params->position;
+//		
+//		params->position.X = s_weaponController->AimPosition.x;
+//		params->position.Y = s_weaponController->AimPosition.y;
+//		params->position.Z = s_weaponController->AimPosition.z;
+//
+//		Logger::DebugPrint("%f, %f, %f", params->position.X, params->position.Y, params->position.Z);
+//		//s_playerManager->debugParamsTest.NextStateName = params->NextStateName;
+//		//s_playerManager->debugParamsTest.StateMachineName = params->StateMachineName;
+//		//s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
+//	}
+//	return true;
+//}
 
 bool HookManager::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native)
 {
