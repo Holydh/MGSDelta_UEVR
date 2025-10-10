@@ -175,18 +175,6 @@ void WeaponController::FetchWeaponMeshAimData()
 		
 		CurrentWeaponWorldRotation = makeRotFromX_params.ReturnValue;
 
-
-		auto test = (SDK::USceneComponent*)root_component;
-		auto rotation = test->K2_GetComponentRotation();
-		SDK::FHitResult hitResult;
-	
-		Utilities::DebugCigar0->K2_SetActorRelativeRotation(rotation, false, &hitResult, true);
-		Utilities::DebugCigar1->K2_SetActorRelativeRotation(rotation, false, &hitResult, true);
-		Utilities::DebugCigar1->K2_SetActorLocation(Utilities::DebugCigar0->K2_GetActorLocation() + forward_params * 50.0f, false, &hitResult, true);
-		
-
-
-
 		float aimOffsetValueHorizontal = 0.0f;
 		float aimOffsetValueVertical = 0.0f;
 		switch (CurrentWeaponEquippedID)
@@ -274,15 +262,23 @@ void WeaponController::SetAimDirection()
 	auto cameraController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
 	auto cameraController = cameraController_c->get_first_object_matching(false);
 
-	auto root_component = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootComponent");
 	//Logger::DebugPrint(root_component->get_full_name());
-	if (root_component != nullptr)
+	if (cameraController != nullptr)
 	{
 		SDK::FRotator params;
 		params = CurrentWeaponWorldRotation;
 		//cameraController.YawInput
 		cameraController->call_function(L"SetCameraRotation", &params);
 	}
+
+	//auto root_component = CurrentWeapon->get_property<uevr::API::UObject*>(L"m_cameraActor");
+	////Logger::DebugPrint(root_component->get_full_name());
+	//if (root_component != nullptr)
+	//{
+	//	auto cameraActor = (SDK::AActor*)root_component;
+	//	SDK::FHitResult hitResult;
+	//	cameraActor->K2_SetActorRelativeRotation(CurrentWeaponWorldRotation, false, &hitResult, true);
+	//}
 }
 
 void WeaponController::ApplyRecoil(float delta)

@@ -14,6 +14,7 @@
 
 #include "SDK/Gsr_structs.hpp"
 #include "SDK/Ics_parameters.hpp"
+#include "SDK/Gsr_parameters.hpp"
 
 class HookManager {
 private:
@@ -57,4 +58,6 @@ public:
     bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native);
     static bool mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_SetCameraRotation_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_ISetAimPosition_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
 };

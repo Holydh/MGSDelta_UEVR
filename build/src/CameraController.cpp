@@ -29,7 +29,7 @@ void CameraController::SetCameraRotation()
 
 	auto test = (reinterpret_cast<SDK::FCameraCacheEntry*>(uevr::API::get()->sdk()->uobject->get_property_data(cameraManager->to_handle(), L"CameraCachePrivate")));
 	if (test != NULL)
-		test->POV.Rotation.Yaw = actualYaw;
+		test->POV.Rotation.Yaw = ActualYaw;
 
 	//works to rotate camera :
 	auto cameraController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
@@ -39,13 +39,12 @@ void CameraController::SetCameraRotation()
 	//auto cameraComponent = cameraActor->get_property<uevr::API::UObject*>(L"RootComponent");
 
 	SDK::Params::Actor_K2_SetActorRelativeRotation params;
-	params.NewRelativeRotation = { 0.0f,  actualYaw, 0.0f };
+	params.NewRelativeRotation = { 0.0f,  ActualYaw, 0.0f };
 	params.bSweep = false;
 	params.bTeleport = false;
 
 	cameraActor->call_function(L"K2_SetActorRelativeRotation", &params);
-	actualYaw = params.NewRelativeRotation.Yaw;
-
+	ActualYaw = params.NewRelativeRotation.Yaw;
 
 	UEVR_Vector3d forwardVector;
 	CameraAttachementActor->call_function(L"GetActorForwardVector", &forwardVector);
@@ -130,8 +129,8 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 		auto pawn = uevr::API::get()->get_local_pawn(0);
 		UEVR_Rotatord pawnRotation;
 		pawn->call_function(L"K2_GetActorRotation", &pawnRotation);
-		actualYaw = pawnRotation.yaw;
-		cameraRotation.yaw = actualYaw;
+		ActualYaw = pawnRotation.yaw;
+		cameraRotation.yaw = ActualYaw;
 		return;
 	}
 	
@@ -200,9 +199,9 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 	cameraPosition.z = newPosition.z;
 
 	if (YawInput != 0.0)
-		actualYaw += YawInput * YawSpeed;
+		ActualYaw += YawInput * YawSpeed;
 	/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
-	cameraRotation.yaw = actualYaw;
+	cameraRotation.yaw = ActualYaw;
 	SetCameraRotation();
 }
 

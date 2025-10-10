@@ -22,7 +22,8 @@ public:
 
 	void ToggleCameraWobblingController(bool enabled);
 
-	double actualYaw = 0.0f;
+	double ActualYaw = 0.0f;
+	
 	float YawInput = 0.0f;
 	float YawSpeed = 1.0f;
 	//UEVR_Vector3d playerPosition = { 0.0, 0.0, 0.0 };
@@ -31,6 +32,8 @@ public:
 	float CameraHeightOffset = 0.0f;
 	glm::fvec3 CameraPosition = { 0.0f, 0.0f, 0.0f }; //need to clean up
 	SDK::FVector CameraForwardVector = { 1.0f, 0.0f, 0.0f };
+
+	SDK::FVector test;
 
 	uevr::API::UObject* CameraAttachementActor = nullptr;
 	void SpawnCameraAttachementActor();
