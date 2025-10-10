@@ -29,7 +29,8 @@ public:
 	void SetCameraRotation();
 	//void SetCameraPosition();
 	float CameraHeightOffset = 0.0f;
-	glm::fvec3 CameraPosition = { 0.0f, 0.0f, 0.0f };
+	glm::fvec3 CameraPosition = { 0.0f, 0.0f, 0.0f }; //need to clean up
+	SDK::FVector CameraForwardVector = { 1.0f, 0.0f, 0.0f };
 
 	uevr::API::UObject* CameraAttachementActor = nullptr;
 	void SpawnCameraAttachementActor();

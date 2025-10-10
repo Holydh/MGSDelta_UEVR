@@ -53,6 +53,7 @@ void CameraController::SetCameraRotation()
 
 	glm::dvec3 position = { CameraPosition.x, CameraPosition.y, CameraPosition.z };
 	glm::dvec3 forward = { forwardVector.x, forwardVector.y, forwardVector.z };
+	CameraForwardVector = { (float)forward.x, (float)forward.y, (float)forward.z };
 	forward *= 400.0f; // We need to move the camera 400 units back to prevent weapon mesh culling
 	glm::dvec3 newPosition = position - forward;
 	
@@ -71,11 +72,7 @@ void CameraController::SetCameraRotation()
 
 void CameraController::SpawnCameraAttachementActor()
 {
-	auto gameEngine = uevr::API::get()->get_engine();
-	auto world = gameEngine->get_property<uevr::API::UObject*>(L"GameViewport")->get_property<uevr::API::UObject*>(L"World");
-	Logger::DebugPrint(world->get_full_name());
-	CameraAttachementActor = Utilities::SpawnActor(world, UEVR_Vector3d{ CameraPosition.x, CameraPosition.y, CameraPosition.z }, 1, nullptr);
-	Logger::DebugPrint(CameraAttachementActor->get_full_name());
+	CameraAttachementActor = Utilities::SpawnActor(UEVR_Vector3d{ CameraPosition.x, CameraPosition.y, CameraPosition.z }, 1, nullptr);
 	CameraAttachementActorAvailable = true;
 }
 

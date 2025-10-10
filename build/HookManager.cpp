@@ -118,7 +118,6 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, SDK::FGsrFi
 
 bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	Logger::DebugPrint(obj->get_full_name());
 	if (obj->is_a(Utilities::ABP_SnakeBasicAction_C) || obj->is_a(Utilities::ABP_PlayerRollingAction_C) || obj->is_a(Utilities::ABP_PlayerBehindAction_C))
 	{
 		if (locals != nullptr)

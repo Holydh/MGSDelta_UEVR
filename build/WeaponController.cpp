@@ -163,19 +163,29 @@ void WeaponController::FetchWeaponMeshAimData()
 		Utilities::KismetMathLibrary->call_function(L"RotateAngleAxis", &rotate_params);
 		forward_params = { rotate_params.ReturnValue.X, rotate_params.ReturnValue.Y, rotate_params.ReturnValue.Z };
 
-		 // Now, convert the final forward vector into a rotator.
+		// Now, convert the final forward vector into a rotator.
         SDK::FRotator world_rotator;
         
         // This is a struct to pass the vector as a parameter to the function.
         SDK::Params::KismetMathLibrary_MakeRotFromX makeRotFromX_params;
-
         makeRotFromX_params.X = forward_params;
 
         // Call the Kismet Math Library function to perform the conversion.
         Utilities::KismetMathLibrary->call_function(L"MakeRotFromX", &makeRotFromX_params);
-        
-        // The resulting rotator is now in the 'Result' field.
-        CurrentWeaponWorldRotation = makeRotFromX_params.ReturnValue;
+		
+		CurrentWeaponWorldRotation = makeRotFromX_params.ReturnValue;
+
+
+		auto test = (SDK::USceneComponent*)root_component;
+		auto rotation = test->K2_GetComponentRotation();
+		SDK::FHitResult hitResult;
+	
+		Utilities::DebugCigar0->K2_SetActorRelativeRotation(rotation, false, &hitResult, true);
+		Utilities::DebugCigar1->K2_SetActorRelativeRotation(rotation, false, &hitResult, true);
+		Utilities::DebugCigar1->K2_SetActorLocation(Utilities::DebugCigar0->K2_GetActorLocation() + forward_params * 50.0f, false, &hitResult, true);
+		
+
+
 
 		float aimOffsetValueHorizontal = 0.0f;
 		float aimOffsetValueVertical = 0.0f;

@@ -15,6 +15,16 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	auto beltLinkSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_BeltLink");
 	auto glassSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Glass");
 	auto waterBottleSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_WaterBottle");
+	auto knifeScabbardSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_KnifeScabbard");
+	auto knifeSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Knife");
+	auto headGearSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_HeadGear");
+	auto hatSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hat");
+	auto eyePatchSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_EyePatch");
+	auto cqcKnifeScabbardSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_CqcKnifeScabbard");
+	auto cqcKnifeSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_CqcKnife");
+
+
+
 
 	bool SetOnlyOwnerSee = !visible ? true : false;
 	if (headSkeletalMesh) {
@@ -53,6 +63,28 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	if (waterBottleSkeletalMesh) {
 		waterBottleSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
 	}
+	if (knifeScabbardSkeletalMesh) {
+		knifeScabbardSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (knifeSkeletalMesh) {
+		knifeSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (headGearSkeletalMesh) {
+		headGearSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (hatSkeletalMesh) {
+		hatSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (eyePatchSkeletalMesh) {
+		eyePatchSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (cqcKnifeScabbardSkeletalMesh) {
+		cqcKnifeScabbardSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+	if (cqcKnifeSkeletalMesh) {
+		cqcKnifeSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	}
+
 }
 
 void PlayerManager::ToggleReticleVisibility(bool visible)
@@ -164,7 +196,7 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 	//Logger::DebugPrint("IsPeepingInternal: %d", IsPeepingInternal);
 	//Logger::DebugPrint("IsPeeping: %d", IsPeeping);
 
-	Logger::DebugPrint("StateMachineName: %s, StateName: %s", StateMachineName.ToString().c_str(), StateName.ToString().c_str());
+	//Logger::DebugPrint("StateMachineName: %s, StateName: %s", StateMachineName.ToString().c_str(), StateName.ToString().c_str());
 }
 
 //PlayerManager::EPlayerAnimState PlayerManager::GetCurrentPlayerAnimState(const SDK::FName& State)

@@ -10,6 +10,7 @@
 
 #include "SDK/CoreUObject_structs.hpp"
 #include "SDK/Engine_parameters.hpp"
+#include "SDK/Engine_Classes.hpp"
 
 class WeaponController {
 private:
@@ -22,8 +23,8 @@ public:
 	WeaponController(MemoryManager* mm, SettingsManager* sm) : memoryManager(mm), settingsManager(sm) {};
 	bool IsShooting = false;
 	uevr::API::UObject* EquipController = nullptr;
-	uevr::API::UObject* CurrentWeapon = nullptr;;
-	uevr::API::UObject* WeaponHook = nullptr;;
+	uevr::API::UObject* CurrentWeapon = nullptr;
+	uevr::API::UObject* WeaponHook = nullptr;
 
 	glm::fquat DefaultWeaponRotation{};
 	glm::fvec3 DefaultWeaponPosition{};

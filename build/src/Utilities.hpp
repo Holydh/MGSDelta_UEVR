@@ -5,6 +5,7 @@
 
 #include "SDK/CoreUObject_structs.hpp"
 #include "SDK/Engine_parameters.hpp"
+#include "SDK/Engine_classes.hpp"
 
 class Utilities {
 private:
@@ -22,8 +23,13 @@ public:
 	static uevr::API::UClass* ABP_PlayerRollingAction_C;
 	static uevr::API::UClass* ABP_PlayerBehindAction_C;
 
-	static void InitHelperClasses();
-	static uevr::API::UObject* SpawnActor(uevr::API::UObject* WorldContextObject, UEVR_Vector3d Position, uint8_t CollisionMethod, uevr::API::UObject* Owner);
+	//Debug Arrow Actor
+	static SDK::AActor* DebugCigar0;
+	static SDK::AActor* DebugCigar1;
 
+	static void InitHelperClasses();
+	static uevr::API::UObject* SpawnActor(UEVR_Vector3d Position, uint8_t CollisionMethod, uevr::API::UObject* Owner);
+	static SDK::AActor* SpawnDebugCigars(UEVR_Vector3d Position);
+	static void DestroyDebugCigars();
 	//static glm::fvec3 OffsetLocalPositionFromWorld(glm::fvec3 worldPosition, glm::fvec3 forwardVector, glm::fvec3 upVector, glm::fvec3 rightVector, glm::fvec3 offsets);
 };

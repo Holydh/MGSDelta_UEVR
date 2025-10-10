@@ -394,21 +394,24 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 	{
 		cameraController.ToggleGameCameraController(false);
 		cameraController.ToggleCameraWobblingController(false);
-		memoryManager.ToggleAimRelatedMemoryInstructions(false);
+		//memoryManager.ToggleAimRelatedMemoryInstructions(false);
 		playerManager.ToggleMeshesVisibility(false);
 		playerManager.ToggleReticleVisibility(false);
 		cameraController.SpawnCameraAttachementActor();
 		cameraController.AttachCameraToAttachementActor();
+		Utilities::DebugCigar0 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
+		Utilities::DebugCigar1 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 	}
 	else
 	{
 		cameraController.ToggleGameCameraController(true);
 		cameraController.ToggleCameraWobblingController(true);
-		memoryManager.ToggleAimRelatedMemoryInstructions(true);
+		//memoryManager.ToggleAimRelatedMemoryInstructions(true);
 		playerManager.ToggleMeshesVisibility(true);
 		playerManager.ToggleReticleVisibility(true);
 		cameraController.DetachCameraFromAttachementActor();
 		cameraController.DestroyCameraAttachementActor();
+		Utilities::DestroyDebugCigars();
 	}
 }
 
@@ -447,8 +450,15 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		playerManager.UpdatePeepingState(delta);
 	}
 
-	cameraController.ProcessCameraResetTimer(delta);
-
+	//cameraController.ProcessCameraResetTimer(delta);
+	if (playerManager.IsPlayerControlled)
+	{
+		auto camActor = (SDK::AActor*)cameraController.CameraAttachementActor;
+		auto cameraLocation = camActor->K2_GetActorLocation();
+		Logger::DebugPrint("Camera forward: %f, %f, %f", cameraController.CameraForwardVector.X, cameraController.CameraForwardVector.Y, cameraController.CameraForwardVector.Z);
+		SDK::FHitResult hitResult;
+		Utilities::DebugCigar0->K2_SetActorRelativeLocation(cameraLocation + cameraController.CameraForwardVector * 100.0f, false, &hitResult, true);
+	}
 
 	if (m_initialized) {
 		std::scoped_lock _{ m_imgui_mutex };
