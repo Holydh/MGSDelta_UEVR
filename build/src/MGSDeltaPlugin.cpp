@@ -393,7 +393,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 	{
 		cameraController.ToggleCameraWobblingController(false);
 		//memoryManager.ToggleAimRelatedMemoryInstructions(false);
-		//playerManager.ToggleMeshesVisibility(false);
+		playerManager.ToggleMeshesVisibility(false);
 		playerManager.ToggleReticleVisibility(false);
 		cameraController.SpawnCameraAttachementActor();
 		cameraController.AttachCameraToAttachementActor();
@@ -404,7 +404,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 	{
 		cameraController.ToggleCameraWobblingController(true);
 		//memoryManager.ToggleAimRelatedMemoryInstructions(true);
-		//playerManager.ToggleMeshesVisibility(true);
+		playerManager.ToggleMeshesVisibility(true);
 		playerManager.ToggleReticleVisibility(true);
 		cameraController.DetachCameraFromAttachementActor();
 		cameraController.DestroyCameraAttachementActor();
