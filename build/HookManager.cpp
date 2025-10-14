@@ -124,10 +124,10 @@ bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::U
 		{
 			auto true_locals = (char*)locals - 0x50;
 			SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
-	/*		SDK::FName nextState = params->NextStateName;
+			SDK::FName nextState = params->NextStateName;
 			SDK::FName StateMachine = params->StateMachineName;
 			Logger::DebugPrint(nextState.ToString().c_str());
-			Logger::DebugPrint(StateMachine.ToString().c_str());*/
+			Logger::DebugPrint(StateMachine.ToString().c_str());
 			s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
 		}
 	}

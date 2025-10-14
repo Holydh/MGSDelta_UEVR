@@ -165,20 +165,36 @@ void PlayerManager::GetCurrentPlayerStance(float deltaTime)
 
 void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, const SDK::FName& StateMachineName)
 {
+	//Peep State Machine Name
+	static const SDK::FName Behind = SDK::UKismetStringLibrary::Conv_StringToName(L"Behind");
+	//Peep States
 	static const SDK::FName PeepStart = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepStart");
     static const SDK::FName PeepLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepLoop");
     static const SDK::FName PeepEnd = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepEnd");
 	static const SDK::FName AimStart = SDK::UKismetStringLibrary::Conv_StringToName(L"AimStart");
 	static const SDK::FName AimLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"AimLoop");
 
-	static const SDK::FName Idle = SDK::UKismetStringLibrary::Conv_StringToName(L"Idle");
+	//Rolling State Machine Name
 	static const SDK::FName Basic = SDK::UKismetStringLibrary::Conv_StringToName(L"Basic");
+	//Rolling States
 	static const SDK::FName Rolling = SDK::UKismetStringLibrary::Conv_StringToName(L"Rolling");
 
+	//Aiming States
+	static const SDK::FName ParallelIdle = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelIdle");
+	static const SDK::FName ParallelMoveStart = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelMoveStart");
+	static const SDK::FName ParallelMoveCycle = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelMoveCycle");
+	static const SDK::FName ParallelMoveStop = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelMoveStop");
+
+	//Falling from edge State Machine Name
 	static const SDK::FName Elude = SDK::UKismetStringLibrary::Conv_StringToName(L"Elude");
+	
 
 	
-	if (StateName == PeepStart || StateName == PeepLoop || StateName == PeepEnd || StateName == AimStart || StateName == AimLoop)
+	if (StateName == PeepStart || 
+		StateName == PeepLoop || 
+		StateName == PeepEnd ||
+		StateName == AimStart && StateMachineName == Behind || 
+		StateName == AimLoop && StateMachineName == Behind)
 		IsPeepingInternal = true;
 	else
 		IsPeepingInternal = false;
@@ -193,6 +209,10 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 	else
 		IsRolling = false;
 
+	if (StateName == ParallelIdle || StateName == ParallelMoveStart || StateName == ParallelMoveCycle || StateName == ParallelMoveStop)
+		IsAiming = true;
+	else
+		IsAiming = false;
 	//Logger::DebugPrint("IsRolling: %d", IsRolling);
 	//Logger::DebugPrint("IsHanging: %d", IsHanging);
 	//Logger::DebugPrint("IsPeepingInternal: %d", IsPeepingInternal);

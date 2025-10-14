@@ -64,7 +64,7 @@ void CameraController::ToggleCameraWobblingController(bool enabled) {
 
 void CameraController::SpawnCameraAttachementActor()
 {
-	CameraController::CameraAttachementActor = Utilities::SpawnActor(UEVR_Vector3d{ CameraPosition.x, CameraPosition.y, CameraPosition.z }, 1, nullptr);
+	CameraController::CameraAttachementActor = Utilities::SpawnActor(UEVR_Vector3d{ LastCameraPosition.x, LastCameraPosition.y, LastCameraPosition.z }, 1, nullptr);
 	CameraAttachementActorAvailable = true;
 }
 
@@ -115,7 +115,7 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 	// Reset camera position and rotation when player respawn or teleport
 	if (InstantCameraPositionNeeded)
 	{
-		CameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
+		LastCameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
 		//CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
 		cameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
 
@@ -163,30 +163,30 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 	//}
 	if (playerManager->IsPeepingInternal)
 	{
-		newPosition = glm::mix(CameraPosition, glm::fvec3(headColliderPosition.x, headColliderPosition.y, pawnPosition.z - CameraHeightOffset), 0.1f);
+		newPosition = glm::mix(LastCameraPosition, glm::fvec3(headColliderPosition.x, headColliderPosition.y, pawnPosition.z - CameraHeightOffset), 0.1f);
 	}
 	else if (playerManager->IsPeeping)
 	{
 		tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, pawnPosition.z - CameraHeightOffset);
 		newPosition = glm::fvec3(
-			glm::mix(CameraPosition.x, (float)tempPosition.x, 0.1f),
-			glm::mix(CameraPosition.y, (float)tempPosition.y, 0.1f),
-			glm::mix(CameraPosition.z, (float)tempPosition.z, 0.05f));
+			glm::mix(LastCameraPosition.x, (float)tempPosition.x, 0.1f),
+			glm::mix(LastCameraPosition.y, (float)tempPosition.y, 0.1f),
+			glm::mix(LastCameraPosition.z, (float)tempPosition.z, 0.05f));
 	}
 	else
 	{
 		tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, pawnPosition.z - CameraHeightOffset);
 		newPosition = glm::fvec3(
-			glm::mix(CameraPosition.x, (float)tempPosition.x, 0.25f),
-			glm::mix(CameraPosition.y, (float)tempPosition.y, 0.25f),
-			glm::mix(CameraPosition.z, (float)tempPosition.z, 0.05f));
+			glm::mix(LastCameraPosition.x, (float)tempPosition.x, 0.25f),
+			glm::mix(LastCameraPosition.y, (float)tempPosition.y, 0.25f),
+			glm::mix(LastCameraPosition.z, (float)tempPosition.z, 0.05f));
 	}
 
 
 
 
 	//Logger::DebugPrint("Camera Height Offset : %f", cameraController.CameraHeightOffset);
-	CameraPosition = { newPosition.x, newPosition.y, newPosition.z };
+	LastCameraPosition = { newPosition.x, newPosition.y, newPosition.z };
 	cameraPosition.x = newPosition.x;
 	cameraPosition.y = newPosition.y;
 	cameraPosition.z = newPosition.z;
@@ -194,7 +194,11 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 	if (YawInput != 0.0)
 		ActualYaw += YawInput * YawSpeed;
 	/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
-	cameraRotation.yaw = ActualYaw;
+
+	cameraRotation.yaw = *settingsManager->SmoothCameraRotationPtr ? 
+		glm::mix(LastCameraRotation.yaw, ActualYaw, *settingsManager->CameraYawLerpPtr * DeltaTime) :
+		ActualYaw;
+	LastCameraRotation = cameraRotation;
 	/*SetCameraRotation();*/
 }
 

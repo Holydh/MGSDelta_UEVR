@@ -73,10 +73,13 @@ void SettingsManager::LoadAllWeaponConfigs(const std::filesystem::path& dir)
 
 void SettingsManager::InitSettingsManager()
 {
-	GetAllConfigFilePaths();
-	Logger::DebugPrint("%s", uevrConfigFilePath.c_str());
-	Logger::DebugPrint("%s", pluginConfigFilePath.c_str());
-	FetchPluginSettings();
+	//GetAllConfigFilePaths();
+	//Logger::DebugPrint("%s", uevrConfigFilePath.c_str());
+	//Logger::DebugPrint("%s", pluginConfigFilePath.c_str());
+	//FetchPluginSettings();
+
+	CameraYawLerpPtr = &cameraYawLerp;
+	SmoothCameraRotationPtr = &smoothCameraRotation;
 }
 
 void SettingsManager::FetchUevrSettings(bool writeToPlugin)

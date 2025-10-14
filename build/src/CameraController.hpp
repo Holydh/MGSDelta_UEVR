@@ -9,14 +9,18 @@
 #include "SDK/Engine_classes.hpp"
 
 #include "PlayerManager.hpp"
+#include "SettingsManager.hpp"
 
 class CameraController {
 private:
 	PlayerManager* const playerManager;
+	SettingsManager* const settingsManager;
 
 public:
-	CameraController(PlayerManager* pm) : playerManager(pm){};
+	CameraController(PlayerManager* pm, SettingsManager* sm) : playerManager(pm), settingsManager(sm){};
 	//virtual ~CameraController() = default;
+
+	float DeltaTime = 0.0f;
 
 	void ToggleCameraWobblingController(bool enabled);
 
@@ -28,7 +32,8 @@ public:
 	/*void SetCameraRotation();*/
 	//void SetCameraPosition();
 	float CameraHeightOffset = 0.0f;
-	glm::fvec3 CameraPosition = { 0.0f, 0.0f, 0.0f }; //need to clean up
+	glm::fvec3 LastCameraPosition = { 0.0f, 0.0f, 0.0f };
+	UEVR_Rotatord LastCameraRotation = { 0.0f, 0.0f, 0.0f };
 	SDK::FVector CameraForwardVector = { 1.0f, 0.0f, 0.0f };
 
 	static uevr::API::UObject* CameraAttachementActor;

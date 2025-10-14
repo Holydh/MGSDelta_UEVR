@@ -41,6 +41,7 @@ public:
 	bool IsHanging = false;
 	bool IsChangingStance = false;
 	bool IsRolling = false;
+	bool IsAiming = false;
 	SDK::EGsrPlayerStance CurrentStance = SDK::EGsrPlayerStance::Stand;
 	SDK::EGsrPlayerStance PreviousStance = SDK::EGsrPlayerStance::Stand;
 	float ChangeStanceTimer = 0.0f;

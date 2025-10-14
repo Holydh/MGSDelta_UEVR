@@ -35,9 +35,15 @@ public:
 	static std::unordered_map<std::string, WeaponConfig> g_weaponConfigs;
 	bool LoadWeaponConfigFromFile(const fs::path& path, WeaponConfig& outCfg);
 	void LoadAllWeaponConfigs(const std::filesystem::path& baseDir);
+
+	bool* SmoothCameraRotationPtr;
+	float* CameraYawLerpPtr;
 	
 
 private:
+	bool smoothCameraRotation = true;
+	float cameraYawLerp = 2.25f;
+
 	bool CheckSettingsModificationAndUpdate(const std::string& filePath, bool uevr);
 	std::string GetConfigFilePath(bool uevr);
 	std::string uevrSettingsFileName = "config.txt";
@@ -59,6 +65,4 @@ private:
 	void FetchUevrSettings(bool writeToPlugin);
 	void FetchPluginSettings();
 	void WriteChangedSettingsToPluginConfigFile();
-
-	bool uevr_DecoupledPitch = false;
 };

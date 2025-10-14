@@ -12,16 +12,18 @@
 #include "SDK/Engine_parameters.hpp"
 #include "SDK/Engine_Classes.hpp"
 #include "CameraController.hpp"
+#include "PlayerManager.hpp"
 
 class WeaponController {
 private:
 	MemoryManager* const memoryManager;
 	SettingsManager* const settingsManager;
+	PlayerManager* const playerManager;
 
 	void ApplyRecoil(float delta);
 	float RandomRange(float min, float max);
 public:
-	WeaponController(MemoryManager* mm, SettingsManager* sm) : memoryManager(mm), settingsManager(sm) {};
+	WeaponController(MemoryManager* mm, SettingsManager* sm, PlayerManager* pm) : memoryManager(mm), settingsManager(sm), playerManager(pm) {};
 	bool IsShooting = false;
 	uevr::API::UObject* EquipController = nullptr;
 	uevr::API::UObject* CurrentWeapon = nullptr;

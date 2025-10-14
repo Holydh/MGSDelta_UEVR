@@ -5,13 +5,13 @@ using namespace uevr;
 #define MAX_DEBUG_MESSAGE_SIZE 2048
 
 bool g_DebugEnabled = true;
-bool imguiEnabled = false;
+bool imguiEnabled = true;
 
 
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGSDeltaPlugin::MGSDeltaPlugin() : cameraController(&playerManager), 
-weaponController(&memoryManager, &settingsManager), 
+MGSDeltaPlugin::MGSDeltaPlugin() : cameraController(&playerManager, &settingsManager), 
+weaponController(&memoryManager, &settingsManager, &playerManager), 
 memoryManager(),
 hookManager(&weaponController, &cameraController, &playerManager), 
 playerManager() {}; //Constructor
@@ -43,6 +43,7 @@ void MGSDeltaPlugin::on_initialize() {
 	
 	/*hookManager.hook_ISetSmoothedAimPosition_fn();*/
 	Utilities::InitHelperClasses();
+	settingsManager.InitSettingsManager();
 	settingsManager.LoadAllWeaponConfigs(uobjectHook_file);
 	hookManager.Initialize();
 	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_OnEnteredState_post, true);
@@ -178,7 +179,11 @@ void MGSDeltaPlugin::on_post_render_vr_framework_dx12(ID3D12GraphicsCommandList*
 bool MGSDeltaPlugin::on_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	if (!imguiEnabled)
 		return true;
-	ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
+	//Logger::DebugPrint("%i", API::get()->param()->functions->is_drawing_ui());
+	
+	if (API::get()->param()->functions->is_drawing_ui())
+		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
+			return true;
 
 	return !ImGui::GetIO().WantCaptureMouse && !ImGui::GetIO().WantCaptureKeyboard;
 }
@@ -414,6 +419,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 
 void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
+	cameraController.DeltaTime = delta;
 	playerManager.FetchGameState();
 
 	if (playerManager.IsPlayerControlled && !playerManager.WasPlayerControlled)
@@ -459,7 +465,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	//	Utilities::DebugCigar0->K2_SetActorRelativeLocation(cameraLocation + cameraController.CameraForwardVector * 100.0f, false, &hitResult, true);
 	//}
 
-	if (m_initialized) {
+	if (m_initialized && API::get()->param()->functions->is_drawing_ui()) {
 		std::scoped_lock _{ m_imgui_mutex };
 
 		ImGui_ImplWin32_NewFrame();
@@ -587,7 +593,7 @@ bool MGSDeltaPlugin::initialize_imgui() {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 
-	static const auto imgui_ini = API::get()->get_persistent_dir(L"imgui_template_plugin.ini").string();
+	static const auto imgui_ini = API::get()->get_persistent_dir(L"imgui_mgsDeltaVR_plugin.ini").string();
 	ImGui::GetIO().IniFilename = imgui_ini.c_str();
 
 	const auto renderer_data = API::get()->param()->renderer;
@@ -617,8 +623,10 @@ bool MGSDeltaPlugin::initialize_imgui() {
 	return true;
 }
 
-
 void MGSDeltaPlugin::internal_frame() {
+	if (!API::get()->param()->functions->is_drawing_ui())
+		return;
+	//ImGui::GetIO().WantCaptureMouse = false; //API::get()->param()->functions->is_drawing_ui;
 	static auto spot_c = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.SpotLight");
 	auto kismet_system_library = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetSystemLibrary")->get_class_default_object();
 	auto kismet_math_library = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetMathLibrary")->get_class_default_object();
@@ -629,14 +637,18 @@ void MGSDeltaPlugin::internal_frame() {
 	auto kismet_array_library = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetArrayLibrary")->get_class_default_object();
 	auto kismet_text_library = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetTextLibrary")->get_class_default_object();
 	auto statics = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.GameplayStatics")->get_class_default_object();
-
-	if (ImGui::Begin("Very Cool Template Plugin")) {
-		ImGui::Text("Hello from the very cool plugin!");
-		ImGui::Text("Decoupled pitch: %i", API::VR::is_decoupled_pitch_enabled());
+	
+	if (ImGui::Begin("MGS Delta VR Plugin")) {
+		ImGui::Text("--- Camera Settings ---");
+	/*	ImGui::Text("Decoupled pitch: %i", API::VR::is_decoupled_pitch_enabled());
 
 		if (ImGui::Button("Toggle decoupled pitch")) {
 			API::VR::set_decoupled_pitch_enabled(!API::VR::is_decoupled_pitch_enabled());
-		}
+		}*/
+
+		ImGui::Checkbox("Smooth Camera Rotation", settingsManager.SmoothCameraRotationPtr);
+
+		ImGui::SliderFloat("Rotation Smoothness", settingsManager.CameraYawLerpPtr, 1.0f, 10.0f);
 
 		std::wstring object_path;
 		static char obj_path[256]{};
