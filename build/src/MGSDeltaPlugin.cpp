@@ -179,7 +179,7 @@ void MGSDeltaPlugin::on_post_render_vr_framework_dx12(ID3D12GraphicsCommandList*
 bool MGSDeltaPlugin::on_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	if (!imguiEnabled)
 		return true;
-	Logger::DebugPrint("%i", API::get()->param()->functions->is_drawing_ui());
+	//Logger::DebugPrint("%i", API::get()->param()->functions->is_drawing_ui());
 	
 	if (API::get()->param()->functions->is_drawing_ui())
 	{
@@ -397,7 +397,7 @@ void MGSDeltaPlugin::test_engine(API::UGameEngine* engine) {
 
 void MGSDeltaPlugin::Toggle6DOF(bool enable)
 {
-	if (enable)
+	if (enable && !vr_enabled)
 	{
 		cameraController.ToggleCameraWobblingController(false);
 		//memoryManager.ToggleAimRelatedMemoryInstructions(false);
@@ -407,8 +407,10 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.AttachCameraToAttachementActor();
 		//Utilities::DebugCigar0 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 		//Utilities::DebugCigar1 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
+		vr_enabled = enable;
 	}
-	else
+	
+	if(!enable && vr_enabled)
 	{
 		cameraController.ToggleCameraWobblingController(true);
 		//memoryManager.ToggleAimRelatedMemoryInstructions(true);
@@ -417,6 +419,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.DetachCameraFromAttachementActor();
 		cameraController.DestroyCameraAttachementActor();
 	/*	Utilities::DestroyDebugCigars();*/
+		vr_enabled = enable;
 	}
 }
 

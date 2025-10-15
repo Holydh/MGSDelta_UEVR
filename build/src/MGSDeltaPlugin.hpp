@@ -49,6 +49,7 @@ private:
     HWND m_wnd;
     bool m_initialized = false;
     bool m_was_rendering_desktop;
+    bool vr_enabled = false;
     
     std::recursive_mutex m_imgui_mutex;
 
