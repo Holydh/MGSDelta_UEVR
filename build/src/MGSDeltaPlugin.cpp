@@ -179,13 +179,16 @@ void MGSDeltaPlugin::on_post_render_vr_framework_dx12(ID3D12GraphicsCommandList*
 bool MGSDeltaPlugin::on_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	if (!imguiEnabled)
 		return true;
-	//Logger::DebugPrint("%i", API::get()->param()->functions->is_drawing_ui());
+	Logger::DebugPrint("%i", API::get()->param()->functions->is_drawing_ui());
 	
 	if (API::get()->param()->functions->is_drawing_ui())
-		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
-			return true;
+	{
+		ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
+		return false;
+	}
 
-	return !ImGui::GetIO().WantCaptureMouse && !ImGui::GetIO().WantCaptureKeyboard;
+	/*return !ImGui::GetIO().WantCaptureMouse && !ImGui::GetIO().WantCaptureKeyboard;*/
+	return true;
 }
 
 void MGSDeltaPlugin::on_custom_event(const char* event_name, const char* event_data) {
