@@ -79,8 +79,12 @@ void SettingsManager::InitSettingsManager()
 	//FetchUevrSettings(false);
 	FetchPluginSettings();
 
+	CameraRotationSpeedPtr = &cameraRotationSpeed;
 	SmoothCameraRotationPtr = &smoothCameraRotation;
 	CameraYawLerpPtr = &cameraYawLerp;
+	SmoothCameraPositionPtr = &smoothCameraPosition;
+	CameraPositionXYLerpPtr = &cameraPositionXYLerp;
+	CameraPositionZLerpPtr = &cameraPositionZLerp;
 }
 
 void SettingsManager::FetchUevrSettings(bool writeToPlugin)
@@ -102,117 +106,66 @@ void SettingsManager::FetchUevrSettings(bool writeToPlugin)
 
 void SettingsManager::FetchPluginSettings()
 {
-	Logger::DebugPrint("hello");
 	if (debugMod) Logger::DebugPrint("UpdatePluginSettings()");
+	cameraRotationSpeed = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraRotationSpeed", 10.0f);
 	smoothCameraRotation = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraRotation", true);
-	//Logger::DebugPrint("%i", smoothCameraRotation);
-	cameraYawLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraYawLerp", 2.25f);
-	//Logger::DebugPrint("%f", cameraYawLerp);
+	cameraYawLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraYawLerp", 5.0f);
+	smoothCameraPosition = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraPosition", true);
+	cameraPositionXYLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraPositionXYLerp", 5.0f);
+	cameraPositionZLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraPositionZLerp", 5.0f);
 	if (debugMod) Logger::DebugPrint("Plugin Settings Updated");
 }
 
 void SettingsManager::WriteSettingsToPluginConfigFile()
 {
-	/*if (debugMod) */Logger::DebugPrint("WriteSettingsToPluginConfigFile()");
+	if (debugMod) Logger::DebugPrint("WriteSettingsToPluginConfigFile()");
+	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraRotationSpeed", cameraRotationSpeed);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraRotation", smoothCameraRotation);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraYawLerp", cameraYawLerp);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraPosition", smoothCameraPosition);
+	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraPositionXYLerp", cameraPositionXYLerp);
+	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraPositionZLerp", cameraPositionZLerp);
 }
 
-//void SettingsManager::UpdateSettingsIfConfigFileModifiedByPlayer()
-//{
-//	if (debugMod) Logger::DebugPrint("UpdateSettingsIfModified");
-//
-//	CheckSettingsModificationAndUpdate(pluginConfigFilePath, false);
-//	if (uevrConfigWroteByPlugin) //Skip uevr config check if plugin write this frame
-//	{
-//		uevrConfigWroteByPlugin = false;
-//		return;
-//	}
-//	CheckSettingsModificationAndUpdate(uevrConfigFilePath, true);
-//}
 
-//bool SettingsManager::CheckSettingsModificationAndUpdate(const std::string& filePath, bool uevr)
-//{
-//	if (debugMod) Logger::DebugPrint("CheckSettingsModificationAndUpdate");
-//
-//	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-//	if (hFile == INVALID_HANDLE_VALUE)
-//	{
-//		if (uevr)
-//		{
-//			Logger::DebugPrint("File not found: %s", filePath.c_str());
-//			return false;
-//		}
-//			
-//		// File does not exist, create it with default values
-//		Logger::DebugPrint("File not found: %s. Creating default config.", filePath.c_str());
-//
-//		std::string defaultContent = "# MGSDelta Plugin Configuration File\n"
-//			"# This file is auto-generated. It saves the mgs plugin menu settings you set ingame.\n"
-//			"------ Camera Settings ------\n"
-//			"smoothCameraRotation=true\n"
-//			"cameraYawLerp=2.5\n";
-//			// 
-//			//"[Left Handed Mode :] -- Must be configured here. 0 = disabled, 1 = Triggers Swap, 2 = Full inputs Swap\n"
-//			//"LeftHandedMode=0\n"
-//			//"LeftHandedOnlyWhileOnFoot=true\n"
-//			//"\n"
-//			//"[Camera Settings :] -- Can be set directly ingame from uevr menu. The plugin will auto save each camera configuration for each vehicle type here\n"
-//			//"OnFoot_DecoupledPitch=true\n"
-//			//"OnFoot_LerpPitch=false\n"
-//			//"OnFoot_LerpRoll=false\n"
-//			//"OnFoot_LerpYaw=false\n"
-//			//"DrivingCar_DecoupledPitch=false\n"
-//			//"DrivingCar_LerpPitch=true\n"
-//			//"DrivingCar_LerpRoll=true\n"
-//			//"DrivingCar_LerpYaw=false\n"
-//			//"DrivingBike_DecoupledPitch=true\n"
-//			//"DrivingBike_LerpPitch=false\n"
-//			//"DrivingBike_LerpRoll=false\n"
-//			//"DrivingBike_LerpYaw=false\n"
-//			//"Flying_DecoupledPitch=false\n"
-//			//"Flying_LerpPitch=true\n"
-//			//"Flying_LerpRoll=true\n"
-//			//"Flying_LerpYaw=true\n";
-//
-//		HANDLE hCreateFile = CreateFileA(filePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
-//		if (hCreateFile != INVALID_HANDLE_VALUE)
-//		{
-//			DWORD bytesWritten;
-//			WriteFile(hCreateFile, defaultContent.c_str(), static_cast<DWORD>(defaultContent.size()), &bytesWritten, NULL);
-//			CloseHandle(hCreateFile);
-//			Logger::DebugPrint("Default config created at: %s", filePath.c_str());
-//		}
-//		else
-//		{
-//			Logger::DebugPrint("Failed to create default config at: %s", filePath.c_str());
-//		}
-//		return false;
-//	}
-//	FILETIME currentWriteTime;
-//	if (GetFileTime(hFile, NULL, NULL, &currentWriteTime))
-//	{
-//		if (CompareFileTime(uevr ? &uevrLastWriteTime : &pluginLastWriteTime, &currentWriteTime) != 0)
-//		{
-//			if (uevr)
-//			{
-//				uevrLastWriteTime = currentWriteTime;  // Update last write time
-//				FetchUevrSettings(true);
-//			}
-//			else
-//			{
-//				pluginLastWriteTime = currentWriteTime; 
-//				FetchPluginSettings();
-//			}
-//			CloseHandle(hFile);
-//			Logger::DebugPrint("setting file has been modified");
-//			return true;  // File has been modified
-//		}
-//	}
-//
-//	CloseHandle(hFile);
-//	return false;  // No change
-//}
+void SettingsManager::GetOrCreateConfigFile()
+{
+	if (debugMod) Logger::DebugPrint("CheckSettingsModificationAndUpdate");
+
+	HANDLE hFile = CreateFileA(pluginConfigFilePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		// File does not exist, create it with default values
+		Logger::DebugPrint("File not found: %s. Creating default config.", pluginConfigFilePath.c_str());
+
+		std::string defaultContent = "# MGSDelta Plugin Configuration File\n"
+			"# This file is auto-generated. It saves the mgs plugin menu settings you set ingame.\n"
+			"------ Camera Settings ------\n"
+			"cameraRotationSpeed=10.0\n"
+			"smoothCameraRotation=true\n"
+			"cameraYawLerp=5.0\n"
+			"smoothCameraPosition=true\n"
+			"cameraPositionXYLerp=5.0\n"
+			"cameraPositionZLerp=5.0\n";
+
+		HANDLE hCreateFile = CreateFileA(pluginConfigFilePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+		if (hCreateFile != INVALID_HANDLE_VALUE)
+		{
+			DWORD bytesWritten;
+			WriteFile(hCreateFile, defaultContent.c_str(), static_cast<DWORD>(defaultContent.size()), &bytesWritten, NULL);
+			CloseHandle(hCreateFile);
+			Logger::DebugPrint("Default config created at: %s", pluginConfigFilePath.c_str());
+		}
+		else
+		{
+			Logger::DebugPrint("Failed to create default config at: %s", pluginConfigFilePath.c_str());
+		}
+		return;
+	}
+
+	CloseHandle(hFile);
+	return;
+}
 
 void SettingsManager::SetBoolValueToFile(const std::string& filePath, const std::string& key, bool value)
 {

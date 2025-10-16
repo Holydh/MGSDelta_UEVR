@@ -161,6 +161,10 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 	//		glm::mix(CameraPosition.y, (float)tempPosition.y, 0.25f),
 	//		glm::mix(CameraPosition.z, (float)tempPosition.z, 0.05f));
 	//}
+
+	float remappedLerpXYMultiplier = Utilities::Remap(*settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f, 2.0f, 0.1f);
+	float remappedLerpZMultiplier = Utilities::Remap(*settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f, 2.0f, 0.1f);
+
 	if (playerManager->IsPeepingInternal)
 	{
 		newPosition = glm::mix(LastCameraPosition, glm::fvec3(headColliderPosition.x, headColliderPosition.y, pawnPosition.z - CameraHeightOffset), 0.1f);
@@ -169,21 +173,22 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 	{
 		tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, pawnPosition.z - CameraHeightOffset);
 		newPosition = glm::fvec3(
-			glm::mix(LastCameraPosition.x, (float)tempPosition.x, 0.1f),
-			glm::mix(LastCameraPosition.y, (float)tempPosition.y, 0.1f),
-			glm::mix(LastCameraPosition.z, (float)tempPosition.z, 0.05f));
+			glm::mix(LastCameraPosition.x, (float)tempPosition.x, 1.1f * remappedLerpXYMultiplier * DeltaTime),
+			glm::mix(LastCameraPosition.y, (float)tempPosition.y, 1.1f * remappedLerpXYMultiplier * DeltaTime),
+			glm::mix(LastCameraPosition.z, (float)tempPosition.z, 0.45f * remappedLerpZMultiplier * DeltaTime));
 	}
+
 	else
 	{
 		tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, pawnPosition.z - CameraHeightOffset);
 		newPosition = glm::fvec3(
-			glm::mix(LastCameraPosition.x, (float)tempPosition.x, 0.25f),
-			glm::mix(LastCameraPosition.y, (float)tempPosition.y, 0.25f),
-			glm::mix(LastCameraPosition.z, (float)tempPosition.z, 0.05f));
+			glm::mix(LastCameraPosition.x, (float)tempPosition.x, 2.25f * remappedLerpXYMultiplier * DeltaTime),
+			glm::mix(LastCameraPosition.y, (float)tempPosition.y, 2.25f * remappedLerpXYMultiplier * DeltaTime),
+			glm::mix(LastCameraPosition.z, (float)tempPosition.z, 0.45f * remappedLerpZMultiplier * DeltaTime));
 	}
 
-
-
+	Logger::DebugPrint("%f, %f", remappedLerpZMultiplier, 0.45f * remappedLerpZMultiplier * DeltaTime);
+	//Logger::DebugPrint("%f", DeltaTime);
 
 	//Logger::DebugPrint("Camera Height Offset : %f", cameraController.CameraHeightOffset);
 	LastCameraPosition = { newPosition.x, newPosition.y, newPosition.z };
@@ -192,13 +197,13 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 	cameraPosition.z = newPosition.z;
 
 	if (YawInput != 0.0)
-		ActualYaw += YawInput * YawSpeed;
+		ActualYaw += YawInput * *settingsManager->CameraRotationSpeedPtr * DeltaTime ;
 	/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
 
 	//The Imgui menu shows the smoothness "quantity", not the lerp factor. We need the inverse for the calculation. Makes more sense for users.
-	float remappedLerpFactor = Utilities::Remap(*settingsManager->CameraYawLerpPtr, 1.0f, 10.0f, 10.0f, 1.0f);
+	float remappedRotationLerpMultiplier = Utilities::Remap(*settingsManager->CameraYawLerpPtr, 0.0f, 10.0f, 2.0f, 0.5f);
 	cameraRotation.yaw = *settingsManager->SmoothCameraRotationPtr ? 
-		glm::mix(LastCameraRotation.yaw, ActualYaw, remappedLerpFactor * DeltaTime) :
+		glm::mix(LastCameraRotation.yaw, ActualYaw, 2.25f * remappedRotationLerpMultiplier * DeltaTime) :
 		ActualYaw;
 	LastCameraRotation = cameraRotation;
 	/*SetCameraRotation();*/

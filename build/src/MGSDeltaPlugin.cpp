@@ -44,6 +44,7 @@ void MGSDeltaPlugin::on_initialize() {
 	/*hookManager.hook_ISetSmoothedAimPosition_fn();*/
 	Utilities::InitHelperClasses();
 	settingsManager.InitSettingsManager();
+	settingsManager.GetOrCreateConfigFile();
 	settingsManager.LoadAllWeaponConfigs(uobjectHook_file);
 	hookManager.Initialize();
 	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_OnEnteredState_post, true);
@@ -646,12 +647,23 @@ void MGSDeltaPlugin::internal_frame() {
 			API::VR::set_decoupled_pitch_enabled(!API::VR::is_decoupled_pitch_enabled());
 		}*/
 
+		if(ImGui::SliderFloat("Rotation Speed", settingsManager.CameraRotationSpeedPtr, 0.1f, 25.0f))
+			settingsManager.SettingsModifiedThisFrame = true;
+
 		if (ImGui::Checkbox("Smooth Camera Rotation", settingsManager.SmoothCameraRotationPtr))
 			settingsManager.SettingsModifiedThisFrame = true;
 
-		if(ImGui::SliderFloat("Rotation Smoothness", settingsManager.CameraYawLerpPtr, 1.0f, 10.0f))
+		if(ImGui::SliderFloat("Rotation Smoothness", settingsManager.CameraYawLerpPtr, 0.0f, 10.0f))
 			settingsManager.SettingsModifiedThisFrame = true;
 		
+		if (ImGui::Checkbox("Smooth Camera Position", settingsManager.SmoothCameraPositionPtr))
+			settingsManager.SettingsModifiedThisFrame = true;
+
+		if(ImGui::SliderFloat("Position Horizontal Smoothness (X & Y Axis)", settingsManager.CameraPositionXYLerpPtr, 0.0f, 10.0f))
+			settingsManager.SettingsModifiedThisFrame = true;
+
+		if(ImGui::SliderFloat("Position Vertical Smoothness (Z Axis)", settingsManager.CameraPositionZLerpPtr, 0.0f, 10.0f))
+			settingsManager.SettingsModifiedThisFrame = true;
 			
 		std::wstring object_path;
 		static char obj_path[256]{};

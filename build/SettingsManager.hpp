@@ -31,23 +31,30 @@ public:
 	bool SettingsModifiedThisFrame = false;
 
 	void InitSettingsManager();
+	void GetOrCreateConfigFile();
 	void GetAllConfigFilePaths();
-	//void UpdateSettingsIfConfigFileModifiedByPlayer();
 	void WriteSettingsToPluginConfigFile();
 
 	static std::unordered_map<std::string, WeaponConfig> g_weaponConfigs;
 	bool LoadWeaponConfigFromFile(const fs::path& path, WeaponConfig& outCfg);
 	void LoadAllWeaponConfigs(const std::filesystem::path& baseDir);
 
+	float* CameraRotationSpeedPtr;
 	bool* SmoothCameraRotationPtr;
 	float* CameraYawLerpPtr;
+	bool* SmoothCameraPositionPtr;
+	float* CameraPositionXYLerpPtr;
+	float* CameraPositionZLerpPtr;
 	
 private:
+	float cameraRotationSpeed = 10.0f;
 	bool smoothCameraRotation = true;
-	float cameraYawLerp = 2.25f;
+	float cameraYawLerp = 5.0f;
+	bool smoothCameraPosition = true;
+	float cameraPositionXYLerp = 5.0f;
+	float cameraPositionZLerp = 5.0f;
 
 
-	//bool CheckSettingsModificationAndUpdate(const std::string& filePath, bool uevr);
 	std::string GetConfigFilePath(bool uevr);
 	std::string uevrSettingsFileName = "config.txt";
 	std::string pluginSettingsFileName = "MGSDelta_config.txt";
