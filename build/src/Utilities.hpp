@@ -31,5 +31,7 @@ public:
 	static uevr::API::UObject* SpawnActor(UEVR_Vector3d Position, uint8_t CollisionMethod, uevr::API::UObject* Owner);
 	static SDK::AActor* SpawnDebugCigars(UEVR_Vector3d Position);
 	static void DestroyDebugCigars();
+
+	static float Remap(float value, float inMin, float inMax, float outMin, float outMax);
 	//static glm::fvec3 OffsetLocalPositionFromWorld(glm::fvec3 worldPosition, glm::fvec3 forwardVector, glm::fvec3 upVector, glm::fvec3 rightVector, glm::fvec3 offsets);
 };

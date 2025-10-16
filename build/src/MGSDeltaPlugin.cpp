@@ -177,17 +177,11 @@ void MGSDeltaPlugin::on_post_render_vr_framework_dx12(ID3D12GraphicsCommandList*
 }
 
 bool MGSDeltaPlugin::on_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-	if (!imguiEnabled)
-		return true;
-	//Logger::DebugPrint("%i", API::get()->param()->functions->is_drawing_ui());
-	
 	if (API::get()->param()->functions->is_drawing_ui())
 	{
 		ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
 		return false;
 	}
-
-	/*return !ImGui::GetIO().WantCaptureMouse && !ImGui::GetIO().WantCaptureKeyboard;*/
 	return true;
 }
 
@@ -652,10 +646,13 @@ void MGSDeltaPlugin::internal_frame() {
 			API::VR::set_decoupled_pitch_enabled(!API::VR::is_decoupled_pitch_enabled());
 		}*/
 
-		ImGui::Checkbox("Smooth Camera Rotation", settingsManager.SmoothCameraRotationPtr);
+		if (ImGui::Checkbox("Smooth Camera Rotation", settingsManager.SmoothCameraRotationPtr))
+			settingsManager.SettingsModifiedThisFrame = true;
 
-		ImGui::SliderFloat("Rotation Smoothness", settingsManager.CameraYawLerpPtr, 1.0f, 10.0f);
-
+		if(ImGui::SliderFloat("Rotation Smoothness", settingsManager.CameraYawLerpPtr, 1.0f, 10.0f))
+			settingsManager.SettingsModifiedThisFrame = true;
+		
+			
 		std::wstring object_path;
 		static char obj_path[256]{};
 		ImGui::Text("Enter an object to spawn");
@@ -703,4 +700,10 @@ void MGSDeltaPlugin::internal_frame() {
 
 	}
 	ImGui::End();
+
+	if (settingsManager.SettingsModifiedThisFrame)
+	{
+		settingsManager.WriteSettingsToPluginConfigFile();
+		settingsManager.SettingsModifiedThisFrame = false;
+	}
 }

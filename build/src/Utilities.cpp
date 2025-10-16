@@ -226,6 +226,12 @@ void Utilities::DestroyDebugCigars()
 	}
 }
 
+float Utilities::Remap(float value, float inMin, float inMax, float outMin, float outMax)
+{
+    float t = glm::clamp((value - inMin) / (inMax - inMin), 0.0f, 1.0f);
+    return glm::mix(outMin, outMax, t);
+}
+
 
 //glm::fvec3 Utilities::OffsetLocalPositionFromWorld(glm::fvec3 worldPosition, glm::fvec3 forwardVector, glm::fvec3 upVector, glm::fvec3 rightVector, glm::fvec3 offsets)
 //{

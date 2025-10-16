@@ -195,8 +195,10 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 		ActualYaw += YawInput * YawSpeed;
 	/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
 
+	//The Imgui menu shows the smoothness "quantity", not the lerp factor. We need the inverse for the calculation. Makes more sense for users.
+	float remappedLerpFactor = Utilities::Remap(*settingsManager->CameraYawLerpPtr, 1.0f, 10.0f, 10.0f, 1.0f);
 	cameraRotation.yaw = *settingsManager->SmoothCameraRotationPtr ? 
-		glm::mix(LastCameraRotation.yaw, ActualYaw, *settingsManager->CameraYawLerpPtr * DeltaTime) :
+		glm::mix(LastCameraRotation.yaw, ActualYaw, remappedLerpFactor * DeltaTime) :
 		ActualYaw;
 	LastCameraRotation = cameraRotation;
 	/*SetCameraRotation();*/

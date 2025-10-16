@@ -73,13 +73,14 @@ void SettingsManager::LoadAllWeaponConfigs(const std::filesystem::path& dir)
 
 void SettingsManager::InitSettingsManager()
 {
-	//GetAllConfigFilePaths();
-	//Logger::DebugPrint("%s", uevrConfigFilePath.c_str());
-	//Logger::DebugPrint("%s", pluginConfigFilePath.c_str());
-	//FetchPluginSettings();
+	GetAllConfigFilePaths();
+	Logger::DebugPrint("%s", uevrConfigFilePath.c_str());
+	Logger::DebugPrint("%s", pluginConfigFilePath.c_str());
+	//FetchUevrSettings(false);
+	FetchPluginSettings();
 
-	CameraYawLerpPtr = &cameraYawLerp;
 	SmoothCameraRotationPtr = &smoothCameraRotation;
+	CameraYawLerpPtr = &cameraYawLerp;
 }
 
 void SettingsManager::FetchUevrSettings(bool writeToPlugin)
@@ -101,107 +102,117 @@ void SettingsManager::FetchUevrSettings(bool writeToPlugin)
 
 void SettingsManager::FetchPluginSettings()
 {
+	Logger::DebugPrint("hello");
 	if (debugMod) Logger::DebugPrint("UpdatePluginSettings()");
-
+	smoothCameraRotation = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraRotation", true);
+	//Logger::DebugPrint("%i", smoothCameraRotation);
+	cameraYawLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraYawLerp", 2.25f);
+	//Logger::DebugPrint("%f", cameraYawLerp);
 	if (debugMod) Logger::DebugPrint("Plugin Settings Updated");
 }
 
-void SettingsManager::UpdateSettingsIfModifiedByPlayer()
+void SettingsManager::WriteSettingsToPluginConfigFile()
 {
-	if (debugMod) Logger::DebugPrint("UpdateSettingsIfModified");
-
-	CheckSettingsModificationAndUpdate(pluginConfigFilePath, false);
-	if (uevrConfigWroteByPlugin) //Skip uevr config check if plugin write this frame
-	{
-		uevrConfigWroteByPlugin = false;
-		return;
-	}
-	CheckSettingsModificationAndUpdate(uevrConfigFilePath, true);
+	/*if (debugMod) */Logger::DebugPrint("WriteSettingsToPluginConfigFile()");
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraRotation", smoothCameraRotation);
+	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraYawLerp", cameraYawLerp);
 }
 
-bool SettingsManager::CheckSettingsModificationAndUpdate(const std::string& filePath, bool uevr)
-{
-	if (debugMod) Logger::DebugPrint("CheckSettingsModificationAndUpdate");
+//void SettingsManager::UpdateSettingsIfConfigFileModifiedByPlayer()
+//{
+//	if (debugMod) Logger::DebugPrint("UpdateSettingsIfModified");
+//
+//	CheckSettingsModificationAndUpdate(pluginConfigFilePath, false);
+//	if (uevrConfigWroteByPlugin) //Skip uevr config check if plugin write this frame
+//	{
+//		uevrConfigWroteByPlugin = false;
+//		return;
+//	}
+//	CheckSettingsModificationAndUpdate(uevrConfigFilePath, true);
+//}
 
-	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hFile == INVALID_HANDLE_VALUE)
-	{
-		if (uevr)
-		{
-			Logger::DebugPrint("File not found: %s", filePath.c_str());
-			return false;
-		}
-			
-		// File does not exist, create it with default values
-		Logger::DebugPrint("File not found: %s. Creating default config.", filePath.c_str());
-
-		std::string defaultContent = "";
-			//"# MGSDelta Plugin Configuration File\n"
-			//"# This file is auto-generated. Modify the settings below as needed.\n"
-			//"------ Weapon Settings ------"
-			//"[Weapon Aim Offset : Vertical, Horizontal]"
-			//"WP_CigarPistol = 150.0, 0.0"
-			// 
-			//"[Left Handed Mode :] -- Must be configured here. 0 = disabled, 1 = Triggers Swap, 2 = Full inputs Swap\n"
-			//"LeftHandedMode=0\n"
-			//"LeftHandedOnlyWhileOnFoot=true\n"
-			//"\n"
-			//"[Camera Settings :] -- Can be set directly ingame from uevr menu. The plugin will auto save each camera configuration for each vehicle type here\n"
-			//"OnFoot_DecoupledPitch=true\n"
-			//"OnFoot_LerpPitch=false\n"
-			//"OnFoot_LerpRoll=false\n"
-			//"OnFoot_LerpYaw=false\n"
-			//"DrivingCar_DecoupledPitch=false\n"
-			//"DrivingCar_LerpPitch=true\n"
-			//"DrivingCar_LerpRoll=true\n"
-			//"DrivingCar_LerpYaw=false\n"
-			//"DrivingBike_DecoupledPitch=true\n"
-			//"DrivingBike_LerpPitch=false\n"
-			//"DrivingBike_LerpRoll=false\n"
-			//"DrivingBike_LerpYaw=false\n"
-			//"Flying_DecoupledPitch=false\n"
-			//"Flying_LerpPitch=true\n"
-			//"Flying_LerpRoll=true\n"
-			//"Flying_LerpYaw=true\n";
-
-		HANDLE hCreateFile = CreateFileA(filePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (hCreateFile != INVALID_HANDLE_VALUE)
-		{
-			DWORD bytesWritten;
-			WriteFile(hCreateFile, defaultContent.c_str(), static_cast<DWORD>(defaultContent.size()), &bytesWritten, NULL);
-			CloseHandle(hCreateFile);
-			Logger::DebugPrint("Default config created at: %s", filePath.c_str());
-		}
-		else
-		{
-			Logger::DebugPrint("Failed to create default config at: %s", filePath.c_str());
-		}
-		return false;
-	}
-	FILETIME currentWriteTime;
-	if (GetFileTime(hFile, NULL, NULL, &currentWriteTime))
-	{
-		if (CompareFileTime(uevr ? &uevrLastWriteTime : &pluginLastWriteTime, &currentWriteTime) != 0)
-		{
-			if (uevr)
-			{
-				uevrLastWriteTime = currentWriteTime;  // Update last write time
-				FetchUevrSettings(true);
-			}
-			else
-			{
-				pluginLastWriteTime = currentWriteTime; 
-				FetchPluginSettings();
-			}
-			CloseHandle(hFile);
-			uevr::API::get()->log_error("setting file has been modified");
-			return true;  // File has been modified
-		}
-	}
-
-	CloseHandle(hFile);
-	return false;  // No change
-}
+//bool SettingsManager::CheckSettingsModificationAndUpdate(const std::string& filePath, bool uevr)
+//{
+//	if (debugMod) Logger::DebugPrint("CheckSettingsModificationAndUpdate");
+//
+//	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+//	if (hFile == INVALID_HANDLE_VALUE)
+//	{
+//		if (uevr)
+//		{
+//			Logger::DebugPrint("File not found: %s", filePath.c_str());
+//			return false;
+//		}
+//			
+//		// File does not exist, create it with default values
+//		Logger::DebugPrint("File not found: %s. Creating default config.", filePath.c_str());
+//
+//		std::string defaultContent = "# MGSDelta Plugin Configuration File\n"
+//			"# This file is auto-generated. It saves the mgs plugin menu settings you set ingame.\n"
+//			"------ Camera Settings ------\n"
+//			"smoothCameraRotation=true\n"
+//			"cameraYawLerp=2.5\n";
+//			// 
+//			//"[Left Handed Mode :] -- Must be configured here. 0 = disabled, 1 = Triggers Swap, 2 = Full inputs Swap\n"
+//			//"LeftHandedMode=0\n"
+//			//"LeftHandedOnlyWhileOnFoot=true\n"
+//			//"\n"
+//			//"[Camera Settings :] -- Can be set directly ingame from uevr menu. The plugin will auto save each camera configuration for each vehicle type here\n"
+//			//"OnFoot_DecoupledPitch=true\n"
+//			//"OnFoot_LerpPitch=false\n"
+//			//"OnFoot_LerpRoll=false\n"
+//			//"OnFoot_LerpYaw=false\n"
+//			//"DrivingCar_DecoupledPitch=false\n"
+//			//"DrivingCar_LerpPitch=true\n"
+//			//"DrivingCar_LerpRoll=true\n"
+//			//"DrivingCar_LerpYaw=false\n"
+//			//"DrivingBike_DecoupledPitch=true\n"
+//			//"DrivingBike_LerpPitch=false\n"
+//			//"DrivingBike_LerpRoll=false\n"
+//			//"DrivingBike_LerpYaw=false\n"
+//			//"Flying_DecoupledPitch=false\n"
+//			//"Flying_LerpPitch=true\n"
+//			//"Flying_LerpRoll=true\n"
+//			//"Flying_LerpYaw=true\n";
+//
+//		HANDLE hCreateFile = CreateFileA(filePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+//		if (hCreateFile != INVALID_HANDLE_VALUE)
+//		{
+//			DWORD bytesWritten;
+//			WriteFile(hCreateFile, defaultContent.c_str(), static_cast<DWORD>(defaultContent.size()), &bytesWritten, NULL);
+//			CloseHandle(hCreateFile);
+//			Logger::DebugPrint("Default config created at: %s", filePath.c_str());
+//		}
+//		else
+//		{
+//			Logger::DebugPrint("Failed to create default config at: %s", filePath.c_str());
+//		}
+//		return false;
+//	}
+//	FILETIME currentWriteTime;
+//	if (GetFileTime(hFile, NULL, NULL, &currentWriteTime))
+//	{
+//		if (CompareFileTime(uevr ? &uevrLastWriteTime : &pluginLastWriteTime, &currentWriteTime) != 0)
+//		{
+//			if (uevr)
+//			{
+//				uevrLastWriteTime = currentWriteTime;  // Update last write time
+//				FetchUevrSettings(true);
+//			}
+//			else
+//			{
+//				pluginLastWriteTime = currentWriteTime; 
+//				FetchPluginSettings();
+//			}
+//			CloseHandle(hFile);
+//			Logger::DebugPrint("setting file has been modified");
+//			return true;  // File has been modified
+//		}
+//	}
+//
+//	CloseHandle(hFile);
+//	return false;  // No change
+//}
 
 void SettingsManager::SetBoolValueToFile(const std::string& filePath, const std::string& key, bool value)
 {
@@ -245,7 +256,7 @@ void SettingsManager::SetBoolValueToFile(const std::string& filePath, const std:
 				DWORD bytesWritten;
 				WriteFile(hWriteFile, newContents.c_str(), static_cast<DWORD>(newContents.size()), &bytesWritten, NULL);
 				CloseHandle(hWriteFile);
-				Logger::DebugPrint("Updated %s to %s", key.c_str(), value ? "true" : "false");
+				if (debugMod) (Logger::DebugPrint("Updated %s to %s", key.c_str(), value ? "true" : "false"));
 			}
 			else
 			{
@@ -307,6 +318,65 @@ bool SettingsManager::GetBoolValueFromFile(const std::string& filePath, const st
 	}
 
 	return defaultValue;  // Return default if the key is not found or invalid
+}
+
+void SettingsManager::SetFloatValueToFile(const std::string& filePath, const std::string& key, float value)
+{
+	if (debugMod) Logger::DebugPrint("SetFloatValueToFile()");
+
+	// Open file for reading first
+	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		Logger::DebugPrint("Failed to open %s for reading", filePath.c_str());
+		return;
+	}
+
+	DWORD bytesRead;
+	char buffer[1024];
+	std::string fileContents;
+
+	while (ReadFile(hFile, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0)
+	{
+		buffer[bytesRead] = '\0';
+		fileContents.append(buffer);
+	}
+	CloseHandle(hFile);
+
+	// Find key in the file
+	size_t pos = fileContents.find(key);
+	if (pos != std::string::npos)
+	{
+		size_t equalPos = fileContents.find('=', pos);
+		if (equalPos != std::string::npos)
+		{
+			size_t endOfLine = fileContents.find_first_of("\r\n", equalPos);
+			std::string before = fileContents.substr(0, equalPos + 1);
+			std::string after = (endOfLine != std::string::npos) ? fileContents.substr(endOfLine) : "";
+
+			// Replace value (use limited precision to keep float clean)
+			std::ostringstream oss;
+			oss << std::fixed << std::setprecision(6) << value;
+			std::string newContents = before + oss.str() + after;
+
+			// Write back
+			HANDLE hWriteFile = CreateFileA(filePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+			if (hWriteFile != INVALID_HANDLE_VALUE)
+			{
+				DWORD bytesWritten;
+				WriteFile(hWriteFile, newContents.c_str(), static_cast<DWORD>(newContents.size()), &bytesWritten, NULL);
+				CloseHandle(hWriteFile);
+				if (debugMod)(Logger::DebugPrint("Updated %s to %s", key.c_str(), oss.str().c_str()));
+			}
+			else
+			{
+				Logger::DebugPrint("Failed to open %s for writing", filePath.c_str());
+			}
+			return;
+		}
+	}
+
+	Logger::DebugPrint("Key %s not found in %s", key.c_str(), filePath.c_str());
 }
 
 float SettingsManager::GetFloatValueFromFile(const std::string& filePath, const std::string& key, float defaultValue)
@@ -457,7 +527,7 @@ int SettingsManager::GetIntValueFromFile(const std::string& filePath, const std:
 std::string GetDLLDirectory()
 {
 	char path[MAX_PATH];
-	HMODULE hModule = GetModuleHandleA("UEVR_GTASADE.dll"); // Get handle to the loaded DLL
+	HMODULE hModule = GetModuleHandleA("MGSDelta_Plugin.dll"); // Get handle to the loaded DLL
 
 	if (hModule)
 	{
@@ -472,7 +542,7 @@ std::string GetDLLDirectory()
 		}
 	}
 	else
-		Logger::DebugPrint("Failed to get module handle for UEVR_GTASADE.dll");
+		Logger::DebugPrint("Failed to get module handle for MGSDelta_Plugin.dll");
 
 	return "Unknown";
 }

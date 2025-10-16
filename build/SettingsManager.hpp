@@ -28,9 +28,12 @@ class SettingsManager {
 public:
 	bool debugMod = false;
 
+	bool SettingsModifiedThisFrame = false;
+
 	void InitSettingsManager();
 	void GetAllConfigFilePaths();
-	void UpdateSettingsIfModifiedByPlayer();
+	//void UpdateSettingsIfConfigFileModifiedByPlayer();
+	void WriteSettingsToPluginConfigFile();
 
 	static std::unordered_map<std::string, WeaponConfig> g_weaponConfigs;
 	bool LoadWeaponConfigFromFile(const fs::path& path, WeaponConfig& outCfg);
@@ -39,12 +42,12 @@ public:
 	bool* SmoothCameraRotationPtr;
 	float* CameraYawLerpPtr;
 	
-
 private:
 	bool smoothCameraRotation = true;
 	float cameraYawLerp = 2.25f;
 
-	bool CheckSettingsModificationAndUpdate(const std::string& filePath, bool uevr);
+
+	//bool CheckSettingsModificationAndUpdate(const std::string& filePath, bool uevr);
 	std::string GetConfigFilePath(bool uevr);
 	std::string uevrSettingsFileName = "config.txt";
 	std::string pluginSettingsFileName = "MGSDelta_config.txt";
@@ -56,6 +59,7 @@ private:
 	FILETIME pluginLastWriteTime;
 
 	//Would need some rework if lots of config values to read. Now it opens the config.txt file each time we call these :
+	void SetFloatValueToFile(const std::string& filePath, const std::string& key, float value);
 	float GetFloatValueFromFile(const std::string& filePath, const std::string& key, float defaultValue);
 	bool GetBoolValueFromFile(const std::string& filePath, const std::string& key, bool defaultValue);
 	void SetBoolValueToFile(const std::string& filePath, const std::string& key, bool value);
