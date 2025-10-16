@@ -43,7 +43,7 @@ public:
 	bool CameraAttachementActorAvailable = false;
 
 	void ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotatord& cameraRotation);
-	float InstantCameraPositionTimer = 1.0f;
+	float InstantCameraPositionTimer = 0.25f;
 	bool InstantCameraPositionNeeded = false;
 	void ProcessCameraResetTimer(float delta);
 };

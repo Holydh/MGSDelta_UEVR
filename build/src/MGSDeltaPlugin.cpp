@@ -20,6 +20,8 @@ MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
 void MGSDeltaPlugin::on_detach(HMODULE hmod)
 {
 	Toggle6DOF(false);
+	API::VR::set_mod_value("VR_2DScreenMode", false);
+	API::VR::set_mod_value("VR_WorldScale", 1.0f);
 }
 
 void MGSDeltaPlugin::on_initialize() {
@@ -400,11 +402,13 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		playerManager.ToggleReticleVisibility(false);
 		cameraController.SpawnCameraAttachementActor();
 		cameraController.AttachCameraToAttachementActor();
+		API::VR::set_mod_value("VR_2DScreenMode", false);
+		API::VR::set_mod_value("VR_WorldScale", 1.0f);
 		//Utilities::DebugCigar0 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 		//Utilities::DebugCigar1 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 		vr_enabled = enable;
 	}
-	
+
 	if(!enable && vr_enabled)
 	{
 		cameraController.ToggleCameraWobblingController(true);
@@ -413,9 +417,12 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		playerManager.ToggleReticleVisibility(true);
 		cameraController.DetachCameraFromAttachementActor();
 		cameraController.DestroyCameraAttachementActor();
+		API::VR::set_mod_value("VR_2DScreenMode", true);
+		API::VR::set_mod_value("VR_WorldScale", 0.0f);
 	/*	Utilities::DestroyDebugCigars();*/
 		vr_enabled = enable;
 	}
+	//Logger::DebugPrint("%i", API::VR::get_mod_value<bool>("VR_2DScreenMode"));
 }
 
 void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
@@ -455,6 +462,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);
+
+	
 
 	//Debug
 	//if (playerManager.IsPlayerControlled)
@@ -504,8 +513,9 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
 		cameraController.ProcessCamera(*pos, *rot);
+		//Logger::DebugPrint("%f", rot->yaw);
 	}
-
+	
 	//Logger::DebugPrint("State Machine Name %s", playerManager.debugParamsTest.StateMachineName.ToString().c_str());
 	//Logger::DebugPrint("Next State Name %s", playerManager.debugParamsTest.NextStateName.ToString().c_str());
 }

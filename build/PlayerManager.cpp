@@ -155,7 +155,7 @@ void PlayerManager::GetCurrentPlayerStance(float deltaTime)
 	if (IsChangingStance)
 	{
 		ChangeStanceTimer += deltaTime;
-		if (ChangeStanceTimer >= 1.0f) //assuming the stance change animation takes 0.5 seconds
+		if (ChangeStanceTimer >= 0.4f) //assuming the stance change animation takes 0.5 seconds
 		{
 			IsChangingStance = false;
 		}
