@@ -48,6 +48,8 @@ private:
     void handleVRcursor();
     bool isRightActionActive(const char* action);
     ImVec2 LastMousePosition = {-1.0f, -1.0f};
+    std::string_view UI_Distance = "UI_Framework_Distance";
+    std::string_view UI_Size = "UI_Framework_Size";
 
     HWND m_wnd;
     bool m_initialized = false;

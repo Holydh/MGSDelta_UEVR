@@ -502,7 +502,6 @@ void MGSDeltaPlugin::handleVRcursor()
     auto vr = API::get()->param()->vr;
     auto rightIndex = vr->get_right_controller_index();
     auto hmdIndex = vr->get_hmd_index();
-    //vr->get_transform(rightIndex, &rightPoseMatrix);
 	vr->get_grip_transform(rightIndex, &rightPoseMatrix);
     vr->get_transform(hmdIndex, &hmdMatrix);
     glm::mat4 rightMat = glm::make_mat4(&rightPoseMatrix.m[0][0]);
@@ -520,10 +519,10 @@ void MGSDeltaPlugin::handleVRcursor()
     vr->get_rotation_offset(&rotationOffset);
     glm::vec3 origin = glm::vec3(standingOrigin.x, standingOrigin.y, standingOrigin.z);
     glm::quat rotOffset = glm::quat(rotationOffset.w, rotationOffset.x, rotationOffset.y, rotationOffset.z);
-    glm::vec3 uiRight = rotOffset * glm::vec3(1,0,0); // local X
-    glm::vec3 uiUp    = rotOffset * glm::vec3(0,1,0); // local Y
-    float uiDistance = 2.1f;
-    glm::vec3 defaultForward = glm::vec3(0, 0, -1); // world forward
+    glm::vec3 uiRight = rotOffset * glm::vec3(1,0,0);
+    glm::vec3 uiUp    = rotOffset * glm::vec3(0,1,0);
+    float uiDistance = API::VR::get_mod_value<float>(UI_Distance);
+    glm::vec3 defaultForward = glm::vec3(0, 0, -1);
     // Apply rotation offset to get actual UI forward
     glm::vec3 uiNormal = rotOffset * defaultForward;
     // UI center relative to standing origin
@@ -535,21 +534,23 @@ void MGSDeltaPlugin::handleVRcursor()
         if (t > 0.0f)
         {
             glm::vec3 hit = controllerPos + controllerDir * t;
-            // Now we need to project this hit point into UI local coordinates
+            // project this hit point into UI local coordinates
             glm::vec3 local = hit - uiCenter;
             float x = glm::dot(local, uiRight);
             float y = glm::dot(local, uiUp);
-            // Normalize to (-0.5 .. 0.5)
-            float uiSize = 1.7f; // from config
+
+            float uiSize = API::VR::get_mod_value<float>(UI_Size);
             x /= uiSize;
             y /= uiSize;
-            // Optional: sensitivity
-            x *= 0.385f;
-            y *= 0.68f;
-            // Optional: manual offset
-            float offsetX = 0.008f;
-            float offsetY = -0.034f;
-            x += offsetX;
+
+            // sensitivity
+            x *= 0.565f;
+            //y *= 0.68f;
+
+            // manual offset
+            //float offsetX = 0.008f;
+            float offsetY = -0.01f;
+            //x += offsetX;
             y += offsetY;
             // Convert to ImGui screen coordinates
             ImGuiIO& io = ImGui::GetIO();
