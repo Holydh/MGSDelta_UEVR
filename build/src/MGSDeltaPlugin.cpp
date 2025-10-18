@@ -497,89 +497,77 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 void MGSDeltaPlugin::handleVRcursor()
 {
-	UEVR_Matrix4x4f rightMatrix;
-	UEVR_Matrix4x4f hmdMatrix;
+    UEVR_Matrix4x4f rightPoseMatrix;
+    UEVR_Matrix4x4f hmdMatrix;
+    auto vr = API::get()->param()->vr;
+    auto rightIndex = vr->get_right_controller_index();
+    auto hmdIndex = vr->get_hmd_index();
+    //vr->get_transform(rightIndex, &rightPoseMatrix);
+	vr->get_grip_transform(rightIndex, &rightPoseMatrix);
+    vr->get_transform(hmdIndex, &hmdMatrix);
+    glm::mat4 rightMat = glm::make_mat4(&rightPoseMatrix.m[0][0]);
+    glm::mat4 hmdMat = glm::make_mat4(&hmdMatrix.m[0][0]);
 
-	auto vr = API::get()->param()->vr;
-	auto rightIndex = vr->get_right_controller_index();
-	auto hmdIndex = vr->get_hmd_index();
+    glm::vec3 controllerPos = glm::vec3(rightMat[3]);
+	glm::vec3 forward = -glm::vec3(rightMat[1]);
+	glm::vec3 right = -glm::vec3(rightMat[0]);
+	glm::vec3 up = -glm::vec3(rightMat[2]);
+	glm::vec3 controllerDir = glm::normalize(forward * 0.5f + right * -0.0f + up * 0.3f);
 
-	vr->get_transform(rightIndex, &rightMatrix);
-	vr->get_transform(hmdIndex, &hmdMatrix);
-
-	glm::mat4 rightMat = glm::make_mat4(&rightMatrix.m[0][0]);
-	glm::mat4 hmdMat = glm::make_mat4(&hmdMatrix.m[0][0]);
-
-	glm::vec3 controllerPos = glm::vec3(rightMat[3]);
-	glm::vec3 controllerDir = -glm::vec3(rightMat[1]);  
-
-	UEVR_Vector3f standingOrigin;
-	UEVR_Quaternionf rotationOffset;
-	vr->get_standing_origin(&standingOrigin);
-	vr->get_rotation_offset(&rotationOffset);
-
-	glm::vec3 origin = glm::vec3(standingOrigin.x, standingOrigin.y, standingOrigin.z);
-	glm::quat rotOffset = glm::quat(rotationOffset.w, rotationOffset.x, rotationOffset.y, rotationOffset.z);
-	glm::vec3 uiRight = rotOffset * glm::vec3(1,0,0); // local X
-	glm::vec3 uiUp    = rotOffset * glm::vec3(0,1,0); // local Y
-
-	float uiDistance = 2.1f;
-	glm::vec3 defaultForward = glm::vec3(0, 0, -1); // world forward
-
-	// Apply rotation offset to get actual UI forward
-	glm::vec3 uiNormal = rotOffset * defaultForward;
-
-	// UI center relative to standing origin
-	glm::vec3 uiCenter = origin + uiNormal * uiDistance;
-
-	float denom = glm::dot(uiNormal, controllerDir);
-	if (fabs(denom) > 1e-6f)
-	{
-		float t = glm::dot(uiCenter - controllerPos, uiNormal) / denom;
-		if (t > 0.0f)
-		{
-			glm::vec3 hit = controllerPos + controllerDir * t;
-
-			// Now we need to project this hit point into UI local coordinates
-			glm::vec3 local = hit - uiCenter;
-			float x = glm::dot(local, uiRight);
-			float y = glm::dot(local, uiUp);
-
-
-			// Normalize to (-0.5 .. 0.5)
-			float uiSize = 1.7f; // from config
-			x /= uiSize;
-			y /= uiSize;
-
-			// Optional: sensitivity
-			x *= 0.5f;
-			y *= 0.7f;
-
-			// Optional: manual offset
-			float offsetX = 0.1f;
-			float offsetY = 0.35f;
-			x += offsetX;
-			y += offsetY;
-
-			// Convert to ImGui screen coordinates
-			ImGuiIO& io = ImGui::GetIO();
-
-			ImVec2 targetMousePos = ImVec2(
-				(x + 0.5f) * io.DisplaySize.x,
-				(0.5f - y) * io.DisplaySize.y
-			);
-			if (LastMousePosition.x < 0) LastMousePosition = targetMousePos;
-			float lerpFactor = 0.2f;
-			glm::fvec2 glmLastMousePos = { LastMousePosition.x, LastMousePosition.y };
-			glm::fvec2 glmtargetMousePos = { targetMousePos.x, targetMousePos.y };
-			auto smoothPos = glm::mix(glmLastMousePos, glmtargetMousePos, lerpFactor);
-			ImVec2 finalPos = { smoothPos.x, smoothPos.y };
-			LastMousePosition = finalPos;
-			io.MousePos = finalPos;
-
-			io.AddMouseButtonEvent(0, isRightTriggerPressed());
-		}
-	}
+    UEVR_Vector3f standingOrigin;
+    UEVR_Quaternionf rotationOffset;
+    vr->get_standing_origin(&standingOrigin);
+    vr->get_rotation_offset(&rotationOffset);
+    glm::vec3 origin = glm::vec3(standingOrigin.x, standingOrigin.y, standingOrigin.z);
+    glm::quat rotOffset = glm::quat(rotationOffset.w, rotationOffset.x, rotationOffset.y, rotationOffset.z);
+    glm::vec3 uiRight = rotOffset * glm::vec3(1,0,0); // local X
+    glm::vec3 uiUp    = rotOffset * glm::vec3(0,1,0); // local Y
+    float uiDistance = 2.1f;
+    glm::vec3 defaultForward = glm::vec3(0, 0, -1); // world forward
+    // Apply rotation offset to get actual UI forward
+    glm::vec3 uiNormal = rotOffset * defaultForward;
+    // UI center relative to standing origin
+    glm::vec3 uiCenter = origin + uiNormal * uiDistance;
+    float denom = glm::dot(uiNormal, controllerDir);
+    if (fabs(denom) > 1e-6f)
+    {
+        float t = glm::dot(uiCenter - controllerPos, uiNormal) / denom;
+        if (t > 0.0f)
+        {
+            glm::vec3 hit = controllerPos + controllerDir * t;
+            // Now we need to project this hit point into UI local coordinates
+            glm::vec3 local = hit - uiCenter;
+            float x = glm::dot(local, uiRight);
+            float y = glm::dot(local, uiUp);
+            // Normalize to (-0.5 .. 0.5)
+            float uiSize = 1.7f; // from config
+            x /= uiSize;
+            y /= uiSize;
+            // Optional: sensitivity
+            x *= 0.385f;
+            y *= 0.68f;
+            // Optional: manual offset
+            float offsetX = 0.008f;
+            float offsetY = -0.034f;
+            x += offsetX;
+            y += offsetY;
+            // Convert to ImGui screen coordinates
+            ImGuiIO& io = ImGui::GetIO();
+            ImVec2 targetMousePos = ImVec2(
+                (x + 0.5f) * io.DisplaySize.x,
+                (0.5f - y) * io.DisplaySize.y
+            );
+            if (LastMousePosition.x < 0) LastMousePosition = targetMousePos;
+            float lerpFactor = 0.2f;
+            glm::fvec2 glmLastMousePos = { LastMousePosition.x, LastMousePosition.y };
+            glm::fvec2 glmtargetMousePos = { targetMousePos.x, targetMousePos.y };
+            auto smoothPos = glm::mix(glmLastMousePos, glmtargetMousePos, lerpFactor);
+            ImVec2 finalPos = { smoothPos.x, smoothPos.y };
+            LastMousePosition = finalPos;
+            io.MousePos = finalPos;
+            io.AddMouseButtonEvent(0, isRightTriggerPressed());
+        }
+    }
 }
 
 bool MGSDeltaPlugin::isRightTriggerPressed()
