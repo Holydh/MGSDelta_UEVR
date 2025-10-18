@@ -45,6 +45,9 @@ class MGSDeltaPlugin : public uevr::Plugin {
 private:
     bool initialize_imgui();
     void internal_frame();
+    void handleVRcursor();
+    bool isRightTriggerPressed();
+    ImVec2 LastMousePosition = {-1.0f, -1.0f};
 
     HWND m_wnd;
     bool m_initialized = false;
