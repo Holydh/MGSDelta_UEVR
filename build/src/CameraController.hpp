@@ -31,7 +31,9 @@ public:
 	/*void SetCameraRotation();*/
 	//void SetCameraPosition();
 	float CameraHeightOffset = 0.0f;
+	UEVR_Vector3d CameraPosition = { 0.0f, 0.0f, 0.0f };
 	glm::fvec3 LastCameraPosition = { 0.0f, 0.0f, 0.0f };
+	UEVR_Rotatord CameraRotation = { 0.0f, 0.0f, 0.0f };
 	UEVR_Rotatord LastCameraRotation = { 0.0f, 0.0f, 0.0f };
 	SDK::FVector CameraForwardVector = { 1.0f, 0.0f, 0.0f };
 
@@ -42,7 +44,7 @@ public:
 	void DetachCameraFromAttachementActor();
 	bool CameraAttachementActorAvailable = false;
 
-	void ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotatord& cameraRotation);
+	void ProcessCamera();
 	float InstantCameraPositionTimer = 0.25f;
 	bool InstantCameraPositionNeeded = false;
 	void ProcessCameraResetTimer(float delta);

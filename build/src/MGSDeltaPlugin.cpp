@@ -459,6 +459,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		/*Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
 		playerManager.UpdatePeepingState(delta);
+		cameraController.ProcessCamera();
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);
@@ -512,7 +513,12 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
-		cameraController.ProcessCamera(*pos, *rot);
+		pos->x = cameraController.CameraPosition.x;
+		pos->y = cameraController.CameraPosition.y;
+		pos->z = cameraController.CameraPosition.z;
+		rot->pitch = cameraController.CameraRotation.pitch;
+		rot->yaw = cameraController.CameraRotation.yaw;
+		rot->roll = cameraController.CameraRotation.roll;
 		//Logger::DebugPrint("%f", rot->yaw);
 	}
 	

@@ -96,7 +96,7 @@ void CameraController::DetachCameraFromAttachementActor()
 	uevr::API::UObjectHook::remove_motion_controller_state(CameraAttachementActor);
 }
 
-void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotatord& cameraRotation)
+void CameraController::ProcessCamera()
 {
 	auto pawn = uevr::API::get()->get_local_pawn(0);
 	UEVR_Vector3d floorPosition;
@@ -122,14 +122,14 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 	{
 		LastCameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
 		//CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
-		cameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
+		CameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
 
 		auto pawn = uevr::API::get()->get_local_pawn(0);
 		UEVR_Rotatord pawnRotation;
 		pawn->call_function(L"K2_GetActorRotation", &pawnRotation);
 		ActualYaw = pawnRotation.yaw;
 		LastCameraRotation.yaw = ActualYaw;
-		cameraRotation.yaw = ActualYaw;
+		CameraRotation.yaw = ActualYaw;
 		return;
 	}
 	//Logger::DebugPrint("Actual Yaw : %f", ActualYaw);
@@ -199,9 +199,9 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 
 	//Logger::DebugPrint("Camera Height Offset : %f", cameraController.CameraHeightOffset);
 	LastCameraPosition = { newPosition.x, newPosition.y, newPosition.z };
-	cameraPosition.x = newPosition.x;
-	cameraPosition.y = newPosition.y;
-	cameraPosition.z = newPosition.z;
+	CameraPosition.x = newPosition.x;
+	CameraPosition.y = newPosition.y;
+	CameraPosition.z = newPosition.z;
 
 	if (YawInput != 0.0)
 		ActualYaw += YawInput * 3.0f * *settingsManager->CameraRotationSpeedPtr * DeltaTime ;
@@ -214,11 +214,11 @@ void CameraController::ProcessCamera(UEVR_Vector3d& cameraPosition, UEVR_Rotator
 
 	//The Imgui menu shows the smoothness "quantity", not the lerp factor. We need the inverse for the calculation. Makes more sense for users.
 	float remappedRotationLerpMultiplier = Utilities::Remap(*settingsManager->CameraYawLerpPtr, 0.0f, 10.0f, 2.0f, 0.1f);
-	cameraRotation.yaw = *settingsManager->SmoothCameraRotationPtr ? 
+	CameraRotation.yaw = *settingsManager->SmoothCameraRotationPtr ? 
 		glm::mix(LastCameraRotation.yaw, ActualYaw, 10.25f * remappedRotationLerpMultiplier * DeltaTime) :
 		ActualYaw;
 	
-	LastCameraRotation = cameraRotation;
+	LastCameraRotation = CameraRotation;
 	/*SetCameraRotation();*/
 }
 
