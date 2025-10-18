@@ -46,7 +46,7 @@ private:
     bool initialize_imgui();
     void internal_frame();
     void handleVRcursor();
-    bool isRightTriggerPressed();
+    bool isRightActionActive(const char* action);
     ImVec2 LastMousePosition = {-1.0f, -1.0f};
 
     HWND m_wnd;

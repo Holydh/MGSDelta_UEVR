@@ -565,15 +565,16 @@ void MGSDeltaPlugin::handleVRcursor()
             ImVec2 finalPos = { smoothPos.x, smoothPos.y };
             LastMousePosition = finalPos;
             io.MousePos = finalPos;
-            io.AddMouseButtonEvent(0, isRightTriggerPressed());
+            io.AddMouseButtonEvent(0, isRightActionActive("/actions/default/in/AButtonRight"));
+			io.MouseDrawCursor = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
         }
     }
 }
 
-bool MGSDeltaPlugin::isRightTriggerPressed()
+bool MGSDeltaPlugin::isRightActionActive(const char* action)
 {
     auto vr = API::get()->param()->vr;
-    static UEVR_ActionHandle triggerAction = vr->get_action_handle("/actions/default/in/Trigger");
+    static UEVR_ActionHandle triggerAction = vr->get_action_handle(action);
     UEVR_InputSourceHandle rightSource = vr->get_right_joystick_source();
 
     if (!triggerAction || !rightSource)
@@ -701,7 +702,7 @@ bool MGSDeltaPlugin::initialize_imgui() {
 
 	static const auto imgui_ini = API::get()->get_persistent_dir(L"imgui_mgsDeltaVR_plugin.ini").string();
 	ImGui::GetIO().IniFilename = imgui_ini.c_str();
-	ImGui::GetIO().MouseDrawCursor = true;
+	//ImGui::GetIO().MouseDrawCursor = true;
 	const auto renderer_data = API::get()->param()->renderer;
 
 	DXGI_SWAP_CHAIN_DESC swap_desc{};
@@ -769,7 +770,7 @@ void MGSDeltaPlugin::internal_frame() {
 
 		if(ImGui::SliderFloat("Position Vertical Smoothness (Z Axis)", settingsManager.CameraPositionZLerpPtr, 0.0f, 10.0f))
 			settingsManager.SettingsModifiedThisFrame = true;
-			
+		/*	
 		std::wstring object_path;
 		static char obj_path[256]{};
 		ImGui::Text("Enter an object to spawn");
@@ -813,7 +814,7 @@ void MGSDeltaPlugin::internal_frame() {
 			const auto value = API::UObjectHook::is_disabled();
 
 			API::UObjectHook::set_disabled(!value);
-		}
+		}*/
 
 	}
 	ImGui::End();
