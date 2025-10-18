@@ -20,8 +20,6 @@ public:
 	CameraController(PlayerManager* pm, SettingsManager* sm) : playerManager(pm), settingsManager(sm){};
 	//virtual ~CameraController() = default;
 
-	float DeltaTime = 0.0f;
-
 	void ToggleCameraWobblingController(bool enabled);
 
 	double ActualYaw = 0.0f;
@@ -44,7 +42,7 @@ public:
 	void DetachCameraFromAttachementActor();
 	bool CameraAttachementActorAvailable = false;
 
-	void ProcessCamera();
+	void ProcessCamera(float deltaTime);
 	float InstantCameraPositionTimer = 0.25f;
 	bool InstantCameraPositionNeeded = false;
 	void ProcessCameraResetTimer(float delta);

@@ -427,7 +427,6 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 
 void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
-	cameraController.DeltaTime = delta;
 	playerManager.FetchGameState();
 
 	if (playerManager.IsPlayerControlled && !playerManager.WasPlayerControlled)
@@ -459,7 +458,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		/*Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
 		playerManager.UpdatePeepingState(delta);
-		cameraController.ProcessCamera();
+		cameraController.ProcessCamera(delta);
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);
