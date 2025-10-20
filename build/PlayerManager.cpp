@@ -1,5 +1,22 @@
 #include "PlayerManager.hpp"
 
+void PlayerManager::ConvertAllRequiredStringToFnames()
+{
+	fNameBehind = SDK::UKismetStringLibrary::Conv_StringToName(L"Behind");
+	fNamePeepStart = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepStart");
+    fNamePeepLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepLoop");
+    fNamePeepEnd = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepEnd");
+	fNameAimStart = SDK::UKismetStringLibrary::Conv_StringToName(L"AimStart");
+	fNameAimLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"AimLoop");
+	fNameBasic = SDK::UKismetStringLibrary::Conv_StringToName(L"Basic");
+	fNameRolling = SDK::UKismetStringLibrary::Conv_StringToName(L"Rolling");
+	fNameParallelIdle = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelIdle");
+	fNameParallelMoveStart = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelMoveStart");
+	fNameParallelMoveCycle = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelMoveCycle");
+	fNameParallelMoveStop = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelMoveStop");
+	fNameElude = SDK::UKismetStringLibrary::Conv_StringToName(L"Elude");
+}
+
 void PlayerManager::ToggleMeshesVisibility(bool visible)
 {
 	auto pawn = uevr::API::get()->get_local_pawn(0);
@@ -165,51 +182,26 @@ void PlayerManager::GetCurrentPlayerStance(float deltaTime)
 
 void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, const SDK::FName& StateMachineName)
 {
-	//Peep State Machine Name
-	static const SDK::FName Behind = SDK::UKismetStringLibrary::Conv_StringToName(L"Behind");
-	//Peep States
-	static const SDK::FName PeepStart = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepStart");
-    static const SDK::FName PeepLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepLoop");
-    static const SDK::FName PeepEnd = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepEnd");
-	static const SDK::FName AimStart = SDK::UKismetStringLibrary::Conv_StringToName(L"AimStart");
-	static const SDK::FName AimLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"AimLoop");
-
-	//Rolling State Machine Name
-	static const SDK::FName Basic = SDK::UKismetStringLibrary::Conv_StringToName(L"Basic");
-	//Rolling States
-	static const SDK::FName Rolling = SDK::UKismetStringLibrary::Conv_StringToName(L"Rolling");
-
-	//Aiming States
-	static const SDK::FName ParallelIdle = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelIdle");
-	static const SDK::FName ParallelMoveStart = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelMoveStart");
-	static const SDK::FName ParallelMoveCycle = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelMoveCycle");
-	static const SDK::FName ParallelMoveStop = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelMoveStop");
-
-	//Falling from edge State Machine Name
-	static const SDK::FName Elude = SDK::UKismetStringLibrary::Conv_StringToName(L"Elude");
-	
-
-	
-	if (StateName == PeepStart || 
-		StateName == PeepLoop || 
-		StateName == PeepEnd ||
-		StateName == AimStart && StateMachineName == Behind || 
-		StateName == AimLoop && StateMachineName == Behind)
+	if (StateName == fNamePeepStart || 
+		StateName == fNamePeepLoop || 
+		StateName == fNamePeepEnd ||
+		StateName == fNameAimStart && StateMachineName == fNameBehind || 
+		StateName == fNameAimLoop && StateMachineName == fNameBehind)
 		IsPeepingInternal = true;
 	else
 		IsPeepingInternal = false;
 
-	if (StateMachineName == Elude)
+	if (StateMachineName == fNameElude)
 		IsHanging = true;
 	else
 		IsHanging = false;
 
-	if (StateMachineName == Rolling)
+	if (StateMachineName == fNameRolling)
 		IsRolling = true;
 	else
 		IsRolling = false;
 
-	if (StateName == ParallelIdle || StateName == ParallelMoveStart || StateName == ParallelMoveCycle || StateName == ParallelMoveStop)
+	if (StateName == fNameParallelIdle || StateName == fNameParallelMoveStart || StateName == fNameParallelMoveCycle || StateName == fNameParallelMoveStop)
 		IsAiming = true;
 	else
 		IsAiming = false;

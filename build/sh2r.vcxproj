@@ -331,11 +331,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HookManager.cpp" />
+    <ClCompile Include="Inputs.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="PlayerManager.cpp" />
     <ClCompile Include="SettingsManager.cpp" />
     <ClCompile Include="src\CameraController.cpp" />
-    <ClCompile Include="src\ImguiMenu.cpp" />
+    <ClCompile Include="src\ImGuiMenu.cpp" />
     <ClCompile Include="src\Logger.cpp" />
     <ClCompile Include="src\MGSDeltaPlugin.cpp" />
     <ClCompile Include="src\renderlib\IMGUI\BACKENDS\imgui_impl_dx11.cpp" />
@@ -358,12 +359,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="src\Utilities.cpp" />
     <ClCompile Include="WeaponController.cpp" />
     <ClInclude Include="HookManager.hpp" />
+    <ClInclude Include="Inputs.hpp" />
     <ClInclude Include="MemoryManager.hpp" />
     <ClInclude Include="PlayerManager.hpp" />
     <ClInclude Include="SettingsManager.hpp" />
     <ClInclude Include="src\CameraController.hpp" />
     <ClInclude Include="src\Globals.hpp" />
-    <ClInclude Include="src\ImguiMenu.hpp" />
+    <ClInclude Include="src\ImGuiMenu.hpp" />
     <ClInclude Include="src\Logger.hpp" />
     <ClInclude Include="src\MGSDeltaPlugin.hpp" />
     <ClInclude Include="src\renderlib\IMGUI\BACKENDS\imgui_impl_dx11.h" />

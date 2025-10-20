@@ -12,18 +12,10 @@
 #include "uevr/API.hpp"
 #include "uevr/Plugin.hpp"
 
-
-// only really necessary if you want to render to the screen
-#include "renderlib/uevr_imgui/imgui_impl_dx11.h"
-#include "renderlib/uevr_imgui/imgui_impl_dx12.h"
-#include "renderlib/uevr_imgui/imgui_impl_win32.h"
-
-#include "renderlib/rendering/d3d11.hpp"
-#include "renderlib/rendering/d3d12.hpp"
-#include "renderlib/imgui/imgui.h"
-
 //#include <codecvt>
 
+#include "ImguiMenu.hpp"
+#include "Inputs.hpp"
 #include "CameraController.hpp"
 #include "WeaponController.hpp"
 #include "MemoryManager.hpp"
@@ -43,27 +35,14 @@ extern std::unique_ptr<MGSDeltaPlugin> g_plugin;
 
 class MGSDeltaPlugin : public uevr::Plugin {
 private:
-    bool initialize_imgui();
-    void internal_frame();
-    void handleVRcursor();
-    bool isRightActionActive(const char* action);
-    ImVec2 LastMousePosition = {-1.0f, -1.0f};
-    std::string_view UI_Distance = "UI_Framework_Distance";
-    std::string_view UI_Size = "UI_Framework_Size";
-
-    HWND m_wnd;
-    bool m_initialized = false;
-    bool m_was_rendering_desktop;
-    bool vr_enabled = false;
-    
-    std::recursive_mutex m_imgui_mutex;
-
 	void Toggle6DOF(bool enable);
-
+    bool vr_enabled = false;
 public:
     MGSDeltaPlugin();
     virtual ~MGSDeltaPlugin();
 
+    ImGuiMenu imGuiMenu;
+    Inputs inputs;
     CameraController cameraController;
 	WeaponController weaponController;
 	MemoryManager memoryManager;
@@ -76,7 +55,6 @@ public:
 	void on_detach(HMODULE hmod) override;
     void on_present() override;
     void reset_height();
-    void on_device_reset() override;
     void on_post_render_vr_framework_dx11(ID3D11DeviceContext* context, ID3D11Texture2D* texture, ID3D11RenderTargetView* rtv) override;
     void on_post_render_vr_framework_dx12(ID3D12GraphicsCommandList* command_list, ID3D12Resource* rt, D3D12_CPU_DESCRIPTOR_HANDLE* rtv) override;
     bool on_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;

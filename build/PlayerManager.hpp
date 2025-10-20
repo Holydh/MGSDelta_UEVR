@@ -10,6 +10,7 @@
 
 class PlayerManager {
 public:
+	void ConvertAllRequiredStringToFnames();
 	void ToggleMeshesVisibility(bool visible);
 	void ToggleReticleVisibility(bool visible);
 
@@ -52,5 +53,23 @@ public:
 	void ProcessPlayerCharacterState(const SDK::FName& StateName, const SDK::FName& StateMachineName);
 	//EPlayerAnimState GetCurrentPlayerAnimState(const SDK::FName& State);
 private:
-
+	//Peep State Machine Name
+	SDK::FName fNameBehind;
+	//Peep States
+	SDK::FName fNamePeepStart;
+	SDK::FName fNamePeepLoop;
+	SDK::FName fNamePeepEnd;
+	SDK::FName fNameAimStart;
+	SDK::FName fNameAimLoop;
+	//Rolling State Machine Name
+	SDK::FName fNameBasic;
+	//Rolling States
+	SDK::FName fNameRolling;
+	//Aiming States
+	SDK::FName fNameParallelIdle;
+	SDK::FName fNameParallelMoveStart;
+	SDK::FName fNameParallelMoveCycle;
+	SDK::FName fNameParallelMoveStop;
+	//Falling from edge State Machine Name
+	SDK::FName fNameElude;
 };

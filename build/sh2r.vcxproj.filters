@@ -43,7 +43,7 @@
     <ClCompile Include="src\renderlib\UEVR_IMGUI\imgui_impl_dx11.cpp">
       <Filter>src\renderlib\UEVR_IMGUI</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImguiMenu.cpp">
+    <ClCompile Include="src\ImGuiMenu.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Logger.cpp">
@@ -81,6 +81,9 @@
     </ClCompile>
     <ClCompile Include="src\SDK\Gsr_functions.cpp">
       <Filter>src\sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="Inputs.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -150,7 +153,7 @@
     <ClInclude Include="src\Globals.hpp">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\ImguiMenu.hpp">
+    <ClInclude Include="src\ImGuiMenu.hpp">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\Logger.hpp">
@@ -175,6 +178,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="PlayerManager.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Inputs.hpp">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

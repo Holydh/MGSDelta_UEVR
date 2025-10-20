@@ -5,12 +5,12 @@ using namespace uevr;
 #define MAX_DEBUG_MESSAGE_SIZE 2048
 
 bool g_DebugEnabled = true;
-bool imguiEnabled = true;
-
 
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGSDeltaPlugin::MGSDeltaPlugin() : cameraController(&playerManager, &settingsManager), 
+MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager),
+inputs(),
+cameraController(&playerManager, &settingsManager), 
 weaponController(&memoryManager, &settingsManager, &playerManager), 
 memoryManager(),
 hookManager(&weaponController, &cameraController, &playerManager), 
@@ -48,6 +48,7 @@ void MGSDeltaPlugin::on_initialize() {
 	settingsManager.InitSettingsManager();
 	settingsManager.GetOrCreateConfigFile();
 	settingsManager.LoadAllWeaponConfigs(uobjectHook_file);
+	playerManager.ConvertAllRequiredStringToFnames();
 	hookManager.Initialize();
 	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_OnEnteredState_post, true);
 	hookManager.hook_bp_fn(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerEludeAction.ABP_PlayerEludeAction_C", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_PlayerFalling_OnEnteredState_post, true);
@@ -57,45 +58,10 @@ void MGSDeltaPlugin::on_initialize() {
 }
 
 void MGSDeltaPlugin::on_present() {
-	if (!imguiEnabled)
+	if (!imGuiMenu.ImguiEnabled)
 		return;
-	std::scoped_lock _{ m_imgui_mutex };
-	if (!m_initialized) {
-		if (!initialize_imgui()) {
-			API::get()->log_info("Failed to initialize imgui");
-			return;
-		}
-		else {
-			API::get()->log_info("Initialized imgui");
-		}
-	}
 
-	const auto renderer_data = API::get()->param()->renderer;
-
-	if (!API::get()->param()->vr->is_hmd_active()) {
-		if (!m_was_rendering_desktop) {
-			m_was_rendering_desktop = true;
-			on_device_reset();
-			return;
-		}
-
-		m_was_rendering_desktop = true;
-
-		if (renderer_data->renderer_type == UEVR_RENDERER_D3D11) {
-			ImGui_ImplDX11_NewFrame();
-			g_d3d11.render_imgui();
-		}
-		else if (renderer_data->renderer_type == UEVR_RENDERER_D3D12) {
-			auto command_queue = (ID3D12CommandQueue*)renderer_data->command_queue;
-
-			if (command_queue == nullptr) {
-				return;
-			}
-
-			ImGui_ImplDX12_NewFrame();
-			g_d3d12.render_imgui();
-		}
-	}
+	imGuiMenu.RenderImGuiFrame();
 }
 
 void MGSDeltaPlugin::reset_height() {
@@ -113,74 +79,18 @@ void MGSDeltaPlugin::reset_height() {
 	vr->set_standing_origin(&origin);
 }
 
-void MGSDeltaPlugin::on_device_reset() {
-	PLUGIN_LOG_ONCE("Example Device Reset");
-
-	std::scoped_lock _{ m_imgui_mutex };
-
-	const auto renderer_data = API::get()->param()->renderer;
-
-	if (renderer_data->renderer_type == UEVR_RENDERER_D3D11) {
-		ImGui_ImplDX11_Shutdown();
-		g_d3d11 = {};
-	}
-
-	if (renderer_data->renderer_type == UEVR_RENDERER_D3D12) {
-		g_d3d12.reset();
-		ImGui_ImplDX12_Shutdown();
-		g_d3d12 = {};
-	}
-
-	m_initialized = false;
-}
-
 void MGSDeltaPlugin::on_post_render_vr_framework_dx11(ID3D11DeviceContext* context, ID3D11Texture2D* texture, ID3D11RenderTargetView* rtv) {
 	PLUGIN_LOG_ONCE("Post Render VR Framework DX11");
-
-	const auto vr_active = API::get()->param()->vr->is_hmd_active();
-
-	if (!m_initialized || !vr_active) {
-		return;
-	}
-
-	if (m_was_rendering_desktop) {
-		m_was_rendering_desktop = false;
-		on_device_reset();
-		return;
-	}
-
-	std::scoped_lock _{ m_imgui_mutex };
-
-	ImGui_ImplDX11_NewFrame();
-	g_d3d11.render_imgui_vr(context, rtv);
+	imGuiMenu.RenderImGuiVRFrameDX11(context, texture, rtv);
 }
 
 void MGSDeltaPlugin::on_post_render_vr_framework_dx12(ID3D12GraphicsCommandList* command_list, ID3D12Resource* rt, D3D12_CPU_DESCRIPTOR_HANDLE* rtv) {
 	PLUGIN_LOG_ONCE("Post Render VR Framework DX12");
-	
-	if (!imguiEnabled)
-		return;
-
-	const auto vr_active = API::get()->param()->vr->is_hmd_active();
-
-	if (!m_initialized || !vr_active) {
-		return;
-	}
-
-	if (m_was_rendering_desktop) {
-		m_was_rendering_desktop = false;
-		on_device_reset();
-		return;
-	}
-
-	std::scoped_lock _{ m_imgui_mutex };
-
-	ImGui_ImplDX12_NewFrame();
-	g_d3d12.render_imgui_vr(command_list, rtv);
+	imGuiMenu.RenderImGuiVRFrameDX12(command_list, rt, rtv);
 }
 
 bool MGSDeltaPlugin::on_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-	if (imguiEnabled && API::get()->param()->functions->is_drawing_ui())
+	if (imGuiMenu.ImguiEnabled && API::get()->param()->functions->is_drawing_ui())
 	{
 		if(ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
 			return false;
@@ -475,126 +385,11 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	//	Utilities::DebugCigar0->K2_SetActorRelativeLocation(cameraLocation + cameraController.CameraForwardVector * 100.0f, false, &hitResult, true);
 	//}
 
-	if (m_initialized && API::get()->param()->functions->is_drawing_ui()) {
-		std::scoped_lock _{ m_imgui_mutex };
-		//ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
-
-		//ImGui::GetIO().MousePos = ImVec2(100, 100);
-		handleVRcursor();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
-
-		internal_frame();
-
-		ImGui::EndFrame();
-		ImGui::Render();
-	}
+	imGuiMenu.ProcessImGui();
 
 	playerManager.WasPlayerControlled = playerManager.IsPlayerControlled;
 	playerManager.WasPeepingInternal = playerManager.IsPeepingInternal;
 	playerManager.PreviousStance = playerManager.CurrentStance;
-}
-
-void MGSDeltaPlugin::handleVRcursor()
-{
-    // Get VR interface and device indices
-    auto vr = API::get()->param()->vr;
-    auto rightControllerIndex = vr->get_right_controller_index();
-    auto hmdIndex = vr->get_hmd_index();
-    
-    // Retrieve controller and HMD transforms
-    UEVR_Matrix4x4f controllerPoseMatrix;
-    UEVR_Matrix4x4f hmdPoseMatrix;
-    vr->get_grip_transform(rightControllerIndex, &controllerPoseMatrix);
-    vr->get_transform(hmdIndex, &hmdPoseMatrix);
-    
-    // Convert to GLM matrices
-    glm::mat4 controllerMatrix = glm::make_mat4(&controllerPoseMatrix.m[0][0]);
-    glm::mat4 hmdMatrix = glm::make_mat4(&hmdPoseMatrix.m[0][0]);
-    
-    // Extract controller position and calculate pointing direction
-    glm::vec3 controllerPosition = glm::vec3(controllerMatrix[3]);
-    glm::vec3 controllerForward = -glm::vec3(controllerMatrix[1]);
-    glm::vec3 controllerUp = -glm::vec3(controllerMatrix[2]);
-    glm::vec3 controllerDirection = glm::normalize(controllerForward * 0.5f + controllerUp * 0.3f);
-    
-    // Get VR play space origin and rotation
-    UEVR_Vector3f standingOriginRaw;
-    UEVR_Quaternionf rotationOffsetRaw;
-    vr->get_standing_origin(&standingOriginRaw);
-    vr->get_rotation_offset(&rotationOffsetRaw);
-    
-    glm::vec3 playSpaceOrigin(standingOriginRaw.x, standingOriginRaw.y, standingOriginRaw.z);
-    glm::quat playSpaceRotation(rotationOffsetRaw.w, rotationOffsetRaw.x, 
-                                rotationOffsetRaw.y, rotationOffsetRaw.z);
-    
-    // Calculate UI plane orientation
-    glm::vec3 uiRightAxis = playSpaceRotation * glm::vec3(1, 0, 0);
-    glm::vec3 uiUpAxis = playSpaceRotation * glm::vec3(0, 1, 0);
-    glm::vec3 uiNormalAxis = playSpaceRotation * glm::vec3(0, 0, -1);
-    
-    // Position UI plane at configured distance from origin
-    float uiDistance = API::VR::get_mod_value<float>(UI_Distance);
-    glm::vec3 uiPlaneCenter = playSpaceOrigin + uiNormalAxis * uiDistance;
-    
-    // Perform ray-plane intersection
-    float rayDotNormal = glm::dot(uiNormalAxis, controllerDirection);
-    
-    if (fabs(rayDotNormal) > 1e-6f)  // If ray not parallel to plane
-    {
-        float intersectionDistance = glm::dot(uiPlaneCenter - controllerPosition, uiNormalAxis) / rayDotNormal;
-        
-        if (intersectionDistance > 0.0f)  // Intersection in front of controller
-        {
-            // Calculate intersection point
-            glm::vec3 intersectionPoint = controllerPosition + controllerDirection * intersectionDistance;
-            
-            // Project intersection to UI plane local coordinates
-            glm::vec3 localOffset = intersectionPoint - uiPlaneCenter;
-            float localX = glm::dot(localOffset, uiRightAxis);
-            float localY = glm::dot(localOffset, uiUpAxis);
-            
-            // Normalize by UI size and apply cursor speed scaling
-            float uiSize = API::VR::get_mod_value<float>(UI_Size);
-            float normalizedX = (localX / uiSize) * 0.565f;
-            float normalizedY = localY / uiSize;
-            
-            // Convert to ImGui screen coordinates
-            ImGuiIO& io = ImGui::GetIO();
-            ImVec2 targetMousePosition(
-                (normalizedX + 0.5f) * io.DisplaySize.x,
-                (0.5f - normalizedY) * io.DisplaySize.y
-            );
-            
-            // Initialize last position if needed
-            if (LastMousePosition.x < 0.0f)
-            {
-                LastMousePosition = targetMousePosition;
-            }
-            
-            // Apply smoothing to cursor movement
-            const float smoothingFactor = 0.2f;
-            LastMousePosition.x = glm::mix(LastMousePosition.x, targetMousePosition.x, smoothingFactor);
-            LastMousePosition.y = glm::mix(LastMousePosition.y, targetMousePosition.y, smoothingFactor);
-            
-            // Update ImGui input state
-            io.MousePos = LastMousePosition;
-            io.AddMouseButtonEvent(0, isRightActionActive("/actions/default/in/AButtonRight"));
-            io.MouseDrawCursor = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
-        }
-    }
-}
-
-bool MGSDeltaPlugin::isRightActionActive(const char* action)
-{
-    auto vr = API::get()->param()->vr;
-    static UEVR_ActionHandle triggerAction = vr->get_action_handle(action);
-    UEVR_InputSourceHandle rightSource = vr->get_right_joystick_source();
-
-    if (!triggerAction || !rightSource)
-        return false;
-
-    return vr->is_action_active(triggerAction, rightSource);
 }
 
 void MGSDeltaPlugin::on_post_engine_tick(API::UGameEngine* engine, float delta) {
@@ -702,140 +497,4 @@ void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, 
 void MGSDeltaPlugin::on_xinput_set_state(uint32_t* retval, uint32_t user_index, XINPUT_VIBRATION* vibration)
 {
 	PLUGIN_LOG_ONCE("XInput Set State");
-}
-
-bool MGSDeltaPlugin::initialize_imgui() {
-	if (m_initialized) {
-		return true;
-	}
-
-	std::scoped_lock _{ m_imgui_mutex };
-
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-
-	static const auto imgui_ini = API::get()->get_persistent_dir(L"imgui_mgsDeltaVR_plugin.ini").string();
-	ImGui::GetIO().IniFilename = imgui_ini.c_str();
-	//ImGui::GetIO().MouseDrawCursor = true;
-	const auto renderer_data = API::get()->param()->renderer;
-
-	DXGI_SWAP_CHAIN_DESC swap_desc{};
-	auto swapchain = (IDXGISwapChain*)renderer_data->swapchain;
-	swapchain->GetDesc(&swap_desc);
-
-	m_wnd = swap_desc.OutputWindow;
-
-	if (!ImGui_ImplWin32_Init(m_wnd)) {
-		return false;
-	}
-
-	if (renderer_data->renderer_type == UEVR_RENDERER_D3D11) {
-		if (!g_d3d11.initialize()) {
-			return false;
-		}
-	}
-	else if (renderer_data->renderer_type == UEVR_RENDERER_D3D12) {
-		if (!g_d3d12.initialize()) {
-			return false;
-		}
-	}
-
-	m_initialized = true;
-	return true;
-}
-
-void MGSDeltaPlugin::internal_frame() {
-	if (!API::get()->param()->functions->is_drawing_ui())
-		return;
-	//ImGui::GetIO().WantCaptureMouse = false; //API::get()->param()->functions->is_drawing_ui;
-	static auto spot_c = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.SpotLight");
-	auto kismet_system_library = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetSystemLibrary")->get_class_default_object();
-	auto kismet_math_library = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetMathLibrary")->get_class_default_object();
-	auto kismet_rendering_library = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetRenderingLibrary")->get_class_default_object();
-	auto kismet_material_library = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetMaterialLibrary")->get_class_default_object();
-	auto kismet_input_library = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetInputLibrary")->get_class_default_object();
-	auto kismet_string_library = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetStringLibrary")->get_class_default_object();
-	auto kismet_array_library = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetArrayLibrary")->get_class_default_object();
-	auto kismet_text_library = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.KismetTextLibrary")->get_class_default_object();
-	auto statics = API::get()->find_uobject<API::UClass>(L"Class /Script/Engine.GameplayStatics")->get_class_default_object();
-	
-	if (ImGui::Begin("MGS Delta VR Plugin")) {
-		ImGui::Text("--- Camera Settings ---");
-	/*	ImGui::Text("Decoupled pitch: %i", API::VR::is_decoupled_pitch_enabled());
-
-		if (ImGui::Button("Toggle decoupled pitch")) {
-			API::VR::set_decoupled_pitch_enabled(!API::VR::is_decoupled_pitch_enabled());
-		}*/
-
-		if(ImGui::SliderFloat("Rotation Speed", settingsManager.CameraRotationSpeedPtr, 0.1f, 25.0f))
-			settingsManager.SettingsModifiedThisFrame = true;
-
-		if (ImGui::Checkbox("Smooth Camera Rotation", settingsManager.SmoothCameraRotationPtr))
-			settingsManager.SettingsModifiedThisFrame = true;
-
-		if(ImGui::SliderFloat("Rotation Smoothness", settingsManager.CameraYawLerpPtr, 0.0f, 10.0f))
-			settingsManager.SettingsModifiedThisFrame = true;
-		
-		if (ImGui::Checkbox("Smooth Camera Position", settingsManager.SmoothCameraPositionPtr))
-			settingsManager.SettingsModifiedThisFrame = true;
-
-		if(ImGui::SliderFloat("Position Horizontal Smoothness (X & Y Axis)", settingsManager.CameraPositionXYLerpPtr, 0.0f, 10.0f))
-			settingsManager.SettingsModifiedThisFrame = true;
-
-		if(ImGui::SliderFloat("Position Vertical Smoothness (Z Axis)", settingsManager.CameraPositionZLerpPtr, 0.0f, 10.0f))
-			settingsManager.SettingsModifiedThisFrame = true;
-		/*	
-		std::wstring object_path;
-		static char obj_path[256]{};
-		ImGui::Text("Enter an object to spawn");
-		ImGui::SameLine();
-		if (ImGui::InputText("objectspawner", obj_path, sizeof(obj_path)))
-			object_path = widen(obj_path);
-
-		if (ImGui::Button("Spawn Object")) {
-			auto obj_res = API::get()->find_uobject<API::UObject>(object_path);
-			kismet_system_library->call_function(L"IsValid", obj_res);
-			auto spawned_component = API::get()->spawn_object(obj_res->get_class(), obj_res->get_outer());
-		}
-
-
-		static char lua_event_name[256]{};
-		ImGui::Text("Send Event to Lua");
-		ImGui::InputText("LuaEvent", lua_event_name, sizeof(lua_event_name));
-
-
-		static char lua_event_data[256]{};
-		ImGui::InputText("LuaData", lua_event_data, sizeof(lua_event_data));
-
-		if (ImGui::Button("Send Lua Event")) {
-			if (lua_event_name[0] != '\0') {
-				dispatch_lua_event(lua_event_name, lua_event_data);
-			}
-		}
-		static char input[256]{};
-		std::string mod_value = API::VR::get_mod_value<std::string>(input);
-		ImGui::Text("Mod value: %s", mod_value.c_str());
-
-		if (ImGui::Button("Save Config")) {
-			API::VR::save_config();
-		}
-
-		if (ImGui::Button("Reload Config")) {
-			API::VR::reload_config();
-		}
-
-		if (ImGui::Button("Toggle UObjectHook disabled")) {
-			const auto value = API::UObjectHook::is_disabled();
-
-			API::UObjectHook::set_disabled(!value);
-		}*/
-
-	}
-	ImGui::End();
-
-	if (settingsManager.SettingsModifiedThisFrame)
-	{
-		settingsManager.WriteSettingsToPluginConfigFile();
-		settingsManager.SettingsModifiedThisFrame = false;
-	}
 }
