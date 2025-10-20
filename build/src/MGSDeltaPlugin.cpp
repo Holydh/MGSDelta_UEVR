@@ -180,10 +180,10 @@ void MGSDeltaPlugin::on_post_render_vr_framework_dx12(ID3D12GraphicsCommandList*
 }
 
 bool MGSDeltaPlugin::on_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-	if (API::get()->param()->functions->is_drawing_ui())
+	if (imguiEnabled && API::get()->param()->functions->is_drawing_ui())
 	{
-		ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
-		return false;
+		if(ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
+			return false;
 	}
 	return true;
 }
