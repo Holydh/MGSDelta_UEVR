@@ -22,6 +22,7 @@ private:
 
 	void ApplyRecoil(float delta);
 	float RandomRange(float min, float max);
+	void spawnScope();
 public:
 	WeaponController(MemoryManager* mm, SettingsManager* sm, PlayerManager* pm) : memoryManager(mm), settingsManager(sm), playerManager(pm) {};
 	bool IsShooting = false;

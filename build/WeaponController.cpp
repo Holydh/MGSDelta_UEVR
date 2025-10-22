@@ -129,6 +129,9 @@ void WeaponController::ProcessWeapon(float delta)
 		motionState->set_rotation_offset(&defaultRot);
 		motionState->set_hand(1);
 		motionState->set_permanent(true);
+
+		if (CurrentWeaponEquippedID == EGsrEquipId::WP_Dragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
+
 	}
 	
 	//Apply recoil
@@ -392,5 +395,10 @@ void WeaponController::ApplyRecoil(float delta)
 }
 	float WeaponController::RandomRange(float min, float max) {
     return min + static_cast<float>(rand()) / RAND_MAX * (max - min);
+	}
+
+	void WeaponController::spawnScope()
+	{
+
 	}
 

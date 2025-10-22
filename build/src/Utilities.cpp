@@ -144,38 +144,38 @@ SDK::AActor* Utilities::SpawnDebugCigars(UEVR_Vector3d Position)
 	}
 	
     // 1. Find the arrow mesh asset already loaded in memory (your code is correct)
-    static SDK::UStaticMesh* arrowMesh = nullptr;
-    if (!arrowMesh)
+    static SDK::UStaticMesh* mesh = nullptr;
+    if (!mesh)
     {
-		auto arrowMeshUEVR = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Game/Art/Environment/HD_GameplayAssets/Mesh/ciga_cigar_dmo_hd.ciga_cigar_dmo_hd");
-		arrowMesh = (SDK::UStaticMesh*)arrowMeshUEVR;
-        if (!arrowMesh)
+		auto meshUEVR = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Game/Art/Environment/HD_GameplayAssets/Mesh/ciga_cigar_dmo_hd.ciga_cigar_dmo_hd");
+		mesh = (SDK::UStaticMesh*)meshUEVR;
+        if (!mesh)
         {
             Logger::DebugPrint("Failed to find S_Arrow mesh");
             return nullptr;
         }
     }
-	Logger::DebugPrint("Found ArrowMesh %s : ", arrowMesh->GetFullName().c_str());
+	Logger::DebugPrint("Found mesh %s : ", mesh->GetFullName().c_str());
     // 2. Create a new Static Mesh Component as a sub-object of the Actor
     // This makes the Actor the "owner" of the new component.
-    auto* ArrowComponent = static_cast<SDK::UStaticMeshComponent*>(actor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), 
+    auto* staticMeshComponent = static_cast<SDK::UStaticMeshComponent*>(actor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), 
                                                                                                false, // bManualAttachment
                                                                                                SDK::FTransform{}, // RelativeTransform
                                                                                                false // bDeferConstruction
                                                                                                ));
 
-    if (!ArrowComponent)
+    if (!staticMeshComponent)
     {
         Logger::DebugPrint("Failed to create UStaticMeshComponent");
         return nullptr;
     }
-	Logger::DebugPrint("Created ArrowComponent: %s", ArrowComponent->GetFullName().c_str());
+	Logger::DebugPrint("Created StaticMeshComponent: %s", staticMeshComponent->GetFullName().c_str());
     // 3. Assign the mesh asset to our new component instance
-    ArrowComponent->SetStaticMesh(arrowMesh);
-	Logger::DebugPrint("Assigned ArrowMesh to ArrowComponent");
+    staticMeshComponent->SetStaticMesh(mesh);
+	Logger::DebugPrint("Assigned mesh to StaticMeshComponent");
 
 	// 4. Attach the new component to the Actor's root component
-	ArrowComponent->K2_AttachToComponent(
+	staticMeshComponent->K2_AttachToComponent(
 		actor->K2_GetRootComponent(),                      // Parent
 		SDK::FName(),                                      // SocketName (none)
 		SDK::EAttachmentRule::KeepRelative,             // Use the relative location we just set
@@ -183,20 +183,20 @@ SDK::AActor* Utilities::SpawnDebugCigars(UEVR_Vector3d Position)
 		SDK::EAttachmentRule::KeepRelative,             // Use the relative scale we just set
 		true                                            // bWeldSimulatedBodies
 	);
-	Logger::DebugPrint("Attached ArrowComponent to Actor's root component");
+	Logger::DebugPrint("Attached StaticMeshComponent to Actor's root component");
 
     // 6. Register the component to make it "live" and renderable in the world
-    ArrowComponent->Activate(true);
-	Logger::DebugPrint("Activated ArrowComponent");
+    staticMeshComponent->Activate(true);
+	Logger::DebugPrint("Activated StaticMeshComponent");
     
     // Optional: Disable collision if it's just for visuals
-    ArrowComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
+    staticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
 
-	ArrowComponent->Activate(true);
-	ArrowComponent->SetVisibility(true, true);
-	ArrowComponent->SetHiddenInGame(false, true);
-	ArrowComponent->SetRenderCustomDepth(true);
-	ArrowComponent->SetWorldScale3D({ 3, 3, 3 });
+	staticMeshComponent->Activate(true);
+	staticMeshComponent->SetVisibility(true, true);
+	staticMeshComponent->SetHiddenInGame(false, true);
+	staticMeshComponent->SetRenderCustomDepth(true);
+	staticMeshComponent->SetWorldScale3D({ 3, 3, 3 });
 
 	/*auto defaultMat = uevr::API::get()->find_uobject<uevr::API::UObject*>(L"Material /Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial");
 
@@ -206,9 +206,9 @@ else
     Logger::DebugPrint("Could not find BasicShapeMaterial");
 	ArrowComponent->bForceDisableNanite = true;*/
 
-	Logger::DebugPrint("Disabled collision on ArrowComponent");
+	Logger::DebugPrint("Disabled collision on StaticMeshComponent");
 	// Store the actor reference for later use (e.g., to destroy it)
-    Logger::DebugPrint("Successfully spawned debug arrow component!\n");
+    Logger::DebugPrint("Successfully spawned debug mesh component!\n");
     return actor;
 }
 
