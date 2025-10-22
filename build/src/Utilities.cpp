@@ -92,7 +92,7 @@ void Utilities::InitHelperClasses()
 	//Logger::DebugPrint("%s", "KismethMathLibraryFound");
 }
 
-uevr::API::UObject* Utilities::SpawnActor(UEVR_Vector3d Position, uint8_t CollisionMethod, uevr::API::UObject* Owner)
+uevr::API::UObject* Utilities::SpawnActor(UEVR_Vector3d Position, uevr::API::UObject* Owner)
 {
 	auto gameEngine = uevr::API::get()->get_engine();
 	auto WorldContextObject = gameEngine->get_property<uevr::API::UObject*>(L"GameViewport")->get_property<uevr::API::UObject*>(L"World");
@@ -106,7 +106,7 @@ uevr::API::UObject* Utilities::SpawnActor(UEVR_Vector3d Position, uint8_t Collis
 	params.WorldContextObject = (SDK::UObject*)WorldContextObject;
 	params.ActorClass = (SDK::UClass*)ActorClass;
 	params.SpawnTransform = SpawnTransform;
-	params.CollisionHandlingOverride = SDK::ESpawnActorCollisionHandlingMethod::AlwaysSpawn; // 1 = AdjustIfPossibleButAlwaysSpawn
+	params.CollisionHandlingOverride = SDK::ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	params.Owner = (SDK::AActor*)Owner;
 	params.TransformScaleMethod = SDK::ESpawnActorScaleMethod::OverrideRootScale;
 
@@ -136,7 +136,7 @@ uevr::API::UObject* Utilities::SpawnActor(UEVR_Vector3d Position, uint8_t Collis
 
 SDK::AActor* Utilities::SpawnDebugCigars(UEVR_Vector3d Position)
 {
-	auto uevrActor = SpawnActor(Position, 1, nullptr);
+	auto uevrActor = SpawnActor(Position, nullptr);
 	auto actor = (SDK::AActor*)uevrActor;
 	if (!actor)
 	{

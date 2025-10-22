@@ -23,12 +23,25 @@ private:
 	void ApplyRecoil(float delta);
 	float RandomRange(float min, float max);
 	void spawnScope();
+	void getRenderTarget(SDK::UWorld* world);
+	void spawnScopePlaneComponent();
+
+	int cameraRenderTargetResolution = 1024;
 public:
 	WeaponController(MemoryManager* mm, SettingsManager* sm, PlayerManager* pm) : memoryManager(mm), settingsManager(sm), playerManager(pm) {};
 	bool IsShooting = false;
 	uevr::API::UObject* EquipController = nullptr;
 	uevr::API::UObject* CurrentWeapon = nullptr;
-	uevr::API::UObject* WeaponHook = nullptr;
+	uevr::API::UObject* WeaponRoot = nullptr;
+
+	SDK::AActor* ScopeActor = nullptr;
+
+	SDK::UStaticMeshComponent* ScopeCylinderComponent = nullptr;
+	SDK::UStaticMeshComponent* RedDotCylinderComponent = nullptr;
+	uevr::API::UObject* SceneCaptureComponent = nullptr;
+	uevr::API::UObject* SceneCaptureComponentMesh = nullptr;
+
+	SDK::UTextureRenderTarget2D* sniperRenderTarget = nullptr;
 
 	glm::fquat DefaultWeaponRotation{};
 	glm::fvec3 DefaultWeaponPosition{};

@@ -28,7 +28,7 @@ public:
 	static SDK::AActor* DebugCigar1;
 
 	static void InitHelperClasses();
-	static uevr::API::UObject* SpawnActor(UEVR_Vector3d Position, uint8_t CollisionMethod, uevr::API::UObject* Owner);
+	static uevr::API::UObject* SpawnActor(UEVR_Vector3d Position, uevr::API::UObject* Owner);
 	static SDK::AActor* SpawnDebugCigars(UEVR_Vector3d Position);
 	static void DestroyDebugCigars();
 

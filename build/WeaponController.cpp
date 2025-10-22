@@ -109,9 +109,9 @@ void WeaponController::ProcessWeapon(float delta)
 		CurrentWeapon = params1.ReturnValue;
 		Logger::DebugPrint("Updating Current weapon ptr");
 		Logger::DebugPrint(CurrentWeapon->get_full_name());
-		WeaponHook = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootSceneComponent");
-		if (WeaponHook == NULL) return;
-		Logger::DebugPrint(WeaponHook->get_full_name());
+		WeaponRoot = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootSceneComponent");
+		if (WeaponRoot == NULL) return;
+		Logger::DebugPrint(WeaponRoot->get_full_name());
 
 		FetchWeaponOffsets(CurrentWeaponEquippedID, DefaultWeaponPosition, DefaultWeaponRotation);
 		Logger::DebugPrint("Applied weapon offsets from config");
@@ -124,14 +124,14 @@ void WeaponController::ProcessWeapon(float delta)
 		UEVR_Vector3f defaultPos = { DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z };
 		UEVR_Quaternionf defaultRot = { DefaultWeaponRotation.x, DefaultWeaponRotation.y, DefaultWeaponRotation.z, DefaultWeaponRotation.w };
 
-		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(WeaponHook);
+		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(WeaponRoot);
 		motionState->set_location_offset(&defaultPos);
 		motionState->set_rotation_offset(&defaultRot);
 		motionState->set_hand(1);
 		motionState->set_permanent(true);
 
 		if (CurrentWeaponEquippedID == EGsrEquipId::WP_Dragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
-
+			spawnScope();
 	}
 	
 	//Apply recoil
@@ -361,7 +361,7 @@ void WeaponController::ApplyRecoil(float delta)
 		
 	}
 
-	auto motionState = uevr::API::UObjectHook::get_motion_controller_state(WeaponHook);
+	auto motionState = uevr::API::UObjectHook::get_motion_controller_state(WeaponRoot);
 	
 	//Logger::DebugPrint("%d", IsShooting);
 	if (IsShooting)
@@ -393,12 +393,126 @@ void WeaponController::ApplyRecoil(float delta)
 		motionState->set_rotation_offset(&rot);
 	}
 }
-	float WeaponController::RandomRange(float min, float max) {
-    return min + static_cast<float>(rand()) / RAND_MAX * (max - min);
-	}
 
-	void WeaponController::spawnScope()
+float WeaponController::RandomRange(float min, float max) {
+	return min + static_cast<float>(rand()) / RAND_MAX * (max - min);
+}
+
+void WeaponController::spawnScope()
+{
+	SDK::UWorld* world = SDK::UWorld::GetWorld();
+	Logger::DebugPrint("HEEEEEEEEEEEEEELLLLLLLLLLLLLOOOOOOOOOOOOOO");
+	SDK::USceneComponent* sdkCurrentWeapon = (SDK::USceneComponent*)WeaponRoot;
+	auto childrenArray = sdkCurrentWeapon->AttachChildren;
+	for (int i = 0; i < childrenArray.Num(); i++)
 	{
-
+		SDK::USceneComponent* child = childrenArray[i];
+		if (!child) continue;
+		if (child->IsA(SDK::UStaticMeshComponent::StaticClass())) {
+			child->K2_DestroyComponent(child);
+			ScopeCylinderComponent = nullptr;
+			RedDotCylinderComponent = nullptr;
+			Logger::DebugPrint("Old scope and red dot component destroyed");
+		}
 	}
+
+	getRenderTarget(world);
+
+	if (!sniperRenderTarget)
+	{
+		Logger::DebugPrint("Failed to get render target, destroying Scope actor");
+		if (ScopeActor)
+			ScopeActor->K2_DestroyActor();
+		ScopeCylinderComponent = nullptr;
+		RedDotCylinderComponent = nullptr;
+		SceneCaptureComponent = nullptr;
+		SceneCaptureComponentMesh = nullptr;
+		return;
+	}
+
+	SDK::FVector weaponPosition = sdkCurrentWeapon->K2_GetComponentLocation();
+	if (!ScopeActor)
+	{
+		ScopeCylinderComponent = nullptr;
+		RedDotCylinderComponent = nullptr;
+		SceneCaptureComponent = nullptr;
+		SceneCaptureComponentMesh = nullptr;
+		ScopeActor = (SDK::AActor*)Utilities::SpawnActor(UEVR_Vector3d{ weaponPosition.X, weaponPosition.Y, weaponPosition.Z }, nullptr);
+	}
+
+	if (!ScopeCylinderComponent)
+		spawnScopePlaneComponent();
+}
+
+void WeaponController::getRenderTarget(SDK::UWorld* world)
+{
+	SDK::FLinearColor linearColor{};
+	if (!sniperRenderTarget)
+		sniperRenderTarget = SDK::UKismetRenderingLibrary::CreateRenderTarget2D(world, cameraRenderTargetResolution, cameraRenderTargetResolution, SDK::ETextureRenderTargetFormat::RTF_RGBA16f, linearColor, false, false);
+}
+
+void WeaponController::spawnScopePlaneComponent()
+{
+	SDK::FTransform transform{};
+	auto scopeStaticMeshComponent = (SDK::UStaticMeshComponent*)ScopeActor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), false, transform, false);
+	auto redDotStaticMeshComponent = (SDK::UStaticMeshComponent*)ScopeActor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), false, transform, false);
+	if (!scopeStaticMeshComponent || !redDotStaticMeshComponent)
+	{
+		Logger::DebugPrint("Failed to spawn scope or red dot mesh");
+		return;
+	}
+
+	auto wantedMaterialUObject = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Material /Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial");
+	
+	if (!wantedMaterialUObject)
+	{
+		Logger::DebugPrint("Failed to find wantedMaterial");
+		return;
+	}
+	Logger::DebugPrint(wantedMaterialUObject->get_full_name().c_str());
+	auto uMaterial = (SDK::UMaterial*)wantedMaterialUObject;
+	uMaterial->TwoSided = false;
+	uMaterial->BlendMode = SDK::EBlendMode::BLEND_Opaque;
+	uMaterial->bDisableDepthTest = true;
+	uMaterial->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
+	uMaterial->ShadingModel = SDK::EMaterialShadingModel::MSM_Unlit;
+
+	auto cylinderMesh = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Engine/EngineMeshes/Cylinder.Cylinder");
+
+	//need to find a texture
+	//auto redDotTexture = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Engine/BasicShapes/Cylinder.Cylinder");
+	
+	if (!cylinderMesh)
+	{
+		Logger::DebugPrint("Can't find cylinder mesh");
+		return;
+	}
+
+	scopeStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cylinderMesh);
+	scopeStaticMeshComponent->SetVisibility(false, true);
+	scopeStaticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
+
+	//redDotStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cylinderMesh);
+	//redDotStaticMeshComponent->SetVisibility(false, true);
+	//redDotStaticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
+
+
+	auto scopeDynamicMaterial = scopeStaticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, uMaterial);
+	//auto redDotDynamicMaterial = redDotStaticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, uMaterial);
+
+	//Applying the render texture to the material :
+	scopeDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"LinearColor"), sniperRenderTarget);
+	SDK::FLinearColor color = {};
+	color.R, color.G, color.B, color.A = 2.0f;
+	scopeDynamicMaterial->SetVectorParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"Color"), color);
+	
+	//redDotDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"LinearColor"), redDotTexture);
+	//SDK::FLinearColor redDotColor = {};
+	//color.R, color.G, color.B, color.A = 0.6f;
+	//redDotDynamicMaterial->SetVectorParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"Color"), color);
+
+	ScopeCylinderComponent = scopeStaticMeshComponent;
+	RedDotCylinderComponent = redDotStaticMeshComponent;
+	Logger::DebugPrint("Sniper Cylinder Mesh spawned");
+}
 
