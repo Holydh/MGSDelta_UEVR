@@ -269,9 +269,12 @@ void ImGuiMenu::internalFrame()
 		if (ImGui::Checkbox("Attach To Snake Head", settingsManager->AttachCameraToSnakeHeadPtr))
 			settingsManager->SettingsModifiedThisFrame = true;
 
+		float available = ImGui::GetContentRegionAvail().x;
+		ImGui::PushItemWidth(available * 0.5f); 
 		if(ImGui::SliderFloat("Rotation Speed", settingsManager->CameraRotationSpeedPtr, 0.1f, 50.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
 
+		
 		if (ImGui::Checkbox("Smooth Camera Rotation", settingsManager->SmoothCameraRotationPtr))
 			settingsManager->SettingsModifiedThisFrame = true;
 
@@ -281,11 +284,12 @@ void ImGuiMenu::internalFrame()
 		if (ImGui::Checkbox("Smooth Camera Position", settingsManager->SmoothCameraPositionPtr))
 			settingsManager->SettingsModifiedThisFrame = true;
 
-		if(ImGui::SliderFloat("Position Horizontal Smoothness (X & Y Axis)", settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f))
+		if(ImGui::SliderFloat("Horizontal Smoothness (X&Y Axis)", settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
 
-		if(ImGui::SliderFloat("Position Vertical Smoothness (Z Axis)", settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f))
+		if(ImGui::SliderFloat("Vertical Smoothness (Z Axis)", settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
+		ImGui::PopItemWidth();
 		/*	
 		std::wstring object_path;
 		static char obj_path[256]{};

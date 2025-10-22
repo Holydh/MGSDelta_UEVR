@@ -108,7 +108,7 @@ void SettingsManager::FetchUevrSettings(bool writeToPlugin)
 void SettingsManager::FetchPluginSettings()
 {
 	if (debugMod) Logger::DebugPrint("UpdatePluginSettings()");
-	attachCameraToSnakeHead = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "attachCameraToSnakeHead", true);
+	attachCameraToSnakeHead = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "attachCameraToSnakeHead", false);
 	cameraRotationSpeed = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraRotationSpeed", 10.0f);
 	smoothCameraRotation = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraRotation", true);
 	cameraYawLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraYawLerp", 5.0f);
