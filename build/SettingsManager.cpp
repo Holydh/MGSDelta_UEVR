@@ -108,6 +108,7 @@ void SettingsManager::FetchUevrSettings(bool writeToPlugin)
 void SettingsManager::FetchPluginSettings()
 {
 	if (debugMod) Logger::DebugPrint("UpdatePluginSettings()");
+	attachCameraToSnakeHead = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "attachCameraToSnakeHead", true);
 	cameraRotationSpeed = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraRotationSpeed", 10.0f);
 	smoothCameraRotation = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraRotation", true);
 	cameraYawLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraYawLerp", 5.0f);
@@ -120,6 +121,7 @@ void SettingsManager::FetchPluginSettings()
 void SettingsManager::WriteSettingsToPluginConfigFile()
 {
 	if (debugMod) Logger::DebugPrint("WriteSettingsToPluginConfigFile()");
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "attachCameraToSnakeHead", attachCameraToSnakeHead);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraRotationSpeed", cameraRotationSpeed);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraRotation", smoothCameraRotation);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraYawLerp", cameraYawLerp);
@@ -142,7 +144,8 @@ void SettingsManager::GetOrCreateConfigFile()
 		std::string defaultContent = "# MGSDelta Plugin Configuration File\n"
 			"# This file is auto-generated. It saves the mgs plugin menu settings you set ingame.\n"
 			"------ Camera Settings ------\n"
-			"cameraRotationSpeed=10.0\n"
+			"attachCameraToSnakeHead=false\n"
+			"cameraRotationSpeed=25.0\n"
 			"smoothCameraRotation=true\n"
 			"cameraYawLerp=5.0\n"
 			"smoothCameraPosition=true\n"
