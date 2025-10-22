@@ -33,10 +33,14 @@ private:
     
     std::recursive_mutex m_imgui_mutex;
 
-    bool InitializeImGui();
-    void OnDeviceReset();
-    void InternalFrame();
-    void HandleVRcursor();
+    bool initializeImGui();
+    void onDeviceReset();
+    void internalFrame();
+    void handleVRcursor();
+    void checkMouseFocus(float delta);
+    float mouseUseTime = 0.7f;
+    float mouseUseTimer = 0.7f;
+
 public:
     ImGuiMenu(SettingsManager* sm) : settingsManager(sm) {};
 
@@ -44,7 +48,9 @@ public:
     void RenderImGuiVRFrameDX11(ID3D11DeviceContext* context, ID3D11Texture2D* texture, ID3D11RenderTargetView* rtv);
     void RenderImGuiVRFrameDX12(ID3D12GraphicsCommandList* command_list, ID3D12Resource* rt, D3D12_CPU_DESCRIPTOR_HANDLE* rtv);
 
-    void ProcessImGui();
+    void ProcessImGui(float deltaTime);
 
 	bool ImguiEnabled = true;
+    bool MouseMovedThisFrame = false;
+    bool MouseHasFocus = false;
 };

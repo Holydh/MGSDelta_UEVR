@@ -73,7 +73,7 @@ void HookManager::HookFireFunction() {
 
 void* HookManager::OnFireModded(uevr::API::UObject* equipController, SDK::FGsrFireRequest* FireRequest) {
 
-	Logger::DebugPrint("OnFireHook");
+	//Logger::DebugPrint("OnFireHook");
 	//Logger::DebugPrint("%d", s_weaponController->IsShooting);
 	s_weaponController->IsShooting = true;
 	//s_cameraController->ToggleCameraWobblingController(false);
@@ -84,11 +84,11 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, SDK::FGsrFi
 
 	//Logger::DebugPrint("s_weaponController->AimPosition.x.x : %f, s_weaponController->AimPosition.x.y : %f, s_weaponController->AimPosition.x.z : %f", 
 	//	s_weaponController->AimPosition.x, s_weaponController->AimPosition.y, s_weaponController->AimPosition.z);
-	Logger::DebugPrint("Old Aim Position: %f, %f, %f", FireRequest->AimPosition.X, FireRequest->AimPosition.Y, FireRequest->AimPosition.Z);
+	//Logger::DebugPrint("Old Aim Position: %f, %f, %f", FireRequest->AimPosition.X, FireRequest->AimPosition.Y, FireRequest->AimPosition.Z);
 	FireRequest->AimPosition.X = s_weaponController->AimPosition.x;
 	FireRequest->AimPosition.Y = s_weaponController->AimPosition.y;
 	FireRequest->AimPosition.Z = s_weaponController->AimPosition.z;
-	Logger::DebugPrint("New Aim Position: %f, %f, %f", FireRequest->AimPosition.X, FireRequest->AimPosition.Y, FireRequest->AimPosition.Z);
+	//Logger::DebugPrint("New Aim Position: %f, %f, %f", FireRequest->AimPosition.X, FireRequest->AimPosition.Y, FireRequest->AimPosition.Z);
 
 
 	//Call original function with our replaced parameters
@@ -131,6 +131,7 @@ bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::U
 			s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
 		}
 	}
+
 	return true;
 }
 
@@ -149,6 +150,7 @@ bool HookManager::mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn
 		//Logger::DebugPrint("PlayerEludeAction NextStateName: %s", s_playerManager->debugParamsTest.NextStateName.ToString().c_str());
 		s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
 	}
+
 	return true;
 }
 

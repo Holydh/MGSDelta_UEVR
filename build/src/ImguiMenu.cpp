@@ -4,7 +4,7 @@ void ImGuiMenu::RenderImGuiFrame()
 {
 	std::scoped_lock _{ m_imgui_mutex };
 	if (!m_initialized) {
-		if (!InitializeImGui()) {
+		if (!initializeImGui()) {
 			uevr::API::get()->log_info("Failed to initialize imgui");
 			return;
 		}
@@ -18,7 +18,7 @@ void ImGuiMenu::RenderImGuiFrame()
 	if (!uevr::API::get()->param()->vr->is_hmd_active()) {
 		if (!m_was_rendering_desktop) {
 			m_was_rendering_desktop = true;
-			OnDeviceReset();
+			onDeviceReset();
 			return;
 		}
 
@@ -53,7 +53,7 @@ void ImGuiMenu::RenderImGuiVRFrameDX11(ID3D11DeviceContext* context, ID3D11Textu
 
 	if (m_was_rendering_desktop) {
 		m_was_rendering_desktop = false;
-		OnDeviceReset();
+		onDeviceReset();
 		return;
 	}
 
@@ -76,7 +76,7 @@ void ImGuiMenu::RenderImGuiVRFrameDX12(ID3D12GraphicsCommandList* command_list, 
 
 	if (m_was_rendering_desktop) {
 		m_was_rendering_desktop = false;
-		OnDeviceReset();
+		onDeviceReset();
 		return;
 	}
 
@@ -86,7 +86,7 @@ void ImGuiMenu::RenderImGuiVRFrameDX12(ID3D12GraphicsCommandList* command_list, 
 	g_d3d12.render_imgui_vr(command_list, rtv);
 }
 
-void ImGuiMenu::ProcessImGui()
+void ImGuiMenu::ProcessImGui(float deltaTime)
 {
 	if (!m_initialized || !uevr::API::get()->param()->functions->is_drawing_ui())
 		return;
@@ -95,23 +95,30 @@ void ImGuiMenu::ProcessImGui()
 	//ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
 
 	//ImGui::GetIO().MousePos = ImVec2(100, 100);
-	HandleVRcursor();
+	checkMouseFocus(deltaTime);
+	handleVRcursor();
+	
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	InternalFrame();
+	internalFrame();
 
 	ImGui::EndFrame();
 	ImGui::Render();
 }
 
-void ImGuiMenu::HandleVRcursor()
+void ImGuiMenu::handleVRcursor()
 {
     // Get VR interface and device indices
     auto vr = uevr::API::get()->param()->vr;
     auto rightControllerIndex = vr->get_right_controller_index();
     auto hmdIndex = vr->get_hmd_index();
-    
+    ImGuiIO& io = ImGui::GetIO();
+	io.MouseDrawCursor = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
+
+	if (MouseHasFocus)
+		return;
+
     // Retrieve controller and HMD transforms
     UEVR_Matrix4x4f controllerPoseMatrix;
     UEVR_Matrix4x4f hmdPoseMatrix;
@@ -170,7 +177,6 @@ void ImGuiMenu::HandleVRcursor()
             float normalizedY = localY / uiSize;
             
             // Convert to ImGui screen coordinates
-            ImGuiIO& io = ImGui::GetIO();
             ImVec2 targetMousePosition(
                 (normalizedX + 0.5f) * io.DisplaySize.x,
                 (0.5f - normalizedY) * io.DisplaySize.y
@@ -190,12 +196,33 @@ void ImGuiMenu::HandleVRcursor()
             // Update ImGui input state
             io.MousePos = LastMousePosition;
             io.AddMouseButtonEvent(0, Inputs::IsActionActive(false, "/actions/default/in/AButtonRight"));
-            io.MouseDrawCursor = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
         }
     }
 }
 
-void ImGuiMenu::OnDeviceReset()
+void ImGuiMenu::checkMouseFocus(float delta)
+{
+	//Logger::DebugPrint("MouseMovedThisFrame : %i", MouseMovedThisFrame);
+	//Logger::DebugPrint("MouseHasFocus : %i", MouseHasFocus);
+	//Logger::DebugPrint("mouseUseTimer : %f", mouseUseTimer);
+	auto io = ImGui::GetIO();
+
+	if (!MouseMovedThisFrame && !io.MouseDown[0])
+	{
+		mouseUseTimer -= delta;
+	}
+	else
+	{
+		mouseUseTimer = mouseUseTime;
+		MouseHasFocus = true;
+	}
+	if (mouseUseTimer <= 0)
+	{
+		MouseHasFocus = false;
+	}
+}
+
+void ImGuiMenu::onDeviceReset()
 {
 	std::scoped_lock _{ m_imgui_mutex };
 
@@ -215,7 +242,7 @@ void ImGuiMenu::OnDeviceReset()
 	m_initialized = false;
 }
 
-void ImGuiMenu::InternalFrame()
+void ImGuiMenu::internalFrame()
 {
 	if (!uevr::API::get()->param()->functions->is_drawing_ui())
 		return;
@@ -238,6 +265,9 @@ void ImGuiMenu::InternalFrame()
 		if (ImGui::Button("Toggle decoupled pitch")) {
 			API::VR::set_decoupled_pitch_enabled(!API::VR::is_decoupled_pitch_enabled());
 		}*/
+
+		if (ImGui::Checkbox("Attach To Snake Head", settingsManager->AttachCameraToSnakeHeadPtr))
+			settingsManager->SettingsModifiedThisFrame = true;
 
 		if(ImGui::SliderFloat("Rotation Speed", settingsManager->CameraRotationSpeedPtr, 0.1f, 50.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
@@ -312,7 +342,7 @@ void ImGuiMenu::InternalFrame()
 	}
 }
 
-bool ImGuiMenu::InitializeImGui() {
+bool ImGuiMenu::initializeImGui() {
 	if (m_initialized) {
 		return true;
 	}

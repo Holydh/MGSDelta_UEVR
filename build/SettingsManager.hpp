@@ -39,6 +39,7 @@ public:
 	bool LoadWeaponConfigFromFile(const fs::path& path, WeaponConfig& outCfg);
 	void LoadAllWeaponConfigs(const std::filesystem::path& baseDir);
 
+	bool* AttachCameraToSnakeHeadPtr;
 	float* CameraRotationSpeedPtr;
 	bool* SmoothCameraRotationPtr;
 	float* CameraYawLerpPtr;
@@ -47,6 +48,7 @@ public:
 	float* CameraPositionZLerpPtr;
 	
 private:
+	bool attachCameraToSnakeHead = false;
 	float cameraRotationSpeed = 10.0f;
 	bool smoothCameraRotation = true;
 	float cameraYawLerp = 5.0f;

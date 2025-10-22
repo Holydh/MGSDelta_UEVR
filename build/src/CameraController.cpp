@@ -110,7 +110,7 @@ void CameraController::ProcessCamera(float deltaTime)
 	grassVolumeCollisionHead->call_function(L"K2_GetComponentLocation", &headColliderPosition);
 	//Logger::DebugPrint("headColliderPosition : %f, %f, %f", headColliderPosition.x, headColliderPosition.y, headColliderPosition.z);
 
-	UEVR_Vector3d tempPosition;
+	glm::fvec3 tempPosition;
 	glm::fvec3 newPosition;
 	//Logger::DebugPrint("Current Player Stance : %i", playerManager.CurrentStance);
 	//Logger::DebugPrint("Player Is Peeping: %i", playerManager.IsPeeping);
@@ -172,32 +172,39 @@ void CameraController::ProcessCamera(float deltaTime)
 	float remappedLerpXYMultiplier = Utilities::Remap(*settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
 	float remappedLerpZMultiplier = Utilities::Remap(*settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
 
-	if (playerManager->IsPeepingInternal)
+	if (playerManager->IsPeepingInternal) // initial peep movement
 	{
+		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr ? 
+			glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) : 
+			glm::fvec3(headColliderPosition.x, headColliderPosition.y, pawnPosition.z + CameraHeightOffset);
 		newPosition = *settingsManager->SmoothCameraPositionPtr ? 
-			glm::mix(LastCameraPosition, glm::fvec3(headColliderPosition.x, headColliderPosition.y, pawnPosition.z + CameraHeightOffset), 0.1f) :
-			glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z);
+			glm::mix(LastCameraPosition, tempPosition, 0.1f) :
+			tempPosition;
 	}
-	else if (playerManager->IsPeeping)
+	else if (playerManager->IsPeeping) // stops peeping
 	{
-		tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
+		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr ? 
+			glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) : 
+			glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
 		newPosition = *settingsManager->SmoothCameraPositionPtr ? 
 			glm::fvec3(
-			glm::mix(LastCameraPosition.x, (float)tempPosition.x, 4.5f * remappedLerpXYMultiplier * deltaTime),
-			glm::mix(LastCameraPosition.y, (float)tempPosition.y, 4.5f * remappedLerpXYMultiplier * deltaTime),
-			glm::mix(LastCameraPosition.z, (float)tempPosition.z, 2.25f * remappedLerpZMultiplier * deltaTime)) :
-			glm::fvec3(tempPosition.x, tempPosition.y, headColliderPosition.z);
+			glm::mix(LastCameraPosition.x, tempPosition.x, 4.5f * remappedLerpXYMultiplier * deltaTime),
+			glm::mix(LastCameraPosition.y, tempPosition.y, 4.5f * remappedLerpXYMultiplier * deltaTime),
+			glm::mix(LastCameraPosition.z, tempPosition.z, 2.25f * remappedLerpZMultiplier * deltaTime)) :
+			tempPosition;
 	}
 
 	else
 	{
-		tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
+		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr ? 
+			glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
+			glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
 		newPosition = *settingsManager->SmoothCameraPositionPtr ? 
 			glm::fvec3(
-			glm::mix(LastCameraPosition.x, (float)tempPosition.x, 11.25f * remappedLerpXYMultiplier * deltaTime),
-			glm::mix(LastCameraPosition.y, (float)tempPosition.y, 11.25f * remappedLerpXYMultiplier * deltaTime),
-			glm::mix(LastCameraPosition.z, (float)tempPosition.z, 2.25f * remappedLerpZMultiplier * deltaTime)):
-			glm::fvec3(tempPosition.x, tempPosition.y, headColliderPosition.z);;
+			glm::mix(LastCameraPosition.x, tempPosition.x, 11.25f * remappedLerpXYMultiplier * deltaTime),
+			glm::mix(LastCameraPosition.y, tempPosition.y, 11.25f * remappedLerpXYMultiplier * deltaTime),
+			glm::mix(LastCameraPosition.z, tempPosition.z, 2.25f * remappedLerpZMultiplier * deltaTime)):
+			tempPosition;
 	}
 
 	//Logger::DebugPrint("%f, %f", remappedLerpZMultiplier, 2.25f * remappedLerpZMultiplier * DeltaTime);

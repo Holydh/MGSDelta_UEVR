@@ -79,6 +79,7 @@ void SettingsManager::InitSettingsManager()
 	//FetchUevrSettings(false);
 	FetchPluginSettings();
 
+	AttachCameraToSnakeHeadPtr = &attachCameraToSnakeHead;
 	CameraRotationSpeedPtr = &cameraRotationSpeed;
 	SmoothCameraRotationPtr = &smoothCameraRotation;
 	CameraYawLerpPtr = &cameraYawLerp;

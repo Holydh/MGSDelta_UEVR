@@ -60,7 +60,7 @@ void MGSDeltaPlugin::on_initialize() {
 void MGSDeltaPlugin::on_present() {
 	if (!imGuiMenu.ImguiEnabled)
 		return;
-
+	
 	imGuiMenu.RenderImGuiFrame();
 }
 
@@ -92,8 +92,11 @@ void MGSDeltaPlugin::on_post_render_vr_framework_dx12(ID3D12GraphicsCommandList*
 bool MGSDeltaPlugin::on_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	if (imGuiMenu.ImguiEnabled && API::get()->param()->functions->is_drawing_ui())
 	{
-		if(ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
+		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
+		{
+			imGuiMenu.MouseMovedThisFrame = true;
 			return false;
+		}
 	}
 	return true;
 }
@@ -337,6 +340,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 
 void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
+	//auto start = std::chrono::high_resolution_clock::now();
 	playerManager.FetchGameState();
 
 	if (playerManager.IsPlayerControlled && !playerManager.WasPlayerControlled)
@@ -350,9 +354,10 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		Logger::DebugPrint("Player lost control");
 		Toggle6DOF(false);
 	}
-
+	
 	if (playerManager.IsPlayerControlled)
 	{
+		
 		/*Logger::DebugPrint("Before ResolveAddresses");*/
 		/*memoryManager.ResolveAddresses();*/
 		/*Logger::DebugPrint("Before FetchEquipController");*/
@@ -369,6 +374,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		playerManager.GetCurrentPlayerStance(delta);
 		playerManager.UpdatePeepingState(delta);
 		cameraController.ProcessCamera(delta);
+
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);
@@ -385,11 +391,15 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	//	Utilities::DebugCigar0->K2_SetActorRelativeLocation(cameraLocation + cameraController.CameraForwardVector * 100.0f, false, &hitResult, true);
 	//}
 
-	imGuiMenu.ProcessImGui();
+	imGuiMenu.ProcessImGui(delta);
 
 	playerManager.WasPlayerControlled = playerManager.IsPlayerControlled;
 	playerManager.WasPeepingInternal = playerManager.IsPeepingInternal;
 	playerManager.PreviousStance = playerManager.CurrentStance;
+	imGuiMenu.MouseMovedThisFrame = false;
+	//auto end = std::chrono::high_resolution_clock::now();
+	//auto duration_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+	//Logger::DebugPrint("execution time : %lld micro seconds", duration_ms.count());
 }
 
 void MGSDeltaPlugin::on_post_engine_tick(API::UGameEngine* engine, float delta) {
@@ -407,7 +417,7 @@ void MGSDeltaPlugin::on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle rend
 void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters, UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
-
+	
 	if (playerManager.IsPlayerControlled)
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
@@ -420,6 +430,8 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 		rot->roll = cameraController.CameraRotation.roll;
 		//Logger::DebugPrint("%f", rot->yaw);
 	}
+
+
 	
 	//Logger::DebugPrint("State Machine Name %s", playerManager.debugParamsTest.StateMachineName.ToString().c_str());
 	//Logger::DebugPrint("Next State Name %s", playerManager.debugParamsTest.NextStateName.ToString().c_str());
