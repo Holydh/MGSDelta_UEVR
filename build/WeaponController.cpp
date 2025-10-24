@@ -57,11 +57,6 @@ void WeaponController::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3&
     outRot = cfg.rotation_offset;
 }
 
-//void WeaponController::Initialize()
-//{
-//	FetchEquipController();
-//}
-
 void WeaponController::FetchEquipController()
 {
 	auto pawn = uevr::API::get()->get_local_pawn(0);
@@ -131,7 +126,34 @@ void WeaponController::ProcessWeapon(float delta)
 		motionState->set_permanent(true);
 
 		if (CurrentWeaponEquippedID == EGsrEquipId::WP_Dragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
+		{
+			SDK::USceneComponent* sdkCurrentWeapon = (SDK::USceneComponent*)WeaponRoot;
+			auto childrenArray = sdkCurrentWeapon->AttachChildren;
+			for (int i = 0; i < childrenArray.Num(); i++)
+			{
+				SDK::USceneComponent* child = childrenArray[i];
+				if (!child) continue;
+				if (child->IsA(SDK::USkeletalMeshComponent::StaticClass())) {
+					ReceiverMesh = (SDK::USkeletalMeshComponent*)child;
+					Logger::DebugPrint(child->GetFullName().c_str());
+				}
+				//Destroy any previous cylinder mesh if still attached
+				if (child->IsA(SDK::UStaticMeshComponent::StaticClass())) {
+					child->K2_DestroyComponent(child);
+					ScopeCylinderComponent = nullptr;
+					RedDotCylinderComponent = nullptr;
+					Logger::DebugPrint("Old scope and red dot component destroyed");
+				}
+			}
 			spawnScope();
+			attachScopeToWeapon();
+			SwitchScopeState(true);
+		}
+		else
+		{
+			SwitchScopeState(false);
+		}
+			
 	}
 	
 	//Apply recoil
@@ -286,6 +308,14 @@ void WeaponController::SetAimDirection()
 	//}
 }
 
+void WeaponController::SwitchScopeState(bool enable)
+{
+	if (SceneCaptureComponent) SceneCaptureComponent->SetVisibility(enable, false);
+	if (SceneCaptureUStaticMeshComponent) SceneCaptureUStaticMeshComponent->SetVisibility(enable, false);
+	if (ScopeCylinderComponent) ScopeCylinderComponent->SetVisibility(enable, false);
+	//if (RedDotComponent) RedDotComponent->SetVisibility(enable, false);
+}
+
 void WeaponController::ApplyRecoil(float delta)
 {
 	glm::fvec3 positionRecoilForce = { 0.0f, 0.0f, 0.0f };
@@ -403,18 +433,6 @@ void WeaponController::spawnScope()
 	SDK::UWorld* world = SDK::UWorld::GetWorld();
 	Logger::DebugPrint("HEEEEEEEEEEEEEELLLLLLLLLLLLLOOOOOOOOOOOOOO");
 	SDK::USceneComponent* sdkCurrentWeapon = (SDK::USceneComponent*)WeaponRoot;
-	auto childrenArray = sdkCurrentWeapon->AttachChildren;
-	for (int i = 0; i < childrenArray.Num(); i++)
-	{
-		SDK::USceneComponent* child = childrenArray[i];
-		if (!child) continue;
-		if (child->IsA(SDK::UStaticMeshComponent::StaticClass())) {
-			child->K2_DestroyComponent(child);
-			ScopeCylinderComponent = nullptr;
-			RedDotCylinderComponent = nullptr;
-			Logger::DebugPrint("Old scope and red dot component destroyed");
-		}
-	}
 
 	getRenderTarget(world);
 
@@ -426,7 +444,7 @@ void WeaponController::spawnScope()
 		ScopeCylinderComponent = nullptr;
 		RedDotCylinderComponent = nullptr;
 		SceneCaptureComponent = nullptr;
-		SceneCaptureComponentMesh = nullptr;
+		SceneCaptureUStaticMeshComponent = nullptr;
 		return;
 	}
 
@@ -436,22 +454,29 @@ void WeaponController::spawnScope()
 		ScopeCylinderComponent = nullptr;
 		RedDotCylinderComponent = nullptr;
 		SceneCaptureComponent = nullptr;
-		SceneCaptureComponentMesh = nullptr;
-		ScopeActor = (SDK::AActor*)Utilities::SpawnActor(UEVR_Vector3d{ weaponPosition.X, weaponPosition.Y, weaponPosition.Z }, nullptr);
+		SceneCaptureUStaticMeshComponent = nullptr;
+		ScopeActor = (SDK::AActor*)Utilities::SpawnActor(UEVR_Vector3d{0.0f, 0.0f, 0.0f}, (uevr::API::UObject*)ReceiverMesh->GetOwner());
+		Logger::DebugPrint("Scope Actor : %s", ScopeActor->GetFullName().c_str());
 	}
 
 	if (!ScopeCylinderComponent)
-		spawnScopePlaneComponent();
+		spawnScopeStaticMeshComponent();
+
+	if (!SceneCaptureComponent)
+		spawnSceneCaptureComponent();
 }
 
 void WeaponController::getRenderTarget(SDK::UWorld* world)
 {
 	SDK::FLinearColor linearColor{};
 	if (!sniperRenderTarget)
+	{
 		sniperRenderTarget = SDK::UKismetRenderingLibrary::CreateRenderTarget2D(world, cameraRenderTargetResolution, cameraRenderTargetResolution, SDK::ETextureRenderTargetFormat::RTF_RGBA16f, linearColor, false, false);
+		Logger::DebugPrint("Render target created : %s", sniperRenderTarget->GetFullName().c_str());
+	}
 }
 
-void WeaponController::spawnScopePlaneComponent()
+void WeaponController::spawnScopeStaticMeshComponent()
 {
 	SDK::FTransform transform{};
 	auto scopeStaticMeshComponent = (SDK::UStaticMeshComponent*)ScopeActor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), false, transform, false);
@@ -461,6 +486,8 @@ void WeaponController::spawnScopePlaneComponent()
 		Logger::DebugPrint("Failed to spawn scope or red dot mesh");
 		return;
 	}
+	Logger::DebugPrint("scopeStaticMeshComponent created : %s", scopeStaticMeshComponent->GetFullName().c_str());
+	Logger::DebugPrint("redDotStaticMeshComponent created : %s", redDotStaticMeshComponent->GetFullName().c_str());
 
 	auto wantedMaterialUObject = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Material /Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial");
 	
@@ -489,13 +516,14 @@ void WeaponController::spawnScopePlaneComponent()
 	}
 
 	scopeStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cylinderMesh);
-	scopeStaticMeshComponent->SetVisibility(false, true);
+	scopeStaticMeshComponent->SetVisibility(false, false);
 	scopeStaticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
+	scopeStaticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
 
 	//redDotStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cylinderMesh);
 	//redDotStaticMeshComponent->SetVisibility(false, true);
 	//redDotStaticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
-
+	//redDotStaticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
 
 	auto scopeDynamicMaterial = scopeStaticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, uMaterial);
 	//auto redDotDynamicMaterial = redDotStaticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, uMaterial);
@@ -503,9 +531,9 @@ void WeaponController::spawnScopePlaneComponent()
 	//Applying the render texture to the material :
 	scopeDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"LinearColor"), sniperRenderTarget);
 	SDK::FLinearColor color = {};
-	color.R, color.G, color.B, color.A = 2.0f;
+	color.R = color.G = color.B = color.A = 2.0f;
 	scopeDynamicMaterial->SetVectorParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"Color"), color);
-	
+	Logger::DebugPrint("scopeDynamicMaterial created and render target applied to it : %s", scopeDynamicMaterial->GetFullName().c_str());
 	//redDotDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"LinearColor"), redDotTexture);
 	//SDK::FLinearColor redDotColor = {};
 	//color.R, color.G, color.B, color.A = 0.6f;
@@ -515,4 +543,115 @@ void WeaponController::spawnScopePlaneComponent()
 	RedDotCylinderComponent = redDotStaticMeshComponent;
 	Logger::DebugPrint("Sniper Cylinder Mesh spawned");
 }
+
+void WeaponController::spawnSceneCaptureComponent()
+{
+	SDK::FTransform transform{};
+	SceneCaptureUStaticMeshComponent = (SDK::UStaticMeshComponent*)ScopeActor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), false, transform, false);
+	SceneCaptureComponent = (SDK::USceneCaptureComponent2D*)ScopeActor->AddComponentByClass(SDK::USceneCaptureComponent2D::StaticClass(), false, transform, false);
+
+	if (!SceneCaptureUStaticMeshComponent || !SceneCaptureComponent)
+	{
+		Logger::DebugPrint("failed to spawn scene capture mesh and component");
+		return;
+	}
+	SceneCaptureComponent->TextureTarget = sniperRenderTarget;
+	SceneCaptureComponent->bCaptureOnMovement = false;
+	SceneCaptureComponent->bCaptureEveryFrame = true;
+	SceneCaptureComponent->bUseRayTracingIfEnabled = false;
+	//SceneCaptureComponent->PrimitiveRenderMode = SDK::ESceneCapturePrimitiveRenderMode::PRM_LegacySceneCapture;
+	//SceneCaptureComponent->CaptureSource = SDK::ESceneCaptureSource::SCS_SceneColorHDR;
+	SceneCaptureComponent->bAlwaysPersistRenderingState = true;
+	SceneCaptureComponent->bCaptureEveryFrame = 1;
+	SceneCaptureComponent->PostProcessSettings.bOverride_MotionBlurAmount = true;
+	SceneCaptureComponent->PostProcessSettings.MotionBlurAmount = 0.0; //Disable motion blur
+	SceneCaptureComponent->PostProcessSettings.bOverride_ScreenSpaceReflectionIntensity = true;
+	SceneCaptureComponent->PostProcessSettings.ScreenSpaceReflectionIntensity = 0.0; //Disable screen space reflections
+	SceneCaptureComponent->PostProcessSettings.bOverride_AmbientOcclusionIntensity = true;
+	SceneCaptureComponent->PostProcessSettings.AmbientOcclusionIntensity = 0.0; //Disable ambient occlusion
+	SceneCaptureComponent->PostProcessSettings.bOverride_BloomIntensity = true;
+	SceneCaptureComponent->PostProcessSettings.BloomIntensity = 0.0;
+	SceneCaptureComponent->PostProcessSettings.bOverride_LensFlareIntensity = true;
+	SceneCaptureComponent->PostProcessSettings.LensFlareIntensity = 0.0; //Disable lens flares
+	SceneCaptureComponent->PostProcessSettings.bOverride_VignetteIntensity = true;
+	SceneCaptureComponent->PostProcessSettings.VignetteIntensity = 0.0;//Disable vignette
+	SceneCaptureComponent->SetVisibility(false, false);
+	SceneCaptureComponent->SetMobility(SDK::EComponentMobility::Movable);
+
+	SceneCaptureUStaticMeshComponent->SetVisibility(false, false);
+	SceneCaptureUStaticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
+
+	auto cigarMesh = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Game/Art/Environment/HD_GameplayAssets/Mesh/ciga_cigar_dmo_hd.ciga_cigar_dmo_hd");
+	SceneCaptureUStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cigarMesh);
+}
+
+glm::vec3 ToGlmVec(const SDK::FVector& v) {
+    return glm::vec3(v.X, v.Y, v.Z);
+}
+
+glm::quat ToGlmQuat(const SDK::FQuat& q) {
+    return glm::quat(q.W, q.X, q.Y, q.Z); // note: Unreal stores XYZW, GLM expects WXYZ
+}
+
+
+void WeaponController::attachScopeToWeapon()
+{
+	if (!ReceiverMesh){	Logger::DebugPrint("attachScopeToWeapon() : ReceiverMesh not found"); return; }
+	if (!SceneCaptureComponent){	Logger::DebugPrint("attachScopeToWeapon() : SceneCaptureComponent not found"); return; }
+	if (!SceneCaptureUStaticMeshComponent){	Logger::DebugPrint("attachScopeToWeapon() : SceneCaptureComponentMesh not found"); return; }
+	if (!ScopeCylinderComponent){	Logger::DebugPrint("attachScopeToWeapon() : ScopeCylinderComponent not found"); return; }
+	//if (!ReceiverMesh){	Logger::DebugPrint("attachScopeToWeapon() : ReceiverMesh not found"); return; }
+
+	Logger::DebugPrint("Attaching scope to weapon");
+	SceneCaptureUStaticMeshComponent->K2_AttachToComponent(
+		ReceiverMesh,
+		SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_MUZZLE_FLASH"),
+		SDK::EAttachmentRule::SnapToTarget,
+		SDK::EAttachmentRule::SnapToTarget,
+		SDK::EAttachmentRule::KeepRelative,
+		true
+	);
+	
+	SceneCaptureComponent->K2_AttachToComponent(
+		ReceiverMesh,
+		SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_MUZZLE_FLASH"),
+		SDK::EAttachmentRule::SnapToTarget,
+		SDK::EAttachmentRule::SnapToTarget,
+		SDK::EAttachmentRule::KeepRelative,
+		true
+	);
+
+	ScopeCylinderComponent->K2_AttachToComponent(		
+		ReceiverMesh,
+		SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_REAR_SIGHT"),
+		SDK::EAttachmentRule::SnapToTarget,
+		SDK::EAttachmentRule::SnapToTarget,
+		SDK::EAttachmentRule::KeepRelative,
+		true
+	);
+
+	SDK::FHitResult hitResult;
+	SceneCaptureComponent->SetVisibility(true, true);
+	SceneCaptureComponent->SetMobility(SDK::EComponentMobility::Movable);
+	SceneCaptureComponent->Activate(true);
+
+
+	auto cigarForward = SceneCaptureUStaticMeshComponent->GetForwardVector();
+	auto captureForward = SceneCaptureComponent->GetForwardVector();
+
+	auto deltaQuat = SDK::UKismetMathLibrary::MakeRotFromX(captureForward)
+		- SDK::UKismetMathLibrary::MakeRotFromX(cigarForward);
+	
+	Logger::DebugPrint("deltaRot : x=%f, y=%f, z=%f", deltaQuat.Pitch, deltaQuat.Yaw, deltaQuat.Roll);
+
+	SceneCaptureUStaticMeshComponent->SetRelativeScale3D({ 10.0f, 10.0f, 10.0f });
+	//SceneCaptureUStaticMeshComponent->K2_SetWorldRotation(CurrentWeaponWorldRotation, false, &hitResult, true);
+
+	ScopeCylinderComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.0f }, false, &hitResult, true);
+
+	ScopeCylinderComponent->SetRelativeScale3D({0.25f, 0.25f, 0.25f});
+	ScopeCylinderComponent->SetVisibility(false, false);
+}
+
+
 

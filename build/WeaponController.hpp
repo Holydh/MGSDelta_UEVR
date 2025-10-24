@@ -24,7 +24,9 @@ private:
 	float RandomRange(float min, float max);
 	void spawnScope();
 	void getRenderTarget(SDK::UWorld* world);
-	void spawnScopePlaneComponent();
+	void spawnScopeStaticMeshComponent();
+	void spawnSceneCaptureComponent();
+	void attachScopeToWeapon();
 
 	int cameraRenderTargetResolution = 1024;
 public:
@@ -33,13 +35,14 @@ public:
 	uevr::API::UObject* EquipController = nullptr;
 	uevr::API::UObject* CurrentWeapon = nullptr;
 	uevr::API::UObject* WeaponRoot = nullptr;
+	SDK::USkeletalMeshComponent* ReceiverMesh = nullptr;
 
 	SDK::AActor* ScopeActor = nullptr;
 
 	SDK::UStaticMeshComponent* ScopeCylinderComponent = nullptr;
 	SDK::UStaticMeshComponent* RedDotCylinderComponent = nullptr;
-	uevr::API::UObject* SceneCaptureComponent = nullptr;
-	uevr::API::UObject* SceneCaptureComponentMesh = nullptr;
+	SDK::USceneCaptureComponent2D* SceneCaptureComponent = nullptr;
+	SDK::UStaticMeshComponent* SceneCaptureUStaticMeshComponent = nullptr;
 
 	SDK::UTextureRenderTarget2D* sniperRenderTarget = nullptr;
 
@@ -353,4 +356,6 @@ public:
 	void ApplyAimDataToMemory();
 
 	void SetAimDirection();
+
+	void SwitchScopeState(bool enable);
 };

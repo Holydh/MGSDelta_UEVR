@@ -193,8 +193,8 @@ SDK::AActor* Utilities::SpawnDebugCigars(UEVR_Vector3d Position)
     staticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
 
 	staticMeshComponent->Activate(true);
-	staticMeshComponent->SetVisibility(true, true);
-	staticMeshComponent->SetHiddenInGame(false, true);
+	staticMeshComponent->SetVisibility(true, false);
+	staticMeshComponent->SetHiddenInGame(false, false);
 	staticMeshComponent->SetRenderCustomDepth(true);
 	staticMeshComponent->SetWorldScale3D({ 3, 3, 3 });
 

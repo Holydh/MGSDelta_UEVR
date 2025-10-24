@@ -332,6 +332,18 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.DestroyCameraAttachementActor();
 		API::VR::set_mod_value("VR_2DScreenMode", true);
 		API::VR::set_mod_value("VR_WorldScale", 0.0f);
+		if (weaponController.ScopeCylinderComponent) weaponController.ScopeCylinderComponent->K2_DestroyComponent(weaponController.ScopeCylinderComponent);
+		if (weaponController.RedDotCylinderComponent) weaponController.RedDotCylinderComponent->K2_DestroyComponent(weaponController.RedDotCylinderComponent);
+		if (weaponController.SceneCaptureComponent) weaponController.SceneCaptureComponent->K2_DestroyComponent(weaponController.SceneCaptureComponent);
+		if (weaponController.SceneCaptureUStaticMeshComponent) weaponController.SceneCaptureUStaticMeshComponent->K2_DestroyComponent(weaponController.SceneCaptureUStaticMeshComponent);
+		if (weaponController.ScopeActor)
+			weaponController.ScopeActor->K2_DestroyActor();
+		weaponController.ScopeCylinderComponent = nullptr;
+		weaponController.RedDotCylinderComponent = nullptr;
+		weaponController.SceneCaptureComponent = nullptr;
+		weaponController.SceneCaptureUStaticMeshComponent = nullptr;
+		weaponController.ScopeActor = nullptr;
+
 	/*	Utilities::DestroyDebugCigars();*/
 		vr_enabled = enable;
 	}
@@ -365,7 +377,9 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		/*Logger::DebugPrint("Before ProcessWeapon");*/
 		weaponController.ProcessWeapon(delta);
 		/*Logger::DebugPrint("Before FetchWeaponMeshAimData");*/
+
 		weaponController.FetchWeaponMeshAimData();
+
 		/*Logger::DebugPrint("Before ApplyAimDataToMemory");*/
 		//weaponController.ApplyAimDataToMemory();
 		/*Logger::DebugPrint("Before SetAimDirection");*/
@@ -374,7 +388,19 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		playerManager.GetCurrentPlayerStance(delta);
 		playerManager.UpdatePeepingState(delta);
 		cameraController.ProcessCamera(delta);
-
+		//if (weaponController.SceneCaptureUStaticMeshComponent)
+		//{
+		//			SDK::FHitResult hitresult{};
+		//weaponController.SceneCaptureUStaticMeshComponent->K2_SetWorldLocationAndRotation(
+		//	SDK::FVector{ weaponController.CurrentWeaponPosition.x, weaponController.CurrentWeaponPosition.y, weaponController.CurrentWeaponPosition.z },
+		//	SDK::FRotator{ weaponController.CurrentWeaponRotation.x, weaponController.CurrentWeaponRotation.y,weaponController.CurrentWeaponRotation.z },
+		//	false,
+		//	&hitresult,
+		//	false);
+		//}
+	/*	SDK::FHitResult hitResult{};
+		if (weaponController.SceneCaptureUStaticMeshComponent)
+			weaponController.SceneCaptureUStaticMeshComponent->K2_SetRelativeRotation(weaponController.CurrentWeaponWorldRotation, false, &hitResult, false);*/
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);
