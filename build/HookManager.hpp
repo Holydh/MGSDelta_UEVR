@@ -35,14 +35,14 @@ private:
     using FireFn = void* (*)(uevr::API::UObject*, SDK::FGsrFireRequest*);
     inline static FireFn m_fire_hook_fn{};
 
-    static void* OnCameraModifyModded(uevr::API::UObject* cameraModifier, float* deltaTime, SDK::FVector* viewLocation, SDK::FRotator* viewRotation, float* FOV, SDK::FVector* newViewLocation, SDK::FRotator* newViewRotation, float* newFOV);
-    static void* OnCameraModify(uevr::API::UObject* cameraModifier, float* deltaTime, SDK::FVector* viewLocation, SDK::FRotator* viewRotation, float* FOV, SDK::FVector* newViewLocation, SDK::FRotator* newViewRotation, float* newFOV) {
-        return OnCameraModifyModded(cameraModifier, deltaTime, viewLocation, viewRotation, FOV, newViewLocation, newViewRotation, newFOV);
-    };
-    bool m_camera_modify_hooked{ false };
-    int32_t m_camera_modify_hook_id{};
-    using CameraModifyFn = void* (*)(uevr::API::UObject*, float*, SDK::FVector*, SDK::FRotator*, float*, SDK::FVector*, SDK::FRotator*, float*);
-    inline static CameraModifyFn m_camera_modify_hook_fn{};
+    //static void* OnCameraModifyModded(uevr::API::UObject* cameraModifier, float* deltaTime, SDK::FVector* viewLocation, SDK::FRotator* viewRotation, float* FOV, SDK::FVector* newViewLocation, SDK::FRotator* newViewRotation, float* newFOV);
+    //static void* OnCameraModify(uevr::API::UObject* cameraModifier, float* deltaTime, SDK::FVector* viewLocation, SDK::FRotator* viewRotation, float* FOV, SDK::FVector* newViewLocation, SDK::FRotator* newViewRotation, float* newFOV) {
+    //    return OnCameraModifyModded(cameraModifier, deltaTime, viewLocation, viewRotation, FOV, newViewLocation, newViewRotation, newFOV);
+    //};
+    //bool m_camera_modify_hooked{ false };
+    //int32_t m_camera_modify_hook_id{};
+    //using CameraModifyFn = void* (*)(uevr::API::UObject*, float*, SDK::FVector*, SDK::FRotator*, float*, SDK::FVector*, SDK::FRotator*, float*);
+    //inline static CameraModifyFn m_camera_modify_hook_fn{};
 
     //inline hook:
     //static void* on_ISetSmoothedAimPosition_internal(uevr::API::UObject* self, UEVR_Rotatord* rotation);

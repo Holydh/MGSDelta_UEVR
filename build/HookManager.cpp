@@ -99,25 +99,25 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, SDK::FGsrFi
 	return result;
 }
 
-void HookManager::HookCameraModifyFunction() {
-	m_camera_modify_hook_id = hook_fn(
-		L"Class /Script/GameplayCameras.CameraAnimationCameraModifier",
-		L"BlueprintModifyCamera",
-		OnCameraModify,
-		(void**)&m_camera_modify_hook_fn,
-		false);
-}
-
-void* HookManager::OnCameraModifyModded(uevr::API::UObject* cameraModifier, float* deltaTime, SDK::FVector* viewLocation, SDK::FRotator* viewRotation, float* FOV, SDK::FVector* newViewLocation, SDK::FRotator* newViewRotation, float* newFOV) {
-
-	//Logger::DebugPrint("newFOV : 0x%p", newFOV);
-	/*if (cameraModifier->is_a(Utilities::ABP_SnakeBasicAction_C))*/
-
-	//Call original function with our replaced parameters
-	auto result = m_camera_modify_hook_fn(cameraModifier, deltaTime, viewLocation, viewRotation, FOV, newViewLocation, newViewRotation, newFOV);
-	//PLUGIN_LOG_ONCE("Result: 0x%p", result);
-	return result;
-}
+//void HookManager::HookCameraModifyFunction() {
+//	m_camera_modify_hook_id = hook_fn(
+//		L"Class /Script/GameplayCameras.CameraAnimationCameraModifier",
+//		L"BlueprintModifyCamera",
+//		OnCameraModify,
+//		(void**)&m_camera_modify_hook_fn,
+//		false);
+//}
+//
+//void* HookManager::OnCameraModifyModded(uevr::API::UObject* cameraModifier, float* deltaTime, SDK::FVector* viewLocation, SDK::FRotator* viewRotation, float* FOV, SDK::FVector* newViewLocation, SDK::FRotator* newViewRotation, float* newFOV) {
+//
+//	//Logger::DebugPrint("newFOV : 0x%p", newFOV);
+//	/*if (cameraModifier->is_a(Utilities::ABP_SnakeBasicAction_C))*/
+//
+//	//Call original function with our replaced parameters
+//	auto result = m_camera_modify_hook_fn(cameraModifier, deltaTime, viewLocation, viewRotation, FOV, newViewLocation, newViewRotation, newFOV);
+//	//PLUGIN_LOG_ONCE("Result: 0x%p", result);
+//	return result;
+//}
 
 //void HookManager::hook_ISetSmoothedAimPosition_fn() {
 //	m_ISetSmoothedAimPosition_hook_id = hook_fn(
