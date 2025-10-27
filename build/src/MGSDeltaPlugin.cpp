@@ -55,6 +55,7 @@ void MGSDeltaPlugin::on_initialize() {
 	//weaponController.Initialize();
 	memoryManager.InitMemoryManager();
 	hookManager.HookFireFunction();
+	//hookManager.HookCameraModifyFunction();
 }
 
 void MGSDeltaPlugin::on_present() {
@@ -398,9 +399,12 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		//	&hitresult,
 		//	false);
 		//}
-	/*	SDK::FHitResult hitResult{};
-		if (weaponController.SceneCaptureUStaticMeshComponent)
-			weaponController.SceneCaptureUStaticMeshComponent->K2_SetRelativeRotation(weaponController.CurrentWeaponWorldRotation, false, &hitResult, false);*/
+		//SDK::FHitResult hitResult{};
+		//if (weaponController.SceneCaptureUStaticMeshComponent && weaponController.SceneCaptureComponent)
+		//{
+		//	//auto transform = weaponController.ReceiverMesh->GetSocketTransform(SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_MUZZLE_FLASH"), SDK::ERelativeTransformSpace::RTS_World);
+		//	weaponController.SceneCaptureUStaticMeshComponent->K2_SetWorldTransform(weaponController.MuzzleTransform, false, &hitResult, true);
+		//}
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);

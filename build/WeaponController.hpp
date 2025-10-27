@@ -11,6 +11,7 @@
 #include "SDK/CoreUObject_structs.hpp"
 #include "SDK/Engine_parameters.hpp"
 #include "SDK/Engine_Classes.hpp"
+#include "SDK/Gsr_parameters.hpp"
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
 

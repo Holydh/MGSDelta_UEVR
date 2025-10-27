@@ -71,28 +71,50 @@ void HookManager::HookFireFunction() {
 		true);
 }
 
-void* HookManager::OnFireModded(uevr::API::UObject* equipController, SDK::FGsrFireRequest* FireRequest) {
+void* HookManager::OnFireModded(uevr::API::UObject* equipController, SDK::FGsrFireRequest* fireRequest) {
 
 	//Logger::DebugPrint("OnFireHook");
 	//Logger::DebugPrint("%d", s_weaponController->IsShooting);
 	s_weaponController->IsShooting = true;
 	//s_cameraController->ToggleCameraWobblingController(false);
 	//Logger::DebugPrint("%f", s_weaponController->AimPosition.x);
-	FireRequest->FirePosition.X = s_weaponController->FirePosition.x;
-	FireRequest->FirePosition.Y = s_weaponController->FirePosition.y;
-	FireRequest->FirePosition.Z = s_weaponController->FirePosition.z;
+	//Logger::DebugPrint("FireRequest->FirePosition.X : %f, FireRequest->FirePosition.Y : %f, FireRequest->FirePosition.Z : %f", FireRequest->FirePosition.X, FireRequest->FirePosition.Y, FireRequest->FirePosition.Z);
+
+	fireRequest->FirePosition.X = s_weaponController->FirePosition.x;
+	fireRequest->FirePosition.Y = s_weaponController->FirePosition.y;
+	fireRequest->FirePosition.Z = s_weaponController->FirePosition.z;
 
 	//Logger::DebugPrint("s_weaponController->AimPosition.x.x : %f, s_weaponController->AimPosition.x.y : %f, s_weaponController->AimPosition.x.z : %f", 
 	//	s_weaponController->AimPosition.x, s_weaponController->AimPosition.y, s_weaponController->AimPosition.z);
 	//Logger::DebugPrint("Old Aim Position: %f, %f, %f", FireRequest->AimPosition.X, FireRequest->AimPosition.Y, FireRequest->AimPosition.Z);
-	FireRequest->AimPosition.X = s_weaponController->AimPosition.x;
-	FireRequest->AimPosition.Y = s_weaponController->AimPosition.y;
-	FireRequest->AimPosition.Z = s_weaponController->AimPosition.z;
+	fireRequest->AimPosition.X = s_weaponController->AimPosition.x;
+	fireRequest->AimPosition.Y = s_weaponController->AimPosition.y;
+	fireRequest->AimPosition.Z = s_weaponController->AimPosition.z;
 	//Logger::DebugPrint("New Aim Position: %f, %f, %f", FireRequest->AimPosition.X, FireRequest->AimPosition.Y, FireRequest->AimPosition.Z);
 
 
 	//Call original function with our replaced parameters
-	auto result = m_fire_hook_fn(equipController, FireRequest);
+	auto result = m_fire_hook_fn(equipController, fireRequest);
+	//PLUGIN_LOG_ONCE("Result: 0x%p", result);
+	return result;
+}
+
+void HookManager::HookCameraModifyFunction() {
+	m_camera_modify_hook_id = hook_fn(
+		L"Class /Script/GameplayCameras.CameraAnimationCameraModifier",
+		L"BlueprintModifyCamera",
+		OnCameraModify,
+		(void**)&m_camera_modify_hook_fn,
+		false);
+}
+
+void* HookManager::OnCameraModifyModded(uevr::API::UObject* cameraModifier, float* deltaTime, SDK::FVector* viewLocation, SDK::FRotator* viewRotation, float* FOV, SDK::FVector* newViewLocation, SDK::FRotator* newViewRotation, float* newFOV) {
+
+	//Logger::DebugPrint("newFOV : 0x%p", newFOV);
+	/*if (cameraModifier->is_a(Utilities::ABP_SnakeBasicAction_C))*/
+
+	//Call original function with our replaced parameters
+	auto result = m_camera_modify_hook_fn(cameraModifier, deltaTime, viewLocation, viewRotation, FOV, newViewLocation, newViewRotation, newFOV);
 	//PLUGIN_LOG_ONCE("Result: 0x%p", result);
 	return result;
 }
@@ -153,6 +175,25 @@ bool HookManager::mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn
 
 	return true;
 }
+
+//bool HookManager::mod_CameraModifier_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+//{
+//	//if (locals != nullptr)
+//	//{
+//	//	//auto true_locals = (char*)locals - 0x50;
+//	//	//SDK::Params::CameraModifier_BlueprintModifyCamera *params = (SDK::Params::CameraModifier_BlueprintModifyCamera*)true_locals;
+//	//	//auto test = params->NewFOV;
+//	//	/*Logger::DebugPrint("FUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU");*/
+//	//	/*Logger::DebugPrint("New FOV : 0x%p", locals);*/
+//	//	//s_playerManager->debugParamsTest.NextStateName = params->NextStateName;
+//	//	//s_playerManager->debugParamsTest.StateMachineName = params->StateMachineName;
+//	//	//Logger::DebugPrint("PlayerEludeAction StateMachineName: %s", s_playerManager->debugParamsTest.StateMachineName.ToString().c_str());
+//	//	//Logger::DebugPrint("PlayerEludeAction NextStateName: %s", s_playerManager->debugParamsTest.NextStateName.ToString().c_str());
+//	//	
+//	//}
+//
+//	return true;
+//}
 
 //bool HookManager::mod_SetCameraRotation_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 //{

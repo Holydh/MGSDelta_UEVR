@@ -35,6 +35,15 @@ private:
     using FireFn = void* (*)(uevr::API::UObject*, SDK::FGsrFireRequest*);
     inline static FireFn m_fire_hook_fn{};
 
+    static void* OnCameraModifyModded(uevr::API::UObject* cameraModifier, float* deltaTime, SDK::FVector* viewLocation, SDK::FRotator* viewRotation, float* FOV, SDK::FVector* newViewLocation, SDK::FRotator* newViewRotation, float* newFOV);
+    static void* OnCameraModify(uevr::API::UObject* cameraModifier, float* deltaTime, SDK::FVector* viewLocation, SDK::FRotator* viewRotation, float* FOV, SDK::FVector* newViewLocation, SDK::FRotator* newViewRotation, float* newFOV) {
+        return OnCameraModifyModded(cameraModifier, deltaTime, viewLocation, viewRotation, FOV, newViewLocation, newViewRotation, newFOV);
+    };
+    bool m_camera_modify_hooked{ false };
+    int32_t m_camera_modify_hook_id{};
+    using CameraModifyFn = void* (*)(uevr::API::UObject*, float*, SDK::FVector*, SDK::FRotator*, float*, SDK::FVector*, SDK::FRotator*, float*);
+    inline static CameraModifyFn m_camera_modify_hook_fn{};
+
     //inline hook:
     //static void* on_ISetSmoothedAimPosition_internal(uevr::API::UObject* self, UEVR_Rotatord* rotation);
     //static void* on_ISetSmoothedAimPosition(uevr::API::UObject* self, UEVR_Rotatord* rotation){
@@ -52,12 +61,14 @@ public:
     void Initialize();
     //void SetGunAdjustValuesFromConfig(const std::filesystem::path& ConfigFile);
     void HookFireFunction();
+    void HookCameraModifyFunction();
     /*void hook_ISetSmoothedAimPosition_fn();*/
 
     // Standard hook :
     bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native);
     static bool mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    //static bool mod_CameraModifier_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     /*static bool mod_SetCameraRotation_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);*/
     /*static bool mod_ISetAimPosition_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);*/
 };

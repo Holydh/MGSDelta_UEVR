@@ -174,17 +174,23 @@ void WeaponController::FetchWeaponMeshAimData()
 	if (root_component != nullptr)
 	{
 		SDK::FVector forward_params;
-		root_component->call_function(L"GetForwardVector", &forward_params);
+		CurrentWeapon->call_function(L"GetActorForwardVector", &forward_params);
 		//Logger::DebugPrint("ForwardVector.x : %f, ForwardVector.y : %f, ForwardVector.z : %f", forward_params.x, forward_params.y, forward_params.z);
-		SDK::FTransform muzzle_transform;
-		root_component->call_function(L"GetMuzzleTransform", &muzzle_transform);
-		//Logger::DebugPrint("FirePosition.x : %f, FirePosition.y : %f, FirePosition.z : %f", muzzle_transform.Translation.x, muzzle_transform.Translation.y, muzzle_transform.Translation.z);
-		FirePosition = { muzzle_transform.Translation.X, muzzle_transform.Translation.Y, muzzle_transform.Translation.Z };
+		
+		SDK::Params::GsrGun_GetMuzzleTransform muzzle_transform;
+		muzzle_transform.TransformSpace = SDK::ERelativeTransformSpace::RTS_World;
+		CurrentWeapon->call_function(L"GetMuzzleTransform", &muzzle_transform);
+		//Logger::DebugPrint("FirePosition.x : %f, FirePosition.y : %f, FirePosition.z : %f", muzzle_transform.ReturnValue.Translation.X, muzzle_transform.ReturnValue.Translation.Y, muzzle_transform.ReturnValue.Translation.Z);
+		auto actor = (SDK::AActor*)CurrentWeapon;
+		auto rotation = actor->K2_GetActorRotation();
+		//Logger::DebugPrint("rotation.Pitch : %f, rotation.Roll : %f, rotation.Yaw : %f", rotation.Pitch, rotation.Roll, rotation.Yaw);
+
+		FirePosition = { muzzle_transform.ReturnValue.Translation.X, muzzle_transform.ReturnValue.Translation.Y, muzzle_transform.ReturnValue.Translation.Z };
 		float scaler = 8192.0;
 		SDK::Params::KismetMathLibrary_RotateAngleAxis rotate_params;
 		rotate_params.InVect = forward_params;
 		rotate_params.AngleDeg = 90.0f;
-		root_component->call_function(L"GetUpVector", &rotate_params.Axis);
+		CurrentWeapon->call_function(L"GetActorUpVector", &rotate_params.Axis);
 		Utilities::KismetMathLibrary->call_function(L"RotateAngleAxis", &rotate_params);
 		forward_params = { rotate_params.ReturnValue.X, rotate_params.ReturnValue.Y, rotate_params.ReturnValue.Z };
 
@@ -199,6 +205,8 @@ void WeaponController::FetchWeaponMeshAimData()
         Utilities::KismetMathLibrary->call_function(L"MakeRotFromX", &makeRotFromX_params);
 		
 		CurrentWeaponWorldRotation = makeRotFromX_params.ReturnValue;
+		//Logger::DebugPrint("CurrentWeaponWorldRotation.x : %f, CurrentWeaponWorldRotation.y : %f, CurrentWeaponWorldRotation.z : %f", 
+		//	CurrentWeaponWorldRotation.Pitch, CurrentWeaponWorldRotation.Yaw, CurrentWeaponWorldRotation.Roll);
 
 		float aimOffsetValueHorizontal = 0.0f;
 		float aimOffsetValueVertical = 0.0f;
@@ -504,7 +512,7 @@ void WeaponController::spawnScopeStaticMeshComponent()
 	uMaterial->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
 	uMaterial->ShadingModel = SDK::EMaterialShadingModel::MSM_Unlit;
 
-	auto cylinderMesh = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Engine/EngineMeshes/Cylinder.Cylinder");
+	auto cylinderMesh = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Game/Art/VFX/Game_HD_VFX/Fire/Fire/TheFury_Fire/Mesh/SM_VFX_Disk20edge.SM_VFX_Disk20edge");
 
 	//need to find a texture
 	//auto redDotTexture = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Engine/BasicShapes/Cylinder.Cylinder");
@@ -581,8 +589,8 @@ void WeaponController::spawnSceneCaptureComponent()
 	SceneCaptureUStaticMeshComponent->SetVisibility(false, false);
 	SceneCaptureUStaticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
 
-	auto cigarMesh = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Game/Art/Environment/HD_GameplayAssets/Mesh/ciga_cigar_dmo_hd.ciga_cigar_dmo_hd");
-	SceneCaptureUStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cigarMesh);
+	//auto cigarMesh = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Game/Art/Environment/HD_GameplayAssets/Mesh/ciga_cigar_dmo_hd.ciga_cigar_dmo_hd");
+	//SceneCaptureUStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cigarMesh);
 }
 
 glm::vec3 ToGlmVec(const SDK::FVector& v) {
@@ -613,8 +621,8 @@ void WeaponController::attachScopeToWeapon()
 	);
 	
 	SceneCaptureComponent->K2_AttachToComponent(
-		ReceiverMesh,
-		SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_MUZZLE_FLASH"),
+		SceneCaptureUStaticMeshComponent,
+		SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
 		SDK::EAttachmentRule::SnapToTarget,
 		SDK::EAttachmentRule::SnapToTarget,
 		SDK::EAttachmentRule::KeepRelative,
@@ -634,22 +642,11 @@ void WeaponController::attachScopeToWeapon()
 	SceneCaptureComponent->SetVisibility(true, true);
 	SceneCaptureComponent->SetMobility(SDK::EComponentMobility::Movable);
 	SceneCaptureComponent->Activate(true);
+	SceneCaptureComponent->K2_SetRelativeRotation({0.0f, 90.0f, 0.0f}, false, &hitResult, true);
 
-
-	auto cigarForward = SceneCaptureUStaticMeshComponent->GetForwardVector();
-	auto captureForward = SceneCaptureComponent->GetForwardVector();
-
-	auto deltaQuat = SDK::UKismetMathLibrary::MakeRotFromX(captureForward)
-		- SDK::UKismetMathLibrary::MakeRotFromX(cigarForward);
-	
-	Logger::DebugPrint("deltaRot : x=%f, y=%f, z=%f", deltaQuat.Pitch, deltaQuat.Yaw, deltaQuat.Roll);
-
-	SceneCaptureUStaticMeshComponent->SetRelativeScale3D({ 10.0f, 10.0f, 10.0f });
-	//SceneCaptureUStaticMeshComponent->K2_SetWorldRotation(CurrentWeaponWorldRotation, false, &hitResult, true);
-
-	ScopeCylinderComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.0f }, false, &hitResult, true);
-
-	ScopeCylinderComponent->SetRelativeScale3D({0.25f, 0.25f, 0.25f});
+	ScopeCylinderComponent->K2_SetRelativeLocation({ 0.0f, -26.0f, 0.0f }, false, &hitResult, true);
+	ScopeCylinderComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
+	ScopeCylinderComponent->SetRelativeScale3D({0.15f, 0.15f, 0.15f});
 	ScopeCylinderComponent->SetVisibility(false, false);
 }
 
