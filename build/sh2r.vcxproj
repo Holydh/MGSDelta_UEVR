@@ -330,6 +330,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="HookManager.cpp" />
     <ClCompile Include="Inputs.cpp" />
     <ClCompile Include="MemoryManager.cpp" />

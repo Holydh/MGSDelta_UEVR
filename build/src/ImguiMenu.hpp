@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Logger.hpp"
 #include "uevr/API.hpp"
 #include "Inputs.hpp"

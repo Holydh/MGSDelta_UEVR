@@ -4,8 +4,6 @@ using namespace uevr;
 
 #define MAX_DEBUG_MESSAGE_SIZE 2048
 
-bool g_DebugEnabled = true;
-
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
 MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager),
@@ -334,17 +332,19 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		API::VR::set_mod_value("VR_2DScreenMode", true);
 		API::VR::set_mod_value("VR_WorldScale", 0.0f);
 		if (weaponController.ScopeCylinderComponent) weaponController.ScopeCylinderComponent->K2_DestroyComponent(weaponController.ScopeCylinderComponent);
-		if (weaponController.RedDotCylinderComponent) weaponController.RedDotCylinderComponent->K2_DestroyComponent(weaponController.RedDotCylinderComponent);
+		if (weaponController.ScopeWidgetStaticMeshComponent) weaponController.ScopeWidgetStaticMeshComponent->K2_DestroyComponent(weaponController.ScopeWidgetStaticMeshComponent);
 		if (weaponController.SceneCaptureComponent) weaponController.SceneCaptureComponent->K2_DestroyComponent(weaponController.SceneCaptureComponent);
 		if (weaponController.SceneCaptureUStaticMeshComponent) weaponController.SceneCaptureUStaticMeshComponent->K2_DestroyComponent(weaponController.SceneCaptureUStaticMeshComponent);
 		if (weaponController.ScopeWidget) weaponController.ScopeWidget->K2_DestroyComponent(weaponController.ScopeWidget);
-		if (weaponController.ScopeActor)
-			weaponController.ScopeActor->K2_DestroyActor();
+		if (weaponController.ScopeActor) weaponController.ScopeActor->K2_DestroyActor();
 		weaponController.ScopeCylinderComponent = nullptr;
-		weaponController.RedDotCylinderComponent = nullptr;
+		weaponController.ScopeWidgetStaticMeshComponent = nullptr;
 		weaponController.SceneCaptureComponent = nullptr;
 		weaponController.SceneCaptureUStaticMeshComponent = nullptr;
 		weaponController.ScopeActor = nullptr;
+		weaponController.SniperRenderTarget = nullptr;
+		weaponController.SourceScopeWidget = nullptr;
+		weaponController.ScopeWidgetDynamicMaterial = nullptr;
 
 	/*	Utilities::DestroyDebugCigars();*/
 		vr_enabled = enable;
@@ -406,7 +406,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		//	//auto transform = weaponController.ReceiverMesh->GetSocketTransform(SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_MUZZLE_FLASH"), SDK::ERelativeTransformSpace::RTS_World);
 		//	weaponController.SceneCaptureUStaticMeshComponent->K2_SetWorldTransform(weaponController.MuzzleTransform, false, &hitResult, true);
 		//}
-		
+		auto rt = weaponController.ScopeWidget->GetRenderTarget();
+		weaponController.ScopeWidgetDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"LinearColor"), rt);
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);

@@ -43,14 +43,16 @@ public:
 	SDK::USkeletalMeshComponent* ReceiverMesh = nullptr;
 
 	SDK::AActor* ScopeActor = nullptr;
+	SDK::UCSightDragnovWidget* SourceScopeWidget = nullptr;
 	SDK::UWidgetComponent* ScopeWidget = nullptr;
 
 	SDK::UStaticMeshComponent* ScopeCylinderComponent = nullptr;
-	SDK::UStaticMeshComponent* RedDotCylinderComponent = nullptr;
+	SDK::UStaticMeshComponent* ScopeWidgetStaticMeshComponent = nullptr;
 	SDK::USceneCaptureComponent2D* SceneCaptureComponent = nullptr;
 	SDK::UStaticMeshComponent* SceneCaptureUStaticMeshComponent = nullptr;
 
-	SDK::UTextureRenderTarget2D* sniperRenderTarget = nullptr;
+	SDK::UTextureRenderTarget2D* SniperRenderTarget = nullptr;
+	SDK::UMaterialInstanceDynamic* ScopeWidgetDynamicMaterial = nullptr;
 
 	glm::fquat DefaultWeaponRotation{};
 	glm::fvec3 DefaultWeaponPosition{};

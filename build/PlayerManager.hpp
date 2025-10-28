@@ -1,5 +1,4 @@
 #pragma once
-
 #include "uevr/API.hpp"
 #include "Utilities.hpp"
 #include "SDK/UMG_structs.hpp"
