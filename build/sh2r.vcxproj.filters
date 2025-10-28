@@ -85,6 +85,9 @@
     <ClCompile Include="Inputs.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\SDK\UMG_functions.cpp">
+      <Filter>src\sdk</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\MGSDeltaPlugin.hpp">

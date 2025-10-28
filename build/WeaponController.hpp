@@ -12,6 +12,9 @@
 #include "SDK/Engine_parameters.hpp"
 #include "SDK/Engine_Classes.hpp"
 #include "SDK/Gsr_parameters.hpp"
+#include "SDK/UMG_classes.hpp"
+#include "SDK/CobraUI_classes.hpp"
+
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
 
@@ -27,6 +30,7 @@ private:
 	void getRenderTarget(SDK::UWorld* world);
 	void spawnScopeStaticMeshComponent();
 	void spawnSceneCaptureComponent();
+	void spawnScopeWidget();
 	void attachScopeToWeapon();
 
 	int cameraRenderTargetResolution = 1024;
@@ -39,6 +43,7 @@ public:
 	SDK::USkeletalMeshComponent* ReceiverMesh = nullptr;
 
 	SDK::AActor* ScopeActor = nullptr;
+	SDK::UWidgetComponent* ScopeWidget = nullptr;
 
 	SDK::UStaticMeshComponent* ScopeCylinderComponent = nullptr;
 	SDK::UStaticMeshComponent* RedDotCylinderComponent = nullptr;

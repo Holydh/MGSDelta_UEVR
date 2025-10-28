@@ -337,6 +337,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		if (weaponController.RedDotCylinderComponent) weaponController.RedDotCylinderComponent->K2_DestroyComponent(weaponController.RedDotCylinderComponent);
 		if (weaponController.SceneCaptureComponent) weaponController.SceneCaptureComponent->K2_DestroyComponent(weaponController.SceneCaptureComponent);
 		if (weaponController.SceneCaptureUStaticMeshComponent) weaponController.SceneCaptureUStaticMeshComponent->K2_DestroyComponent(weaponController.SceneCaptureUStaticMeshComponent);
+		if (weaponController.ScopeWidget) weaponController.ScopeWidget->K2_DestroyComponent(weaponController.ScopeWidget);
 		if (weaponController.ScopeActor)
 			weaponController.ScopeActor->K2_DestroyActor();
 		weaponController.ScopeCylinderComponent = nullptr;
@@ -405,6 +406,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		//	//auto transform = weaponController.ReceiverMesh->GetSocketTransform(SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_MUZZLE_FLASH"), SDK::ERelativeTransformSpace::RTS_World);
 		//	weaponController.SceneCaptureUStaticMeshComponent->K2_SetWorldTransform(weaponController.MuzzleTransform, false, &hitResult, true);
 		//}
+		
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);
