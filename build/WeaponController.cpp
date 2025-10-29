@@ -316,6 +316,60 @@ void WeaponController::SetAimDirection()
 	//}
 }
 
+void ProcessAllChildWidgets(SDK::UWidget* ParentWidget, SDK::FLinearColor NewTint)
+{
+	if (!ParentWidget) return;
+	
+	// Process this widget if it's an image
+	if (strstr(ParentWidget->GetFullName().c_str(), "Image"))
+	{
+		SDK::UImage* ImageWidget = (SDK::UImage*)ParentWidget;
+		Logger::DebugPrint("Found image: %s", ParentWidget->GetFullName().c_str());
+		//ImageWidget->SetColorAndOpacity(NewTint);
+		//auto oriColor = ImageWidget->ColorAndOpacity;
+		//ImageWidget->SetColorAndOpacity(NewTint);
+
+
+
+		SDK::FSlateBrush Brush = ImageWidget->Brush;
+		auto color = Brush.TintColor.SpecifiedColor;
+		//Logger::DebugPrint("Color A : %f, R : %f, G : %f, B : %f ", color.A, color.R, color.G, color.B);
+		Brush.TintColor.SpecifiedColor = NewTint;
+		ImageWidget->SetBrush(Brush);
+	}
+	
+	// Recurse into children
+	SDK::UPanelWidget* Panel = (SDK::UPanelWidget*)ParentWidget;
+	if (Panel)
+	{
+		int ChildCount = Panel->GetChildrenCount();
+		Logger::DebugPrint("Panel has %i children", ChildCount);
+		
+		for (int i = 0; i < ChildCount; i++)
+		{
+			SDK::UWidget* Child = Panel->GetChildAt(i);
+			if (Child)
+			{
+				ProcessAllChildWidgets(Child, NewTint);
+			}
+		}
+	}
+}
+
+void SetAllImageTints(SDK::UUserWidget* Widget, SDK::FLinearColor NewTint)
+{
+	if (!Widget) return;
+	Logger::DebugPrint("SetAllImageTints");
+	
+	//SDK::UPanelWidget* RootWidget = (SDK::UPanelWidget*)Widget->WidgetTree->RootWidget;
+	SDK::UPanelWidget* RootWidget = (SDK::UPanelWidget*)Widget;
+	if (RootWidget)
+	{
+		Logger::DebugPrint("Root widget found: %s", RootWidget->GetFullName().c_str());
+		ProcessAllChildWidgets(RootWidget, NewTint);
+	}
+}
+
 void WeaponController::SwitchScopeState(bool enable)
 {
 	if (SceneCaptureComponent) SceneCaptureComponent->SetVisibility(enable, false);
@@ -323,7 +377,16 @@ void WeaponController::SwitchScopeState(bool enable)
 	if (ScopeCylinderComponent) ScopeCylinderComponent->SetVisibility(enable, false);
 	if (SourceScopeWidget) SourceScopeWidget->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
 	if (ScopeWidgetStaticMeshComponent) ScopeWidgetStaticMeshComponent->SetVisibility(enable, false);
-	//if (RedDotComponent) RedDotComponent->SetVisibility(enable, false);
+
+	//Hide the black background behind the scope widget
+	if (!SourceScopeWidget) return;
+	auto bpSourceScopeWidget = (SDK::USightDragnovWidget_C*)SourceScopeWidget;
+	//bpSourceScopeWidget->BoxBg->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
+	//bpSourceScopeWidget->RightBox->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
+	//bpSourceScopeWidget->LeftBox->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
+	SDK::FLinearColor color = { 1.0f, 1.0f, 1.0f, 1.0f }; //clarity ++, but pink. Applied on Brush.TintColor.SpecifiedColor
+	auto arrowGroup = bpSourceScopeWidget->ArrowGroup;
+	SetAllImageTints((SDK::UUserWidget*)arrowGroup, color);
 }
 
 void WeaponController::ApplyRecoil(float delta)
@@ -496,32 +559,32 @@ void WeaponController::spawnScopeStaticMeshComponent()
 {
 	SDK::FTransform transform{};
 	auto scopeStaticMeshComponent = (SDK::UStaticMeshComponent*)ScopeActor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), false, transform, false);
-	auto scopeWidgetStaticMeshComponent = (SDK::UStaticMeshComponent*)ScopeActor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), false, transform, false);
-	if (!scopeStaticMeshComponent || !scopeWidgetStaticMeshComponent)
+	//auto scopeWidgetStaticMeshComponent = (SDK::UStaticMeshComponent*)ScopeActor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), false, transform, false);
+	if (!scopeStaticMeshComponent/* || !scopeWidgetStaticMeshComponent*/)
 	{
 		Logger::DebugPrint("Failed to spawn scope or red dot mesh");
 		return;
 	}
 	Logger::DebugPrint("scopeStaticMeshComponent created : %s", scopeStaticMeshComponent->GetFullName().c_str());
-	Logger::DebugPrint("redDotStaticMeshComponent created : %s", scopeWidgetStaticMeshComponent->GetFullName().c_str());
+	//Logger::DebugPrint("redDotStaticMeshComponent created : %s", scopeWidgetStaticMeshComponent->GetFullName().c_str());
 
 	auto scopeDiskMaterialUObject = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Material /Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial");
-	auto scopeSightWidgetMaterialUObject = uevr::API::get()->find_uobject<uevr::API::UObject>(
-		L"Material /Engine/EngineMaterials/Widget3DPassThrough.Widget3DPassThrough");
+	//auto scopeSightWidgetMaterialUObject = uevr::API::get()->find_uobject<uevr::API::UObject>(
+	//	L"Material /Game/Art/Environment/HD_GameplayAssets/Materials/MasterMaterial/M_Glass.M_Glass");
 
 	if (!scopeDiskMaterialUObject)
 	{
 		Logger::DebugPrint("Failed to find scopeDiskMaterialUObject");
 		return;
 	}
-	if (!scopeSightWidgetMaterialUObject)
-	{
-		Logger::DebugPrint("Failed to find scopeSightWidgetMaterialUObject");
-		return;
-	}
+	//if (!scopeSightWidgetMaterialUObject)
+	//{
+	//	Logger::DebugPrint("Failed to find scopeSightWidgetMaterialUObject");
+	//	return;
+	//}
 
 	Logger::DebugPrint(scopeDiskMaterialUObject->get_full_name().c_str());
-	Logger::DebugPrint(scopeSightWidgetMaterialUObject->get_full_name().c_str());
+	//Logger::DebugPrint(scopeSightWidgetMaterialUObject->get_full_name().c_str());
 
 	auto uDiskMaterial = (SDK::UMaterial*)scopeDiskMaterialUObject;
 	uDiskMaterial->TwoSided = false;
@@ -530,12 +593,12 @@ void WeaponController::spawnScopeStaticMeshComponent()
 	//uMaterial->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
 	uDiskMaterial->ShadingModel = SDK::EMaterialShadingModel::MSM_DefaultLit;
 
-	auto uWidgetSightMaterial = (SDK::UMaterial*)scopeDiskMaterialUObject;
-	uWidgetSightMaterial->TwoSided = false;
-	//uWidgetSightMaterial->BlendMode = SDK::EBlendMode::BLEND_Translucent;
-	uWidgetSightMaterial->bDisableDepthTest = true;
-	//uWidgetSightMaterial->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
-	uWidgetSightMaterial->ShadingModel = SDK::EMaterialShadingModel::MSM_DefaultLit;
+	//auto uWidgetSightMaterial = (SDK::UMaterial*)scopeSightWidgetMaterialUObject;
+	//uWidgetSightMaterial->TwoSided = false;
+	////uWidgetSightMaterial->BlendMode = SDK::EBlendMode::BLEND_Translucent;
+	//uWidgetSightMaterial->bDisableDepthTest = true;
+	////uWidgetSightMaterial->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
+	//uWidgetSightMaterial->ShadingModel = SDK::EMaterialShadingModel::MSM_DefaultLit;
 
 	auto cylinderMesh = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Game/Art/VFX/Game_HD_VFX/Fire/Fire/TheFury_Fire/Mesh/SM_VFX_Disk20edge.SM_VFX_Disk20edge");
 
@@ -553,13 +616,13 @@ void WeaponController::spawnScopeStaticMeshComponent()
 	scopeStaticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
 	scopeStaticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
 
-	scopeWidgetStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cylinderMesh);
-	scopeWidgetStaticMeshComponent->SetVisibility(false, true);
-	scopeWidgetStaticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
-	scopeWidgetStaticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
+	//scopeWidgetStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cylinderMesh);
+	//scopeWidgetStaticMeshComponent->SetVisibility(false, true);
+	//scopeWidgetStaticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
+	//scopeWidgetStaticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
 
 	auto scopeDynamicMaterial = scopeStaticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, uDiskMaterial);
-	auto scopeWidgetDynamicMaterial = scopeWidgetStaticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, uWidgetSightMaterial);
+	//auto scopeWidgetDynamicMaterial = scopeWidgetStaticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, uWidgetSightMaterial);
 	Logger::DebugPrint("scopeDynamicMaterial created %s", scopeDynamicMaterial->GetFullName().c_str());
 	//Applying the render texture to the material :
 	scopeDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"LinearColor"), SniperRenderTarget);
@@ -570,9 +633,9 @@ void WeaponController::spawnScopeStaticMeshComponent()
 
 
 
-	ScopeWidgetDynamicMaterial = scopeWidgetDynamicMaterial;
+	//ScopeWidgetDynamicMaterial = scopeWidgetDynamicMaterial;
 	ScopeCylinderComponent = scopeStaticMeshComponent;
-	ScopeWidgetStaticMeshComponent = scopeWidgetStaticMeshComponent;
+	//ScopeWidgetStaticMeshComponent = scopeWidgetStaticMeshComponent;
 	Logger::DebugPrint("Sniper Cylinder Mesh spawned");
 }
 
@@ -663,9 +726,17 @@ void WeaponController::spawnScopeWidget()
 	widgetComponent->SetDrawSize(drawSize);
 	widgetComponent->BlendMode = SDK::EWidgetBlendMode::Transparent;
 	//Logger::DebugPrint("Blend mode : %i", (int)widgetComponent->BlendMode);
-	sourceWidget->RenderOpacity = 0.0f;
-	sourceWidget->ColorAndOpacity.A = 0.0f;
-	sourceWidget->ForegroundColor.SpecifiedColor.A = 0.0f;
+	//sourceWidget->RenderOpacity = 0.0f;
+	//sourceWidget->ColorAndOpacity.A = 0.0f;
+	//sourceWidget->ForegroundColor.SpecifiedColor.A = 0.0f;
+
+	//SDK::FLinearColor color = { 0.4f, 0.6f, 0.6f, 0.6f };
+	//widgetComponent->MaterialInstance->SetVectorParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"TintColorAndOpacity"), color);
+	//widgetComponent->MaterialInstance->SetScalarParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"OpacityFromTexture"), 0.75f);
+	//widgetComponent->MaterialInstance->BasePropertyOverrides.bOverride_BlendMode = true;
+	//widgetComponent->MaterialInstance->BasePropertyOverrides.BlendMode = SDK::EBlendMode::BLEND_Translucent;
+	//widgetComponent->MaterialInstance->SetVectorParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"BackColor"), color);
+
 	SourceScopeWidget = (SDK::UCSightDragnovWidget*)sourceWidget;
 	ScopeWidget = widgetComponent;
 	Logger::DebugPrint(ScopeWidget->GetFullName().c_str());
@@ -708,23 +779,23 @@ void WeaponController::attachScopeToWeapon()
 		true
 	);
 
-	ScopeWidgetStaticMeshComponent->K2_AttachToComponent(
-		ReceiverMesh,
-		SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_REAR_SIGHT"),
-		SDK::EAttachmentRule::SnapToTarget,
-		SDK::EAttachmentRule::SnapToTarget,
-		SDK::EAttachmentRule::KeepRelative,
-		true
-	);
-
-	//ScopeWidget->K2_AttachToComponent(
-	//	ScopeCylinderComponent,
-	//	SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
+	//ScopeWidgetStaticMeshComponent->K2_AttachToComponent(
+	//	ReceiverMesh,
+	//	SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_REAR_SIGHT"),
 	//	SDK::EAttachmentRule::SnapToTarget,
 	//	SDK::EAttachmentRule::SnapToTarget,
 	//	SDK::EAttachmentRule::KeepRelative,
 	//	true
 	//);
+
+	ScopeWidget->K2_AttachToComponent(
+		ScopeCylinderComponent,
+		SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
+		SDK::EAttachmentRule::SnapToTarget,
+		SDK::EAttachmentRule::SnapToTarget,
+		SDK::EAttachmentRule::KeepRelative,
+		true
+	);
 
 	SDK::FHitResult hitResult;
 	SceneCaptureComponent->SetVisibility(true, true);
@@ -738,13 +809,13 @@ void WeaponController::attachScopeToWeapon()
 	ScopeCylinderComponent->SetRelativeScale3D({2.0f, 2.0f, 2.0f});
 	ScopeCylinderComponent->SetVisibility(false, false);
 
-	ScopeWidgetStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, -26.0f, 0.0f }, false, &hitResult, true);
-	ScopeWidgetStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
-	//ScopeWidgetStaticMeshComponent->SetRelativeScale3D({0.15f, 0.15f, 0.15f});
-	ScopeWidgetStaticMeshComponent->SetRelativeScale3D({2.0f, 2.0f, 2.0f});
-	ScopeWidgetStaticMeshComponent->SetVisibility(false, false);
+	//ScopeWidgetStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, -26.0f, 0.0f }, false, &hitResult, true);
+	//ScopeWidgetStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
+	////ScopeWidgetStaticMeshComponent->SetRelativeScale3D({0.15f, 0.15f, 0.15f});
+	//ScopeWidgetStaticMeshComponent->SetRelativeScale3D({2.0f, 2.0f, 2.0f});
+	//ScopeWidgetStaticMeshComponent->SetVisibility(false, false);
 
-	ScopeWidget->K2_SetRelativeLocation({ 0.0f, 0.0f, 1.0f }, false, &hitResult, true);
+	ScopeWidget->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.05f }, false, &hitResult, true);
 	ScopeWidget->K2_SetRelativeRotation({ 90.0f, 0.0f, -90.0f }, false, &hitResult, true);
 	//ScopeCylinderComponent->SetRelativeScale3D({0.15f, 0.15f, 0.15f});
 	ScopeWidget->SetRelativeScale3D({0.02f, 0.02f, 0.02f});

@@ -14,6 +14,8 @@
 #include "SDK/Gsr_parameters.hpp"
 #include "SDK/UMG_classes.hpp"
 #include "SDK/CobraUI_classes.hpp"
+#include "SDK/SightDragnovWidget_classes.hpp"
+#include "SDK/UMG_classes.hpp"
 
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
@@ -52,7 +54,8 @@ public:
 	SDK::UStaticMeshComponent* SceneCaptureUStaticMeshComponent = nullptr;
 
 	SDK::UTextureRenderTarget2D* SniperRenderTarget = nullptr;
-	SDK::UMaterialInstanceDynamic* ScopeWidgetDynamicMaterial = nullptr;
+	//SDK::UMaterialInstanceDynamic* ScopeWidgetDynamicMaterial = nullptr;
+	//SDK::UMaterialInstanceDynamic* ScopeDiskDynamicMaterial = nullptr;
 
 	glm::fquat DefaultWeaponRotation{};
 	glm::fvec3 DefaultWeaponPosition{};

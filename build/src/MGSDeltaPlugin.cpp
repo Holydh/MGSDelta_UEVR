@@ -344,8 +344,9 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		weaponController.ScopeActor = nullptr;
 		weaponController.SniperRenderTarget = nullptr;
 		weaponController.SourceScopeWidget = nullptr;
-		weaponController.ScopeWidgetDynamicMaterial = nullptr;
-
+		//weaponController.ScopeWidgetDynamicMaterial = nullptr;
+		//weaponController.ScopeDiskDynamicMaterial = nullptr;
+		
 	/*	Utilities::DestroyDebugCigars();*/
 		vr_enabled = enable;
 	}
@@ -390,24 +391,15 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		playerManager.GetCurrentPlayerStance(delta);
 		playerManager.UpdatePeepingState(delta);
 		cameraController.ProcessCamera(delta);
-		//if (weaponController.SceneCaptureUStaticMeshComponent)
+		
+
+
+		//if (weaponController.ScopeWidgetDynamicMaterial)
 		//{
-		//			SDK::FHitResult hitresult{};
-		//weaponController.SceneCaptureUStaticMeshComponent->K2_SetWorldLocationAndRotation(
-		//	SDK::FVector{ weaponController.CurrentWeaponPosition.x, weaponController.CurrentWeaponPosition.y, weaponController.CurrentWeaponPosition.z },
-		//	SDK::FRotator{ weaponController.CurrentWeaponRotation.x, weaponController.CurrentWeaponRotation.y,weaponController.CurrentWeaponRotation.z },
-		//	false,
-		//	&hitresult,
-		//	false);
+		//	auto rt = weaponController.ScopeWidget->GetRenderTarget();
+		//	weaponController.ScopeWidgetDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"Color_ExponentIn"), rt);
 		//}
-		//SDK::FHitResult hitResult{};
-		//if (weaponController.SceneCaptureUStaticMeshComponent && weaponController.SceneCaptureComponent)
-		//{
-		//	//auto transform = weaponController.ReceiverMesh->GetSocketTransform(SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_MUZZLE_FLASH"), SDK::ERelativeTransformSpace::RTS_World);
-		//	weaponController.SceneCaptureUStaticMeshComponent->K2_SetWorldTransform(weaponController.MuzzleTransform, false, &hitResult, true);
-		//}
-		auto rt = weaponController.ScopeWidget->GetRenderTarget();
-		weaponController.ScopeWidgetDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"LinearColor"), rt);
+
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);
