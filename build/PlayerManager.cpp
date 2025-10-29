@@ -213,7 +213,8 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 	//Logger::DebugPrint("StateMachineName: %s, StateName: %s", StateMachineName.ToString().c_str(), StateName.ToString().c_str());
 }
 
-//PlayerManager::EPlayerAnimState PlayerManager::GetCurrentPlayerAnimState(const SDK::FName& State)
-//{
-//
-//}
+void PlayerManager::GetCurrentAimState()
+{
+	auto playerController = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
+	IsFirstPersonAiming = playerController->IsAimDownSight();
+}

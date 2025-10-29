@@ -354,6 +354,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="src\renderlib\UEVR_IMGUI\imgui_impl_dx12.cpp" />
     <ClCompile Include="src\renderlib\UEVR_IMGUI\imgui_impl_win32.cpp" />
     <ClCompile Include="src\SDK\Basic.cpp" />
+    <ClCompile Include="src\SDK\CobraUI_functions.cpp" />
     <ClCompile Include="src\SDK\CoreUObject_functions.cpp" />
     <ClCompile Include="src\SDK\Engine_functions.cpp" />
     <ClCompile Include="src\SDK\Gsr_functions.cpp" />

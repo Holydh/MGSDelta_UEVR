@@ -15,7 +15,6 @@
 #include "SDK/UMG_classes.hpp"
 #include "SDK/CobraUI_classes.hpp"
 #include "SDK/SightDragnovWidget_classes.hpp"
-#include "SDK/UMG_classes.hpp"
 
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"

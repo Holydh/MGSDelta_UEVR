@@ -274,6 +274,8 @@ void ImGuiMenu::internalFrame()
 		if(ImGui::SliderFloat("Rotation Speed", settingsManager->CameraRotationSpeedPtr, 0.1f, 50.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
 
+		if(ImGui::SliderFloat("Rotation Deadzone", settingsManager->CameraRotationDeadZonePtr, 0.0f, 1.0f))
+			settingsManager->SettingsModifiedThisFrame = true;
 		
 		if (ImGui::Checkbox("Smooth Camera Rotation", settingsManager->SmoothCameraRotationPtr))
 			settingsManager->SettingsModifiedThisFrame = true;

@@ -81,6 +81,7 @@ void SettingsManager::InitSettingsManager()
 
 	AttachCameraToSnakeHeadPtr = &attachCameraToSnakeHead;
 	CameraRotationSpeedPtr = &cameraRotationSpeed;
+	CameraRotationDeadZonePtr = &cameraRotationDeadZone;
 	SmoothCameraRotationPtr = &smoothCameraRotation;
 	CameraYawLerpPtr = &cameraYawLerp;
 	SmoothCameraPositionPtr = &smoothCameraPosition;
@@ -110,6 +111,7 @@ void SettingsManager::FetchPluginSettings()
 	if (debugMod) Logger::DebugPrint("UpdatePluginSettings()");
 	attachCameraToSnakeHead = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "attachCameraToSnakeHead", false);
 	cameraRotationSpeed = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraRotationSpeed", 10.0f);
+	cameraRotationDeadZone = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraRotationDeadZone", 0.2f);
 	smoothCameraRotation = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraRotation", true);
 	cameraYawLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraYawLerp", 5.0f);
 	smoothCameraPosition = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraPosition", true);
@@ -123,6 +125,7 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 	if (debugMod) Logger::DebugPrint("WriteSettingsToPluginConfigFile()");
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "attachCameraToSnakeHead", attachCameraToSnakeHead);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraRotationSpeed", cameraRotationSpeed);
+	SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraRotationDeadZone", cameraRotationDeadZone);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraRotation", smoothCameraRotation);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraYawLerp", cameraYawLerp);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraPosition", smoothCameraPosition);
@@ -146,6 +149,7 @@ void SettingsManager::GetOrCreateConfigFile()
 			"------ Camera Settings ------\n"
 			"attachCameraToSnakeHead=false\n"
 			"cameraRotationSpeed=25.0\n"
+			"cameraRotationDeadZone=0.2\n"
 			"smoothCameraRotation=true\n"
 			"cameraYawLerp=5.0\n"
 			"smoothCameraPosition=true\n"

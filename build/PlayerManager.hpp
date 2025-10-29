@@ -6,6 +6,7 @@
 #include "SDK/Gsr_structs.hpp"
 #include "SDK/Gsr_classes.hpp"
 #include "SDK/Ics_parameters.hpp"
+#include "SDK/BP_Player_classes.hpp"
 
 class PlayerManager {
 public:
@@ -42,6 +43,8 @@ public:
 	bool IsChangingStance = false;
 	bool IsRolling = false;
 	bool IsAiming = false;
+	bool IsFirstPersonAiming = false;
+	bool WasFirstPersonAiming = false;
 	SDK::EGsrPlayerStance CurrentStance = SDK::EGsrPlayerStance::Stand;
 	SDK::EGsrPlayerStance PreviousStance = SDK::EGsrPlayerStance::Stand;
 	float ChangeStanceTimer = 0.0f;
@@ -50,8 +53,11 @@ public:
 
 	void GetCurrentPlayerStance(float deltaTime);
 	void ProcessPlayerCharacterState(const SDK::FName& StateName, const SDK::FName& StateMachineName);
+	void GetCurrentAimState();
 	//EPlayerAnimState GetCurrentPlayerAnimState(const SDK::FName& State);
 private:
+	SDK::USnakeStatusComponent snakeStatus;
+
 	//Peep State Machine Name
 	SDK::FName fNameBehind;
 	//Peep States

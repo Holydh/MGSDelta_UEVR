@@ -372,7 +372,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	
 	if (playerManager.IsPlayerControlled)
 	{
-		
+		playerManager.GetCurrentAimState();
 		/*Logger::DebugPrint("Before ResolveAddresses");*/
 		/*memoryManager.ResolveAddresses();*/
 		/*Logger::DebugPrint("Before FetchEquipController");*/
@@ -421,6 +421,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.WasPlayerControlled = playerManager.IsPlayerControlled;
 	playerManager.WasPeepingInternal = playerManager.IsPeepingInternal;
 	playerManager.PreviousStance = playerManager.CurrentStance;
+	playerManager.WasFirstPersonAiming = playerManager.IsFirstPersonAiming;
 	imGuiMenu.MouseMovedThisFrame = false;
 	//auto end = std::chrono::high_resolution_clock::now();
 	//auto duration_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -527,8 +528,8 @@ void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, 
 	PLUGIN_LOG_ONCE("XInput Get State");
 	//if (state->Gamepad.sThumbRX != 0.0)
 	//	Logger::DebugPrint("%d", state->Gamepad.sThumbRX);
-	float rawYawInput = (float)state->Gamepad.sThumbRX / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
-	cameraController.YawInput = rawYawInput > 0.2f || rawYawInput < -0.2f ? rawYawInput : 0.0f;
+	float rawXInput = (float)state->Gamepad.sThumbRX / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
+	cameraController.YawInput = rawXInput > *settingsManager.CameraRotationDeadZonePtr || rawXInput < -*settingsManager.CameraRotationDeadZonePtr ? rawXInput : 0.0f;
 }
 
 void MGSDeltaPlugin::on_xinput_set_state(uint32_t* retval, uint32_t user_index, XINPUT_VIBRATION* vibration)

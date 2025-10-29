@@ -41,6 +41,7 @@ public:
 
 	bool* AttachCameraToSnakeHeadPtr;
 	float* CameraRotationSpeedPtr;
+	float* CameraRotationDeadZonePtr;
 	bool* SmoothCameraRotationPtr;
 	float* CameraYawLerpPtr;
 	bool* SmoothCameraPositionPtr;
@@ -50,6 +51,7 @@ public:
 private:
 	bool attachCameraToSnakeHead = false;
 	float cameraRotationSpeed = 10.0f;
+	float cameraRotationDeadZone = 0.2f;
 	bool smoothCameraRotation = true;
 	float cameraYawLerp = 5.0f;
 	bool smoothCameraPosition = true;
