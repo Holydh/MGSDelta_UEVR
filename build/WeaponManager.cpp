@@ -1,6 +1,6 @@
-#include "WeaponController.hpp"
+#include "WeaponManager.hpp"
 
-inline const char* WeaponController::WeaponIdToKey(EGsrEquipId id)
+inline const char* WeaponManager::WeaponIdToKey(EGsrEquipId id)
 {
 	switch (id)
     {
@@ -38,7 +38,7 @@ inline const char* WeaponController::WeaponIdToKey(EGsrEquipId id)
     }
 }
 
-void WeaponController::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot)
+void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot)
 {
 	const char* key = WeaponIdToKey(currentWeapon);
 	if (!key)
@@ -57,7 +57,7 @@ void WeaponController::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3&
     outRot = cfg.rotation_offset;
 }
 
-void WeaponController::FetchEquipController()
+void WeaponManager::FetchEquipController()
 {
 	auto pawn = uevr::API::get()->get_local_pawn(0);
 	struct ParameterEquipController {
@@ -73,7 +73,7 @@ void WeaponController::FetchEquipController()
 	}
 }
 
-void WeaponController::ProcessWeapon(float delta)
+void WeaponManager::ProcessWeapon(float delta)
 {
 	//Get weapon ID
 	//Logger::DebugPrint(wobblingController->get_full_name());
@@ -125,39 +125,80 @@ void WeaponController::ProcessWeapon(float delta)
 		motionState->set_hand(1);
 		motionState->set_permanent(true);
 
-		if (CurrentWeaponEquippedID == EGsrEquipId::WP_Dragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
+		if (*settingsManager->SniperScopeEnabledPtr)
 		{
-			SDK::USceneComponent* sdkCurrentWeapon = (SDK::USceneComponent*)WeaponRoot;
-			auto childrenArray = sdkCurrentWeapon->AttachChildren;
-			for (int i = 0; i < childrenArray.Num(); i++)
+			IsDragnov = CurrentWeaponEquippedID == EGsrEquipId::WP_Dragnov;
+			if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
 			{
-				SDK::USceneComponent* child = childrenArray[i];
-				if (!child) continue;
-				if (child->IsA(SDK::USkeletalMeshComponent::StaticClass())) {
-					ReceiverMesh = (SDK::USkeletalMeshComponent*)child;
-					Logger::DebugPrint(child->GetFullName().c_str());
+				SDK::USceneComponent* sdkCurrentWeapon = (SDK::USceneComponent*)WeaponRoot;
+				auto childrenArray = sdkCurrentWeapon->AttachChildren;
+				for (int i = 0; i < childrenArray.Num(); i++)
+				{
+					SDK::USceneComponent* child = childrenArray[i];
+					if (!child) continue;
+					if (child->IsA(SDK::USkeletalMeshComponent::StaticClass())) {
+						ReceiverMesh = (SDK::USkeletalMeshComponent*)child;
+						Logger::DebugPrint(child->GetFullName().c_str());
+					}
+					//Destroy any previous cylinder mesh if still attached
+					if (child->IsA(SDK::UStaticMeshComponent::StaticClass())) {
+						child->K2_DestroyComponent(child);
+						ScopeStaticMeshComponent = nullptr;
+						ScopeWidgetStaticMeshComponent = nullptr;
+					}
 				}
-				//Destroy any previous cylinder mesh if still attached
-				if (child->IsA(SDK::UStaticMeshComponent::StaticClass())) {
-					child->K2_DestroyComponent(child);
-					ScopeCylinderComponent = nullptr;
-					ScopeWidgetStaticMeshComponent = nullptr;
-					Logger::DebugPrint("Previous scope and widget component destroyed");
-				}
+				spawnScope();
+				attachScopeToWeapon();
+				SwitchScopeState(true);
 			}
-			spawnScope();
-			attachScopeToWeapon();
-			SwitchScopeState(true);
+			else
+				SwitchScopeState(false);
 		}
 	}
 	
-	if (CurrentWeaponEquippedID == EGsrEquipId::WP_Dragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
+	
+	if (*settingsManager->SniperScopeEnabledPtr)
 	{
-		if (playerManager->WasFirstPersonAiming != playerManager->IsFirstPersonAiming)
-			SwitchScopeState(true);
-		auto test = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
-		float scopeFov = test->GetScopeMagnification() == 3.0f ? 16.0f : 5.0f;
-		SceneCaptureComponent->FOVAngle = scopeFov;
+		if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
+		{
+			if (playerManager->WasFirstPersonAiming != playerManager->IsFirstPersonAiming)
+				SwitchScopeState(true);
+			auto test = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
+			auto scopeMagnification = test->GetScopeMagnification();
+			//Logger::DebugPrint("scope magnification : %f", scopeMagnification);
+			float scopeFov = scopeMagnification == 3.0f ? 16.0f : 5.0f;
+			SceneCaptureComponent->FOVAngle = scopeFov;
+			auto sightWidget = (SDK::UCSightWidget*)SourceDragnovScopeWidget;
+			//Toggle zoom :
+			if (ZoomInput > 0.0f && scopeMagnification == 3.0f)
+			{
+				sightWidget->SetCamZoomToggle();
+				if (IsDragnov)
+				{
+					auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
+					widget->SightZoomIn();
+				}
+				else
+				{
+					auto widget = (SDK::USightMosinWidget_C*)SourceDragnovScopeWidget;
+					widget->SightZoomIn();
+				}
+			}
+			if (ZoomInput < 0.0f && scopeMagnification == 10.0f)
+			{
+				sightWidget->SetCamZoomToggle();
+				if (IsDragnov)
+				{
+					auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
+					widget->SightZoomOut();
+				}
+				else
+				{
+					auto widget = (SDK::USightMosinWidget_C*)SourceDragnovScopeWidget;
+					widget->SightZoomOut();
+				}
+			}
+		}
 	}
 
 	//Apply recoil
@@ -165,7 +206,7 @@ void WeaponController::ProcessWeapon(float delta)
 		ApplyRecoil(delta);
 }
 
-void WeaponController::FetchWeaponMeshAimData()
+void WeaponManager::FetchWeaponMeshAimData()
 {
 	//Logger::DebugPrint(CurrentWeapon->get_full_name());
 	if (CurrentWeapon == nullptr)
@@ -284,7 +325,7 @@ void WeaponController::FetchWeaponMeshAimData()
 	}
 }
 
-void WeaponController::ApplyAimDataToMemory()
+void WeaponManager::ApplyAimDataToMemory()
 {
 	//Logger::DebugPrint("AimPosition.x : %f, AimPosition.y : %f, AimPosition.z : %f", AimPosition.x, AimPosition.y, AimPosition.z);
 	*(reinterpret_cast<double*>(memoryManager->AimPositionAddresses.x)) = AimPosition.x;
@@ -292,7 +333,7 @@ void WeaponController::ApplyAimDataToMemory()
 	*(reinterpret_cast<double*>(memoryManager->AimPositionAddresses.z)) = AimPosition.z;
 }
 
-void WeaponController::SetAimDirection()
+void WeaponManager::SetAimDirection()
 {
 	//Will be used to control the grenades throw direction
 	//This controls only the aim when the camera controller is disabled. When cc enabled, it controls the camera rotation but the inputs are conflicting.
@@ -320,72 +361,57 @@ void WeaponController::SetAimDirection()
 	//}
 }
 
-void ProcessAllChildWidgets(SDK::UWidget* ParentWidget, SDK::FLinearColor NewTint)
-{
-	if (!ParentWidget) return;
-	
-	// Process this widget if it's an image
-	if (strstr(ParentWidget->GetFullName().c_str(), "Image"))
-	{
-		SDK::UImage* ImageWidget = (SDK::UImage*)ParentWidget;
-		//Logger::DebugPrint("Found image: %s", ParentWidget->GetFullName().c_str());
-		//ImageWidget->SetColorAndOpacity(NewTint);
-		//auto oriColor = ImageWidget->ColorAndOpacity;
-		//ImageWidget->SetColorAndOpacity(NewTint);
-
-		SDK::FSlateBrush Brush = ImageWidget->Brush;
-		auto color = Brush.TintColor.SpecifiedColor;
-		//Logger::DebugPrint("Color A : %f, R : %f, G : %f, B : %f ", color.A, color.R, color.G, color.B);
-		Brush.TintColor.SpecifiedColor = NewTint;
-		ImageWidget->SetBrush(Brush);
-	}
-	
-	// Recurse into children
-	SDK::UPanelWidget* Panel = (SDK::UPanelWidget*)ParentWidget;
-	if (Panel)
-	{
-		int ChildCount = Panel->GetChildrenCount();
-		//Logger::DebugPrint("Panel has %i children", ChildCount);
-		
-		for (int i = 0; i < ChildCount; i++)
-		{
-			SDK::UWidget* Child = Panel->GetChildAt(i);
-			if (Child)
-			{
-				ProcessAllChildWidgets(Child, NewTint);
-			}
-		}
-	}
-}
-
-void SetAllImageTints(SDK::UUserWidget* rootWidget, SDK::FLinearColor newTint)
-{
-	if (!rootWidget) return;
-	
-	SDK::UPanelWidget* rootPanelWidget = (SDK::UPanelWidget*)rootWidget;
-	if (rootPanelWidget)
-	{
-		ProcessAllChildWidgets(rootPanelWidget, newTint);
-	}
-}
-
-void WeaponController::SwitchScopeState(bool enable)
+void WeaponManager::SwitchScopeState(bool enable)
 {
 	if (SceneCaptureComponent) SceneCaptureComponent->SetVisibility(enable, false);
 	if (SceneCaptureUStaticMeshComponent) SceneCaptureUStaticMeshComponent->SetVisibility(enable, false);
-	if (ScopeCylinderComponent) ScopeCylinderComponent->SetVisibility(enable, false);
-	if (SourceScopeWidget) SourceScopeWidget->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
+	if (ScopeStaticMeshComponent) ScopeStaticMeshComponent->SetVisibility(enable, false);
 	if (ScopeWidgetStaticMeshComponent) ScopeWidgetStaticMeshComponent->SetVisibility(enable, false);
+
 	ReceiverMesh->SetVisibility(true, true);
+	
 	//Hide the black background behind the scope widget
-	if (!SourceScopeWidget) return;
-	auto bpSourceScopeWidget = (SDK::USightDragnovWidget_C*)SourceScopeWidget;
-	bpSourceScopeWidget->BoxBg->SetVisibility(enable ? SDK::ESlateVisibility::Hidden : SDK::ESlateVisibility::Visible);
-	bpSourceScopeWidget->RightBox->SetVisibility(enable ? SDK::ESlateVisibility::Hidden : SDK::ESlateVisibility::Visible);
-	bpSourceScopeWidget->LeftBox->SetVisibility(enable ? SDK::ESlateVisibility::Hidden : SDK::ESlateVisibility::Visible);
+	if (IsDragnov)
+	{
+		if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(SDK::ESlateVisibility::Visible);
+		if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
+	}
+	else
+	{
+		if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(SDK::ESlateVisibility::Visible);
+		if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
+	}
 }
 
-void WeaponController::ApplyRecoil(float delta)
+void WeaponManager::SpawnScope()
+{
+	spawnScope();
+	attachScopeToWeapon();
+	SwitchScopeState(true);
+}
+
+void WeaponManager::DestroyScope()
+{
+	if (ScopeStaticMeshComponent) ScopeStaticMeshComponent->K2_DestroyComponent(ScopeStaticMeshComponent);
+	if (ScopeWidgetStaticMeshComponent) ScopeWidgetStaticMeshComponent->K2_DestroyComponent(ScopeWidgetStaticMeshComponent);
+	if (SceneCaptureComponent) SceneCaptureComponent->K2_DestroyComponent(SceneCaptureComponent);
+	if (SceneCaptureUStaticMeshComponent) SceneCaptureUStaticMeshComponent->K2_DestroyComponent(SceneCaptureUStaticMeshComponent);
+	if (DragnovScopeWidget) DragnovScopeWidget->K2_DestroyComponent(DragnovScopeWidget);
+	if (MosinScopeWidget) MosinScopeWidget->K2_DestroyComponent(DragnovScopeWidget);
+	if (ScopeActor) ScopeActor->K2_DestroyActor();
+	ScopeStaticMeshComponent = nullptr;
+	ScopeWidgetStaticMeshComponent = nullptr;
+	SceneCaptureComponent = nullptr;
+	SceneCaptureUStaticMeshComponent = nullptr;
+	ScopeActor = nullptr;
+	ScopeRenderTarget = nullptr;
+	SourceDragnovScopeWidget = nullptr;
+	DragnovScopeWidget = nullptr;
+	SourceMosinScopeWidget = nullptr;
+	MosinScopeWidget = nullptr;
+}
+
+void WeaponManager::ApplyRecoil(float delta)
 {
 	glm::fvec3 positionRecoilForce = { 0.0f, 0.0f, 0.0f };
 	glm::fvec3 rotationRecoilForceEuler = { 0.0f, 0.0f, 0.0f };
@@ -493,23 +519,23 @@ void WeaponController::ApplyRecoil(float delta)
 	}
 }
 
-float WeaponController::RandomRange(float min, float max) {
+float WeaponManager::RandomRange(float min, float max) {
 	return min + static_cast<float>(rand()) / RAND_MAX * (max - min);
 }
 
-void WeaponController::spawnScope()
+void WeaponManager::spawnScope()
 {
 	SDK::UWorld* world = SDK::UWorld::GetWorld();
 	SDK::USceneComponent* sdkCurrentWeapon = (SDK::USceneComponent*)WeaponRoot;
 
 	getRenderTarget(world);
 
-	if (!SniperRenderTarget)
+	if (!ScopeRenderTarget)
 	{
 		Logger::DebugPrint("Failed to get render target, destroying Scope actor");
 		if (ScopeActor)
 			ScopeActor->K2_DestroyActor();
-		ScopeCylinderComponent = nullptr;
+		ScopeStaticMeshComponent = nullptr;
 		ScopeWidgetStaticMeshComponent = nullptr;
 		SceneCaptureComponent = nullptr;
 		SceneCaptureUStaticMeshComponent = nullptr;
@@ -519,39 +545,39 @@ void WeaponController::spawnScope()
 	SDK::FVector weaponPosition = sdkCurrentWeapon->K2_GetComponentLocation();
 	if (!ScopeActor)
 	{
-		ScopeCylinderComponent = nullptr;
+		ScopeStaticMeshComponent = nullptr;
 		ScopeWidgetStaticMeshComponent = nullptr;
 		SceneCaptureComponent = nullptr;
 		SceneCaptureUStaticMeshComponent = nullptr;
-		ScopeWidget = nullptr;
+		DragnovScopeWidget = nullptr;
 		ScopeActor = (SDK::AActor*)Utilities::SpawnActor(UEVR_Vector3d{0.0f, 0.0f, 0.0f}, (uevr::API::UObject*)ReceiverMesh->GetOwner());
 		Logger::DebugPrint("Scope Actor : %s", ScopeActor->GetFullName().c_str());
 	}
 	//Logger::DebugPrint("spawnScopeStaticMeshComponent()");
-	if (!ScopeCylinderComponent)
+	if (!ScopeStaticMeshComponent)
 		spawnScopeStaticMeshComponent();
 	//Logger::DebugPrint("spawnSceneCaptureComponent()");
 	if (!SceneCaptureComponent)
 		spawnSceneCaptureComponent();
 	//Logger::DebugPrint("spawnScopeWidget()");
-	if (!ScopeWidget)
+	if (!DragnovScopeWidget || !MosinScopeWidget)
 		spawnScopeWidget();
 }
 
-void WeaponController::getRenderTarget(SDK::UWorld* world)
+void WeaponManager::getRenderTarget(SDK::UWorld* world)
 {
 	SDK::FLinearColor linearColor{};
 	
-	if (!SniperRenderTarget)
+	if (!ScopeRenderTarget)
 	{
-		SniperRenderTarget = SDK::UKismetRenderingLibrary::CreateRenderTarget2D(world, cameraRenderTargetResolution, cameraRenderTargetResolution, SDK::ETextureRenderTargetFormat::RTF_RGBA16f, linearColor, false, false);
-		Logger::DebugPrint("Render target created : %s", SniperRenderTarget->GetFullName().c_str());
+		ScopeRenderTarget = SDK::UKismetRenderingLibrary::CreateRenderTarget2D(world, cameraRenderTargetResolution, cameraRenderTargetResolution, SDK::ETextureRenderTargetFormat::RTF_RGBA16f, linearColor, false, false);
+		Logger::DebugPrint("Render target created : %s", ScopeRenderTarget->GetFullName().c_str());
 	}
 	//else
 	//	Logger::DebugPrint("Render target already exists");
 }
 
-void WeaponController::spawnScopeStaticMeshComponent()
+void WeaponManager::spawnScopeStaticMeshComponent()
 {
 	SDK::FTransform transform{};
 	auto scopeStaticMeshComponent = (SDK::UStaticMeshComponent*)ScopeActor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), false, transform, false);
@@ -621,7 +647,7 @@ void WeaponController::spawnScopeStaticMeshComponent()
 	//auto scopeWidgetDynamicMaterial = scopeWidgetStaticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, uWidgetSightMaterial);
 	//Logger::DebugPrint("scopeDynamicMaterial created %s", scopeDynamicMaterial->GetFullName().c_str());
 	//Applying the render texture to the material :
-	scopeDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"LinearColor"), SniperRenderTarget);
+	scopeDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"LinearColor"), ScopeRenderTarget);
 	//SDK::FLinearColor color = {};
 	//color.R = color.G = color.B = color.A = 2.0f;
 	//scopeDynamicMaterial->SetVectorParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"Color"), color);
@@ -630,12 +656,12 @@ void WeaponController::spawnScopeStaticMeshComponent()
 
 
 	//ScopeWidgetDynamicMaterial = scopeWidgetDynamicMaterial;
-	ScopeCylinderComponent = scopeStaticMeshComponent;
+	ScopeStaticMeshComponent = scopeStaticMeshComponent;
 	//ScopeWidgetStaticMeshComponent = scopeWidgetStaticMeshComponent;
 	//Logger::DebugPrint("Sniper Cylinder Mesh spawned");
 }
 
-void WeaponController::spawnSceneCaptureComponent()
+void WeaponManager::spawnSceneCaptureComponent()
 {
 	SDK::FTransform transform{};
 	SceneCaptureUStaticMeshComponent = (SDK::UStaticMeshComponent*)ScopeActor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), false, transform, false);
@@ -646,7 +672,7 @@ void WeaponController::spawnSceneCaptureComponent()
 		Logger::DebugPrint("failed to spawn scene capture mesh and component");
 		return;
 	}
-	SceneCaptureComponent->TextureTarget = SniperRenderTarget;
+	SceneCaptureComponent->TextureTarget = ScopeRenderTarget;
 	SceneCaptureComponent->bCaptureOnMovement = false;
 	SceneCaptureComponent->bCaptureEveryFrame = true;
 	SceneCaptureComponent->bUseRayTracingIfEnabled = false;
@@ -676,14 +702,76 @@ void WeaponController::spawnSceneCaptureComponent()
 	//SceneCaptureUStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cigarMesh);
 }
 
-void WeaponController::spawnScopeWidget()
+void ProcessAllChildWidgets(SDK::UWidget* ParentWidget, SDK::FLinearColor NewTint)
+{
+	if (!ParentWidget) return;
+
+	// Process this widget if it's an image
+	if (strstr(ParentWidget->GetFullName().c_str(), "Image"))
+	{
+		SDK::UImage* ImageWidget = (SDK::UImage*)ParentWidget;
+		//Logger::DebugPrint("Found image: %s", ParentWidget->GetFullName().c_str());
+		//ImageWidget->SetColorAndOpacity(NewTint);
+		//auto oriColor = ImageWidget->ColorAndOpacity;
+		//ImageWidget->SetColorAndOpacity(NewTint);
+
+		SDK::FSlateBrush Brush = ImageWidget->Brush;
+		auto color = Brush.TintColor.SpecifiedColor;
+		//Logger::DebugPrint("Color A : %f, R : %f, G : %f, B : %f ", color.A, color.R, color.G, color.B);
+		Brush.TintColor.SpecifiedColor = NewTint;
+		ImageWidget->SetBrush(Brush);
+	}
+	
+	// Recurse into children
+	SDK::UPanelWidget* Panel = (SDK::UPanelWidget*)ParentWidget;
+	if (Panel)
+	{
+		int ChildCount = Panel->GetChildrenCount();
+		//Logger::DebugPrint("Panel has %i children", ChildCount);
+		
+		for (int i = 0; i < ChildCount; i++)
+		{
+			SDK::UWidget* Child = Panel->GetChildAt(i);
+			if (Child)
+			{
+				ProcessAllChildWidgets(Child, NewTint);
+			}
+		}
+	}
+}
+
+void SetAllImageTints(SDK::UUserWidget* rootWidget, SDK::FLinearColor newTint)
+{
+	if (!rootWidget) return;
+	
+	SDK::UPanelWidget* rootPanelWidget = (SDK::UPanelWidget*)rootWidget;
+	if (rootPanelWidget)
+	{
+		ProcessAllChildWidgets(rootPanelWidget, newTint);
+	}
+}
+
+
+void WeaponManager::spawnScopeWidget()
 {
 	//Fetch existing widget :
-	auto CSightDragnovWidget = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraUI.CSightDragnovWidget");
+	uevr::API::UClass* scopeWidgetClass = nullptr;
+	SDK::UUserWidget* sourceWidget = nullptr;;
+	if (IsDragnov)
+	{
+		scopeWidgetClass = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraUI.CSightDragnovWidget");
+		auto widgets = scopeWidgetClass->get_objects_matching();
+		sourceWidget = (SDK::UUserWidget*)widgets[1];
+	}
+	else
+	{
+		scopeWidgetClass = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraUI.CSightMosinWidget");
+		sourceWidget = (SDK::UUserWidget*)scopeWidgetClass->get_first_object_matching();
+	}
 	//auto SightDragnovWidget_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/Sight/SightDragnovWidget.SightDragnovWidget_C");
-	auto widgets = CSightDragnovWidget->get_objects_matching();
+	
 
-	SDK::UUserWidget* sourceWidget = (SDK::UUserWidget*)widgets[1];
+	
 	SDK::FVector2D drawSize = {2100.0f, 2100.0f};
 	//for (int i = 0; i < widgets.size(); i++)
 	//{
@@ -716,6 +804,7 @@ void WeaponController::spawnScopeWidget()
 		return;
 	}
 
+	Logger::DebugPrint("Remove From Viewport");
 	sourceWidget->RemoveFromViewport();
 	widgetComponent->SetWidget(sourceWidget);
 	widgetComponent->SetTwoSided(false);
@@ -733,26 +822,56 @@ void WeaponController::spawnScopeWidget()
 	//widgetComponent->MaterialInstance->BasePropertyOverrides.BlendMode = SDK::EBlendMode::BLEND_Translucent;
 	//widgetComponent->MaterialInstance->SetVectorParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"BackColor"), color);
 
-		
-
-	auto uSightDragnovWidget_C = (SDK::USightDragnovWidget_C*)sourceWidget;
+	
 	//Set arrows to white for better visibility
 	SDK::FLinearColor color = { 1.0f, 1.0f, 1.0f, 1.0f }; 
-	auto arrowGroup = uSightDragnovWidget_C->ArrowGroup;
+	SDK::UCanvasPanel* arrowGroup = nullptr;
+
+	if (IsDragnov)
+	{
+		auto uSightDragnovWidget_C = (SDK::USightDragnovWidget_C*)sourceWidget;
+		arrowGroup = uSightDragnovWidget_C->ArrowGroup;
+		uSightDragnovWidget_C->BoxBg->SetVisibility(SDK::ESlateVisibility::Hidden);
+		uSightDragnovWidget_C->RightBox->SetVisibility(SDK::ESlateVisibility::Hidden);
+		uSightDragnovWidget_C->LeftBox->SetVisibility(SDK::ESlateVisibility::Hidden);
+
+		SourceDragnovScopeWidget = sourceWidget;
+		DragnovScopeWidget = widgetComponent;
+		Logger::DebugPrint(DragnovScopeWidget->GetFullName().c_str());
+	}
+	else
+	{
+		auto uSightMosinWidget_C = (SDK::USightMosinWidget_C*)sourceWidget;
+		arrowGroup = (SDK::UCanvasPanel*)uSightMosinWidget_C->ArrowGroup;
+
+		uSightMosinWidget_C->BoxBg->SetVisibility(SDK::ESlateVisibility::Hidden);
+		uSightMosinWidget_C->RightBox->SetVisibility(SDK::ESlateVisibility::Hidden);
+		uSightMosinWidget_C->LeftBox->SetVisibility(SDK::ESlateVisibility::Hidden);
+
+		SDK::FLinearColor mosinColor = { 1.0f, 1.0f, 1.0f, 0.0f }; 
+		auto root = (SDK::UCanvasPanel*)uSightMosinWidget_C->WidgetTree->RootWidget;
+		auto ImageWidget = (SDK::UImage*)root->GetChildAt(0);
+		Logger::DebugPrint(ImageWidget->GetFullName().c_str());
+		SDK::FSlateBrush Brush = ImageWidget->Brush;
+		auto color = Brush.TintColor.SpecifiedColor;
+		Brush.TintColor.SpecifiedColor = mosinColor;
+		ImageWidget->SetBrush(Brush);
+		SourceMosinScopeWidget = sourceWidget;
+		MosinScopeWidget = widgetComponent;
+		Logger::DebugPrint(DragnovScopeWidget->GetFullName().c_str());
+	}
 	SetAllImageTints((SDK::UUserWidget*)arrowGroup, color);
 
-	SourceScopeWidget = (SDK::UCSightDragnovWidget*)sourceWidget;
-	ScopeWidget = widgetComponent;
-	Logger::DebugPrint(ScopeWidget->GetFullName().c_str());
+
 	//ScopeWidget = (SDK::UWidgetComponent*)uObject;
 }
 
-void WeaponController::attachScopeToWeapon()
+void WeaponManager::attachScopeToWeapon()
 {
 	if (!ReceiverMesh){	Logger::DebugPrint("attachScopeToWeapon() : ReceiverMesh not found"); return; }
 	if (!SceneCaptureComponent){	Logger::DebugPrint("attachScopeToWeapon() : SceneCaptureComponent not found"); return; }
 	if (!SceneCaptureUStaticMeshComponent){	Logger::DebugPrint("attachScopeToWeapon() : SceneCaptureComponentMesh not found"); return; }
-	if (!ScopeCylinderComponent){	Logger::DebugPrint("attachScopeToWeapon() : ScopeCylinderComponent not found"); return; }
+	if (!ScopeStaticMeshComponent){	Logger::DebugPrint("attachScopeToWeapon() : ScopeCylinderComponent not found"); return; }
 	//if (!ReceiverMesh){	Logger::DebugPrint("attachScopeToWeapon() : ReceiverMesh not found"); return; }
 
 	Logger::DebugPrint("Attaching scope to weapon");
@@ -774,7 +893,7 @@ void WeaponController::attachScopeToWeapon()
 		true
 	);
 
-	ScopeCylinderComponent->K2_AttachToComponent(		
+	ScopeStaticMeshComponent->K2_AttachToComponent(		
 		ReceiverMesh,
 		SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_REAR_SIGHT"),
 		SDK::EAttachmentRule::SnapToTarget,
@@ -792,26 +911,49 @@ void WeaponController::attachScopeToWeapon()
 	//	true
 	//);
 
-	ScopeWidget->K2_AttachToComponent(
-		ScopeCylinderComponent,
-		SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
-		SDK::EAttachmentRule::SnapToTarget,
-		SDK::EAttachmentRule::SnapToTarget,
-		SDK::EAttachmentRule::KeepRelative,
-		true
-	);
-
 	SDK::FHitResult hitResult;
 	SceneCaptureComponent->SetVisibility(true, true);
 	SceneCaptureComponent->SetMobility(SDK::EComponentMobility::Movable);
 	SceneCaptureComponent->Activate(true);
 	SceneCaptureComponent->K2_SetRelativeRotation({0.0f, 90.0f, 0.0f}, false, &hitResult, true);
 
-	ScopeCylinderComponent->K2_SetRelativeLocation({ 0.0f, -26.0f, 0.0f }, false, &hitResult, true);
-	ScopeCylinderComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
-	ScopeCylinderComponent->SetRelativeScale3D({0.15f, 0.15f, 0.15f});
-	//ScopeCylinderComponent->SetRelativeScale3D({2.0f, 2.0f, 2.0f});
-	ScopeCylinderComponent->SetVisibility(false, false);
+	if (IsDragnov)
+	{
+		DragnovScopeWidget->K2_AttachToComponent(
+			ScopeStaticMeshComponent,
+			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
+			SDK::EAttachmentRule::SnapToTarget,
+			SDK::EAttachmentRule::SnapToTarget,
+			SDK::EAttachmentRule::KeepRelative,
+			true
+		);
+
+		ScopeStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, -30.5f, 0.0f }, false, &hitResult, true);
+		ScopeStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
+		ScopeStaticMeshComponent->SetRelativeScale3D({ 0.15f, 0.15f, 0.15f });
+		DragnovScopeWidget->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.05f }, false, &hitResult, true);
+		DragnovScopeWidget->K2_SetRelativeRotation({ 90.0f, 0.0f, -90.0f }, false, &hitResult, true);
+		DragnovScopeWidget->SetRelativeScale3D({ 0.025f, 0.025f, 0.025f });
+	}
+	else
+	{
+		MosinScopeWidget->K2_AttachToComponent(
+			ScopeStaticMeshComponent,
+			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
+			SDK::EAttachmentRule::SnapToTarget,
+			SDK::EAttachmentRule::SnapToTarget,
+			SDK::EAttachmentRule::KeepRelative,
+			true
+		);
+
+		ScopeStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, -18.5f, 0.0f }, false, &hitResult, true);
+		ScopeStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
+		ScopeStaticMeshComponent->SetRelativeScale3D({ 0.12f, 0.12f, 0.12f });
+		MosinScopeWidget->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.05f }, false, &hitResult, true);
+		MosinScopeWidget->K2_SetRelativeRotation({ 90.0f, 0.0f, -90.0f }, false, &hitResult, true);
+		MosinScopeWidget->SetRelativeScale3D({ 0.023f, 0.023f, 0.023f });
+	}
+	ScopeStaticMeshComponent->SetVisibility(false, false);
 
 	//ScopeWidgetStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, -26.0f, 0.0f }, false, &hitResult, true);
 	//ScopeWidgetStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
@@ -819,9 +961,7 @@ void WeaponController::attachScopeToWeapon()
 	//ScopeWidgetStaticMeshComponent->SetRelativeScale3D({2.0f, 2.0f, 2.0f});
 	//ScopeWidgetStaticMeshComponent->SetVisibility(false, false);
 
-	ScopeWidget->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.05f }, false, &hitResult, true);
-	ScopeWidget->K2_SetRelativeRotation({ 90.0f, 0.0f, -90.0f }, false, &hitResult, true);
-	ScopeWidget->SetRelativeScale3D({0.02f, 0.02f, 0.02f});
+
 	//ScopeWidget->SetRelativeScale3D({0.02f, 0.02f, 0.02f});
 }
 

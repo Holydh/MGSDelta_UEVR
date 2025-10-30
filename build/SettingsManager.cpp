@@ -87,6 +87,8 @@ void SettingsManager::InitSettingsManager()
 	SmoothCameraPositionPtr = &smoothCameraPosition;
 	CameraPositionXYLerpPtr = &cameraPositionXYLerp;
 	CameraPositionZLerpPtr = &cameraPositionZLerp;
+
+	SniperScopeEnabledPtr = &sniperScopeEnabled;
 }
 
 void SettingsManager::FetchUevrSettings(bool writeToPlugin)
@@ -117,6 +119,8 @@ void SettingsManager::FetchPluginSettings()
 	smoothCameraPosition = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraPosition", true);
 	cameraPositionXYLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraPositionXYLerp", 5.0f);
 	cameraPositionZLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraPositionZLerp", 5.0f);
+
+	sniperScopeEnabled = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "sniperScopeEnabled", true);
 	if (debugMod) Logger::DebugPrint("Plugin Settings Updated");
 }
 
@@ -125,12 +129,14 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 	if (debugMod) Logger::DebugPrint("WriteSettingsToPluginConfigFile()");
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "attachCameraToSnakeHead", attachCameraToSnakeHead);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraRotationSpeed", cameraRotationSpeed);
-	SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraRotationDeadZone", cameraRotationDeadZone);
+	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraRotationDeadZone", cameraRotationDeadZone);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraRotation", smoothCameraRotation);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraYawLerp", cameraYawLerp);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraPosition", smoothCameraPosition);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraPositionXYLerp", cameraPositionXYLerp);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraPositionZLerp", cameraPositionZLerp);
+
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "sniperScopeEnabled", sniperScopeEnabled);
 }
 
 
@@ -154,7 +160,8 @@ void SettingsManager::GetOrCreateConfigFile()
 			"cameraYawLerp=5.0\n"
 			"smoothCameraPosition=true\n"
 			"cameraPositionXYLerp=5.0\n"
-			"cameraPositionZLerp=5.0\n";
+			"cameraPositionZLerp=5.0\n"
+			"sniperScopeEnabled=true\n";
 
 		HANDLE hCreateFile = CreateFileA(pluginConfigFilePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hCreateFile != INVALID_HANDLE_VALUE)

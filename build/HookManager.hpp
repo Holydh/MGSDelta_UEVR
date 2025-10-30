@@ -8,7 +8,7 @@
 #include "uevr/API.hpp"
 #include "Logger.hpp"
 #include "Utilities.hpp"
-#include "WeaponController.hpp"
+#include "WeaponManager.hpp"
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
 
@@ -18,10 +18,10 @@
 
 class HookManager {
 private:
-    WeaponController* const weaponController;
+    WeaponManager* const weaponManager;
     CameraController* const cameraController;
     PlayerManager* const playerManager;
-    static WeaponController* s_weaponController;
+    static WeaponManager* s_weaponManager;
     static CameraController* s_cameraController;
 	static PlayerManager* s_playerManager;
 
@@ -57,7 +57,7 @@ private:
 
 
 public:
-    HookManager(WeaponController* wp, CameraController* cc, PlayerManager* pm) : weaponController(wp), cameraController(cc), playerManager(pm) {};
+    HookManager(WeaponManager* wm, CameraController* cc, PlayerManager* pm) : weaponManager(wm), cameraController(cc), playerManager(pm) {};
     void Initialize();
     //void SetGunAdjustValuesFromConfig(const std::filesystem::path& ConfigFile);
     void HookFireFunction();

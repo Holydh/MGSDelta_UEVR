@@ -7,6 +7,7 @@
 #include "glm/glm.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #define GLM_FORCE_QUAT_DATA_XYZW
+#define GLM_FORCE_INLINE
 
 #include "SDK/CoreUObject_structs.hpp"
 #include "SDK/Engine_parameters.hpp"
@@ -15,11 +16,12 @@
 #include "SDK/UMG_classes.hpp"
 #include "SDK/CobraUI_classes.hpp"
 #include "SDK/SightDragnovWidget_classes.hpp"
+#include "SDK/SightMosinWidget_classes.hpp"
 
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
 
-class WeaponController {
+class WeaponManager {
 private:
 	MemoryManager* const memoryManager;
 	SettingsManager* const settingsManager;
@@ -36,25 +38,28 @@ private:
 
 	int cameraRenderTargetResolution = 1024;
 public:
-	WeaponController(MemoryManager* mm, SettingsManager* sm, PlayerManager* pm) : memoryManager(mm), settingsManager(sm), playerManager(pm) {};
+	WeaponManager(MemoryManager* mm, SettingsManager* sm, PlayerManager* pm) : memoryManager(mm), settingsManager(sm), playerManager(pm) {};
 	bool IsShooting = false;
 	uevr::API::UObject* EquipController = nullptr;
 	uevr::API::UObject* CurrentWeapon = nullptr;
 	uevr::API::UObject* WeaponRoot = nullptr;
 	SDK::USkeletalMeshComponent* ReceiverMesh = nullptr;
 
+	bool IsDragnov = false;
+	float ZoomInput = 0.0f;
 	SDK::AActor* ScopeActor = nullptr;
-	SDK::UCSightDragnovWidget* SourceScopeWidget = nullptr;
-	SDK::UWidgetComponent* ScopeWidget = nullptr;
+	SDK::UUserWidget* SourceDragnovScopeWidget = nullptr;
+	SDK::UWidgetComponent* DragnovScopeWidget = nullptr;
+	SDK::UUserWidget* SourceMosinScopeWidget = nullptr;
+	SDK::UWidgetComponent* MosinScopeWidget = nullptr;
 
-	SDK::UStaticMeshComponent* ScopeCylinderComponent = nullptr;
+	SDK::UStaticMeshComponent* ScopeStaticMeshComponent = nullptr;
 	SDK::UStaticMeshComponent* ScopeWidgetStaticMeshComponent = nullptr;
 	SDK::USceneCaptureComponent2D* SceneCaptureComponent = nullptr;
 	SDK::UStaticMeshComponent* SceneCaptureUStaticMeshComponent = nullptr;
 
-	SDK::UTextureRenderTarget2D* SniperRenderTarget = nullptr;
-	//SDK::UMaterialInstanceDynamic* ScopeWidgetDynamicMaterial = nullptr;
-	//SDK::UMaterialInstanceDynamic* ScopeDiskDynamicMaterial = nullptr;
+	SDK::UTextureRenderTarget2D* ScopeRenderTarget = nullptr;
+
 
 	glm::fquat DefaultWeaponRotation{};
 	glm::fvec3 DefaultWeaponPosition{};
@@ -368,4 +373,6 @@ public:
 	void SetAimDirection();
 
 	void SwitchScopeState(bool enable);
+	void SpawnScope();
+	void DestroyScope();
 };

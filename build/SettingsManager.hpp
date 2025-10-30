@@ -47,6 +47,8 @@ public:
 	bool* SmoothCameraPositionPtr;
 	float* CameraPositionXYLerpPtr;
 	float* CameraPositionZLerpPtr;
+
+	bool* SniperScopeEnabledPtr;
 	
 private:
 	bool attachCameraToSnakeHead = false;
@@ -57,6 +59,8 @@ private:
 	bool smoothCameraPosition = true;
 	float cameraPositionXYLerp = 5.0f;
 	float cameraPositionZLerp = 5.0f;
+
+	bool sniperScopeEnabled = true;
 
 
 	std::string GetConfigFilePath(bool uevr);

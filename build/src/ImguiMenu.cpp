@@ -96,9 +96,11 @@ void ImGuiMenu::ProcessImGui(float deltaTime)
 
 	//ImGui::GetIO().MousePos = ImVec2(100, 100);
 	checkMouseFocus(deltaTime);
+
 	handleVRcursor();
-	
+
 	ImGui_ImplWin32_NewFrame();
+
 	ImGui::NewFrame();
 
 	internalFrame();
@@ -115,7 +117,7 @@ void ImGuiMenu::handleVRcursor()
     auto hmdIndex = vr->get_hmd_index();
     ImGuiIO& io = ImGui::GetIO();
 	io.MouseDrawCursor = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
-
+	/*Logger::DebugPrint("Mouse has focus : %i", MouseHasFocus);*/
 	if (MouseHasFocus)
 		return;
 
@@ -195,7 +197,8 @@ void ImGuiMenu::handleVRcursor()
             
             // Update ImGui input state
             io.MousePos = LastMousePosition;
-            io.AddMouseButtonEvent(0, Inputs::IsActionActive(false, "/actions/default/in/AButtonRight"));
+			ControllerInput = Inputs::IsActionActive(false, "/actions/default/in/AButtonRight");
+			io.AddMouseButtonEvent(0, ControllerInput);
         }
     }
 }
@@ -206,6 +209,12 @@ void ImGuiMenu::checkMouseFocus(float delta)
 	//Logger::DebugPrint("MouseHasFocus : %i", MouseHasFocus);
 	//Logger::DebugPrint("mouseUseTimer : %f", mouseUseTimer);
 	auto io = ImGui::GetIO();
+
+	if (ControllerInput)
+	{
+		MouseHasFocus = false;
+		return;
+	}
 
 	if (!MouseMovedThisFrame && !io.MouseDown[0])
 	{
@@ -291,6 +300,17 @@ void ImGuiMenu::internalFrame()
 
 		if(ImGui::SliderFloat("Vertical Smoothness (Z Axis)", settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
+
+		if (ImGui::Checkbox("Sniper Scopes Enabled", settingsManager->SniperScopeEnabledPtr))
+		{
+			settingsManager->SettingsModifiedThisFrame = true;
+			if (!*settingsManager->SniperScopeEnabledPtr)
+				weaponManager->DestroyScope();
+			else
+				weaponManager->SpawnScope();
+		}
+			
+
 		ImGui::PopItemWidth();
 		/*	
 		std::wstring object_path;

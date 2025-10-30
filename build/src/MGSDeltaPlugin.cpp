@@ -6,12 +6,12 @@ using namespace uevr;
 
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager),
+MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager, &weaponManager),
 inputs(),
 cameraController(&playerManager, &settingsManager), 
-weaponController(&memoryManager, &settingsManager, &playerManager), 
+weaponManager(&memoryManager, &settingsManager, &playerManager), 
 memoryManager(),
-hookManager(&weaponController, &cameraController, &playerManager), 
+hookManager(&weaponManager, &cameraController, &playerManager), 
 playerManager() {}; //Constructor
 MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
 
@@ -331,21 +331,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.DestroyCameraAttachementActor();
 		API::VR::set_mod_value("VR_2DScreenMode", true);
 		API::VR::set_mod_value("VR_WorldScale", 0.0f);
-		if (weaponController.ScopeCylinderComponent) weaponController.ScopeCylinderComponent->K2_DestroyComponent(weaponController.ScopeCylinderComponent);
-		if (weaponController.ScopeWidgetStaticMeshComponent) weaponController.ScopeWidgetStaticMeshComponent->K2_DestroyComponent(weaponController.ScopeWidgetStaticMeshComponent);
-		if (weaponController.SceneCaptureComponent) weaponController.SceneCaptureComponent->K2_DestroyComponent(weaponController.SceneCaptureComponent);
-		if (weaponController.SceneCaptureUStaticMeshComponent) weaponController.SceneCaptureUStaticMeshComponent->K2_DestroyComponent(weaponController.SceneCaptureUStaticMeshComponent);
-		if (weaponController.ScopeWidget) weaponController.ScopeWidget->K2_DestroyComponent(weaponController.ScopeWidget);
-		if (weaponController.ScopeActor) weaponController.ScopeActor->K2_DestroyActor();
-		weaponController.ScopeCylinderComponent = nullptr;
-		weaponController.ScopeWidgetStaticMeshComponent = nullptr;
-		weaponController.SceneCaptureComponent = nullptr;
-		weaponController.SceneCaptureUStaticMeshComponent = nullptr;
-		weaponController.ScopeActor = nullptr;
-		weaponController.SniperRenderTarget = nullptr;
-		weaponController.SourceScopeWidget = nullptr;
-		//weaponController.ScopeWidgetDynamicMaterial = nullptr;
-		//weaponController.ScopeDiskDynamicMaterial = nullptr;
+		weaponManager.DestroyScope();
 		
 	/*	Utilities::DestroyDebugCigars();*/
 		vr_enabled = enable;
@@ -369,29 +355,28 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		Logger::DebugPrint("Player lost control");
 		Toggle6DOF(false);
 	}
-	
+
 	if (playerManager.IsPlayerControlled)
 	{
 		playerManager.GetCurrentAimState();
 		/*Logger::DebugPrint("Before ResolveAddresses");*/
 		/*memoryManager.ResolveAddresses();*/
 		/*Logger::DebugPrint("Before FetchEquipController");*/
-		weaponController.FetchEquipController();
+		weaponManager.FetchEquipController();
 		/*Logger::DebugPrint("Before ProcessWeapon");*/
-		weaponController.ProcessWeapon(delta);
+		weaponManager.ProcessWeapon(delta);
 		/*Logger::DebugPrint("Before FetchWeaponMeshAimData");*/
 
-		weaponController.FetchWeaponMeshAimData();
+		weaponManager.FetchWeaponMeshAimData();
 
 		/*Logger::DebugPrint("Before ApplyAimDataToMemory");*/
 		//weaponController.ApplyAimDataToMemory();
 		/*Logger::DebugPrint("Before SetAimDirection");*/
-		weaponController.SetAimDirection();
+		weaponManager.SetAimDirection();
 		/*Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
 		playerManager.UpdatePeepingState(delta);
 		cameraController.ProcessCamera(delta);
-		
 
 
 		//if (weaponController.ScopeWidgetDynamicMaterial)
@@ -530,6 +515,10 @@ void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, 
 	//	Logger::DebugPrint("%d", state->Gamepad.sThumbRX);
 	float rawXInput = (float)state->Gamepad.sThumbRX / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
 	cameraController.YawInput = rawXInput > *settingsManager.CameraRotationDeadZonePtr || rawXInput < -*settingsManager.CameraRotationDeadZonePtr ? rawXInput : 0.0f;
+
+	float rawYInput = (float)state->Gamepad.sThumbRY / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
+	weaponManager.ZoomInput = rawYInput > 0.5f || rawYInput < -0.5f ? rawYInput : 0.0f;
+
 }
 
 void MGSDeltaPlugin::on_xinput_set_state(uint32_t* retval, uint32_t user_index, XINPUT_VIBRATION* vibration)

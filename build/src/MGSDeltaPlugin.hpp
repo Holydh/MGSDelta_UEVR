@@ -16,7 +16,7 @@
 #include "ImguiMenu.hpp"
 #include "Inputs.hpp"
 #include "CameraController.hpp"
-#include "WeaponController.hpp"
+#include "WeaponManager.hpp"
 #include "MemoryManager.hpp"
 #include "HookManager.hpp"
 #include "PlayerManager.hpp"
@@ -43,7 +43,7 @@ public:
     ImGuiMenu imGuiMenu;
     Inputs inputs;
     CameraController cameraController;
-	WeaponController weaponController;
+	WeaponManager weaponManager;
 	MemoryManager memoryManager;
 	HookManager hookManager;
 	SettingsManager settingsManager;

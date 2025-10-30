@@ -4,13 +4,13 @@
 #define CPF_OutParm 0x0000000000000002
 #endif
 
-WeaponController* HookManager::s_weaponController = nullptr;
+WeaponManager* HookManager::s_weaponManager = nullptr;
 CameraController* HookManager::s_cameraController = nullptr;
 PlayerManager* HookManager::s_playerManager = nullptr;
 
 void HookManager::Initialize()
 {
-	s_weaponController = weaponController;
+	s_weaponManager = weaponManager;
 	s_cameraController = cameraController;
 	s_playerManager = playerManager;
 }
@@ -75,21 +75,21 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, SDK::FGsrFi
 
 	//Logger::DebugPrint("OnFireHook");
 	//Logger::DebugPrint("%d", s_weaponController->IsShooting);
-	s_weaponController->IsShooting = true;
+	s_weaponManager->IsShooting = true;
 	//s_cameraController->ToggleCameraWobblingController(false);
 	//Logger::DebugPrint("%f", s_weaponController->AimPosition.x);
 	//Logger::DebugPrint("FireRequest->FirePosition.X : %f, FireRequest->FirePosition.Y : %f, FireRequest->FirePosition.Z : %f", FireRequest->FirePosition.X, FireRequest->FirePosition.Y, FireRequest->FirePosition.Z);
 
-	fireRequest->FirePosition.X = s_weaponController->FirePosition.x;
-	fireRequest->FirePosition.Y = s_weaponController->FirePosition.y;
-	fireRequest->FirePosition.Z = s_weaponController->FirePosition.z;
+	fireRequest->FirePosition.X = s_weaponManager->FirePosition.x;
+	fireRequest->FirePosition.Y = s_weaponManager->FirePosition.y;
+	fireRequest->FirePosition.Z = s_weaponManager->FirePosition.z;
 
 	//Logger::DebugPrint("s_weaponController->AimPosition.x.x : %f, s_weaponController->AimPosition.x.y : %f, s_weaponController->AimPosition.x.z : %f", 
 	//	s_weaponController->AimPosition.x, s_weaponController->AimPosition.y, s_weaponController->AimPosition.z);
 	//Logger::DebugPrint("Old Aim Position: %f, %f, %f", FireRequest->AimPosition.X, FireRequest->AimPosition.Y, FireRequest->AimPosition.Z);
-	fireRequest->AimPosition.X = s_weaponController->AimPosition.x;
-	fireRequest->AimPosition.Y = s_weaponController->AimPosition.y;
-	fireRequest->AimPosition.Z = s_weaponController->AimPosition.z;
+	fireRequest->AimPosition.X = s_weaponManager->AimPosition.x;
+	fireRequest->AimPosition.Y = s_weaponManager->AimPosition.y;
+	fireRequest->AimPosition.Z = s_weaponManager->AimPosition.z;
 	//Logger::DebugPrint("New Aim Position: %f, %f, %f", FireRequest->AimPosition.X, FireRequest->AimPosition.Y, FireRequest->AimPosition.Z);
 
 

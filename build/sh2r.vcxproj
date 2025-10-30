@@ -358,9 +358,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="src\SDK\CoreUObject_functions.cpp" />
     <ClCompile Include="src\SDK\Engine_functions.cpp" />
     <ClCompile Include="src\SDK\Gsr_functions.cpp" />
+    <ClCompile Include="src\SDK\SightDragnovWidget_functions.cpp" />
+    <ClCompile Include="src\SDK\SightMosinWidget_functions.cpp" />
     <ClCompile Include="src\SDK\UMG_functions.cpp" />
     <ClCompile Include="src\Utilities.cpp" />
-    <ClCompile Include="WeaponController.cpp" />
+    <ClCompile Include="WeaponManager.cpp" />
     <ClInclude Include="HookManager.hpp" />
     <ClInclude Include="Inputs.hpp" />
     <ClInclude Include="MemoryManager.hpp" />
@@ -392,7 +394,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="src\uevr\API.hpp" />
     <ClInclude Include="src\uevr\Plugin.hpp" />
     <ClInclude Include="src\Utilities.hpp" />
-    <ClInclude Include="WeaponController.hpp" />
+    <ClInclude Include="WeaponManager.hpp" />
     <None Include="C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\cmake.toml">
     </None>
     <None Include="src\renderlib\IMGUI\DOCS\BACKENDS.md" />
