@@ -39,9 +39,7 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	auto eyePatchSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_EyePatch");
 	auto cqcKnifeScabbardSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_CqcKnifeScabbard");
 	auto cqcKnifeSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_CqcKnife");
-
-
-
+	auto halfMK22 = pawn->get_property<uevr::API::UObject*>(L"S_mk22_half");
 
 	bool SetOnlyOwnerSee = !visible ? true : false;
 	if (headSkeletalMesh) {
@@ -101,7 +99,11 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	if (cqcKnifeSkeletalMesh) {
 		cqcKnifeSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
 	}
-
+	if (halfMK22) {
+		auto staticMeshComponent = (SDK::UStaticMeshComponent*)halfMK22;
+		staticMeshComponent->SetHiddenInGame(SetOnlyOwnerSee, true);
+		staticMeshComponent->SetHiddenInSceneCapture(SetOnlyOwnerSee);
+	}
 }
 
 void PlayerManager::ToggleReticleVisibility(bool visible)

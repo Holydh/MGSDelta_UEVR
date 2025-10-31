@@ -269,37 +269,65 @@ void ImGuiMenu::internalFrame()
 	
 	if (ImGui::Begin("MGS Delta VR Plugin")) {
 		ImGui::Text("--- Camera Settings ---");
-	/*	ImGui::Text("Decoupled pitch: %i", API::VR::is_decoupled_pitch_enabled());
+		/*	ImGui::Text("Decoupled pitch: %i", API::VR::is_decoupled_pitch_enabled());
 
-		if (ImGui::Button("Toggle decoupled pitch")) {
-			API::VR::set_decoupled_pitch_enabled(!API::VR::is_decoupled_pitch_enabled());
-		}*/
+			if (ImGui::Button("Toggle decoupled pitch")) {
+				API::VR::set_decoupled_pitch_enabled(!API::VR::is_decoupled_pitch_enabled());
+			}*/
 
 		if (ImGui::Checkbox("Attach To Snake Head", settingsManager->AttachCameraToSnakeHeadPtr))
 			settingsManager->SettingsModifiedThisFrame = true;
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Not recommended for comfort");
 
 		float available = ImGui::GetContentRegionAvail().x;
-		ImGui::PushItemWidth(available * 0.5f); 
-		if(ImGui::SliderFloat("Rotation Speed", settingsManager->CameraRotationSpeedPtr, 0.1f, 50.0f))
-			settingsManager->SettingsModifiedThisFrame = true;
+		ImGui::PushItemWidth(available * 0.5f);
 
-		if(ImGui::SliderFloat("Rotation Deadzone", settingsManager->CameraRotationDeadZonePtr, 0.0f, 1.0f))
+		if (ImGui::SliderFloat("Rotation Speed", settingsManager->CameraRotationSpeedPtr, 0.1f, 50.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
-		
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Controls how fast the camera rotates when turning");
+
+		if (ImGui::SliderFloat("Rotation Deadzone", settingsManager->CameraRotationDeadZonePtr, 0.0f, 1.0f))
+			settingsManager->SettingsModifiedThisFrame = true;
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Thumbstick input below this threshold will be ignored");
+
 		if (ImGui::Checkbox("Smooth Camera Rotation", settingsManager->SmoothCameraRotationPtr))
 			settingsManager->SettingsModifiedThisFrame = true;
 
-		if(ImGui::SliderFloat("Rotation Smoothness", settingsManager->CameraYawLerpPtr, 0.0f, 10.0f))
+		if (ImGui::SliderFloat("Rotation Smoothness", settingsManager->CameraYawLerpPtr, 0.0f, 10.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
-		
+		if (ImGui::IsItemHovered()) {
+			ImGui::BeginTooltip();
+			ImGui::Text("Higher values = smoother but slower rotation");
+			ImGui::Text("Lower values = snappier but less smooth");
+			ImGui::EndTooltip();
+		}
+
 		if (ImGui::Checkbox("Smooth Camera Position", settingsManager->SmoothCameraPositionPtr))
 			settingsManager->SettingsModifiedThisFrame = true;
 
-		if(ImGui::SliderFloat("Horizontal Smoothness (X&Y Axis)", settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f))
+		if (ImGui::SliderFloat("Horizontal Smoothness (X&Y Axis)", settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
+		if (ImGui::IsItemHovered()) {
+			ImGui::BeginTooltip();
+			ImGui::Text("Higher values = smoother but slower movement");
+			ImGui::Text("Lower values = snappier but less smooth");
+			ImGui::EndTooltip();
+		}
 
-		if(ImGui::SliderFloat("Vertical Smoothness (Z Axis)", settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f))
+		if (ImGui::SliderFloat("Vertical Smoothness (Z Axis)", settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
+		if (ImGui::IsItemHovered()) {
+			ImGui::BeginTooltip();
+			ImGui::Text("Higher values = smoother but slower movement");
+			ImGui::Text("Lower values = snappier but less smooth");
+			ImGui::EndTooltip();
+		}
+
+		ImGui::Separator();
+		ImGui::Text("--- Weapons Settings ---");
 
 		if (ImGui::Checkbox("Sniper Scopes Enabled", settingsManager->SniperScopeEnabledPtr))
 		{
@@ -309,7 +337,20 @@ void ImGuiMenu::internalFrame()
 			else
 				weaponManager->SpawnScope();
 		}
-			
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Sniper scopes have some impact on framerate");
+
+		if (ImGui::SliderInt("Scope Resolution", settingsManager->ScopeResolutionPtr, 100, 2100))
+		{
+			settingsManager->SettingsModifiedThisFrame = true;
+			weaponManager->ChangeScopeResolution();
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::BeginTooltip();
+			ImGui::Text("Change the quality of the Scope view. Can help with performance.");
+			ImGui::Text("Requires to reload a save or reset the plugin to apply");
+			ImGui::EndTooltip();
+		}
 
 		ImGui::PopItemWidth();
 		/*	

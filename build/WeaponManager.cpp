@@ -162,40 +162,43 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
 		{
 			if (playerManager->WasFirstPersonAiming != playerManager->IsFirstPersonAiming)
-				SwitchScopeState(true);
+			{
+				ReceiverMesh->SetVisibility(true, true);
+			}
 			auto test = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
 			auto scopeMagnification = test->GetScopeMagnification();
 			//Logger::DebugPrint("scope magnification : %f", scopeMagnification);
 			float scopeFov = scopeMagnification == 3.0f ? 16.0f : 5.0f;
 			SceneCaptureComponent->FOVAngle = scopeFov;
-			auto sightWidget = (SDK::UCSightWidget*)SourceDragnovScopeWidget;
 			//Toggle zoom :
 			if (ZoomInput > 0.0f && scopeMagnification == 3.0f)
 			{
-				sightWidget->SetCamZoomToggle();
 				if (IsDragnov)
 				{
 					auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
 					widget->SightZoomIn();
+					widget->SetCamZoomToggle();
 				}
 				else
 				{
-					auto widget = (SDK::USightMosinWidget_C*)SourceDragnovScopeWidget;
+					auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
 					widget->SightZoomIn();
+					widget->SetCamZoomToggle();
 				}
 			}
 			if (ZoomInput < 0.0f && scopeMagnification == 10.0f)
 			{
-				sightWidget->SetCamZoomToggle();
 				if (IsDragnov)
 				{
 					auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
 					widget->SightZoomOut();
+					widget->SetCamZoomToggle();
 				}
 				else
 				{
-					auto widget = (SDK::USightMosinWidget_C*)SourceDragnovScopeWidget;
+					auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
 					widget->SightZoomOut();
+					widget->SetCamZoomToggle();
 				}
 			}
 		}
@@ -367,8 +370,6 @@ void WeaponManager::SwitchScopeState(bool enable)
 	if (SceneCaptureUStaticMeshComponent) SceneCaptureUStaticMeshComponent->SetVisibility(enable, false);
 	if (ScopeStaticMeshComponent) ScopeStaticMeshComponent->SetVisibility(enable, false);
 	if (ScopeWidgetStaticMeshComponent) ScopeWidgetStaticMeshComponent->SetVisibility(enable, false);
-
-	ReceiverMesh->SetVisibility(true, true);
 	
 	//Hide the black background behind the scope widget
 	if (IsDragnov)
@@ -409,6 +410,11 @@ void WeaponManager::DestroyScope()
 	DragnovScopeWidget = nullptr;
 	SourceMosinScopeWidget = nullptr;
 	MosinScopeWidget = nullptr;
+}
+
+void WeaponManager::ChangeScopeResolution()
+{
+	ScopeRenderTarget->SizeX = ScopeRenderTarget->SizeY = *settingsManager->ScopeResolutionPtr;
 }
 
 void WeaponManager::ApplyRecoil(float delta)
@@ -570,7 +576,7 @@ void WeaponManager::getRenderTarget(SDK::UWorld* world)
 	
 	if (!ScopeRenderTarget)
 	{
-		ScopeRenderTarget = SDK::UKismetRenderingLibrary::CreateRenderTarget2D(world, cameraRenderTargetResolution, cameraRenderTargetResolution, SDK::ETextureRenderTargetFormat::RTF_RGBA16f, linearColor, false, false);
+		ScopeRenderTarget = SDK::UKismetRenderingLibrary::CreateRenderTarget2D(world, *settingsManager->ScopeResolutionPtr, *settingsManager->ScopeResolutionPtr, SDK::ETextureRenderTargetFormat::RTF_RGBA16f, linearColor, false, false);
 		Logger::DebugPrint("Render target created : %s", ScopeRenderTarget->GetFullName().c_str());
 	}
 	//else
@@ -679,7 +685,6 @@ void WeaponManager::spawnSceneCaptureComponent()
 	//SceneCaptureComponent->PrimitiveRenderMode = SDK::ESceneCapturePrimitiveRenderMode::PRM_LegacySceneCapture;
 	//SceneCaptureComponent->CaptureSource = SDK::ESceneCaptureSource::SCS_SceneColorHDR;
 	SceneCaptureComponent->bAlwaysPersistRenderingState = true;
-	SceneCaptureComponent->bCaptureEveryFrame = 1;
 	SceneCaptureComponent->PostProcessSettings.bOverride_MotionBlurAmount = true;
 	SceneCaptureComponent->PostProcessSettings.MotionBlurAmount = 0.0; //Disable motion blur
 	SceneCaptureComponent->PostProcessSettings.bOverride_ScreenSpaceReflectionIntensity = true;
@@ -858,7 +863,7 @@ void WeaponManager::spawnScopeWidget()
 		ImageWidget->SetBrush(Brush);
 		SourceMosinScopeWidget = sourceWidget;
 		MosinScopeWidget = widgetComponent;
-		Logger::DebugPrint(DragnovScopeWidget->GetFullName().c_str());
+		Logger::DebugPrint(MosinScopeWidget->GetFullName().c_str());
 	}
 	SetAllImageTints((SDK::UUserWidget*)arrowGroup, color);
 

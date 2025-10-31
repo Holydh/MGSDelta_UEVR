@@ -249,4 +249,20 @@ void CameraController::ProcessCameraResetTimer(float delta)
 	InstantCameraPositionTimer -= delta;
 }
 
+void CameraController::DisableGrassFading()
+{
+	Logger::DebugPrint("DisableGrassFading");
+	auto uClass = (uevr::API::UClass*)SDK::UCameraFadingComponent::StaticClass();
+	auto uCameraFadingComponents = uClass->get_objects_matching();
+	for (size_t i = 0; i < uCameraFadingComponents.size(); i++)
+	{
+		Logger::DebugPrint(uCameraFadingComponents[i]->get_full_name());
+		auto sdkComponent = (SDK::UCameraFadingComponent*)uCameraFadingComponents[i];
+		sdkComponent->bAutoActivate = false;
+		sdkComponent->GrassFadingRadius = 0.0f;
+		sdkComponent->ClearCache();
+		sdkComponent->Deactivate();
+	}
+}
+
 

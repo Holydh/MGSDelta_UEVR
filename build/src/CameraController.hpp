@@ -46,4 +46,5 @@ public:
 	float InstantCameraPositionTimer = 0.25f;
 	bool InstantCameraPositionNeeded = false;
 	void ProcessCameraResetTimer(float delta);
+	void DisableGrassFading();
 };

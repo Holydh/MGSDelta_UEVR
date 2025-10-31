@@ -36,7 +36,6 @@ private:
 	void spawnScopeWidget();
 	void attachScopeToWeapon();
 
-	int cameraRenderTargetResolution = 1024;
 public:
 	WeaponManager(MemoryManager* mm, SettingsManager* sm, PlayerManager* pm) : memoryManager(mm), settingsManager(sm), playerManager(pm) {};
 	bool IsShooting = false;
@@ -375,4 +374,5 @@ public:
 	void SwitchScopeState(bool enable);
 	void SpawnScope();
 	void DestroyScope();
+	void ChangeScopeResolution();
 };

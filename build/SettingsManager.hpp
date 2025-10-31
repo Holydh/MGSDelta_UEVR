@@ -49,6 +49,7 @@ public:
 	float* CameraPositionZLerpPtr;
 
 	bool* SniperScopeEnabledPtr;
+	int* ScopeResolutionPtr;
 	
 private:
 	bool attachCameraToSnakeHead = false;
@@ -61,6 +62,7 @@ private:
 	float cameraPositionZLerp = 5.0f;
 
 	bool sniperScopeEnabled = true;
+	int scopeResolution = 1024;
 
 
 	std::string GetConfigFilePath(bool uevr);

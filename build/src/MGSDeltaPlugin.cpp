@@ -308,6 +308,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 {
 	if (enable && !vr_enabled)
 	{
+		cameraController.DisableGrassFading();
 		cameraController.ToggleCameraWobblingController(false);
 		//memoryManager.ToggleAimRelatedMemoryInstructions(false);
 		playerManager.ToggleMeshesVisibility(false);
@@ -346,14 +347,14 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 	if (playerManager.IsPlayerControlled && !playerManager.WasPlayerControlled)
 	{
-		Logger::DebugPrint("Player took control");
 		Toggle6DOF(true);
+		Logger::DebugPrint("Player took control");
 	}
 
 	if (!playerManager.IsPlayerControlled && playerManager.WasPlayerControlled)
 	{
-		Logger::DebugPrint("Player lost control");
 		Toggle6DOF(false);
+		Logger::DebugPrint("Player lost control");
 	}
 
 	if (playerManager.IsPlayerControlled)
@@ -518,7 +519,6 @@ void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, 
 
 	float rawYInput = (float)state->Gamepad.sThumbRY / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
 	weaponManager.ZoomInput = rawYInput > 0.5f || rawYInput < -0.5f ? rawYInput : 0.0f;
-
 }
 
 void MGSDeltaPlugin::on_xinput_set_state(uint32_t* retval, uint32_t user_index, XINPUT_VIBRATION* vibration)

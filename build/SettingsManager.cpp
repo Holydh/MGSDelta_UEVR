@@ -1,6 +1,7 @@
 #include "SettingsManager.hpp"
 
 bool debugMod = true;
+
 std::unordered_map<std::string, WeaponConfig> SettingsManager::g_weaponConfigs{};
 
 bool SettingsManager::LoadWeaponConfigFromFile(const fs::path& path, WeaponConfig& outCfg)
@@ -89,6 +90,7 @@ void SettingsManager::InitSettingsManager()
 	CameraPositionZLerpPtr = &cameraPositionZLerp;
 
 	SniperScopeEnabledPtr = &sniperScopeEnabled;
+	ScopeResolutionPtr = &scopeResolution;
 }
 
 void SettingsManager::FetchUevrSettings(bool writeToPlugin)
@@ -121,6 +123,7 @@ void SettingsManager::FetchPluginSettings()
 	cameraPositionZLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraPositionZLerp", 5.0f);
 
 	sniperScopeEnabled = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "sniperScopeEnabled", true);
+	scopeResolution = SettingsManager::GetIntValueFromFile(pluginConfigFilePath, "scopeResolution", 1024);
 	if (debugMod) Logger::DebugPrint("Plugin Settings Updated");
 }
 
@@ -137,6 +140,7 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraPositionZLerp", cameraPositionZLerp);
 
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "sniperScopeEnabled", sniperScopeEnabled);
+	SettingsManager::SetIntValueToFile(pluginConfigFilePath, "scopeResolution", scopeResolution);
 }
 
 
@@ -161,7 +165,8 @@ void SettingsManager::GetOrCreateConfigFile()
 			"smoothCameraPosition=true\n"
 			"cameraPositionXYLerp=5.0\n"
 			"cameraPositionZLerp=5.0\n"
-			"sniperScopeEnabled=true\n";
+			"sniperScopeEnabled=true\n"
+			"scopeResolution=1024\n";
 
 		HANDLE hCreateFile = CreateFileA(pluginConfigFilePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hCreateFile != INVALID_HANDLE_VALUE)
@@ -400,7 +405,7 @@ void SettingsManager::SetIntValueToFile(const std::string& filePath, const std::
 	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		Logger::DebugPrint("Failed to open %s for reading", filePath);
+		Logger::DebugPrint("Failed to open %s for reading", filePath.c_str());
 		return;
 	}
 
@@ -425,61 +430,63 @@ void SettingsManager::SetIntValueToFile(const std::string& filePath, const std::
 			std::string before = fileContents.substr(0, equalPos + 1);
 			std::string after = (endOfLine != std::string::npos) ? fileContents.substr(endOfLine) : "";
 
-			// Replace value
 			std::string newContents = before + std::to_string(value) + after;
-			
-			// Write it back
+
 			HANDLE hWriteFile = CreateFileA(filePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 			if (hWriteFile != INVALID_HANDLE_VALUE)
 			{
 				DWORD bytesWritten;
 				WriteFile(hWriteFile, newContents.c_str(), static_cast<DWORD>(newContents.size()), &bytesWritten, NULL);
 				CloseHandle(hWriteFile);
-				Logger::DebugPrint("Updated %s to %s", key.c_str(), std::to_string(value));
+				Logger::DebugPrint("Updated %s to %d", key.c_str(), value);
 			}
 			else
 			{
-				Logger::DebugPrint("Failed to open %s for writing", filePath);
+				Logger::DebugPrint("Failed to open %s for writing", filePath.c_str());
 			}
 			return;
 		}
 	}
+
+	Logger::DebugPrint("Key %s not found in %s", key.c_str(), filePath.c_str());
 }
 
 int SettingsManager::GetIntValueFromFile(const std::string& filePath, const std::string& key, int defaultValue)
 {
-	if (debugMod) Logger::DebugPrint("GetFloatValueFromFile()");
+	if (debugMod) Logger::DebugPrint("GetIntValueFromFile()");
 
 	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		Logger::DebugPrint("Failed to open %s", filePath);
+		Logger::DebugPrint("Failed to open %s", filePath.c_str());
 		return defaultValue;
 	}
 
 	DWORD bytesRead;
-	char buffer[1024];  // Buffer to read the file content
+	char buffer[1024];
 	std::string fileContents;
 
-	// Read the file into memory
 	while (ReadFile(hFile, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0)
 	{
-		buffer[bytesRead] = '\0'; // Null terminate the string
+		buffer[bytesRead] = '\0';
 		fileContents.append(buffer);
 	}
 	CloseHandle(hFile);
 
-	// Look for the key in the file contents
 	size_t pos = fileContents.find(key);
 	if (pos != std::string::npos)
 	{
 		size_t equalPos = fileContents.find('=', pos);
 		if (equalPos != std::string::npos)
 		{
-			std::string valueStr = fileContents.substr(equalPos + 1);
+			size_t endOfLine = fileContents.find_first_of("\r\n", equalPos);
+			std::string valueStr = (endOfLine != std::string::npos)
+				? fileContents.substr(equalPos + 1, endOfLine - equalPos - 1)
+				: fileContents.substr(equalPos + 1);
+
 			try
 			{
-				return std::stoi(valueStr); // Convert the string to float
+				return std::stoi(valueStr);
 			}
 			catch (const std::invalid_argument&)
 			{
@@ -489,7 +496,7 @@ int SettingsManager::GetIntValueFromFile(const std::string& filePath, const std:
 		}
 	}
 
-	return defaultValue;  // Return default if the key is not found
+	return defaultValue;
 }
 
 std::string GetDLLDirectory()

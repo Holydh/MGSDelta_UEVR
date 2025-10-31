@@ -54,5 +54,5 @@ public:
 	bool ImguiEnabled = true;
     bool MouseMovedThisFrame = false;
     bool MouseHasFocus = false;
-    bool ControllerInput = false;
+    bool ControllerInput = true;
 };
