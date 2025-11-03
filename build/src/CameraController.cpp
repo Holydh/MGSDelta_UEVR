@@ -93,7 +93,7 @@ void CameraController::AttachCameraToAttachementActor()
 
 void CameraController::DetachCameraFromAttachementActor()
 {
-	uevr::API::UObjectHook::remove_motion_controller_state(CameraAttachementActor);
+	if (CameraAttachementActor)	uevr::API::UObjectHook::remove_motion_controller_state(CameraAttachementActor);
 }
 
 void CameraController::ProcessCamera(float deltaTime)

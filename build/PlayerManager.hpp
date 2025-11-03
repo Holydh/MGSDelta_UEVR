@@ -7,6 +7,7 @@
 #include "SDK/Gsr_classes.hpp"
 #include "SDK/Ics_parameters.hpp"
 #include "SDK/BP_Player_classes.hpp"
+#include "SDK/HeadMountedDisplay_classes.hpp"
 
 class PlayerManager {
 public:
@@ -17,6 +18,8 @@ public:
 	bool WasPlayerControlled = false;
     bool IsPlayerControlled = false;
     void FetchGameState();
+
+	SDK::EGsrGameStatus CurrentGameStatus = SDK::EGsrGameStatus::InGame;
 
 	enum EPlayerAnimState
 	{
@@ -55,6 +58,15 @@ public:
 	void GetCurrentPlayerStance(float deltaTime);
 	void ProcessPlayerCharacterState(const SDK::FName& StateName, const SDK::FName& StateMachineName);
 	void GetCurrentAimState();
+
+	SDK::UMotionControllerComponent* LeftController;
+	SDK::UPoseableMeshComponent* LeftHandMesh;
+	SDK::UMotionControllerComponent* RightController;
+	SDK::UPoseableMeshComponent* RightHandMesh;
+
+	void FetchMotionControllers();
+	bool HandAttachedToWeapon = false;
+
 	//EPlayerAnimState GetCurrentPlayerAnimState(const SDK::FName& State);
 private:
 	SDK::USnakeStatusComponent snakeStatus;

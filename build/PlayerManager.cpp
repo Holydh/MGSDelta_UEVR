@@ -41,7 +41,7 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	auto cqcKnifeSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_CqcKnife");
 	auto halfMK22 = pawn->get_property<uevr::API::UObject*>(L"S_mk22_half");
 
-	bool SetOnlyOwnerSee = !visible ? true : false;
+	bool SetOnlyOwnerSee = visible ? false : true;
 	if (headSkeletalMesh) {
 		headSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
 	}
@@ -130,13 +130,9 @@ void PlayerManager::ToggleReticleVisibility(bool visible)
 
 void PlayerManager::FetchGameState()
 {
-	auto pawn = uevr::API::get()->get_local_pawn(0);
-	bool playerControlled = {};
-	if (pawn) {
-		pawn->call_function(L"IsPlayerControlled", &playerControlled);
-	}
-	IsPlayerControlled = playerControlled;
-	//Logger::DebugPrint("IsPlayerControlled: %d", singleBoolParams);
+	auto gsrGameStateSubsystem_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrGameStateSubsystem");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
+	auto gsrGameStateSubsystem = (SDK::UGsrGameStateSubsystem*)gsrGameStateSubsystem_c->get_first_object_matching(false);
+	IsPlayerControlled = gsrGameStateSubsystem->CheckGameStatus(CurrentGameStatus);
 }
 
 void PlayerManager::UpdatePeepingState(float deltaTime)
@@ -219,4 +215,30 @@ void PlayerManager::GetCurrentAimState()
 {
 	auto playerController = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
 	IsFirstPersonAiming = playerController->IsAimDownSight();
+}
+
+void PlayerManager::FetchMotionControllers()
+{
+	auto motionControllerComponent_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/HeadMountedDisplay.MotionControllerComponent");
+	auto motionControllerComponents = motionControllerComponent_c->get_objects_matching(false);
+	for (size_t i = 0; i < motionControllerComponents.size(); i++)
+	{
+		auto motionControllerComponent = (SDK::UMotionControllerComponent*)motionControllerComponents[i];
+		if (motionControllerComponent->MotionSource == SDK::UKismetStringLibrary::Conv_StringToName(L"Left"))
+		{
+			LeftController = motionControllerComponent;
+			LeftHandMesh = (SDK::UPoseableMeshComponent*)motionControllerComponent->GetChildComponent(0);
+			Logger::DebugPrint("Found Left Motion Controller: %s", motionControllerComponent->GetFullName().c_str());
+			Logger::DebugPrint("Found Left Hand Mesh: %s", LeftHandMesh->GetFullName().c_str());
+		}
+		else
+		{
+			RightController = motionControllerComponent;
+			RightHandMesh = (SDK::UPoseableMeshComponent*)motionControllerComponent->GetChildComponent(0);
+			Logger::DebugPrint("Found Right Motion Controller: %s", motionControllerComponent->GetFullName().c_str());
+			Logger::DebugPrint("Found Right Hand Mesh: %s", RightHandMesh->GetFullName().c_str());
+		}
+			
+		
+	}
 }

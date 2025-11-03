@@ -1,0 +1,2400 @@
+{
+    "animations": {
+        "Shared": {
+            "poses": {
+                "grip_left_weapon": [
+                    [
+                        "left_grip_weapon",
+                        "on"
+                    ],
+                    [
+                        "left_trigger_weapon",
+                        "off"
+                    ]
+                ],
+                "grip_right_weapon": [
+                    [
+                        "right_grip_weapon",
+                        "on"
+                    ],
+                    [
+                        "right_trigger_weapon",
+                        "off"
+                    ]
+                ],
+                "open_left": [
+                    [
+                        "left_grip",
+                        "off"
+                    ],
+                    [
+                        "left_trigger",
+                        "off"
+                    ],
+                    [
+                        "left_thumb",
+                        "off"
+                    ]
+                ],
+                "open_right": [
+                    [
+                        "right_grip",
+                        "off"
+                    ],
+                    [
+                        "right_trigger",
+                        "off"
+                    ],
+                    [
+                        "right_thumb",
+                        "off"
+                    ]
+                ]
+            },
+            "positions": {
+                "left_grip": {
+                    "off": {
+                        "BaseBody_LeftHandMiddle1": [
+                            0.6511,
+                            -27.9048,
+                            4.0834
+                        ],
+                        "BaseBody_LeftHandMiddle2": [
+                            0.0,
+                            -12.0,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandMiddle3": [
+                            0.0,
+                            -17.0001,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandPinky1": [
+                            3.4218,
+                            -37.5836,
+                            -25.0387
+                        ],
+                        "BaseBody_LeftHandPinky2": [
+                            0.0,
+                            -8.0,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandPinky3": [
+                            0.0,
+                            -8.0,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandRing1": [
+                            5.1576,
+                            -31.13,
+                            -14.8127
+                        ],
+                        "BaseBody_LeftHandRing2": [
+                            0.0,
+                            -13.0001,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandRing3": [
+                            0.0,
+                            -8.0,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb1": [
+                            -13.3323,
+                            -52.948,
+                            118.634
+                        ],
+                        "BaseBody_LeftHandThumb2": [
+                            0.0,
+                            -4.0,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb3": [
+                            0.0,
+                            -6.0,
+                            0.0
+                        ]
+                    },
+                    "on": {
+                        "BaseBody_LeftHandMiddle1": [
+                            0.6506,
+                            -74.25,
+                            4.083
+                        ],
+                        "BaseBody_LeftHandMiddle2": [
+                            0.0,
+                            -54.0001,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandMiddle3": [
+                            0.0,
+                            -76.625,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandPinky1": [
+                            0.6506,
+                            -73.125,
+                            4.083
+                        ],
+                        "BaseBody_LeftHandPinky2": [
+                            0.0,
+                            -58.1251,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandPinky3": [
+                            0.0,
+                            -67.6251,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandRing1": [
+                            0.6506,
+                            -74.25,
+                            4.083
+                        ],
+                        "BaseBody_LeftHandRing2": [
+                            0.0,
+                            -61.8751,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandRing3": [
+                            0.0,
+                            -77.75,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb1": [
+                            -0.9571,
+                            -39.3751,
+                            118.6341
+                        ],
+                        "BaseBody_LeftHandThumb2": [
+                            0.0,
+                            -4.0002,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb3": [
+                            0.0,
+                            -4.5002,
+                            0.0
+                        ]
+                    }
+                },
+                "left_grip_weapon": {
+                    "off": {
+                        "BaseBody_LeftHandMiddle1": [
+                            0.6511,
+                            -27.9048,
+                            4.0834
+                        ],
+                        "BaseBody_LeftHandMiddle2": [
+                            0.0,
+                            -12.0,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandMiddle3": [
+                            0.0,
+                            -17.0001,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandPinky1": [
+                            3.4218,
+                            -37.5836,
+                            -25.0387
+                        ],
+                        "BaseBody_LeftHandPinky2": [
+                            0.0,
+                            -8.0,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandPinky3": [
+                            0.0,
+                            -8.0,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandRing1": [
+                            5.1576,
+                            -31.13,
+                            -14.8127
+                        ],
+                        "BaseBody_LeftHandRing2": [
+                            0.0,
+                            -13.0001,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandRing3": [
+                            0.0,
+                            -8.0,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb1": [
+                            -13.3323,
+                            -52.948,
+                            118.634
+                        ],
+                        "BaseBody_LeftHandThumb2": [
+                            0.0,
+                            -4.0,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb3": [
+                            0.0,
+                            -6.0,
+                            0.0
+                        ]
+                    },
+                    "on": {
+                        "BaseBody_LeftHandMiddle1": [
+                            0.6506,
+                            -74.25,
+                            4.083
+                        ],
+                        "BaseBody_LeftHandMiddle2": [
+                            0.0,
+                            -54.0001,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandMiddle3": [
+                            0.0,
+                            -76.6251,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandPinky1": [
+                            0.6506,
+                            -73.125,
+                            4.083
+                        ],
+                        "BaseBody_LeftHandPinky2": [
+                            0.0,
+                            -58.1251,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandPinky3": [
+                            0.0,
+                            -67.6251,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandRing1": [
+                            0.6506,
+                            -74.25,
+                            4.083
+                        ],
+                        "BaseBody_LeftHandRing2": [
+                            0.0,
+                            -61.8751,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandRing3": [
+                            0.0,
+                            -77.7501,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb1": [
+                            -0.9571,
+                            -39.3751,
+                            118.6341
+                        ],
+                        "BaseBody_LeftHandThumb2": [
+                            0.0,
+                            -4.0002,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb3": [
+                            0.0,
+                            -4.5002,
+                            0.0
+                        ]
+                    }
+                },
+                "left_thumb": {
+                    "off": {
+                        "BaseBody_LeftHandThumb1": [
+                            -13.3324,
+                            -52.9481,
+                            118.634
+                        ],
+                        "BaseBody_LeftHandThumb2": [
+                            0.0,
+                            -4.0,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb3": [
+                            0.0,
+                            -6.0,
+                            0.0
+                        ]
+                    },
+                    "on": {
+                        "BaseBody_LeftHandThumb1": [
+                            -13.3324,
+                            -24.823,
+                            118.634
+                        ],
+                        "BaseBody_LeftHandThumb2": [
+                            0.0,
+                            -26.5001,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb3": [
+                            0.0,
+                            -6.0001,
+                            0.0
+                        ]
+                    }
+                },
+                "left_trigger": {
+                    "off": {
+                        "BaseBody_LeftHandIndex1": [
+                            -4.0575,
+                            -23.6218,
+                            9.0361
+                        ],
+                        "BaseBody_LeftHandIndex2": [
+                            0.0,
+                            -23.0001,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandIndex3": [
+                            0.0,
+                            -11.9871,
+                            0.0
+                        ]
+                    },
+                    "on": {
+                        "BaseBody_LeftHandIndex1": [
+                            -4.0575,
+                            -23.6218,
+                            9.0361
+                        ],
+                        "BaseBody_LeftHandIndex2": [
+                            0.0,
+                            -23.0001,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandIndex3": [
+                            0.0,
+                            -11.9871,
+                            0.0
+                        ]
+                    }
+                },
+                "left_trigger_weapon": {
+                    "off": {
+                        "BaseBody_LeftHandIndex1": [
+                            -4.0575,
+                            -23.6218,
+                            9.0361
+                        ],
+                        "BaseBody_LeftHandIndex2": [
+                            0.0,
+                            -23.0001,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandIndex3": [
+                            0.0,
+                            -11.987,
+                            0.0
+                        ]
+                    },
+                    "on": {
+                        "BaseBody_LeftHandIndex1": [
+                            -4.0575,
+                            -23.6218,
+                            9.0361
+                        ],
+                        "BaseBody_LeftHandIndex2": [
+                            0.0,
+                            -23.0001,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandIndex3": [
+                            0.0,
+                            -11.987,
+                            0.0
+                        ]
+                    }
+                },
+                "right_grip": {
+                    "off": {
+                        "BaseBody_RightHandMiddle1": [
+                            0.6506,
+                            -74.2501,
+                            4.083
+                        ],
+                        "BaseBody_RightHandMiddle2": [
+                            0.0,
+                            -54.0001,
+                            0.0
+                        ],
+                        "BaseBody_RightHandMiddle3": [
+                            0.0,
+                            -76.6251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandPinky1": [
+                            0.6506,
+                            -73.1251,
+                            4.083
+                        ],
+                        "BaseBody_RightHandPinky2": [
+                            0.0,
+                            -58.1251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandPinky3": [
+                            0.0,
+                            -67.6251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandRing1": [
+                            0.6506,
+                            -74.2501,
+                            4.083
+                        ],
+                        "BaseBody_RightHandRing2": [
+                            0.0,
+                            -61.8751,
+                            0.0
+                        ],
+                        "BaseBody_RightHandRing3": [
+                            0.0,
+                            -77.7501,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb1": [
+                            -0.9571,
+                            -39.3751,
+                            118.6341
+                        ],
+                        "BaseBody_RightHandThumb2": [
+                            0.0,
+                            -4.0002,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb3": [
+                            0.0,
+                            -4.5002,
+                            0.0
+                        ]
+                    },
+                    "on": {
+                        "BaseBody_RightHandMiddle1": [
+                            0.6506,
+                            -74.2501,
+                            4.083
+                        ],
+                        "BaseBody_RightHandMiddle2": [
+                            0.0,
+                            -54.0001,
+                            0.0
+                        ],
+                        "BaseBody_RightHandMiddle3": [
+                            0.0,
+                            -76.625,
+                            0.0
+                        ],
+                        "BaseBody_RightHandPinky1": [
+                            0.6506,
+                            -73.125,
+                            4.083
+                        ],
+                        "BaseBody_RightHandPinky2": [
+                            0.0,
+                            -58.125,
+                            0.0
+                        ],
+                        "BaseBody_RightHandPinky3": [
+                            0.0,
+                            -67.625,
+                            0.0
+                        ],
+                        "BaseBody_RightHandRing1": [
+                            0.6506,
+                            -74.2501,
+                            4.083
+                        ],
+                        "BaseBody_RightHandRing2": [
+                            0.0,
+                            -61.875,
+                            0.0
+                        ],
+                        "BaseBody_RightHandRing3": [
+                            0.0,
+                            -77.75,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb1": [
+                            -0.9571,
+                            -39.3751,
+                            118.6341
+                        ],
+                        "BaseBody_RightHandThumb2": [
+                            0.0,
+                            -4.0002,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb3": [
+                            0.0,
+                            -4.5002,
+                            0.0
+                        ]
+                    }
+                },
+                "right_grip_weapon": {
+                    "off": {
+                        "BaseBody_RightHandMiddle1": [
+                            0.6506,
+                            -74.2501,
+                            4.083
+                        ],
+                        "BaseBody_RightHandMiddle2": [
+                            0.0,
+                            -54.0001,
+                            0.0
+                        ],
+                        "BaseBody_RightHandMiddle3": [
+                            0.0,
+                            -76.625,
+                            0.0
+                        ],
+                        "BaseBody_RightHandPinky1": [
+                            0.6506,
+                            -73.1251,
+                            4.083
+                        ],
+                        "BaseBody_RightHandPinky2": [
+                            0.0,
+                            -58.1251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandPinky3": [
+                            0.0,
+                            -67.6251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandRing1": [
+                            0.6506,
+                            -74.2501,
+                            4.083
+                        ],
+                        "BaseBody_RightHandRing2": [
+                            0.0,
+                            -61.8751,
+                            0.0
+                        ],
+                        "BaseBody_RightHandRing3": [
+                            0.0,
+                            -77.75,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb1": [
+                            -0.9571,
+                            -39.3751,
+                            118.6341
+                        ],
+                        "BaseBody_RightHandThumb2": [
+                            0.0,
+                            -4.0002,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb3": [
+                            0.0,
+                            -4.5002,
+                            0.0
+                        ]
+                    },
+                    "on": {
+                        "BaseBody_RightHandMiddle1": [
+                            0.6506,
+                            -74.2501,
+                            4.083
+                        ],
+                        "BaseBody_RightHandMiddle2": [
+                            0.0,
+                            -54.0001,
+                            0.0
+                        ],
+                        "BaseBody_RightHandMiddle3": [
+                            0.0,
+                            -76.6251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandPinky1": [
+                            0.6506,
+                            -73.1251,
+                            4.083
+                        ],
+                        "BaseBody_RightHandPinky2": [
+                            0.0,
+                            -58.1251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandPinky3": [
+                            0.0,
+                            -67.6251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandRing1": [
+                            0.6506,
+                            -74.2501,
+                            4.083
+                        ],
+                        "BaseBody_RightHandRing2": [
+                            0.0,
+                            -61.8751,
+                            0.0
+                        ],
+                        "BaseBody_RightHandRing3": [
+                            0.0,
+                            -77.75,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb1": [
+                            -0.9571,
+                            -39.3751,
+                            118.6341
+                        ],
+                        "BaseBody_RightHandThumb2": [
+                            0.0,
+                            -4.0002,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb3": [
+                            0.0,
+                            -4.5002,
+                            0.0
+                        ]
+                    }
+                },
+                "right_thumb": {
+                    "off": {
+                        "BaseBody_RightHandThumb1": [
+                            -0.9571,
+                            -39.3751,
+                            118.6341
+                        ],
+                        "BaseBody_RightHandThumb2": [
+                            0.0,
+                            -4.0002,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb3": [
+                            0.0,
+                            -4.5002,
+                            0.0
+                        ]
+                    },
+                    "on": {
+                        "BaseBody_RightHandThumb1": [
+                            -0.9571,
+                            -39.3751,
+                            118.6341
+                        ],
+                        "BaseBody_RightHandThumb2": [
+                            0.0,
+                            -4.0002,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb3": [
+                            0.0,
+                            -4.5002,
+                            0.0
+                        ]
+                    }
+                },
+                "right_trigger": {
+                    "off": {
+                        "BaseBody_RightHandIndex1": [
+                            -4.0571,
+                            -49.4971,
+                            9.0354
+                        ],
+                        "BaseBody_RightHandIndex2": [
+                            0.0,
+                            -2.25,
+                            0.0
+                        ],
+                        "BaseBody_RightHandIndex3": [
+                            0.0,
+                            -5.237,
+                            0.0
+                        ]
+                    },
+                    "on": {
+                        "BaseBody_RightHandIndex1": [
+                            -4.0571,
+                            -49.4971,
+                            9.0354
+                        ],
+                        "BaseBody_RightHandIndex2": [
+                            0.0,
+                            -2.2501,
+                            0.0
+                        ],
+                        "BaseBody_RightHandIndex3": [
+                            0.0,
+                            -86.237,
+                            0.0
+                        ]
+                    }
+                },
+                "right_trigger_weapon": {
+                    "off": {
+                        "BaseBody_RightHandIndex1": [
+                            -4.0571,
+                            -49.4971,
+                            9.0354
+                        ],
+                        "BaseBody_RightHandIndex2": [
+                            0.0,
+                            -2.2501,
+                            0.0
+                        ],
+                        "BaseBody_RightHandIndex3": [
+                            0.0,
+                            -5.237,
+                            0.0
+                        ]
+                    },
+                    "on": {
+                        "BaseBody_RightHandIndex1": [
+                            -4.0571,
+                            -49.4971,
+                            9.0354
+                        ],
+                        "BaseBody_RightHandIndex2": [
+                            0.0,
+                            -2.2501,
+                            0.0
+                        ],
+                        "BaseBody_RightHandIndex3": [
+                            0.0,
+                            -5.237,
+                            0.0
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "profiles": {
+        "Main": {
+            "Arms": {
+                "FOV": "",
+                "InitialTransform": {
+                    "left_hand": {
+                        "BaseBody_LeftHandIndex1": {
+                            "location": [
+                                8.1132173538208,
+                                -0.30206847190856934,
+                                -3.439484357833976
+                            ],
+                            "rotation": [
+                                -4.057460308074952,
+                                -23.621782302856484,
+                                9.03611850738527
+                            ]
+                        },
+                        "BaseBody_LeftHandIndex1_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                -4.547473508864641e-13,
+                                0.0
+                            ],
+                            "rotation": [
+                                3.3117043972015394,
+                                11.521266937255836,
+                                -3.7144348621368337
+                            ]
+                        },
+                        "BaseBody_LeftHandIndex1_AutoJnt02": {
+                            "location": [
+                                0.0,
+                                -1.4304295778279084,
+                                -4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                3.1805546814635183e-15,
+                                -2.9817700138720484e-15,
+                                -3.1805546814635183e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandIndex1_AutoJnt03": {
+                            "location": [
+                                9.094947017729282e-13,
+                                1.2152147293081725,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                1.5902773407317592e-15,
+                                -2.7829853462805787e-15,
+                                -3.862168010793889e-32
+                            ]
+                        },
+                        "BaseBody_LeftHandIndex2": {
+                            "location": [
+                                4.07146930694671,
+                                0.0,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                -1.7490654562030506e-15,
+                                -23.000001907348654,
+                                1.3338704804740363e-14
+                            ]
+                        },
+                        "BaseBody_LeftHandIndex2_AutoJnt01": {
+                            "location": [
+                                2.2737367544323206e-13,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -8.23552913127611e-15,
+                                11.499999999999995,
+                                1.0358960606340303e-14
+                            ]
+                        },
+                        "BaseBody_LeftHandIndex2_AutoJnt02": {
+                            "location": [
+                                4.547473508864641e-13,
+                                -1.1987379789343322,
+                                4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                7.553817368475855e-15,
+                                9.342879376799085e-15,
+                                7.951386703658795e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandIndex2_AutoJnt03": {
+                            "location": [
+                                4.547473508864641e-13,
+                                1.1987379789370607,
+                                -1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                -2.782985346280577e-15,
+                                -1.2324649390671133e-14,
+                                1.431249606658583e-14
+                            ]
+                        },
+                        "BaseBody_LeftHandIndex3": {
+                            "location": [
+                                2.4400000572206864,
+                                -9.094947017729282e-13,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                -1.0612398619719213e-14,
+                                -11.986990928649911,
+                                -2.0838459592199365e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandIndex3_AutoJnt01": {
+                            "location": [
+                                2.2737367544323206e-13,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                8.452913163855784e-15,
+                                5.993495464324949,
+                                2.0349722969057053e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandIndex3_AutoJnt02": {
+                            "location": [
+                                -1.1368683772161603e-12,
+                                -1.0545130968084777,
+                                3.410605131648481e-13
+                            ],
+                            "rotation": [
+                                -9.144094709207615e-15,
+                                -7.355032700884385e-15,
+                                3.1805546814635187e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandIndex3_AutoJnt03": {
+                            "location": [
+                                -5.684341886080801e-13,
+                                1.0545130968102967,
+                                3.410605131648481e-13
+                            ],
+                            "rotation": [
+                                -4.3732626870123375e-15,
+                                6.559894030518506e-15,
+                                1.5902773407317588e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandIndex4": {
+                            "location": [
+                                2.3271865844725426,
+                                9.094947017729282e-13,
+                                3.410605131648481e-13
+                            ],
+                            "rotation": [
+                                -2.2860236773019046e-15,
+                                8.150171371250267e-15,
+                                7.951386703658795e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandMiddle1": {
+                            "location": [
+                                8.445194244384766,
+                                0.20862610638096157,
+                                -0.9619565010073075
+                            ],
+                            "rotation": [
+                                0.6511779427528287,
+                                -27.904750823974684,
+                                4.0834984779357955
+                            ]
+                        },
+                        "BaseBody_LeftHandMiddle1_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                0.42854422330857095,
+                                13.95178890228274,
+                                -2.0384039878845264
+                            ]
+                        },
+                        "BaseBody_LeftHandMiddle1_AutoJnt02": {
+                            "location": [
+                                -9.094947017729282e-13,
+                                -1.5816509723676972,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -9.541664044390557e-15,
+                                -2.584200678689109e-15,
+                                1.5902773407317598e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandMiddle1_AutoJnt03": {
+                            "location": [
+                                0.0,
+                                1.290825486182257,
+                                0.0
+                            ],
+                            "rotation": [
+                                -9.541664044390557e-15,
+                                -2.584200678689109e-15,
+                                1.5902773407317598e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandMiddle2": {
+                            "location": [
+                                4.189226150513605,
+                                -1.3642420526593924e-12,
+                                -5.684341886080801e-13
+                            ],
+                            "rotation": [
+                                1.0360903458822328e-14,
+                                -12.000000000000004,
+                                1.4901395494379325e-14
+                            ]
+                        },
+                        "BaseBody_LeftHandMiddle2_AutoJnt01": {
+                            "location": [
+                                2.2737367544323206e-13,
+                                0.0,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                -6.084726434484945e-16,
+                                6.0000000000000195,
+                                -1.1179106960328893e-14
+                            ]
+                        },
+                        "BaseBody_LeftHandMiddle2_AutoJnt02": {
+                            "location": [
+                                0.0,
+                                -1.0546309947958434,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                -3.578124016646457e-15,
+                                8.150171371250263e-15,
+                                -2.5448928499695445e-31
+                            ]
+                        },
+                        "BaseBody_LeftHandMiddle2_AutoJnt03": {
+                            "location": [
+                                0.0,
+                                1.0546309947976624,
+                                -5.684341886080802e-14
+                            ],
+                            "rotation": [
+                                -3.578124016646457e-15,
+                                8.150171371250263e-15,
+                                -2.5448928499695445e-31
+                            ]
+                        },
+                        "BaseBody_LeftHandMiddle3": {
+                            "location": [
+                                3.0681037902829758,
+                                0.0,
+                                3.979039320256561e-13
+                            ],
+                            "rotation": [
+                                -5.658660380451441e-15,
+                                -17.000000000000032,
+                                -5.586064196715881e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandMiddle3_AutoJnt01": {
+                            "location": [
+                                -2.2737367544323206e-13,
+                                0.0,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -1.2328226945009688e-14,
+                                8.500000000000004,
+                                2.2731792178674433e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandMiddle3_AutoJnt02": {
+                            "location": [
+                                0.0,
+                                -1.1092380285263062,
+                                2.8421709430404007e-13
+                            ],
+                            "rotation": [
+                                3.975693351829398e-16,
+                                2.286023677301904e-15,
+                                6.3611093629270375e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandMiddle3_AutoJnt03": {
+                            "location": [
+                                4.547473508864641e-13,
+                                1.1092380285263062,
+                                -1.7053025658242404e-13
+                            ],
+                            "rotation": [
+                                3.975693351829398e-16,
+                                2.286023677301904e-15,
+                                6.3611093629270375e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandMiddle4": {
+                            "location": [
+                                2.749999999999659,
+                                -9.094947017729282e-13,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                5.466578358765421e-16,
+                                -9.839841045777762e-15,
+                                -2.385416011097639e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandPinky1": {
+                            "location": [
+                                6.757817268371582,
+                                -0.973865747452237,
+                                3.3067581653596108
+                            ],
+                            "rotation": [
+                                3.421812295913695,
+                                -37.58356857299809,
+                                -25.03869438171389
+                            ]
+                        },
+                        "BaseBody_LeftHandPinky1_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -7.395276546478278,
+                                17.50610542297365,
+                                10.46642875671388
+                            ]
+                        },
+                        "BaseBody_LeftHandPinky1_AutoJnt02": {
+                            "location": [
+                                0.0,
+                                -2.044740915299826,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                6.3611093629270375e-15,
+                                9.342879376799085e-15,
+                                -9.541664044390555e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandPinky1_AutoJnt03": {
+                            "location": [
+                                -4.547473508864641e-13,
+                                1.5223704576487762,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                6.3611093629270375e-15,
+                                9.342879376799085e-15,
+                                -9.541664044390555e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandPinky2": {
+                            "location": [
+                                3.0000000000009095,
+                                -4.547473508864641e-13,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -3.649889186922145e-15,
+                                -7.999999523162847,
+                                1.6196831454073978e-14
+                            ]
+                        },
+                        "BaseBody_LeftHandPinky2_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                5.10092501359068e-15,
+                                3.9999997615814293,
+                                -9.369351894648013e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandPinky2_AutoJnt02": {
+                            "location": [
+                                -2.2737367544323206e-13,
+                                -1.0000000000009095,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                7.951386703658803e-16,
+                                1.2523434058262603e-14,
+                                -6.361109362927037e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandPinky2_AutoJnt03": {
+                            "location": [
+                                2.2737367544323206e-13,
+                                0.9999999999990905,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                7.951386703658803e-16,
+                                1.2523434058262603e-14,
+                                -6.361109362927037e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandPinky3": {
+                            "location": [
+                                1.6883299350736252,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                3.172807011036811e-15,
+                                -7.999999523162861,
+                                -2.218642659266148e-16
+                            ]
+                        },
+                        "BaseBody_LeftHandPinky3_AutoJnt01": {
+                            "location": [
+                                2.2737367544323206e-13,
+                                -9.094947017729282e-13,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                4.616550404162167e-16,
+                                3.9999997615814396,
+                                9.563601458905795e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandPinky3_AutoJnt02": {
+                            "location": [
+                                -4.547473508864641e-13,
+                                -1.0243300199499572,
+                                -6.821210263296962e-13
+                            ],
+                            "rotation": [
+                                7.951386703658797e-16,
+                                -7.553817368475858e-15,
+                                -5.241513728934563e-32
+                            ]
+                        },
+                        "BaseBody_LeftHandPinky3_AutoJnt03": {
+                            "location": [
+                                -2.2737367544323206e-13,
+                                1.0243300199499572,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -6.361109362927037e-15,
+                                3.081162347667784e-14,
+                                -3.1805546814635203e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandPinky4": {
+                            "location": [
+                                1.8999999761591653,
+                                -9.094947017729282e-13,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -4.770832022195278e-15,
+                                6.162324695335568e-15,
+                                6.3611093629270375e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandRing1": {
+                            "location": [
+                                7.830639839172363,
+                                -0.17863202095077213,
+                                1.26998305320717
+                            ],
+                            "rotation": [
+                                5.157643795013431,
+                                -31.129997253418,
+                                -14.812626838684096
+                            ]
+                        },
+                        "BaseBody_LeftHandRing1_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -5.3044972419738805,
+                                14.885786056518569,
+                                5.865896701812748
+                            ]
+                        },
+                        "BaseBody_LeftHandRing1_AutoJnt02": {
+                            "location": [
+                                -4.547473508864641e-13,
+                                -1.7373464107517975,
+                                -5.684341886080802e-14
+                            ],
+                            "rotation": [
+                                3.1805546814635187e-15,
+                                -1.471006540176877e-14,
+                                3.975693351829397e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandRing1_AutoJnt03": {
+                            "location": [
+                                -9.094947017729282e-13,
+                                1.3686732053770356,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                4.4726550208080725e-15,
+                                4.3732626870123375e-15,
+                                7.951386703658797e-16
+                            ]
+                        },
+                        "BaseBody_LeftHandRing2": {
+                            "location": [
+                                3.9912030696868896,
+                                0.0,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -2.8491857758788454e-16,
+                                -13.000000000000004,
+                                8.035292421671249e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandRing2_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -1.280946993591968e-15,
+                                6.500000000000006,
+                                1.5201017092789601e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandRing2_AutoJnt02": {
+                            "location": [
+                                4.547473508864641e-13,
+                                -1.0640748739260744,
+                                0.0
+                            ],
+                            "rotation": [
+                                7.951386703658794e-16,
+                                5.963540027744096e-16,
+                                -1.5902773407317588e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandRing2_AutoJnt03": {
+                            "location": [
+                                0.0,
+                                1.0640748739233459,
+                                4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                -3.975693351829396e-16,
+                                6.957463365701446e-15,
+                                -3.1805546814635183e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandRing3": {
+                            "location": [
+                                2.5999999046325684,
+                                -9.094947017729282e-13,
+                                0.0
+                            ],
+                            "rotation": [
+                                7.337116213022627e-15,
+                                -7.999999523162852,
+                                -5.130611149552961e-16
+                            ]
+                        },
+                        "BaseBody_LeftHandRing3_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                1.6359804441621218e-15,
+                                3.9999997615814333,
+                                -1.2672843788246243e-14
+                            ]
+                        },
+                        "BaseBody_LeftHandRing3_AutoJnt02": {
+                            "location": [
+                                -4.547473508864641e-13,
+                                -1.024329662322998,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -2.385416011097639e-15,
+                                5.168401357378217e-15,
+                                7.951386703658795e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandRing3_AutoJnt03": {
+                            "location": [
+                                -4.547473508864641e-13,
+                                1.024329662322998,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -2.385416011097639e-15,
+                                5.168401357378217e-15,
+                                7.951386703658795e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandRing4": {
+                            "location": [
+                                2.402053833007244,
+                                0.0,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -3.578124016646458e-15,
+                                2.1866313435061696e-15,
+                                -7.951386703658798e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandThumb1": {
+                            "location": [
+                                1.980426669119879,
+                                -1.9560126066212433,
+                                -3.967868328094596
+                            ],
+                            "rotation": [
+                                -13.33226966857912,
+                                -52.94792556762704,
+                                118.63404083251955
+                            ]
+                        },
+                        "BaseBody_LeftHandThumb1_AutoJnt01": {
+                            "location": [
+                                3.7999999523171937,
+                                -4.199999809265137,
+                                -4.500000000000114
+                            ],
+                            "rotation": [
+                                -3.1805546814635183e-15,
+                                1.5902773407317592e-15,
+                                -2.3854160110976388e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandThumb2": {
+                            "location": [
+                                3.204939365387304,
+                                -1.8189894035458565e-12,
+                                9.094947017729282e-13
+                            ],
+                            "rotation": [
+                                2.827961884306457e-15,
+                                -3.9999997615814347,
+                                1.2631218881619576e-14
+                            ]
+                        },
+                        "BaseBody_LeftHandThumb3": {
+                            "location": [
+                                3.263615608215673,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                6.025659965606189e-15,
+                                -6.000000000000007,
+                                1.2423886554295029e-14
+                            ]
+                        },
+                        "BaseBody_LeftHandThumb3_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -1.602613239635783e-14,
+                                3.000000000000014,
+                                -2.5872818659789385e-14
+                            ]
+                        },
+                        "BaseBody_LeftHandThumb3_AutoJnt02": {
+                            "location": [
+                                4.547473508864641e-13,
+                                -1.0136952400216614,
+                                0.0
+                            ],
+                            "rotation": [
+                                -1.192708005548821e-15,
+                                9.541664044390555e-15,
+                                1.908332808878111e-14
+                            ]
+                        },
+                        "BaseBody_LeftHandThumb3_AutoJnt03": {
+                            "location": [
+                                0.0,
+                                1.013695240020752,
+                                -4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                -2.3854160110976384e-15,
+                                3.1805546814635183e-15,
+                                -6.361109362927037e-15
+                            ]
+                        },
+                        "BaseBody_LeftHandThumb4": {
+                            "location": [
+                                1.9999999999993179,
+                                9.094947017729282e-13,
+                                -4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                -7.951386703658797e-16,
+                                4.4139062980501586e-32,
+                                -6.3611093629270375e-15
+                            ]
+                        },
+                        "BaseBody_LeftHand_MTPA": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -7.951386703658795e-15,
+                                1.987846675914699e-15,
+                                -5.5659706925611575e-15
+                            ]
+                        },
+                        "BaseBody_LeftHand_MTPB": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -7.951386703658795e-15,
+                                1.987846675914699e-15,
+                                -5.5659706925611575e-15
+                            ]
+                        },
+                        "BaseBody_LeftHand_MTPC": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -7.951386703658795e-15,
+                                1.987846675914699e-15,
+                                -5.5659706925611575e-15
+                            ]
+                        },
+                        "BaseBody_LeftHand_XAutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                1.616462844173184e-14,
+                                90.00000000000007,
+                                1.3072264739835318e-14
+                            ]
+                        },
+                        "BaseBody_LeftHand_XAutoJnt02": {
+                            "location": [
+                                3.0000000000004547,
+                                9.094947017729282e-13,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                -3.1805546814635187e-15,
+                                3.2302508483613862e-15,
+                                -5.168401357378218e-15
+                            ]
+                        }
+                    },
+                    "right_hand": {
+                        "BaseBody_RightHandIndex1": {
+                            "location": [
+                                -8.112864494323276,
+                                0.3020508587369477,
+                                3.4399771690370926
+                            ],
+                            "rotation": [
+                                -4.057000160217285,
+                                -23.621599197387763,
+                                9.035510063171394
+                            ]
+                        },
+                        "BaseBody_RightHandIndex1_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                3.3113851547241304,
+                                11.521224975585962,
+                                -3.7142195701599117
+                            ]
+                        },
+                        "BaseBody_RightHandIndex1_AutoJnt02": {
+                            "location": [
+                                0.0,
+                                1.4304206371302826,
+                                4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                1.5902773407317582e-15,
+                                -6.361109362927033e-15,
+                                -9.442271710594815e-16
+                            ]
+                        },
+                        "BaseBody_RightHandIndex1_AutoJnt03": {
+                            "location": [
+                                0.0,
+                                -1.2152103185644592,
+                                4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                1.5902773407317582e-15,
+                                -6.361109362927033e-15,
+                                -9.442271710594815e-16
+                            ]
+                        },
+                        "BaseBody_RightHandIndex2": {
+                            "location": [
+                                -4.071129798889615,
+                                -9.094947017729282e-13,
+                                0.0
+                            ],
+                            "rotation": [
+                                7.871022824150346e-15,
+                                -23.000001907348654,
+                                -1.1956636605266397e-15
+                            ]
+                        },
+                        "BaseBody_RightHandIndex2_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -1.8550846066662436e-15,
+                                11.500000000000032,
+                                -1.3322983573701925e-14
+                            ]
+                        },
+                        "BaseBody_RightHandIndex2_AutoJnt02": {
+                            "location": [
+                                -9.094947017729282e-13,
+                                1.1987378597273164,
+                                0.0
+                            ],
+                            "rotation": [
+                                -4.770832022195277e-15,
+                                1.2722218725854073e-14,
+                                -3.627820183544326e-15
+                            ]
+                        },
+                        "BaseBody_RightHandIndex2_AutoJnt03": {
+                            "location": [
+                                -9.094947017729282e-13,
+                                -1.1987378597250427,
+                                0.0
+                            ],
+                            "rotation": [
+                                -4.770832022195277e-15,
+                                1.2722218725854073e-14,
+                                -3.627820183544326e-15
+                            ]
+                        },
+                        "BaseBody_RightHandIndex3": {
+                            "location": [
+                                -2.4400000572213685,
+                                9.094947017729282e-13,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -1.162348803141621e-15,
+                                -11.987000465393074,
+                                -1.1071091376266127e-14
+                            ]
+                        },
+                        "BaseBody_RightHandIndex3_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -3.0099280655335397e-15,
+                                5.993500232696534,
+                                -3.3424824911841396e-15
+                            ]
+                        },
+                        "BaseBody_RightHandIndex3_AutoJnt02": {
+                            "location": [
+                                1.8189894035458565e-12,
+                                1.0545132160195863,
+                                -6.821210263296962e-13
+                            ],
+                            "rotation": [
+                                -6.361109362927037e-15,
+                                6.361109362927037e-15,
+                                -1.5902773407317594e-15
+                            ]
+                        },
+                        "BaseBody_RightHandIndex3_AutoJnt03": {
+                            "location": [
+                                -9.094947017729282e-13,
+                                -1.0545132160186768,
+                                -4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                -7.951386703658795e-15,
+                                6.361109362927037e-15,
+                                -8.746525374024675e-15
+                            ]
+                        },
+                        "BaseBody_RightHandIndex4": {
+                            "location": [
+                                -2.326999902726129,
+                                -9.094947017729282e-13,
+                                -4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                0.0,
+                                0.0,
+                                -0.0
+                            ]
+                        },
+                        "BaseBody_RightHandMiddle1": {
+                            "location": [
+                                -8.444864273071744,
+                                -0.20845249295189205,
+                                0.952254414558638
+                            ],
+                            "rotation": [
+                                0.6507428884506204,
+                                -27.904998779296907,
+                                4.083062648773189
+                            ]
+                        },
+                        "BaseBody_RightHandMiddle1_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                0.4286769330501573,
+                                13.951905250549325,
+                                -2.038119554519652
+                            ]
+                        },
+                        "BaseBody_RightHandMiddle1_AutoJnt02": {
+                            "location": [
+                                -4.547473508864641e-13,
+                                1.5816612243643249,
+                                4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                -4.770832022195277e-15,
+                                -1.908332808878111e-14,
+                                4.9696166897867475e-15
+                            ]
+                        },
+                        "BaseBody_RightHandMiddle1_AutoJnt03": {
+                            "location": [
+                                0.0,
+                                -1.290830612183072,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -1.9862578341225716e-31,
+                                6.361109362927037e-15,
+                                3.5781240166464575e-15
+                            ]
+                        },
+                        "BaseBody_RightHandMiddle2": {
+                            "location": [
+                                -4.189476013184503,
+                                -1.3642420526593924e-12,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -1.5148351571870234e-14,
+                                -12.000000000000018,
+                                -7.202547773497161e-15
+                            ]
+                        },
+                        "BaseBody_RightHandMiddle2_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                8.106946975165851e-15,
+                                6.000000000000028,
+                                -2.76005241521798e-15
+                            ]
+                        },
+                        "BaseBody_RightHandMiddle2_AutoJnt02": {
+                            "location": [
+                                9.094947017729282e-13,
+                                1.0546309947972077,
+                                0.0
+                            ],
+                            "rotation": [
+                                -7.951386703658793e-15,
+                                1.272221872585407e-14,
+                                -3.5781240166464575e-15
+                            ]
+                        },
+                        "BaseBody_RightHandMiddle2_AutoJnt03": {
+                            "location": [
+                                0.0,
+                                -1.054630994796753,
+                                0.0
+                            ],
+                            "rotation": [
+                                -7.951386703658793e-15,
+                                5.517382872562698e-32,
+                                -7.951386703658794e-16
+                            ]
+                        },
+                        "BaseBody_RightHandMiddle3": {
+                            "location": [
+                                -3.068403244019464,
+                                4.547473508864641e-13,
+                                0.0
+                            ],
+                            "rotation": [
+                                -1.5845624149920297e-14,
+                                -17.0,
+                                1.5641748140988868e-15
+                            ]
+                        },
+                        "BaseBody_RightHandMiddle3_AutoJnt01": {
+                            "location": [
+                                9.094947017729282e-13,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                7.929521862021322e-15,
+                                8.50000000000002,
+                                5.892652635679266e-16
+                            ]
+                        },
+                        "BaseBody_RightHandMiddle3_AutoJnt02": {
+                            "location": [
+                                9.094947017729282e-13,
+                                1.1092380285272156,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -3.1805546814635183e-15,
+                                2.2069531490250793e-32,
+                                -7.951386703658796e-16
+                            ]
+                        },
+                        "BaseBody_RightHandMiddle3_AutoJnt03": {
+                            "location": [
+                                0.0,
+                                -1.1092380285253967,
+                                -4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                -3.1805546814635183e-15,
+                                2.2069531490250793e-32,
+                                -7.951386703658796e-16
+                            ]
+                        },
+                        "BaseBody_RightHandMiddle4": {
+                            "location": [
+                                -2.7499999999990905,
+                                0.0,
+                                -4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                -1.5902773407317584e-15,
+                                2.2069531490250793e-32,
+                                -1.5902773407317584e-15
+                            ]
+                        },
+                        "BaseBody_RightHandPinky1": {
+                            "location": [
+                                -6.757863998412631,
+                                0.9735891222958344,
+                                -3.307046413421176
+                            ],
+                            "rotation": [
+                                3.422000408172606,
+                                -37.583999633789126,
+                                -25.038745880126967
+                            ]
+                        },
+                        "BaseBody_RightHandPinky1_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                -9.094947017729282e-13,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                -7.395430088043213,
+                                17.50628662109378,
+                                10.46637248992921
+                            ]
+                        },
+                        "BaseBody_RightHandPinky1_AutoJnt02": {
+                            "location": [
+                                4.547473508864641e-13,
+                                2.04476499557677,
+                                0.0
+                            ],
+                            "rotation": [
+                                -2.3854160110976388e-15,
+                                -4.965644585306429e-32,
+                                2.3854160110976388e-15
+                            ]
+                        },
+                        "BaseBody_RightHandPinky1_AutoJnt03": {
+                            "location": [
+                                9.094947017729282e-13,
+                                -1.5223824977861113,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -8.746525374024675e-15,
+                                -3.641472695891381e-31,
+                                4.7708320221952775e-15
+                            ]
+                        },
+                        "BaseBody_RightHandPinky2": {
+                            "location": [
+                                -2.9999999999990905,
+                                -4.547473508864641e-13,
+                                -1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                -9.501744211094378e-15,
+                                -7.999999523162823,
+                                -1.049469780733065e-14
+                            ]
+                        },
+                        "BaseBody_RightHandPinky2_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                -5.3872524093010106e-15,
+                                3.9999997615813982,
+                                6.17685975205423e-15
+                            ]
+                        },
+                        "BaseBody_RightHandPinky2_AutoJnt02": {
+                            "location": [
+                                0.0,
+                                1.0243299007433961,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                -3.975693351829398e-16,
+                                0.0,
+                                -0.0
+                            ]
+                        },
+                        "BaseBody_RightHandPinky2_AutoJnt03": {
+                            "location": [
+                                0.0,
+                                -1.0243299007406677,
+                                0.0
+                            ],
+                            "rotation": [
+                                -3.975693351829398e-16,
+                                0.0,
+                                -0.0
+                            ]
+                        },
+                        "BaseBody_RightHandPinky3": {
+                            "location": [
+                                -1.6880462169647217,
+                                -9.094947017729282e-13,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -6.567478288000238e-15,
+                                -7.999999523162875,
+                                -2.7290784791835807e-15
+                            ]
+                        },
+                        "BaseBody_RightHandPinky3_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                3.862271716143337e-15,
+                                3.9999997615814227,
+                                3.317366862473785e-15
+                            ]
+                        },
+                        "BaseBody_RightHandPinky3_AutoJnt02": {
+                            "location": [
+                                0.0,
+                                1.024329900742032,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                0.0,
+                                0.0,
+                                -0.0
+                            ]
+                        },
+                        "BaseBody_RightHandPinky3_AutoJnt03": {
+                            "location": [
+                                -9.094947017729282e-13,
+                                -1.0243299007411224,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                0.0,
+                                0.0,
+                                -0.0
+                            ]
+                        },
+                        "BaseBody_RightHandPinky4": {
+                            "location": [
+                                -1.899999976158142,
+                                -9.094947017729282e-13,
+                                1.1368683772161603e-13
+                            ],
+                            "rotation": [
+                                7.951386703658793e-15,
+                                -1.9083328088781107e-14,
+                                -1.3241718894150475e-30
+                            ]
+                        },
+                        "BaseBody_RightHandRing1": {
+                            "location": [
+                                -7.830864906312399,
+                                0.1788325309753418,
+                                -1.2700469493863693
+                            ],
+                            "rotation": [
+                                5.157999992370611,
+                                -31.129676818847702,
+                                -14.813244819641133
+                            ]
+                        },
+                        "BaseBody_RightHandRing1_AutoJnt01": {
+                            "location": [
+                                9.094947017729282e-13,
+                                1.3642420526593924e-12,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -5.304753780364996,
+                                14.885558128356925,
+                                5.866138458251963
+                            ]
+                        },
+                        "BaseBody_RightHandRing1_AutoJnt02": {
+                            "location": [
+                                0.0,
+                                1.737334489823752,
+                                4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                -3.9756933518293975e-15,
+                                6.361109362927035e-15,
+                                7.156248033292914e-15
+                            ]
+                        },
+                        "BaseBody_RightHandRing1_AutoJnt03": {
+                            "location": [
+                                -9.094947017729282e-13,
+                                -1.368667244910739,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -7.951386703658796e-16,
+                                -4.4139062980501586e-32,
+                                6.361109362927037e-15
+                            ]
+                        },
+                        "BaseBody_RightHandRing2": {
+                            "location": [
+                                -3.990949153899237,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -8.945456386263519e-15,
+                                -13.000000000000025,
+                                -1.1785322065442963e-14
+                            ]
+                        },
+                        "BaseBody_RightHandRing2_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                7.848440998868437e-15,
+                                6.499999999999998,
+                                2.038505928087471e-15
+                            ]
+                        },
+                        "BaseBody_RightHandRing2_AutoJnt02": {
+                            "location": [
+                                0.0,
+                                1.0640748739251649,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                3.1805546814635168e-15,
+                                4.4139062980501586e-32,
+                                1.5902773407317584e-15
+                            ]
+                        },
+                        "BaseBody_RightHandRing2_AutoJnt03": {
+                            "location": [
+                                -9.094947017729282e-13,
+                                -1.0640748739233459,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                3.1805546814635168e-15,
+                                4.4139062980501586e-32,
+                                1.5902773407317584e-15
+                            ]
+                        },
+                        "BaseBody_RightHandRing3": {
+                            "location": [
+                                -2.5999999046325684,
+                                -4.547473508864641e-13,
+                                -4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                1.1850898635914412e-14,
+                                -7.999999523162861,
+                                -7.205338052539255e-15
+                            ]
+                        },
+                        "BaseBody_RightHandRing3_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -3.0354534758630614e-15,
+                                3.9999997615814236,
+                                1.4852463202924452e-15
+                            ]
+                        },
+                        "BaseBody_RightHandRing3_AutoJnt02": {
+                            "location": [
+                                -9.094947017729282e-13,
+                                1.0243296623243623,
+                                0.0
+                            ],
+                            "rotation": [
+                                -1.987846675914699e-16,
+                                0.0,
+                                -0.0
+                            ]
+                        },
+                        "BaseBody_RightHandRing3_AutoJnt03": {
+                            "location": [
+                                -9.094947017729282e-13,
+                                -1.0243296623220886,
+                                0.0
+                            ],
+                            "rotation": [
+                                -3.9756933518293975e-15,
+                                -1.6552148617688094e-31,
+                                4.7708320221952775e-15
+                            ]
+                        },
+                        "BaseBody_RightHandRing4": {
+                            "location": [
+                                -2.4020090103167604,
+                                0.0,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -7.355032700884385e-15,
+                                -3.1805546814635174e-14,
+                                -3.180554681463515e-15
+                            ]
+                        },
+                        "BaseBody_RightHandThumb1": {
+                            "location": [
+                                -1.980864644051053,
+                                1.955832481384732,
+                                3.96754455566429
+                            ],
+                            "rotation": [
+                                -13.332000732421893,
+                                -52.948318481445384,
+                                118.63414764404303
+                            ]
+                        },
+                        "BaseBody_RightHandThumb1_AutoJnt01": {
+                            "location": [
+                                -3.7999999523171937,
+                                4.199999809266046,
+                                4.500000000000227
+                            ],
+                            "rotation": [
+                                -8.827812596100317e-31,
+                                -2.5444437451708147e-14,
+                                -3.9756933518293975e-15
+                            ]
+                        },
+                        "BaseBody_RightHandThumb2": {
+                            "location": [
+                                -3.204778909682318,
+                                0.0,
+                                9.094947017729282e-13
+                            ],
+                            "rotation": [
+                                1.7406706777242658e-14,
+                                -3.9999997615814427,
+                                -4.834525611180009e-14
+                            ]
+                        },
+                        "BaseBody_RightHandThumb3": {
+                            "location": [
+                                -3.26392650604339,
+                                9.094947017729282e-13,
+                                -2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -5.853019571710696e-15,
+                                -5.999999999999996,
+                                9.861502266708913e-15
+                            ]
+                        },
+                        "BaseBody_RightHandThumb3_AutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -8.325721548703435e-17,
+                                2.9999999999999973,
+                                3.179464784810306e-15
+                            ]
+                        },
+                        "BaseBody_RightHandThumb3_AutoJnt02": {
+                            "location": [
+                                0.0,
+                                1.0136953592300415,
+                                9.094947017729282e-13
+                            ],
+                            "rotation": [
+                                1.908332808878111e-14,
+                                -4.770832022195276e-15,
+                                9.541664044390553e-15
+                            ]
+                        },
+                        "BaseBody_RightHandThumb3_AutoJnt03": {
+                            "location": [
+                                0.0,
+                                -1.0136953592300415,
+                                4.547473508864641e-13
+                            ],
+                            "rotation": [
+                                1.908332808878111e-14,
+                                -4.770832022195276e-15,
+                                9.541664044390553e-15
+                            ]
+                        },
+                        "BaseBody_RightHandThumb4": {
+                            "location": [
+                                -1.999999999998181,
+                                9.094947017729282e-13,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -6.361109362927039e-15,
+                                2.7034714792439904e-14,
+                                9.541664044390553e-15
+                            ]
+                        },
+                        "BaseBody_RightHand_MTPA": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -2.3854160110976305e-15,
+                                -3.816665617756222e-14,
+                                2.4649298781342267e-14
+                            ]
+                        },
+                        "BaseBody_RightHand_MTPB": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -2.3854160110976305e-15,
+                                -3.816665617756222e-14,
+                                2.4649298781342267e-14
+                            ]
+                        },
+                        "BaseBody_RightHand_MTPC": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                -2.3854160110976305e-15,
+                                -3.816665617756222e-14,
+                                2.4649298781342267e-14
+                            ]
+                        },
+                        "BaseBody_RightHand_XAutoJnt01": {
+                            "location": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "rotation": [
+                                3.3734876747962115e-15,
+                                90.00000000000003,
+                                6.746975349592419e-15
+                            ]
+                        },
+                        "BaseBody_RightHand_XAutoJnt02": {
+                            "location": [
+                                -3.000000000001819,
+                                4.547473508864641e-13,
+                                2.2737367544323206e-13
+                            ],
+                            "rotation": [
+                                -1.0336802714756432e-14,
+                                6.3611093629270375e-15,
+                                -1.2722218725854073e-14
+                            ]
+                        }
+                    }
+                },
+                "Left": {
+                    "AnimationID": "left_arms",
+                    "Location": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Name": "BaseBody_LeftHand",
+                    "Rotation": [
+                        0.0,
+                        95.0,
+                        -175.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "UseDefaultPose": true
+                },
+                "Mesh": "Pawn.SkeletalMesh_Hand",
+                "Offset": {
+                    "Pitch": 0.0,
+                    "Roll": 0.0,
+                    "X": 0,
+                    "Y": 0,
+                    "Yaw": -90.0,
+                    "Z": 0
+                },
+                "Right": {
+                    "AnimationID": "right_arms",
+                    "Location": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Name": "BaseBody_RightHand",
+                    "Rotation": [
+                        10.0,
+                        -70.0,
+                        10.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "UseDefaultPose": true
+                }
+            }
+        }
+    }
+}

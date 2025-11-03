@@ -27,14 +27,16 @@ private:
 	SettingsManager* const settingsManager;
 	PlayerManager* const playerManager;
 
-	void ApplyRecoil(float delta);
-	float RandomRange(float min, float max);
+	void applyRecoil(float delta);
+	float randomRange(float min, float max);
 	void spawnScope();
 	void getRenderTarget(SDK::UWorld* world);
 	void spawnScopeStaticMeshComponent();
 	void spawnSceneCaptureComponent();
 	void spawnScopeWidget();
 	void attachScopeToWeapon();
+	void attachHandToWeapon();
+	void detachHandFromWeapon();
 
 public:
 	WeaponManager(MemoryManager* mm, SettingsManager* sm, PlayerManager* pm) : memoryManager(mm), settingsManager(sm), playerManager(pm) {};

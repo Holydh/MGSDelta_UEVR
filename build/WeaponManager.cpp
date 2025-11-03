@@ -139,7 +139,7 @@ void WeaponManager::ProcessWeapon(float delta)
 					if (!child) continue;
 					if (child->IsA(SDK::USkeletalMeshComponent::StaticClass())) {
 						ReceiverMesh = (SDK::USkeletalMeshComponent*)child;
-						Logger::DebugPrint(child->GetFullName().c_str());
+						//Logger::DebugPrint(child->GetFullName().c_str());
 					}
 					//Destroy any previous cylinder mesh if still attached
 					if (child->IsA(SDK::UStaticMeshComponent::StaticClass())) {
@@ -153,10 +153,20 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 	}
 	
-	
+	if (CurrentWeaponEquippedID == EGsrEquipId::WP_None && playerManager->HandAttachedToWeapon)
+	{
+		detachHandFromWeapon();
+		return;
+	}
+
+	if (playerManager->RightHandMesh && !playerManager->HandAttachedToWeapon)
+	{
+		attachHandToWeapon();
+	}
+
 	//Apply recoil
 	if (CurrentWeapon != NULL)
-		ApplyRecoil(delta);
+		applyRecoil(delta);
 	
 	if (!*settingsManager->SniperScopeEnabledPtr)
 		return;
@@ -170,7 +180,7 @@ void WeaponManager::ProcessWeapon(float delta)
 	if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
 	{
 		if (playerManager->IsAiming && !playerManager->WasAiming) SwitchScopeState(true);
-		if (playerManager->WasFirstPersonAiming != playerManager->IsFirstPersonAiming)
+		if (playerManager->IsAiming && (playerManager->WasFirstPersonAiming != playerManager->IsFirstPersonAiming))
 		{
 			ReceiverMesh->SetVisibility(true, true);
 			SwitchScopeState(true);
@@ -213,6 +223,28 @@ void WeaponManager::ProcessWeapon(float delta)
 			}
 		}
 	}
+}
+
+void WeaponManager::attachHandToWeapon()
+{
+	playerManager->RightHandMesh->DetachFromParent(true, false);
+	playerManager->RightHandMesh->K2_AttachToComponent(
+		(SDK::USceneComponent*)WeaponRoot,
+		SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
+		SDK::EAttachmentRule::SnapToTarget,
+		SDK::EAttachmentRule::SnapToTarget,
+		SDK::EAttachmentRule::KeepRelative,
+		true
+	);
+	playerManager->HandAttachedToWeapon = true;
+	SDK::FVector location = { DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z };
+	SDK::FHitResult outHit;
+	playerManager->RightHandMesh->K2_SetRelativeLocation(location, false, &outHit, false);
+}
+
+void WeaponManager::detachHandFromWeapon()
+{
+
 }
 
 void WeaponManager::FetchWeaponMeshAimData()
@@ -419,7 +451,7 @@ void WeaponManager::ChangeScopeResolution()
 	ScopeRenderTarget->SizeX = ScopeRenderTarget->SizeY = *settingsManager->ScopeResolutionPtr;
 }
 
-void WeaponManager::ApplyRecoil(float delta)
+void WeaponManager::applyRecoil(float delta)
 {
 	glm::fvec3 positionRecoilForce = { 0.0f, 0.0f, 0.0f };
 	glm::fvec3 rotationRecoilForceEuler = { 0.0f, 0.0f, 0.0f };
@@ -433,7 +465,7 @@ void WeaponManager::ApplyRecoil(float delta)
 		rotationRecoilForceEuler = { -0.1f, 0.0f, 0.0f };
 		break;
 	case WP_Gove:
-		positionRecoilForce = { 4.0f, -0.005f, RandomRange(-0.25, 0.25) };
+		positionRecoilForce = { 4.0f, -0.005f, randomRange(-0.25, 0.25) };
 		rotationRecoilForceEuler = { -0.1f, 0.0f, 0.0f };
 		recoilPositionRecoverySpeed = 14.0f;
 		recoilRotationRecoverySpeed = 12.0f;
@@ -449,23 +481,23 @@ void WeaponManager::ApplyRecoil(float delta)
 		//recoilRotationRecoverySpeed = 5.0f;
 		break;
 	case WP_PatriotPostol:
-		positionRecoilForce = { 0.75f, -0.18f, RandomRange(-0.1, 0.1)};
+		positionRecoilForce = { 0.75f, -0.18f, randomRange(-0.1, 0.1)};
 		rotationRecoilForceEuler = { -0.005f, 0.0f, 0.0f };
 		break;
 	case WP_Scorpion:
-		positionRecoilForce = { 1.0f, -0.25f, RandomRange(-0.2, 0.2)};
+		positionRecoilForce = { 1.0f, -0.25f, randomRange(-0.2, 0.2)};
 		rotationRecoilForceEuler = { 0.0f, 0.0f, -0.01f };
 		break;
 	case WP_M16a1: // {forward,  up down, left right}
-		positionRecoilForce = { 1.0f, -0.25f, RandomRange(-0.2, 0.2)};
+		positionRecoilForce = { 1.0f, -0.25f, randomRange(-0.2, 0.2)};
 		rotationRecoilForceEuler = { -0.01f, 0.0f, 0.0f };
 		break;
 	case WP_Akm:
-		positionRecoilForce = { 1.0f, -0.25f, RandomRange(-0.2, 0.2)};
+		positionRecoilForce = { 1.0f, -0.25f, randomRange(-0.2, 0.2)};
 		rotationRecoilForceEuler = { -0.01f, 0.0f, 0.0f };
 		break;
 	case WP_M63:
-		positionRecoilForce = { 2.0f, -0.25f, RandomRange(-0.2, 0.2)};
+		positionRecoilForce = { 2.0f, -0.25f, randomRange(-0.2, 0.2)};
 		rotationRecoilForceEuler = { -0.01f, 0.0f, 0.0f };
 		recoilPositionRecoverySpeed = 14.0f;
 		recoilRotationRecoverySpeed = 12.0f;
@@ -481,7 +513,7 @@ void WeaponManager::ApplyRecoil(float delta)
 		rotationRecoilForceEuler = { -0.02f, 0.0f, 0.0f };
 		break;
 	case WP_MosinNagant:
-		positionRecoilForce = { 2.0f, -0.005f, RandomRange(-0.2, 0.2)};
+		positionRecoilForce = { 2.0f, -0.005f, randomRange(-0.2, 0.2)};
 		rotationRecoilForceEuler = { -0.02f, 0.0f, 0.0f };
 		break;
 	case WP_Rpg:
@@ -527,7 +559,7 @@ void WeaponManager::ApplyRecoil(float delta)
 	}
 }
 
-float WeaponManager::RandomRange(float min, float max) {
+float WeaponManager::randomRange(float min, float max) {
 	return min + static_cast<float>(rand()) / RAND_MAX * (max - min);
 }
 
@@ -557,7 +589,7 @@ void WeaponManager::spawnScope()
 		SceneCaptureUStaticMeshComponent = nullptr;
 		DragnovScopeWidget = nullptr;
 		ScopeActor = (SDK::AActor*)Utilities::SpawnActor(UEVR_Vector3d{0.0f, 0.0f, 0.0f}, (uevr::API::UObject*)ReceiverMesh->GetOwner());
-		Logger::DebugPrint("Scope Actor : %s", ScopeActor->GetFullName().c_str());
+		//Logger::DebugPrint("Scope Actor : %s", ScopeActor->GetFullName().c_str());
 	}
 	//Logger::DebugPrint("spawnScopeStaticMeshComponent()");
 	if (!ScopeStaticMeshComponent)
@@ -577,7 +609,7 @@ void WeaponManager::getRenderTarget(SDK::UWorld* world)
 	if (!ScopeRenderTarget)
 	{
 		ScopeRenderTarget = SDK::UKismetRenderingLibrary::CreateRenderTarget2D(world, *settingsManager->ScopeResolutionPtr, *settingsManager->ScopeResolutionPtr, SDK::ETextureRenderTargetFormat::RTF_RGBA16f, linearColor, false, false);
-		Logger::DebugPrint("Render target created : %s", ScopeRenderTarget->GetFullName().c_str());
+		//Logger::DebugPrint("Render target created : %s", ScopeRenderTarget->GetFullName().c_str());
 	}
 	//else
 	//	Logger::DebugPrint("Render target already exists");
@@ -776,7 +808,7 @@ void WeaponManager::spawnScopeWidget()
 		return;
 	}
 
-	Logger::DebugPrint("Remove From Viewport");
+	//Logger::DebugPrint("Remove From Viewport");
 	sourceWidget->RemoveFromViewport();
 	widgetComponent->SetWidget(sourceWidget);
 	widgetComponent->SetTwoSided(false);
@@ -809,7 +841,7 @@ void WeaponManager::spawnScopeWidget()
 
 		SourceDragnovScopeWidget = sourceWidget;
 		DragnovScopeWidget = widgetComponent;
-		Logger::DebugPrint(DragnovScopeWidget->GetFullName().c_str());
+		//Logger::DebugPrint(DragnovScopeWidget->GetFullName().c_str());
 	}
 	else
 	{
@@ -830,7 +862,7 @@ void WeaponManager::spawnScopeWidget()
 		ImageWidget->SetBrush(Brush);
 		SourceMosinScopeWidget = sourceWidget;
 		MosinScopeWidget = widgetComponent;
-		Logger::DebugPrint(MosinScopeWidget->GetFullName().c_str());
+		//Logger::DebugPrint(MosinScopeWidget->GetFullName().c_str());
 	}
 	SetAllImageTints((SDK::UUserWidget*)arrowGroup, color);
 

@@ -101,7 +101,15 @@ bool MGSDeltaPlugin::on_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpara
 }
 
 void MGSDeltaPlugin::on_custom_event(const char* event_name, const char* event_data) {
-	API::get()->log_info("Custom Event: %s %s", event_name, event_data);
+	/*Logger::DebugPrint("Custom Event: %s %s", event_name, event_data);*/
+	if (strcmp(event_name, "HandsCreated") == 0)
+	{
+		if (strcmp(event_data, "1") == 0)
+		{
+			cameraController.AttachCameraToAttachementActor();
+			playerManager.FetchMotionControllers();
+		}
+	}
 }
 
 void MGSDeltaPlugin::dispatch_lua_event(const char* event_name, const char* event_data) {
@@ -319,6 +327,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		API::VR::set_mod_value("VR_WorldScale", 1.0f);
 		//Utilities::DebugCigar0 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 		//Utilities::DebugCigar1 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
+		API::get()->dispatch_lua_event("PlayerTookControl", "1");
 		vr_enabled = enable;
 	}
 
@@ -332,6 +341,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.DestroyCameraAttachementActor();
 		API::VR::set_mod_value("VR_2DScreenMode", true);
 		API::VR::set_mod_value("VR_WorldScale", 0.0f);
+		API::get()->dispatch_lua_event("PlayerTookControl", "0");
 		weaponManager.DestroyScope();
 		
 	/*	Utilities::DestroyDebugCigars();*/
