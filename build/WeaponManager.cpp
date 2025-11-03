@@ -127,6 +127,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 		if (*settingsManager->SniperScopeEnabledPtr)
 		{
+			SwitchScopeState(false);
 			IsDragnov = CurrentWeaponEquippedID == EGsrEquipId::WP_Dragnov;
 			if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
 			{
@@ -144,69 +145,74 @@ void WeaponManager::ProcessWeapon(float delta)
 					if (child->IsA(SDK::UStaticMeshComponent::StaticClass())) {
 						child->K2_DestroyComponent(child);
 						ScopeStaticMeshComponent = nullptr;
-						ScopeWidgetStaticMeshComponent = nullptr;
 					}
 				}
 				spawnScope();
 				attachScopeToWeapon();
-				SwitchScopeState(true);
 			}
-			else
-				SwitchScopeState(false);
 		}
 	}
 	
 	
-	if (*settingsManager->SniperScopeEnabledPtr)
-	{
-		if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
-		{
-			if (playerManager->WasFirstPersonAiming != playerManager->IsFirstPersonAiming)
-			{
-				ReceiverMesh->SetVisibility(true, true);
-			}
-			auto test = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
-			auto scopeMagnification = test->GetScopeMagnification();
-			//Logger::DebugPrint("scope magnification : %f", scopeMagnification);
-			float scopeFov = scopeMagnification == 3.0f ? 16.0f : 5.0f;
-			SceneCaptureComponent->FOVAngle = scopeFov;
-			//Toggle zoom :
-			if (ZoomInput > 0.0f && scopeMagnification == 3.0f)
-			{
-				if (IsDragnov)
-				{
-					auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
-					widget->SightZoomIn();
-					widget->SetCamZoomToggle();
-				}
-				else
-				{
-					auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
-					widget->SightZoomIn();
-					widget->SetCamZoomToggle();
-				}
-			}
-			if (ZoomInput < 0.0f && scopeMagnification == 10.0f)
-			{
-				if (IsDragnov)
-				{
-					auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
-					widget->SightZoomOut();
-					widget->SetCamZoomToggle();
-				}
-				else
-				{
-					auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
-					widget->SightZoomOut();
-					widget->SetCamZoomToggle();
-				}
-			}
-		}
-	}
-
 	//Apply recoil
 	if (CurrentWeapon != NULL)
 		ApplyRecoil(delta);
+	
+	if (!*settingsManager->SniperScopeEnabledPtr)
+		return;
+
+	if (!playerManager->IsAiming)
+	{
+		if (playerManager->WasAiming) SwitchScopeState(false);
+		return;
+	}
+
+	if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
+	{
+		if (playerManager->IsAiming && !playerManager->WasAiming) SwitchScopeState(true);
+		if (playerManager->WasFirstPersonAiming != playerManager->IsFirstPersonAiming)
+		{
+			ReceiverMesh->SetVisibility(true, true);
+			SwitchScopeState(true);
+		}
+
+		auto test = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
+		auto scopeMagnification = test->GetScopeMagnification();
+		//Logger::DebugPrint("scope magnification : %f", scopeMagnification);
+		float scopeFov = scopeMagnification == 3.0f ? 16.0f : 5.0f;
+		SceneCaptureComponent->FOVAngle = scopeFov;
+		//Toggle zoom :
+		if (ZoomInput > 0.0f && scopeMagnification == 3.0f)
+		{
+			if (IsDragnov)
+			{
+				auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
+				widget->SightZoomIn();
+				widget->SetCamZoomToggle();
+			}
+			else
+			{
+				auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
+				widget->SightZoomIn();
+				widget->SetCamZoomToggle();
+			}
+		}
+		if (ZoomInput < 0.0f && scopeMagnification == 10.0f)
+		{
+			if (IsDragnov)
+			{
+				auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
+				widget->SightZoomOut();
+				widget->SetCamZoomToggle();
+			}
+			else
+			{
+				auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
+				widget->SightZoomOut();
+				widget->SetCamZoomToggle();
+			}
+		}
+	}
 }
 
 void WeaponManager::FetchWeaponMeshAimData()
@@ -369,17 +375,16 @@ void WeaponManager::SwitchScopeState(bool enable)
 	if (SceneCaptureComponent) SceneCaptureComponent->SetVisibility(enable, false);
 	if (SceneCaptureUStaticMeshComponent) SceneCaptureUStaticMeshComponent->SetVisibility(enable, false);
 	if (ScopeStaticMeshComponent) ScopeStaticMeshComponent->SetVisibility(enable, false);
-	if (ScopeWidgetStaticMeshComponent) ScopeWidgetStaticMeshComponent->SetVisibility(enable, false);
+
 	
-	//Hide the black background behind the scope widget
 	if (IsDragnov)
 	{
-		if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(SDK::ESlateVisibility::Visible);
+		if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
 		if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
 	}
 	else
 	{
-		if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(SDK::ESlateVisibility::Visible);
+		if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
 		if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
 	}
 }
@@ -388,20 +393,17 @@ void WeaponManager::SpawnScope()
 {
 	spawnScope();
 	attachScopeToWeapon();
-	SwitchScopeState(true);
 }
 
 void WeaponManager::DestroyScope()
 {
 	if (ScopeStaticMeshComponent) ScopeStaticMeshComponent->K2_DestroyComponent(ScopeStaticMeshComponent);
-	if (ScopeWidgetStaticMeshComponent) ScopeWidgetStaticMeshComponent->K2_DestroyComponent(ScopeWidgetStaticMeshComponent);
 	if (SceneCaptureComponent) SceneCaptureComponent->K2_DestroyComponent(SceneCaptureComponent);
 	if (SceneCaptureUStaticMeshComponent) SceneCaptureUStaticMeshComponent->K2_DestroyComponent(SceneCaptureUStaticMeshComponent);
 	if (DragnovScopeWidget) DragnovScopeWidget->K2_DestroyComponent(DragnovScopeWidget);
 	if (MosinScopeWidget) MosinScopeWidget->K2_DestroyComponent(DragnovScopeWidget);
 	if (ScopeActor) ScopeActor->K2_DestroyActor();
 	ScopeStaticMeshComponent = nullptr;
-	ScopeWidgetStaticMeshComponent = nullptr;
 	SceneCaptureComponent = nullptr;
 	SceneCaptureUStaticMeshComponent = nullptr;
 	ScopeActor = nullptr;
@@ -542,7 +544,6 @@ void WeaponManager::spawnScope()
 		if (ScopeActor)
 			ScopeActor->K2_DestroyActor();
 		ScopeStaticMeshComponent = nullptr;
-		ScopeWidgetStaticMeshComponent = nullptr;
 		SceneCaptureComponent = nullptr;
 		SceneCaptureUStaticMeshComponent = nullptr;
 		return;
@@ -552,7 +553,6 @@ void WeaponManager::spawnScope()
 	if (!ScopeActor)
 	{
 		ScopeStaticMeshComponent = nullptr;
-		ScopeWidgetStaticMeshComponent = nullptr;
 		SceneCaptureComponent = nullptr;
 		SceneCaptureUStaticMeshComponent = nullptr;
 		DragnovScopeWidget = nullptr;
@@ -587,32 +587,19 @@ void WeaponManager::spawnScopeStaticMeshComponent()
 {
 	SDK::FTransform transform{};
 	auto scopeStaticMeshComponent = (SDK::UStaticMeshComponent*)ScopeActor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), false, transform, false);
-	//auto scopeWidgetStaticMeshComponent = (SDK::UStaticMeshComponent*)ScopeActor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), false, transform, false);
 	if (!scopeStaticMeshComponent/* || !scopeWidgetStaticMeshComponent*/)
 	{
 		Logger::DebugPrint("Failed to spawn scope mesh");
 		return;
 	}
-	//Logger::DebugPrint("scopeStaticMeshComponent created : %s", scopeStaticMeshComponent->GetFullName().c_str());
-	//Logger::DebugPrint("redDotStaticMeshComponent created : %s", scopeWidgetStaticMeshComponent->GetFullName().c_str());
-
+	
 	auto scopeDiskMaterialUObject = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Material /Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial");
-	//auto scopeSightWidgetMaterialUObject = uevr::API::get()->find_uobject<uevr::API::UObject>(
-	//	L"Material /Game/Art/Environment/HD_GameplayAssets/Materials/MasterMaterial/M_Glass.M_Glass");
 
 	if (!scopeDiskMaterialUObject)
 	{
 		Logger::DebugPrint("Failed to find scopeDiskMaterialUObject");
 		return;
 	}
-	//if (!scopeSightWidgetMaterialUObject)
-	//{
-	//	Logger::DebugPrint("Failed to find scopeSightWidgetMaterialUObject");
-	//	return;
-	//}
-
-	//Logger::DebugPrint(scopeDiskMaterialUObject->get_full_name().c_str());
-	//Logger::DebugPrint(scopeSightWidgetMaterialUObject->get_full_name().c_str());
 
 	auto uDiskMaterial = (SDK::UMaterial*)scopeDiskMaterialUObject;
 	uDiskMaterial->TwoSided = false;
@@ -621,17 +608,8 @@ void WeaponManager::spawnScopeStaticMeshComponent()
 	//uMaterial->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
 	uDiskMaterial->ShadingModel = SDK::EMaterialShadingModel::MSM_DefaultLit;
 
-	//auto uWidgetSightMaterial = (SDK::UMaterial*)scopeSightWidgetMaterialUObject;
-	//uWidgetSightMaterial->TwoSided = false;
-	////uWidgetSightMaterial->BlendMode = SDK::EBlendMode::BLEND_Translucent;
-	//uWidgetSightMaterial->bDisableDepthTest = true;
-	////uWidgetSightMaterial->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
-	//uWidgetSightMaterial->ShadingModel = SDK::EMaterialShadingModel::MSM_DefaultLit;
 
 	auto cylinderMesh = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Game/Art/VFX/Game_HD_VFX/Fire/Fire/TheFury_Fire/Mesh/SM_VFX_Disk20edge.SM_VFX_Disk20edge");
-
-	//need to find a texture
-	//auto redDotTexture = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Engine/BasicShapes/Cylinder.Cylinder");
 	
 	if (!cylinderMesh)
 	{
@@ -644,13 +622,7 @@ void WeaponManager::spawnScopeStaticMeshComponent()
 	scopeStaticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
 	scopeStaticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
 
-	//scopeWidgetStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cylinderMesh);
-	//scopeWidgetStaticMeshComponent->SetVisibility(false, true);
-	//scopeWidgetStaticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
-	//scopeWidgetStaticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
-
 	auto scopeDynamicMaterial = scopeStaticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, uDiskMaterial);
-	//auto scopeWidgetDynamicMaterial = scopeWidgetStaticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, uWidgetSightMaterial);
 	//Logger::DebugPrint("scopeDynamicMaterial created %s", scopeDynamicMaterial->GetFullName().c_str());
 	//Applying the render texture to the material :
 	scopeDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"LinearColor"), ScopeRenderTarget);
@@ -659,11 +631,7 @@ void WeaponManager::spawnScopeStaticMeshComponent()
 	//scopeDynamicMaterial->SetVectorParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"Color"), color);
 	//Logger::DebugPrint("render target applied to scopeDynamicMaterial");
 
-
-
-	//ScopeWidgetDynamicMaterial = scopeWidgetDynamicMaterial;
 	ScopeStaticMeshComponent = scopeStaticMeshComponent;
-	//ScopeWidgetStaticMeshComponent = scopeWidgetStaticMeshComponent;
 	//Logger::DebugPrint("Sniper Cylinder Mesh spawned");
 }
 
@@ -773,7 +741,6 @@ void WeaponManager::spawnScopeWidget()
 		scopeWidgetClass = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraUI.CSightMosinWidget");
 		sourceWidget = (SDK::UUserWidget*)scopeWidgetClass->get_first_object_matching();
 	}
-	//auto SightDragnovWidget_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/Sight/SightDragnovWidget.SightDragnovWidget_C");
 	
 
 	

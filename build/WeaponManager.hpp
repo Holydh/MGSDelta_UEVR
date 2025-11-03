@@ -53,7 +53,6 @@ public:
 	SDK::UWidgetComponent* MosinScopeWidget = nullptr;
 
 	SDK::UStaticMeshComponent* ScopeStaticMeshComponent = nullptr;
-	SDK::UStaticMeshComponent* ScopeWidgetStaticMeshComponent = nullptr;
 	SDK::USceneCaptureComponent2D* SceneCaptureComponent = nullptr;
 	SDK::UStaticMeshComponent* SceneCaptureUStaticMeshComponent = nullptr;
 
