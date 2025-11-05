@@ -38,7 +38,7 @@ inline const char* WeaponManager::WeaponIdToKey(EGsrEquipId id)
     }
 }
 
-void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot)
+void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot, SDK::FVector& outHandLocationOffset, SDK::FRotator& outHandRotationOffset)
 {
 	const char* key = WeaponIdToKey(currentWeapon);
 	if (!key)
@@ -50,11 +50,16 @@ void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& ou
     auto it = settingsManager->g_weaponConfigs.find(key);
 	Logger::DebugPrint("Fetching weapon config for key: %s", key);
     if (it == settingsManager->g_weaponConfigs.end()) return;
-	Logger::DebugPrint("Weapon config found for key: %s", it->first);
-	Logger::DebugPrint("Location Offset: x=%f, y=%f, z=%f", it->second.location_offset.x, it->second.location_offset.y, it->second.location_offset.z);
-    const WeaponConfig& cfg = it->second;
+	//Logger::DebugPrint("Weapon config found for key: %s", it->first);
+	//Logger::DebugPrint("Weapon Location Offset: x=%f, y=%f, z=%f", it->second.location_offset.x, it->second.location_offset.y, it->second.location_offset.z);
+	//Logger::DebugPrint("Hand Location Offset: x=%f, y=%f, z=%f", it->second.hand_location_offset.X, it->second.hand_location_offset.Y, it->second.hand_location_offset.Z);
+ //   Logger::DebugPrint("Hand Rotation Offset: Pitch=%f, Yaw=%f, Roll=%f", it->second.hand_rotation_offset.Pitch, it->second.hand_rotation_offset.Yaw, it->second.hand_rotation_offset.Roll);
+
+	const WeaponConfig& cfg = it->second;
     outPos = cfg.location_offset;
     outRot = cfg.rotation_offset;
+	outHandLocationOffset = cfg.hand_location_offset;
+	outHandRotationOffset = cfg.hand_rotation_offset;
 }
 
 void WeaponManager::FetchEquipController()
@@ -101,6 +106,9 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	if (CurrentWeapon != params1.ReturnValue)
 	{
+		if (playerManager->HandAttachedToWeapon)
+			detachHandFromWeapon();
+
 		CurrentWeapon = params1.ReturnValue;
 		Logger::DebugPrint("Updating Current weapon ptr");
 		Logger::DebugPrint(CurrentWeapon->get_full_name());
@@ -108,10 +116,12 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (WeaponRoot == NULL) return;
 		Logger::DebugPrint(WeaponRoot->get_full_name());
 
-		FetchWeaponOffsets(CurrentWeaponEquippedID, DefaultWeaponPosition, DefaultWeaponRotation);
+		FetchWeaponOffsets(CurrentWeaponEquippedID, DefaultWeaponPosition, DefaultWeaponRotation, HandLocationOffest, HandRotationOffset);
 		Logger::DebugPrint("Applied weapon offsets from config");
 		Logger::DebugPrint("Position Offset : x=%f, y=%f, z=%f", DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z);
 		Logger::DebugPrint("Rotation Offset : w=%f, x=%f, y=%f, z=%f", DefaultWeaponRotation.w, DefaultWeaponRotation.x, DefaultWeaponRotation.y, DefaultWeaponRotation.z);
+		Logger::DebugPrint("Hand Position Offset : x=%f, y=%f, z=%f", HandLocationOffest.X, HandLocationOffest.Y, HandLocationOffest.Z);
+		Logger::DebugPrint("Hand Rotation Offset : Pitch=%f, Yaw=%f, Roll=%f", HandRotationOffset.Pitch, HandRotationOffset.Yaw, HandRotationOffset.Roll);
 		CurrentWeaponPosition = DefaultWeaponPosition;
 		CurrentWeaponRotation = DefaultWeaponRotation;
 		CurrentWeaponRotationEuler = glm::eulerAngles(CurrentWeaponRotation);
@@ -152,14 +162,8 @@ void WeaponManager::ProcessWeapon(float delta)
 			}
 		}
 	}
-	
-	if (CurrentWeaponEquippedID == EGsrEquipId::WP_None && playerManager->HandAttachedToWeapon)
-	{
-		detachHandFromWeapon();
-		return;
-	}
 
-	if (playerManager->RightHandMesh && !playerManager->HandAttachedToWeapon)
+	if (CurrentWeaponEquippedID != EGsrEquipId::WP_None && playerManager->RightHandMesh && !playerManager->HandAttachedToWeapon)
 	{
 		attachHandToWeapon();
 	}
@@ -231,20 +235,35 @@ void WeaponManager::attachHandToWeapon()
 	playerManager->RightHandMesh->K2_AttachToComponent(
 		(SDK::USceneComponent*)WeaponRoot,
 		SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
-		SDK::EAttachmentRule::SnapToTarget,
-		SDK::EAttachmentRule::SnapToTarget,
+		SDK::EAttachmentRule::KeepWorld,
+		SDK::EAttachmentRule::KeepWorld,
 		SDK::EAttachmentRule::KeepRelative,
 		true
 	);
 	playerManager->HandAttachedToWeapon = true;
-	SDK::FVector location = { DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z };
 	SDK::FHitResult outHit;
-	playerManager->RightHandMesh->K2_SetRelativeLocation(location, false, &outHit, false);
+	//playerManager->RightHandMesh->K2_SetRelativeLocation(HandLocationOffest, false, &outHit, false);
+	//playerManager->RightHandMesh->K2_SetRelativeRotation(HandRotationOffset, false, &outHit, false);
 }
 
 void WeaponManager::detachHandFromWeapon()
 {
-
+	if (playerManager->RightHandMesh)
+	{
+		playerManager->RightHandMesh->DetachFromParent(true, false);
+		playerManager->RightHandMesh->K2_AttachToComponent(
+			playerManager->RightController,
+			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
+			SDK::EAttachmentRule::SnapToTarget,
+			SDK::EAttachmentRule::SnapToTarget,
+			SDK::EAttachmentRule::KeepRelative,
+			true
+		);
+		SDK::FHitResult outHit;
+		playerManager->RightHandMesh->K2_SetRelativeLocation({ 0.0f,0.0f,0.0f }, false, &outHit, false);
+		playerManager->RightHandMesh->K2_SetRelativeRotation({ 0.0f,-90.0f,0.0f }, false, &outHit, false);
+	}
+	playerManager->HandAttachedToWeapon = false;
 }
 
 void WeaponManager::FetchWeaponMeshAimData()

@@ -66,54 +66,12 @@ public:
 	glm::fquat CurrentWeaponRotation{};
 	glm::fvec3 CurrentWeaponRotationEuler{};
 	glm::fvec3 CurrentWeaponPosition{};
+	SDK::FVector HandLocationOffest{};
+	SDK::FRotator HandRotationOffset{};
 
 	glm::dvec3 FirePosition{};
 	glm::dvec3 AimPosition{};
 	SDK::FRotator CurrentWeaponWorldRotation{};
-
-	
-
-	//glm::dvec3 AkmDefaultPosition{-6.5970001220703125,-4.460999965667725,-0.5180000066757202 };
-	//glm::fquat AkmDefaultRotation{ -0.6113685965538025,-0.08241719752550125,0.7799869775772095,-0.10514845699071884 };
-	//glm::dvec3 ChaffGrenadeDefaultPosition{ 0,0,0 };
-	//glm::fquat ChaffGrenadeDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 CigarPistolDefaultPosition{ 0,0,0 };
-	//glm::fquat CigarPistolDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 DragnovDefaultPosition{ 0,0,0 };
-	//glm::fquat DragnovDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 EasyGunDefaultPosition{ 0,0,0 };
-	//glm::fquat EasyGunDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 FireGrenadeDefaultPosition{ 0,0,0 };
-	//glm::fquat FireGrenadeDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 GrenadeDefaultPosition{ 0,0,0 };
-	//glm::fquat GrenadeDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 HandkerchiefDefaultPosition{ 0,0,0 };
-	//glm::fquat HandkerchiefDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 M16a1DefaultPosition{ 0,0,0 };
-	//glm::fquat M16a1DefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 IthacaDefaultPosition{ 0,0,0 };
-	//glm::fquat IthacaDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 M63DefaultPosition{ 0,0,0 };
-	//glm::fquat M63DefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 GoveDefaultPosition{ 0,0,0 };
-	//glm::fquat GoveDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 Mk22DefaultPosition{ 0,0,0 };
-	//glm::fquat Mk22DefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 MosinNagantDefaultPosition{ 0,0,0 };
-	//glm::fquat MosinNagantDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 PatriotPistolDefaultPosition{ 0,0,0 };
-	//glm::fquat PatriotPistolDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 RpgDefaultPosition{ 0,0,0 };
-	//glm::fquat RpgDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 ScorpionDefaultPosition{ 0,0,0 };
-	//glm::fquat ScorpionDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 SAArmyDefaultPosition{ 0,0,0 };
-	//glm::fquat SAArmyDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 SmokeGrenadeDefaultPosition{ 0,0,0 };
-	//glm::fquat SmokeGrenadeDefaultRotation{ 1,0,0,0 };
-	//glm::dvec3 StunGrenadeDefaultPosition{ 0,0,0 };
-	//glm::fquat StunGrenadeDefaultRotation{ 1,0,0,0 };
-
 
 	enum EGsrEquipId : uint8_t
 	{
@@ -362,7 +320,9 @@ public:
 	inline const char* WeaponIdToKey(EGsrEquipId id);
 	void FetchWeaponOffsets(EGsrEquipId currentWeapon,
 		glm::fvec3& outPos,
-		glm::fquat& outRot);
+		glm::fquat& outRot,
+		SDK::FVector& outHandLocationOffset,
+		SDK::FRotator& outHandRotationOffset);
 
 	//void Initialize();
 	void FetchEquipController();

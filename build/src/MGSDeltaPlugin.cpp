@@ -106,7 +106,8 @@ void MGSDeltaPlugin::on_custom_event(const char* event_name, const char* event_d
 	{
 		if (strcmp(event_data, "1") == 0)
 		{
-			cameraController.AttachCameraToAttachementActor();
+			Toggle6DOF(false);
+			Toggle6DOF(true);
 			playerManager.FetchMotionControllers();
 		}
 	}

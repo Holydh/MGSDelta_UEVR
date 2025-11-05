@@ -219,8 +219,9 @@ void PlayerManager::GetCurrentAimState()
 
 void PlayerManager::FetchMotionControllers()
 {
-	auto motionControllerComponent_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/HeadMountedDisplay.MotionControllerComponent");
+	static auto motionControllerComponent_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/HeadMountedDisplay.MotionControllerComponent");
 	auto motionControllerComponents = motionControllerComponent_c->get_objects_matching(false);
+	
 	for (size_t i = 0; i < motionControllerComponents.size(); i++)
 	{
 		auto motionControllerComponent = (SDK::UMotionControllerComponent*)motionControllerComponents[i];
