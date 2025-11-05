@@ -217,7 +217,7 @@ function M.create(skeletalMeshComponent, definition, handAnimations)
 			if skeletalMeshDefinition["Offset"] ~= nil then
 				offset = skeletalMeshDefinition["Offset"]
 			end
-			print("Creating hand component: " .. name )
+			M.print("Creating hand component: " .. name )
 			local component = nil
 			if type(skeletalMeshComponent) == "table" then
 				component = skeletalMeshComponent[name]
