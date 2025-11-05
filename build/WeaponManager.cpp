@@ -249,8 +249,8 @@ void WeaponManager::attachHandToWeapon()
 	);
 	playerManager->HandAttachedToWeapon = true;
 	SDK::FHitResult outHit;
-	//playerManager->RightHandMesh->K2_SetRelativeLocation(HandLocationOffest, false, &outHit, false);
-	//playerManager->RightHandMesh->K2_SetRelativeRotation(HandRotationOffset, false, &outHit, false);
+	playerManager->RightHandMesh->K2_AddRelativeLocation(HandLocationOffest, false, &outHit, false);
+	playerManager->RightHandMesh->K2_AddRelativeRotation(HandRotationOffset, false, &outHit, false);
 }
 
 void WeaponManager::detachHandFromWeapon()

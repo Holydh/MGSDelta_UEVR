@@ -360,7 +360,7 @@ function M.updateAnimationFromMesh(hand, mesh, componentName)
 end
 
 --set overrideTrigger to true if the default triggers have already been swapped (ie a plugin or code aleady makes the game do right trigger actions when the left trigger is pulled)
-function M.handleInput(state, attachment, hand, forceWeaponGripAnimation, overrideTrigger, allowAutoHandle)
+function M.handleInput(state, attachment, hand, overrideTrigger, allowAutoHandle)
 	if allowAutoHandle ~= true then
 		autoHandleInput = false --if something else is calling this then dont auto handle input
 	end
@@ -382,9 +382,21 @@ function M.handleInput(state, attachment, hand, forceWeaponGripAnimation, overri
 	local animDuration = 0.1
 
 	for id, target in pairs(inputHandlerAnimID) do
-		if state == nil then
-			animation.updateAnimation(weaponHandStr.."_"..target, weaponHandStr.."_grip", true, {duration=0.0})
-			print("force out of grip")
+		-- Forces animation to reset when attachements changes
+		if state == true then
+			animation.resetAnimation(weaponHandStr.."_"..target, weaponHandStr.."_grip", false)
+			animation.updateAnimation(weaponHandStr.."_"..target, weaponHandStr.."_grip", true, {duration=animDuration})
+			animation.resetAnimation(weaponHandStr.."_"..target, weaponHandStr.."_trigger", false)
+			animation.updateAnimation(weaponHandStr.."_"..target, weaponHandStr.."_trigger", true, {duration=animDuration})
+			-- print("force out of grip")
+			return
+		end
+		if state == false then
+			animation.resetAnimation(weaponHandStr.."_"..target, weaponHandStr.."_trigger_weapon" .. attachmentExtension, false)
+			animation.updateAnimation(weaponHandStr.."_"..target, weaponHandStr.."_trigger_weapon" .. attachmentExtension, true, {duration=animDuration})
+			animation.resetAnimation(weaponHandStr.."_"..target, weaponHandStr.."_grip_weapon" .. attachmentExtension, false)
+			animation.updateAnimation(weaponHandStr.."_"..target, weaponHandStr.."_grip_weapon" .. attachmentExtension, true, {duration=animDuration})
+			-- print("force to grip")
 			return
 		end
 
@@ -411,7 +423,7 @@ function M.handleInput(state, attachment, hand, forceWeaponGripAnimation, overri
 		else
 			local weaponHandTriggerValue = (isRightHanded or overrideTrigger) and state.Gamepad.bRightTrigger or state.Gamepad.bLeftTrigger
 			animation.updateAnimation(weaponHandStr.."_"..target, weaponHandStr.."_trigger_weapon" .. attachmentExtension, weaponHandTriggerValue > 100, {duration=animDuration})
-			if uevrUtils.isButtonPressed(state, isRightHanded and XINPUT_GAMEPAD_RIGHT_SHOULDER or XINPUT_GAMEPAD_LEFT_SHOULDER) or forceWeaponGripAnimation then
+			if uevrUtils.isButtonPressed(state, isRightHanded and XINPUT_GAMEPAD_RIGHT_SHOULDER or XINPUT_GAMEPAD_LEFT_SHOULDER) then
 				animation.resetAnimation(weaponHandStr.."_"..target, weaponHandStr.."_grip_weapon" .. attachmentExtension, false) --forces an update regardless of current state
 --print("Here",weaponHandStr.."_"..target,weaponHandStr.."_grip_weapon" .. attachmentExtension)
 				animation.updateAnimation(weaponHandStr.."_"..target, weaponHandStr.."_grip_weapon" .. attachmentExtension, true, {duration=animDuration})

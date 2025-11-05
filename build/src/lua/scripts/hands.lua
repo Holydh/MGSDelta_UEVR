@@ -67,15 +67,14 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 
 	if event_name == "CurrentWeapon" then
 		if hands.exists() then
+			attachementName = event_string
 			if event_string == "wp_none" then
 				isHoldingWeapon = false
-				local state = nil
-				hands.handleInput(state, false, Handed.Right, true, false, false)
+				hands.handleInput(true, false, Handed.Right, false, false)
 			else
 				isHoldingWeapon = true
+				hands.handleInput(false, attachementName, Handed.Right, false, false)
 			end
-			attachementName = event_string
-			print("luaaaa : " .. event_string)
 		end
 	end
 end)
@@ -83,10 +82,9 @@ end)
 function on_xinput_get_state(retval, user_index, state)
 	if hands.exists() then
 		if isHoldingWeapon then
-			hands.handleInput(state, attachementName, Handed.Right, true, false, false)
+			hands.handleInput(state, attachementName, Handed.Right, false, false)
 		else
-			hands.handleInput(state, false, Handed.Right, true, false, false)
+			hands.handleInput(state, false, Handed.Right, false, false)
 		end
-		hands.handleInput(state, false, Handed.Left, false, false, false)
 	end
 end
