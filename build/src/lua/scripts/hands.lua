@@ -3,6 +3,8 @@ local hands = require('libs/hands')
 local controllers = require('libs/controllers')
 local handsCreated = false
 local handsRequired = true
+local isHoldingWeapon = false
+local attachementName = "WP_None"
 
 function on_level_change(level)
 	controllers.createController(0)
@@ -62,12 +64,29 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 			handsRequired = false
 		end
 	end
+
+	if event_name == "CurrentWeapon" then
+		if hands.exists() then
+			if event_string == "wp_none" then
+				isHoldingWeapon = false
+				local state = nil
+				hands.handleInput(state, false, Handed.Right, true, false, false)
+			else
+				isHoldingWeapon = true
+			end
+			attachementName = event_string
+			print("luaaaa : " .. event_string)
+		end
+	end
 end)
 
 function on_xinput_get_state(retval, user_index, state)
 	if hands.exists() then
-		local isHoldingWeapon = false
-		local hand = Handed.Right
-		hands.handleInput(state, isHoldingWeapon, hand)
+		if isHoldingWeapon then
+			hands.handleInput(state, attachementName, Handed.Right, true, false, false)
+		else
+			hands.handleInput(state, false, Handed.Right, true, false, false)
+		end
+		hands.handleInput(state, false, Handed.Left, false, false, false)
 	end
 end

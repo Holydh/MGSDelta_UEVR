@@ -12,6 +12,16 @@
                         "off"
                     ]
                 ],
+                "grip_left_weapon_wp_m16a1": [
+                    [
+                        "left_grip_weapon_wp_m16a1",
+                        "on"
+                    ],
+                    [
+                        "left_trigger_weapon_wp_m16a1",
+                        "off"
+                    ]
+                ],
                 "grip_right_weapon": [
                     [
                         "right_grip_weapon",
@@ -19,6 +29,16 @@
                     ],
                     [
                         "right_trigger_weapon",
+                        "off"
+                    ]
+                ],
+                "grip_right_weapon_wp_m16a1": [
+                    [
+                        "right_grip_weapon_wp_m16a1",
+                        "on"
+                    ],
+                    [
+                        "right_trigger_weapon_wp_m16a1",
                         "off"
                     ]
                 ],
@@ -664,6 +684,132 @@
                         ]
                     }
                 },
+                "right_grip_weapon_wp_m16a1": {
+                    "off": {
+                        "BaseBody_RightHandMiddle1": [
+                            0.6506,
+                            56.2499,
+                            4.083
+                        ],
+                        "BaseBody_RightHandMiddle2": [
+                            0.0,
+                            -54.0001,
+                            0.0
+                        ],
+                        "BaseBody_RightHandMiddle3": [
+                            0.0,
+                            -76.6251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandPinky1": [
+                            0.6506,
+                            -73.1251,
+                            4.083
+                        ],
+                        "BaseBody_RightHandPinky2": [
+                            0.0,
+                            -58.1251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandPinky3": [
+                            0.0,
+                            -67.6251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandRing1": [
+                            0.6506,
+                            -74.2501,
+                            4.083
+                        ],
+                        "BaseBody_RightHandRing2": [
+                            0.0,
+                            -61.8751,
+                            0.0
+                        ],
+                        "BaseBody_RightHandRing3": [
+                            0.0,
+                            -77.7501,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb1": [
+                            -0.9571,
+                            -39.3751,
+                            118.6341
+                        ],
+                        "BaseBody_RightHandThumb2": [
+                            0.0,
+                            -4.0002,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb3": [
+                            0.0,
+                            -4.5002,
+                            0.0
+                        ]
+                    },
+                    "on": {
+                        "BaseBody_RightHandMiddle1": [
+                            0.6506,
+                            56.25,
+                            4.083
+                        ],
+                        "BaseBody_RightHandMiddle2": [
+                            0.0,
+                            -54.0001,
+                            0.0
+                        ],
+                        "BaseBody_RightHandMiddle3": [
+                            0.0,
+                            -76.6251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandPinky1": [
+                            0.6506,
+                            -73.1251,
+                            4.083
+                        ],
+                        "BaseBody_RightHandPinky2": [
+                            0.0,
+                            -58.1251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandPinky3": [
+                            0.0,
+                            -67.6251,
+                            0.0
+                        ],
+                        "BaseBody_RightHandRing1": [
+                            0.6506,
+                            -74.2501,
+                            4.083
+                        ],
+                        "BaseBody_RightHandRing2": [
+                            0.0,
+                            -61.8751,
+                            0.0
+                        ],
+                        "BaseBody_RightHandRing3": [
+                            0.0,
+                            -77.7501,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb1": [
+                            -0.9571,
+                            -39.3751,
+                            118.6341
+                        ],
+                        "BaseBody_RightHandThumb2": [
+                            0.0,
+                            -4.0002,
+                            0.0
+                        ],
+                        "BaseBody_RightHandThumb3": [
+                            0.0,
+                            -4.5002,
+                            0.0
+                        ]
+                    }
+                },
                 "right_thumb": {
                     "off": {
                         "BaseBody_RightHandThumb1": [
@@ -773,6 +919,11 @@
                     }
                 }
             }
+        }
+    },
+    "attachments": {
+        "wp_m16a1": {
+            "label": "WP_M16a1"
         }
     },
     "profiles": {

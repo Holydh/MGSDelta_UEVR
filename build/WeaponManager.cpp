@@ -108,10 +108,17 @@ void WeaponManager::ProcessWeapon(float delta)
 	{
 		if (playerManager->HandAttachedToWeapon)
 			detachHandFromWeapon();
-
+		//Sending actual weapon to lua hands to set the pose for this weapon. Lua scripts takes a lowercase only value so we need to set it up :
+		auto weaponNameView = magic_enum::enum_name(params.ReturnValue);
+		std::string weaponName(weaponNameView); // make a real string copy
+		std::transform(weaponName.begin(), weaponName.end(), weaponName.begin(), ::tolower);
+		uevr::API::get()->dispatch_lua_event("CurrentWeapon", weaponName);
+		
 		CurrentWeapon = params1.ReturnValue;
 		Logger::DebugPrint("Updating Current weapon ptr");
 		Logger::DebugPrint(CurrentWeapon->get_full_name());
+		if (CurrentWeaponEquippedID == EGsrEquipId::WP_None)
+			return;
 		WeaponRoot = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootSceneComponent");
 		if (WeaponRoot == NULL) return;
 		Logger::DebugPrint(WeaponRoot->get_full_name());
@@ -163,7 +170,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 	}
 
-	if (CurrentWeaponEquippedID != EGsrEquipId::WP_None && playerManager->RightHandMesh && !playerManager->HandAttachedToWeapon)
+	if (playerManager->RightHandMesh && !playerManager->HandAttachedToWeapon)
 	{
 		attachHandToWeapon();
 	}
