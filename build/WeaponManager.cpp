@@ -114,9 +114,12 @@ void WeaponManager::ProcessWeapon(float delta)
 		std::transform(weaponName.begin(), weaponName.end(), weaponName.begin(), ::tolower);
 		uevr::API::get()->dispatch_lua_event("CurrentWeapon", weaponName);
 		
+		SwitchScopeState(false);
+
 		CurrentWeapon = params1.ReturnValue;
 		Logger::DebugPrint("Updating Current weapon ptr");
 		Logger::DebugPrint(CurrentWeapon->get_full_name());
+
 		if (CurrentWeaponEquippedID == EGsrEquipId::WP_None)
 			return;
 		WeaponRoot = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootSceneComponent");
@@ -168,11 +171,10 @@ void WeaponManager::ProcessWeapon(float delta)
 				attachScopeToWeapon();
 			}
 		}
-	}
-
-	if (playerManager->RightHandMesh && !playerManager->HandAttachedToWeapon)
-	{
-		attachHandToWeapon();
+		if (playerManager->RightHandMesh && !playerManager->HandAttachedToWeapon)
+		{
+			attachHandToWeapon();
+		}
 	}
 
 	//Apply recoil
@@ -182,20 +184,13 @@ void WeaponManager::ProcessWeapon(float delta)
 	if (!*settingsManager->SniperScopeEnabledPtr)
 		return;
 
-	if (!playerManager->IsAiming)
-	{
-		if (playerManager->WasAiming) SwitchScopeState(false);
-		return;
-	}
-
 	if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
 	{
-		if (playerManager->IsAiming && !playerManager->WasAiming) SwitchScopeState(true);
-		if (playerManager->IsAiming && (playerManager->WasFirstPersonAiming != playerManager->IsFirstPersonAiming))
-		{
-			ReceiverMesh->SetVisibility(true, true);
-			SwitchScopeState(true);
-		}
+		if (!ReceiverMesh->IsVisible())
+		ReceiverMesh->SetVisibility(true, true);
+
+		SwitchScopeState(playerManager->IsAiming);
+
 
 		auto test = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
 		auto scopeMagnification = test->GetScopeMagnification();
@@ -238,6 +233,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 void WeaponManager::attachHandToWeapon()
 {
+	Logger::DebugPrint("attach Hand to weapon");
 	playerManager->RightHandMesh->DetachFromParent(true, false);
 	playerManager->RightHandMesh->K2_AttachToComponent(
 		(SDK::USceneComponent*)WeaponRoot,
@@ -255,6 +251,7 @@ void WeaponManager::attachHandToWeapon()
 
 void WeaponManager::detachHandFromWeapon()
 {
+	Logger::DebugPrint("Detach Hand from weapon");
 	if (playerManager->RightHandMesh)
 	{
 		playerManager->RightHandMesh->DetachFromParent(true, false);
@@ -266,6 +263,7 @@ void WeaponManager::detachHandFromWeapon()
 			SDK::EAttachmentRule::KeepRelative,
 			true
 		);
+		
 		SDK::FHitResult outHit;
 		playerManager->RightHandMesh->K2_SetRelativeLocation({ 0.0f,0.0f,0.0f }, false, &outHit, false);
 		playerManager->RightHandMesh->K2_SetRelativeRotation({ 0.0f,-90.0f,0.0f }, false, &outHit, false);

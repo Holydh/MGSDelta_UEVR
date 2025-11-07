@@ -10,10 +10,6 @@ void PlayerManager::ConvertAllRequiredStringToFnames()
 	fNameAimLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"AimLoop");
 	fNameBasic = SDK::UKismetStringLibrary::Conv_StringToName(L"Basic");
 	fNameRolling = SDK::UKismetStringLibrary::Conv_StringToName(L"Rolling");
-	fNameParallelIdle = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelIdle");
-	fNameParallelMoveStart = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelMoveStart");
-	fNameParallelMoveCycle = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelMoveCycle");
-	fNameParallelMoveStop = SDK::UKismetStringLibrary::Conv_StringToName(L"ParallelMoveStop");
 	fNameElude = SDK::UKismetStringLibrary::Conv_StringToName(L"Elude");
 }
 
@@ -199,10 +195,6 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 	else
 		IsRolling = false;
 
-	if (StateName == fNameParallelIdle || StateName == fNameParallelMoveStart || StateName == fNameParallelMoveCycle || StateName == fNameParallelMoveStop)
-		IsAiming = true;
-	else
-		IsAiming = false;
 	//Logger::DebugPrint("IsRolling: %d", IsRolling);
 	//Logger::DebugPrint("IsHanging: %d", IsHanging);
 	//Logger::DebugPrint("IsPeepingInternal: %d", IsPeepingInternal);
@@ -211,10 +203,16 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 	//Logger::DebugPrint("StateMachineName: %s, StateName: %s", StateMachineName.ToString().c_str(), StateName.ToString().c_str());
 }
 
-void PlayerManager::GetCurrentAimState()
+void PlayerManager::GetCurrentAimStateAndCameraMode()
 {
 	auto playerController = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
 	IsFirstPersonAiming = playerController->IsAimDownSight();
+	CurrentCameraMode = playerController->GetCameraMode();
+
+	auto snakeStatus = (SDK::UBP_SnakeStatus_C*)playerController->GetSnakeStatus();
+	CurrentAimingStatus = snakeStatus->GetAimingStatus();
+	if (CurrentAimingStatus != SDK::EAimingStatus::Aiming_None) IsAiming = true;
+	IsAiming = CurrentAimingStatus == SDK::EAimingStatus::Aiming_None ? false : true;
 }
 
 void PlayerManager::FetchMotionControllers()

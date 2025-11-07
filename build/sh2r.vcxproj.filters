@@ -103,6 +103,9 @@
     <ClCompile Include="src\SDK\Cobra_functions.cpp">
       <Filter>src\sdk</Filter>
     </ClCompile>
+    <ClCompile Include="src\SDK\BP_SnakeStatus_functions.cpp">
+      <Filter>src\sdk</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\MGSDeltaPlugin.hpp">

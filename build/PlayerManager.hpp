@@ -8,6 +8,7 @@
 #include "SDK/Ics_parameters.hpp"
 #include "SDK/BP_Player_classes.hpp"
 #include "SDK/HeadMountedDisplay_classes.hpp"
+#include "SDK/BP_SnakeStatus_classes.hpp"
 
 class PlayerManager {
 public:
@@ -57,7 +58,11 @@ public:
 
 	void GetCurrentPlayerStance(float deltaTime);
 	void ProcessPlayerCharacterState(const SDK::FName& StateName, const SDK::FName& StateMachineName);
-	void GetCurrentAimState();
+	void GetCurrentAimStateAndCameraMode();
+
+	SDK::EGsrPlayerCameraControllerCameraMode CurrentCameraMode = SDK::EGsrPlayerCameraControllerCameraMode::Around;
+	SDK::EGsrPlayerCameraControllerCameraMode PreviousCameraMode = SDK::EGsrPlayerCameraControllerCameraMode::Around;
+	SDK::EAimingStatus CurrentAimingStatus = SDK::EAimingStatus::Aiming_None;
 
 	SDK::UMotionControllerComponent* LeftController;
 	SDK::UPoseableMeshComponent* LeftHandMesh;
@@ -69,8 +74,6 @@ public:
 
 	//EPlayerAnimState GetCurrentPlayerAnimState(const SDK::FName& State);
 private:
-	SDK::USnakeStatusComponent snakeStatus;
-
 	//Peep State Machine Name
 	SDK::FName fNameBehind;
 	//Peep States
@@ -83,11 +86,6 @@ private:
 	SDK::FName fNameBasic;
 	//Rolling States
 	SDK::FName fNameRolling;
-	//Aiming States
-	SDK::FName fNameParallelIdle;
-	SDK::FName fNameParallelMoveStart;
-	SDK::FName fNameParallelMoveCycle;
-	SDK::FName fNameParallelMoveStop;
 	//Falling from edge State Machine Name
 	SDK::FName fNameElude;
 };

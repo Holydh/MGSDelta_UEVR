@@ -370,7 +370,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 	if (playerManager.IsPlayerControlled)
 	{
-		playerManager.GetCurrentAimState();
+		playerManager.GetCurrentAimStateAndCameraMode();
 		/*Logger::DebugPrint("Before ResolveAddresses");*/
 		/*memoryManager.ResolveAddresses();*/
 		/*Logger::DebugPrint("Before FetchEquipController");*/
@@ -420,6 +420,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.PreviousStance = playerManager.CurrentStance;
 	playerManager.WasFirstPersonAiming = playerManager.IsFirstPersonAiming;
 	playerManager.WasAiming = playerManager.IsAiming;
+	playerManager.PreviousCameraMode = playerManager.CurrentCameraMode;
 	imGuiMenu.MouseMovedThisFrame = false;
 	//auto end = std::chrono::high_resolution_clock::now();
 	//auto duration_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
