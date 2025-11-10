@@ -50,6 +50,8 @@ void MGSDeltaPlugin::on_initialize() {
 	hookManager.Initialize();
 	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_OnEnteredState_post, true);
 	hookManager.hook_bp_fn(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerEludeAction.ABP_PlayerEludeAction_C", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_PlayerFalling_OnEnteredState_post, true);
+	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetCameraRequestModelVisibility", (UEVR_UFunction_NativePostFn)HookManager::mod_ISetCameraRequestModelVisibility_post ,NULL, true);
+
 	//weaponController.Initialize();
 	memoryManager.InitMemoryManager();
 	hookManager.HookFireFunction();
@@ -418,7 +420,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.WasPlayerControlled = playerManager.IsPlayerControlled;
 	playerManager.WasPeepingInternal = playerManager.IsPeepingInternal;
 	playerManager.PreviousStance = playerManager.CurrentStance;
-	playerManager.WasFirstPersonAiming = playerManager.IsFirstPersonAiming;
+	playerManager.WasFirstPersonView = playerManager.IsFirstPersonView;
 	playerManager.WasAiming = playerManager.IsAiming;
 	playerManager.PreviousCameraMode = playerManager.CurrentCameraMode;
 	imGuiMenu.MouseMovedThisFrame = false;

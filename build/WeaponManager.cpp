@@ -122,7 +122,8 @@ void WeaponManager::ProcessWeapon(float delta)
 
 		if (CurrentWeaponEquippedID == EGsrEquipId::WP_None)
 			return;
-		WeaponRoot = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootSceneComponent");
+
+		WeaponRoot = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootComponent");
 		if (WeaponRoot == NULL) return;
 		Logger::DebugPrint(WeaponRoot->get_full_name());
 
@@ -145,42 +146,91 @@ void WeaponManager::ProcessWeapon(float delta)
 		motionState->set_hand(1);
 		motionState->set_permanent(true);
 
+		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
+		auto childrenArray = sdkWeaponRoot->AttachChildren;
+		for (int i = 0; i < childrenArray.Num(); i++)
+		{
+			SDK::USceneComponent* child = childrenArray[i];
+			if (!child) continue;
+			if (child->IsA(SDK::USkeletalMeshComponent::StaticClass())) {
+				ReceiverMesh = (SDK::USkeletalMeshComponent*)child;
+				//Logger::DebugPrint(child->GetFullName().c_str());
+			}
+		}
+
 		if (*settingsManager->SniperScopeEnabledPtr)
 		{
 			SwitchScopeState(false);
 			IsDragnov = CurrentWeaponEquippedID == EGsrEquipId::WP_Dragnov;
 			if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
 			{
-				SDK::USceneComponent* sdkCurrentWeapon = (SDK::USceneComponent*)WeaponRoot;
-				auto childrenArray = sdkCurrentWeapon->AttachChildren;
+				if (!ReceiverMesh)
+				{
+					Logger::DebugPrint("no Receiver mesh found");
+					return;
+				}
 				for (int i = 0; i < childrenArray.Num(); i++)
 				{
 					SDK::USceneComponent* child = childrenArray[i];
 					if (!child) continue;
-					if (child->IsA(SDK::USkeletalMeshComponent::StaticClass())) {
-						ReceiverMesh = (SDK::USkeletalMeshComponent*)child;
-						//Logger::DebugPrint(child->GetFullName().c_str());
-					}
 					//Destroy any previous cylinder mesh if still attached
 					if (child->IsA(SDK::UStaticMeshComponent::StaticClass())) {
 						child->K2_DestroyComponent(child);
 						ScopeStaticMeshComponent = nullptr;
 					}
 				}
+
 				spawnScope();
 				attachScopeToWeapon();
 			}
 		}
+
+		if (CurrentWeaponEquippedID == EGsrEquipId::WP_CigarPistol)
+		{
+			auto staticMesh = (SDK::UStaticMeshComponent*)WeaponRoot;
+			staticMesh->SetRelativeScale3D({ 1.5f, 1.5f, 1.5f });
+			return;
+		}
+
 		if (playerManager->RightHandMesh && !playerManager->HandAttachedToWeapon)
 		{
 			attachHandToWeapon();
 		}
 	}
 
+	//Logger::DebugPrint("Receiver Mesh Is Visible : %i", ReceiverMesh->IsVisible());
+
+	//Toggle weapon visibility in FPS view;
+	bool isReceiverMeshVisible = ReceiverMesh->IsVisible();
+	static auto const gsrGunClass = (uevr::API::UClass*)SDK::AGsrGun::StaticClass();
+
+	if (CurrentWeapon->is_a(gsrGunClass) && !isReceiverMeshVisible)
+	{
+		ReceiverMesh->SetVisibility(true, true);
+		auto sdkGun = (SDK::AGsrGun*)CurrentWeapon;
+		//Logger::DebugPrint("IsAttachedSuppressor : %i", sdkGun->IsAttachedSuppressor());
+		bool isAttachedSuppressor = sdkGun->IsAttachedSuppressor();
+		if (sdkGun->GunPartsController->m_suppressorMesh)
+		{
+			sdkGun->GunPartsController->m_suppressorMesh->SetVisibility(isAttachedSuppressor, true);
+		}
+
+		// Set cqc knife visibility. DOESN'T WORK. Something is overwritting it each frame.
+		//Logger::DebugPrint("CanCqc : %i", sdkGun->CanCqc());
+		//if (sdkGun->CanCqc())
+		//{
+		//	auto sdkEquipController = (SDK::UGsrEquipController*)EquipController;
+		//	Logger::DebugPrint("Knife Is Visible : %i", sdkEquipController->m_knifeActor->SkeletalMeshComponent->IsVisible());
+		//	sdkEquipController->m_knifeActor->SkeletalMeshComponent->SetVisibility(true, true);
+		//}
+	}
+
+
+
 	//Apply recoil
 	if (CurrentWeapon != NULL)
 		applyRecoil(delta);
-	
+
 	if (!*settingsManager->SniperScopeEnabledPtr)
 		return;
 

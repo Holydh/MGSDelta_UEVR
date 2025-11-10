@@ -206,8 +206,8 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 void PlayerManager::GetCurrentAimStateAndCameraMode()
 {
 	auto playerController = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
-	IsFirstPersonAiming = playerController->IsAimDownSight();
 	CurrentCameraMode = playerController->GetCameraMode();
+	IsFirstPersonView = CurrentCameraMode == SDK::EGsrPlayerCameraControllerCameraMode::Subjective;
 
 	auto snakeStatus = (SDK::UBP_SnakeStatus_C*)playerController->GetSnakeStatus();
 	CurrentAimingStatus = snakeStatus->GetAimingStatus();

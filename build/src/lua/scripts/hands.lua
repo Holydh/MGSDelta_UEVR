@@ -70,10 +70,16 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 			attachementName = event_string
 			if event_string == "wp_none" then
 				isHoldingWeapon = false
-				hands.handleInput(true, false, Handed.Right, false, false)
+				hands.handleInputIndividualHand(true, false, Handed.Right, false, false)
+				hands.handleInputIndividualHand(true, false, Handed.Left, false, false)
 			else
 				isHoldingWeapon = true
-				hands.handleInput(false, attachementName, Handed.Right, false, false)
+				hands.handleInputIndividualHand(false, attachementName, Handed.Right, false, false)
+				if attachementName == "wp_gove" then
+					hands.handleInputIndividualHand(false, attachementName, Handed.Left, false, false)
+				else
+					hands.handleInputIndividualHand(true, false, Handed.Left, false, false)
+				end
 			end
 		end
 	end
@@ -82,9 +88,15 @@ end)
 function on_xinput_get_state(retval, user_index, state)
 	if hands.exists() then
 		if isHoldingWeapon then
-			hands.handleInput(state, attachementName, Handed.Right, false, false)
+			if attachementName == "wp_gove" then
+				hands.handleInputIndividualHand(state, attachementName, Handed.Left, false, false)
+			else
+				hands.handleInputIndividualHand(state, false, Handed.Left, false, false)
+			end
+			hands.handleInputIndividualHand(state, attachementName, Handed.Right, false, false)
 		else
-			hands.handleInput(state, false, Handed.Right, false, false)
+			hands.handleInputIndividualHand(state, false, Handed.Right, false, false)
+			hands.handleInputIndividualHand(state, false, Handed.Left, false, false)
 		end
 	end
 end

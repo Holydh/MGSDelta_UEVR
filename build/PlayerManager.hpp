@@ -48,8 +48,8 @@ public:
 	bool IsRolling = false;
 	bool IsAiming = false;
 	bool WasAiming = false;
-	bool IsFirstPersonAiming = false;
-	bool WasFirstPersonAiming = false;
+	bool IsFirstPersonView = false;
+	bool WasFirstPersonView = false;
 	SDK::EGsrPlayerStance CurrentStance = SDK::EGsrPlayerStance::Stand;
 	SDK::EGsrPlayerStance PreviousStance = SDK::EGsrPlayerStance::Stand;
 	float ChangeStanceTimer = 0.0f;

@@ -359,6 +359,73 @@ function M.updateAnimationFromMesh(hand, mesh, componentName)
 	end
 end
 
+function M.handleInputIndividualHand(state, attachment, hand, overrideTrigger, allowAutoHandle)
+	if allowAutoHandle ~= true then
+		autoHandleInput = false -- if something else is calling this then don't auto handle input
+	end
+
+	if hand == nil then hand = Handed.Right end
+	if overrideTrigger == nil then overrideTrigger = false end
+
+	local isRightHanded = hand == Handed.Right
+	local handStr = isRightHanded and "right" or "left"
+	local animDuration = 0.1
+
+	-- Determine attachment info
+	local isHoldingAttachment = false
+	local attachmentExtension = ""
+	if type(attachment) == "boolean" then
+		isHoldingAttachment = attachment
+	elseif type(attachment) == "string" and attachment ~= "" then
+		isHoldingAttachment = true
+		attachmentExtension = "_" .. attachment
+	end
+
+	for id, target in pairs(inputHandlerAnimID) do
+
+		-- Force animation reset when attachments change
+		if state == true then
+			animation.resetAnimation(handStr.."_"..target, handStr.."_grip", false)
+			animation.updateAnimation(handStr.."_"..target, handStr.."_grip", true, {duration = animDuration})
+			animation.resetAnimation(handStr.."_"..target, handStr.."_trigger", false)
+			animation.updateAnimation(handStr.."_"..target, handStr.."_trigger", true, {duration = animDuration})
+			return
+		end
+		if state == false then
+			animation.resetAnimation(handStr.."_"..target, handStr.."_trigger_weapon" .. attachmentExtension, false)
+			animation.updateAnimation(handStr.."_"..target, handStr.."_trigger_weapon" .. attachmentExtension, true, {duration = animDuration})
+			animation.resetAnimation(handStr.."_"..target, handStr.."_grip_weapon" .. attachmentExtension, false)
+			animation.updateAnimation(handStr.."_"..target, handStr.."_grip_weapon" .. attachmentExtension, true, {duration = animDuration})
+			return
+		end
+
+		-- Normal animation updates
+		if not isHoldingAttachment then
+			-- Regular hand trigger / grip / thumb
+			local triggerValue = (isRightHanded or overrideTrigger)
+				and state.Gamepad.bRightTrigger or state.Gamepad.bLeftTrigger
+			animation.updateAnimation(handStr.."_"..target, handStr.."_trigger", triggerValue > 100, {duration = animDuration})
+
+			animation.updateAnimation(handStr.."_"..target, handStr.."_grip",
+				uevrUtils.isButtonPressed(state, isRightHanded and XINPUT_GAMEPAD_RIGHT_SHOULDER or XINPUT_GAMEPAD_LEFT_SHOULDER),
+				{duration = animDuration})
+
+			local controller = isRightHanded and uevr.params.vr.get_right_joystick_source() or uevr.params.vr.get_left_joystick_source()
+			local thumbRest = uevr.params.vr.get_action_handle(
+				isRightHanded and "/actions/default/in/ThumbrestTouchRight" or "/actions/default/in/ThumbrestTouchLeft")
+			animation.updateAnimation(handStr.."_"..target, handStr.."_thumb",
+				uevr.params.vr.is_action_active(thumbRest, controller), {duration = animDuration})
+
+		else
+			-- Weapon attachment animations
+			local triggerValue = (isRightHanded or overrideTrigger)
+				and state.Gamepad.bRightTrigger or state.Gamepad.bLeftTrigger
+			animation.updateAnimation(handStr.."_"..target, handStr.."_trigger_weapon" .. attachmentExtension, triggerValue > 100, {duration = animDuration})
+			animation.updateAnimation(handStr.."_"..target, handStr.."_grip_weapon" .. attachmentExtension, uevrUtils.isButtonPressed(state, isRightHanded and XINPUT_GAMEPAD_RIGHT_SHOULDER or XINPUT_GAMEPAD_LEFT_SHOULDER), {duration = animDuration})
+		end
+	end
+end
+
 --set overrideTrigger to true if the default triggers have already been swapped (ie a plugin or code aleady makes the game do right trigger actions when the left trigger is pulled)
 function M.handleInput(state, attachment, hand, overrideTrigger, allowAutoHandle)
 	if allowAutoHandle ~= true then
