@@ -113,7 +113,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		std::string weaponName(weaponNameView); // make a real string copy
 		std::transform(weaponName.begin(), weaponName.end(), weaponName.begin(), ::tolower);
 		uevr::API::get()->dispatch_lua_event("CurrentWeapon", weaponName);
-		
+
 		SwitchScopeState(false);
 
 		CurrentWeapon = params1.ReturnValue;
@@ -197,6 +197,9 @@ void WeaponManager::ProcessWeapon(float delta)
 			attachHandToWeapon();
 		}
 	}
+
+	if (CurrentWeaponEquippedID == EGsrEquipId::WP_None)
+		return;
 
 	//Logger::DebugPrint("Receiver Mesh Is Visible : %i", ReceiverMesh->IsVisible());
 
