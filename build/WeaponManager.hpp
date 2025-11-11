@@ -28,6 +28,8 @@ private:
 	SettingsManager* const settingsManager;
 	PlayerManager* const playerManager;
 
+	bool isGun = false;
+
 	void applyRecoil(float delta);
 	float randomRange(float min, float max);
 	void spawnScope();
@@ -317,6 +319,8 @@ public:
 		EGsrEquipId_MAX = 223,
 	};
 	EGsrEquipId CurrentWeaponEquippedID = WP_None;
+	
+
 
 	inline const char* WeaponIdToKey(EGsrEquipId id);
 	void FetchWeaponOffsets(EGsrEquipId currentWeapon,

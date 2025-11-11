@@ -120,8 +120,15 @@ void WeaponManager::ProcessWeapon(float delta)
 		Logger::DebugPrint("Updating Current weapon ptr");
 		Logger::DebugPrint(CurrentWeapon->get_full_name());
 
-		if (CurrentWeaponEquippedID == EGsrEquipId::WP_None)
+		if (CurrentWeaponEquippedID == EGsrEquipId::WP_None ||
+			CurrentWeaponEquippedID == EGsrEquipId::WP_Handkerchief)
+		{
+			isGun = false;
 			return;
+		}
+		else
+			isGun = true;
+			
 
 		WeaponRoot = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootComponent");
 		if (WeaponRoot == NULL) return;
@@ -198,7 +205,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 	}
 
-	if (CurrentWeaponEquippedID == EGsrEquipId::WP_None)
+	if (!isGun)
 		return;
 
 	//Logger::DebugPrint("Receiver Mesh Is Visible : %i", ReceiverMesh->IsVisible());
