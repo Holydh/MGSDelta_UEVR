@@ -3,39 +3,39 @@
 inline const char* WeaponManager::WeaponIdToKey(EGsrEquipId id)
 {
 	switch (id)
-    {
-    case WP_Knife:         return "WP_Knife";
-    case WP_Fork:          return "WP_Fork";
-    case WP_CigarPistol:   return "WP_CigarPistol";
-    case WP_Handkerchief:  return "WP_Handkerchief";
-    case WP_Mk22:          return "WP_Mk22";
-    case WP_Gove:          return "WP_Gove";
-    case WP_EasyGun:       return "WP_EasyGun";
-    case WP_SAArmy:        return "WP_SAArmy";
-    case WP_PatriotPostol: return "WP_PatriotPostol";
-    case WP_Scorpion:      return "WP_Scorpion";
-    case WP_M16a1:         return "WP_M16a1";
-    case WP_Akm:           return "WP_Akm";
-    case WP_M63:           return "WP_M63";
-    case WP_Ithaca:        return "WP_Ithaca";
-    case WP_Dragnov:       return "WP_Dragnov";
-    case WP_MosinNagant:   return "WP_MosinNagant";
-    case WP_Rpg:           return "WP_Rpg";
-    case WP_Torch:         return "WP_Torch";
-    case WP_Grenade:       return "WP_Grenade";
-    case WP_FireGrenade:   return "WP_FireGrenade";
-    case WP_StunGrenade:   return "WP_StunGrenade";
-    case WP_ChaffGrenade:  return "WP_ChaffGrenade";
-    case WP_SmokeGrenade:  return "WP_SmokeGrenade";
-    case WP_Magazine:      return "WP_Magazine";
-    case WP_Tnt:           return "WP_Tnt";
-    case WP_C3:            return "WP_C3";
-    case WP_Claymore:      return "WP_Claymore";
-    case WP_Book:          return "WP_Book";
-    case WP_RatTrap:       return "WP_RatTrap";
-    case WP_Microphone:    return "WP_Microphone";
-    default: return nullptr;
-    }
+	{
+	case WP_Knife:			return "WP_Knife";
+	case WP_Fork:			return "WP_Fork";
+	case WP_CigarPistol:	return "WP_CigarPistol";
+	case WP_Handkerchief:	return "WP_Handkerchief";
+	case WP_Mk22:			return "WP_Mk22";
+	case WP_Gove:			return "WP_Gove";
+	case WP_EasyGun:		return "WP_EasyGun";
+	case WP_SAArmy:			return "WP_SAArmy";
+	case WP_PatriotPostol:	return "WP_PatriotPostol";
+	case WP_Scorpion:		return "WP_Scorpion";
+	case WP_M16a1:			return "WP_M16a1";
+	case WP_Akm:			return "WP_Akm";
+	case WP_M63:			return "WP_M63";
+	case WP_Ithaca:			return "WP_Ithaca";
+	case WP_Dragnov:		return "WP_Dragnov";
+	case WP_MosinNagant:	return "WP_MosinNagant";
+	case WP_Rpg:			return "WP_Rpg";
+	case WP_Torch:			return "WP_Torch";
+	case WP_Grenade:		return "WP_Grenade";
+	case WP_FireGrenade:	return "WP_FireGrenade";
+	case WP_StunGrenade:	return "WP_StunGrenade";
+	case WP_ChaffGrenade:	return "WP_ChaffGrenade";
+	case WP_SmokeGrenade:	return "WP_SmokeGrenade";
+	case WP_Magazine:		return "WP_Magazine";
+	case WP_Tnt:			return "WP_Tnt";
+	case WP_C3:				return "WP_C3";
+	case WP_Claymore:		return "WP_Claymore";
+	case WP_Book:			return "WP_Book";
+	case WP_RatTrap:		return "WP_RatTrap";
+	case WP_Microphone:		return "WP_Microphone";
+	default: return nullptr;
+	}
 }
 
 void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot, SDK::FVector& outHandLocationOffset, SDK::FRotator& outHandRotationOffset)
@@ -106,6 +106,10 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	if (CurrentWeapon != params1.ReturnValue)
 	{
+		if (ReceiverMesh)
+			ReceiverMesh->SetVisibility(false, false);
+		ReceiverMesh = nullptr;
+		WeaponRoot = nullptr;
 		if (playerManager->HandAttachedToWeapon)
 			detachHandFromWeapon();
 		//Sending actual weapon to lua hands to set the pose for this weapon. Lua scripts takes a lowercase only value so we need to set it up :
@@ -118,20 +122,14 @@ void WeaponManager::ProcessWeapon(float delta)
 
 		CurrentWeapon = params1.ReturnValue;
 		Logger::DebugPrint("Updating Current weapon ptr");
-		Logger::DebugPrint(CurrentWeapon->get_full_name());
-
-		if (CurrentWeaponEquippedID == EGsrEquipId::WP_None ||
-			CurrentWeaponEquippedID == EGsrEquipId::WP_Handkerchief)
-		{
-			isGun = false;
-			return;
-		}
-		else
-			isGun = true;
-			
+		Logger::DebugPrint(CurrentWeapon->get_full_name());	
 
 		WeaponRoot = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootComponent");
-		if (WeaponRoot == NULL) return;
+		if (WeaponRoot == nullptr)
+		{
+			Logger::DebugPrint("No weapon root found. Return");
+			return;
+		}
 		Logger::DebugPrint(WeaponRoot->get_full_name());
 
 		FetchWeaponOffsets(CurrentWeaponEquippedID, DefaultWeaponPosition, DefaultWeaponRotation, HandLocationOffest, HandRotationOffset);
@@ -205,39 +203,37 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 	}
 
-	if (!isGun)
-		return;
 
 	//Logger::DebugPrint("Receiver Mesh Is Visible : %i", ReceiverMesh->IsVisible());
 
 	//Toggle weapon visibility in FPS view;
-	bool isReceiverMeshVisible = ReceiverMesh->IsVisible();
-	static auto const gsrGunClass = (uevr::API::UClass*)SDK::AGsrGun::StaticClass();
-
-	if (CurrentWeapon->is_a(gsrGunClass) && !isReceiverMeshVisible)
+	if (ReceiverMesh)
 	{
-		ReceiverMesh->SetVisibility(true, true);
-		auto sdkGun = (SDK::AGsrGun*)CurrentWeapon;
-		//Logger::DebugPrint("IsAttachedSuppressor : %i", sdkGun->IsAttachedSuppressor());
-		bool isAttachedSuppressor = sdkGun->IsAttachedSuppressor();
-		if (sdkGun->GunPartsController->m_suppressorMesh)
+		bool isReceiverMeshVisible = ReceiverMesh->IsVisible();
+		static auto const gsrGunClass = (uevr::API::UClass*)SDK::AGsrGun::StaticClass();
+
+		if (CurrentWeapon->is_a(gsrGunClass) && !isReceiverMeshVisible)
 		{
-			sdkGun->GunPartsController->m_suppressorMesh->SetVisibility(isAttachedSuppressor, true);
+			ReceiverMesh->SetVisibility(true, false);
+			auto sdkGun = (SDK::AGsrGun*)CurrentWeapon;
+			//Logger::DebugPrint("IsAttachedSuppressor : %i", sdkGun->IsAttachedSuppressor());
+			bool isAttachedSuppressor = sdkGun->IsAttachedSuppressor();
+			if (sdkGun->GunPartsController->m_suppressorMesh)
+			{
+				sdkGun->GunPartsController->m_suppressorMesh->SetVisibility(isAttachedSuppressor, true);
+			}
+
+			// Set cqc knife visibility. DOESN'T WORK. Something is overwritting it each frame.
+			//Logger::DebugPrint("CanCqc : %i", sdkGun->CanCqc());
+			//if (sdkGun->CanCqc())
+			//{
+			//	auto sdkEquipController = (SDK::UGsrEquipController*)EquipController;
+			//	Logger::DebugPrint("Knife Is Visible : %i", sdkEquipController->m_knifeActor->SkeletalMeshComponent->IsVisible());
+			//	sdkEquipController->m_knifeActor->SkeletalMeshComponent->SetVisibility(true, true);
+			//}
 		}
 
-		// Set cqc knife visibility. DOESN'T WORK. Something is overwritting it each frame.
-		//Logger::DebugPrint("CanCqc : %i", sdkGun->CanCqc());
-		//if (sdkGun->CanCqc())
-		//{
-		//	auto sdkEquipController = (SDK::UGsrEquipController*)EquipController;
-		//	Logger::DebugPrint("Knife Is Visible : %i", sdkEquipController->m_knifeActor->SkeletalMeshComponent->IsVisible());
-		//	sdkEquipController->m_knifeActor->SkeletalMeshComponent->SetVisibility(true, true);
-		//}
-	}
-
-
-
-	//Apply recoil
+		//Apply recoil
 	if (CurrentWeapon != NULL)
 		applyRecoil(delta);
 
@@ -247,7 +243,7 @@ void WeaponManager::ProcessWeapon(float delta)
 	if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
 	{
 		if (!ReceiverMesh->IsVisible())
-		ReceiverMesh->SetVisibility(true, true);
+			ReceiverMesh->SetVisibility(true, true);
 
 		SwitchScopeState(playerManager->IsAiming);
 
@@ -288,6 +284,7 @@ void WeaponManager::ProcessWeapon(float delta)
 				widget->SetCamZoomToggle();
 			}
 		}
+	}
 	}
 }
 

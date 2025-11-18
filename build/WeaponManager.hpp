@@ -28,8 +28,6 @@ private:
 	SettingsManager* const settingsManager;
 	PlayerManager* const playerManager;
 
-	bool isGun = false;
-
 	void applyRecoil(float delta);
 	float randomRange(float min, float max);
 	void spawnScope();
