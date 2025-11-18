@@ -1017,7 +1017,7 @@ void WeaponManager::attachScopeToWeapon()
 			true
 		);
 
-		ScopeStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, -30.5f, 0.0f }, false, &hitResult, true);
+		ScopeStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, -30.9, 0.0f }, false, &hitResult, true);
 		ScopeStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
 		ScopeStaticMeshComponent->SetRelativeScale3D({ 0.15f, 0.15f, 0.15f });
 		DragnovScopeWidget->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.05f }, false, &hitResult, true);
