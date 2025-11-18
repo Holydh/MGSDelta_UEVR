@@ -106,7 +106,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	if (CurrentWeapon != params1.ReturnValue)
 	{
-		if (ReceiverMesh)
+		if (PreviousWeaponEquippedID == EGsrEquipId::WP_Dragnov || PreviousWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
 			ReceiverMesh->SetVisibility(false, false);
 		ReceiverMesh = nullptr;
 		WeaponRoot = nullptr;
@@ -197,7 +197,7 @@ void WeaponManager::ProcessWeapon(float delta)
 			return;
 		}
 
-		if (playerManager->RightHandMesh && !playerManager->HandAttachedToWeapon)
+		if (playerManager->RightHandMesh && !playerManager->HandAttachedToWeapon && !CurrentWeaponEquippedID == EGsrEquipId::WP_None)
 		{
 			attachHandToWeapon();
 		}
@@ -304,6 +304,8 @@ void WeaponManager::attachHandToWeapon()
 	SDK::FHitResult outHit;
 	playerManager->RightHandMesh->K2_AddRelativeLocation(HandLocationOffest, false, &outHit, false);
 	playerManager->RightHandMesh->K2_AddRelativeRotation(HandRotationOffset, false, &outHit, false);
+	playerManager->RightHandMesh->SetVisibility(true, true);
+	playerManager->LeftHandMesh->SetVisibility(true, true);
 }
 
 void WeaponManager::detachHandFromWeapon()
@@ -315,8 +317,8 @@ void WeaponManager::detachHandFromWeapon()
 		playerManager->RightHandMesh->K2_AttachToComponent(
 			playerManager->RightController,
 			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
-			SDK::EAttachmentRule::SnapToTarget,
-			SDK::EAttachmentRule::SnapToTarget,
+			SDK::EAttachmentRule::KeepWorld,
+			SDK::EAttachmentRule::KeepWorld,
 			SDK::EAttachmentRule::KeepRelative,
 			true
 		);
@@ -326,6 +328,8 @@ void WeaponManager::detachHandFromWeapon()
 		playerManager->RightHandMesh->K2_SetRelativeRotation({ 0.0f,-90.0f,0.0f }, false, &outHit, false);
 	}
 	playerManager->HandAttachedToWeapon = false;
+	playerManager->RightHandMesh->SetVisibility(true, true);
+	playerManager->LeftHandMesh->SetVisibility(true, true);
 }
 
 void WeaponManager::FetchWeaponMeshAimData()

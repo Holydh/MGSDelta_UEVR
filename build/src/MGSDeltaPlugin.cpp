@@ -423,6 +423,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.WasFirstPersonView = playerManager.IsFirstPersonView;
 	playerManager.WasAiming = playerManager.IsAiming;
 	playerManager.PreviousCameraMode = playerManager.CurrentCameraMode;
+	weaponManager.PreviousWeaponEquippedID = weaponManager.CurrentWeaponEquippedID;
 	imGuiMenu.MouseMovedThisFrame = false;
 	//auto end = std::chrono::high_resolution_clock::now();
 	//auto duration_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);

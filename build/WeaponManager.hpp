@@ -317,6 +317,7 @@ public:
 		EGsrEquipId_MAX = 223,
 	};
 	EGsrEquipId CurrentWeaponEquippedID = WP_None;
+	EGsrEquipId PreviousWeaponEquippedID = WP_None;
 	
 
 
