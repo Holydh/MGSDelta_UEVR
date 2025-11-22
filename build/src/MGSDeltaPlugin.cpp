@@ -43,6 +43,7 @@ void MGSDeltaPlugin::on_initialize() {
 	
 	/*hookManager.hook_ISetSmoothedAimPosition_fn();*/
 	Utilities::InitHelperClasses();
+	weaponManager.InitWeaponManager();
 	settingsManager.InitSettingsManager();
 	settingsManager.GetOrCreateConfigFile();
 	settingsManager.LoadAllWeaponConfigs(uobjectHook_file);
@@ -50,6 +51,8 @@ void MGSDeltaPlugin::on_initialize() {
 	hookManager.Initialize();
 	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_OnEnteredState_post, true);
 	hookManager.hook_bp_fn(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerEludeAction.ABP_PlayerEludeAction_C", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_PlayerFalling_OnEnteredState_post, true);
+	hookManager.hook_bp_fn(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerKnifeReadyAction.ABP_PlayerKnifeReadyAction_C", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_PlayerKnife_OnEnteredState_post, true);
+	//AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerKnifeReadyAction_C.ABP_PlayerKnifeReadyAction_C
 	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetCameraRequestModelVisibility", (UEVR_UFunction_NativePostFn)HookManager::mod_ISetCameraRequestModelVisibility_post ,NULL, true);
 
 	//weaponController.Initialize();
@@ -390,6 +393,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		/*Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
 		playerManager.UpdatePeepingState(delta);
+		playerManager.UpdateHandVisibility();
 		cameraController.ProcessCamera(delta);
 
 
@@ -423,6 +427,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.WasFirstPersonView = playerManager.IsFirstPersonView;
 	playerManager.WasAiming = playerManager.IsAiming;
 	playerManager.PreviousCameraMode = playerManager.CurrentCameraMode;
+	playerManager.WasMeleeAttackRunning = playerManager.MeleeAttackRunning;
 	weaponManager.PreviousWeaponEquippedID = weaponManager.CurrentWeaponEquippedID;
 	imGuiMenu.MouseMovedThisFrame = false;
 	//auto end = std::chrono::high_resolution_clock::now();

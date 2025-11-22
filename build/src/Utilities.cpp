@@ -7,8 +7,10 @@ uevr::API::UClass* Utilities::ActorClass = nullptr;
 uevr::API::UClass* Utilities::SceneComponentClass = nullptr;
 uevr::API::UClass* Utilities::ABP_SnakeBasicAction_C = nullptr;
 uevr::API::UClass* Utilities::ABP_PlayerEludeAction_C = nullptr;
+uevr::API::UClass* Utilities::ABP_PlayerKnifeReadyAction_C = nullptr;
 uevr::API::UClass* Utilities::ABP_PlayerRollingAction_C = nullptr;
 uevr::API::UClass* Utilities::ABP_PlayerBehindAction_C = nullptr;
+uevr::API::UClass* Utilities::ABP_PlayerMeleeAction_C = nullptr;
 
 SDK::AActor* Utilities::DebugCigar0 = nullptr;
 SDK::AActor* Utilities::DebugCigar1 = nullptr;
@@ -72,6 +74,22 @@ void Utilities::InitHelperClasses()
 	}
 	//Logger::DebugPrint(abp_PlayerEludeAction_c->get_full_name());
 	ABP_PlayerEludeAction_C = abp_PlayerEludeAction_c;
+
+	static auto abp_PlayerKnifeReadyAction_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerKnifeReadyAction.ABP_PlayerKnifeReadyAction_C");
+	if (!abp_PlayerKnifeReadyAction_C)
+	{
+		uevr::API::get()->log_error("abp_PlayerKnifeReadyAction_C not found");
+		return;
+	}
+	ABP_PlayerKnifeReadyAction_C = abp_PlayerKnifeReadyAction_C;
+
+	static auto abp_PlayerMeleeAction_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerMeleeAction.ABP_PlayerMeleeAction_C");
+	if (!abp_PlayerMeleeAction_C)
+	{
+		uevr::API::get()->log_error("abp_PlayerKnifeReadyAction_C not found");
+		return;
+	}
+	ABP_PlayerMeleeAction_C = abp_PlayerMeleeAction_C;
 
 	static auto abp_PlayerRollingAction_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerRollingAction.ABP_PlayerRollingAction_C");
 	if (!abp_PlayerRollingAction_c)

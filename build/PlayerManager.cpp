@@ -11,6 +11,12 @@ void PlayerManager::ConvertAllRequiredStringToFnames()
 	fNameBasic = SDK::UKismetStringLibrary::Conv_StringToName(L"Basic");
 	fNameRolling = SDK::UKismetStringLibrary::Conv_StringToName(L"Rolling");
 	fNameElude = SDK::UKismetStringLibrary::Conv_StringToName(L"Elude");
+	fNameCombo = SDK::UKismetStringLibrary::Conv_StringToName(L"Combo");
+	fNameCombo1 = SDK::UKismetStringLibrary::Conv_StringToName(L"Combo1");
+	fNameCombo2 = SDK::UKismetStringLibrary::Conv_StringToName(L"Combo2");
+	fNameCombo3 = SDK::UKismetStringLibrary::Conv_StringToName(L"Combo3");
+	fNameStab1 = SDK::UKismetStringLibrary::Conv_StringToName(L"Stab1");
+	fNameStab2 = SDK::UKismetStringLibrary::Conv_StringToName(L"Stab2");
 }
 
 void PlayerManager::ToggleMeshesVisibility(bool visible)
@@ -18,7 +24,7 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	auto pawn = uevr::API::get()->get_local_pawn(0);
 	auto headSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Head");
 	auto hairSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hair");
-	auto handsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hand");
+	handsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hand");
 	auto armsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Arm");
 	auto bodySkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Body");
 	auto backpackSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Backpack");
@@ -195,6 +201,15 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 	else
 		IsRolling = false;
 
+	MeleeAttackRunning = 
+		StateMachineName == fNameCombo || 
+		StateName == fNameCombo1 || 
+		StateName == fNameCombo2 || 
+		StateName == fNameCombo3 ||
+		StateName == fNameStab1 || 
+		StateName == fNameStab2 ? true : false;
+
+	//Logger::DebugPrint("MeleeAttackRunning: %d", MeleeAttackRunning);
 	//Logger::DebugPrint("IsRolling: %d", IsRolling);
 	//Logger::DebugPrint("IsHanging: %d", IsHanging);
 	//Logger::DebugPrint("IsPeepingInternal: %d", IsPeepingInternal);
@@ -239,5 +254,20 @@ void PlayerManager::FetchMotionControllers()
 		}
 			
 		
+	}
+}
+
+void PlayerManager::UpdateHandVisibility()
+{
+	if (MeleeAttackRunning != WasMeleeAttackRunning)
+	{
+		bool visibility = !MeleeAttackRunning;
+		if (handsSkeletalMesh) {
+			handsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &visibility);
+		}
+		if (RightHandMesh)
+			RightHandMesh->SetVisibility(visibility, visibility);
+		if (LeftHandMesh)
+			LeftHandMesh->SetVisibility(visibility, visibility);
 	}
 }

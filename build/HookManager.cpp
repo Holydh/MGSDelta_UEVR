@@ -140,7 +140,11 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, SDK::FGsrFi
 
 bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	if (obj->is_a(Utilities::ABP_SnakeBasicAction_C) || obj->is_a(Utilities::ABP_PlayerRollingAction_C) || obj->is_a(Utilities::ABP_PlayerBehindAction_C))
+	//Logger::DebugPrint(obj->get_class()->get_full_name());
+	if (obj->is_a(Utilities::ABP_SnakeBasicAction_C) || 
+		obj->is_a(Utilities::ABP_PlayerRollingAction_C) || 
+		obj->is_a(Utilities::ABP_PlayerBehindAction_C) || 
+		obj->is_a(Utilities::ABP_PlayerMeleeAction_C))
 	{
 		if (locals != nullptr)
 		{
@@ -148,10 +152,29 @@ bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::U
 			SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
 			//SDK::FName nextState = params->NextStateName;
 			//SDK::FName StateMachine = params->StateMachineName;
-			//Logger::DebugPrint(nextState.ToString().c_str());
-			//Logger::DebugPrint(StateMachine.ToString().c_str());
+			//Logger::DebugPrint("State Machine : %s", StateMachine.ToString().c_str());
+			//Logger::DebugPrint("Next state : %s", nextState.ToString().c_str());
 			s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
 		}
+	}
+
+	return true;
+}
+
+bool HookManager::mod_PlayerKnife_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{	
+	if (!obj->is_a(Utilities::ABP_PlayerKnifeReadyAction_C))
+		return true;
+
+	if (locals != nullptr)
+	{
+		auto true_locals = (char*)locals - 0x50;
+		SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
+		//SDK::FName nextState = params->NextStateName;
+		//SDK::FName StateMachine = params->StateMachineName;
+		//Logger::DebugPrint("State Machine : %s", StateMachine.ToString().c_str());
+		//Logger::DebugPrint("Next state : %s",nextState.ToString().c_str());
+		s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
 	}
 
 	return true;

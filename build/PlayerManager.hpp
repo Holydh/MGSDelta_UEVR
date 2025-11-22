@@ -50,6 +50,8 @@ public:
 	bool WasAiming = false;
 	bool IsFirstPersonView = false;
 	bool WasFirstPersonView = false;
+	bool MeleeAttackRunning = false;
+	bool WasMeleeAttackRunning = false;
 	SDK::EGsrPlayerStance CurrentStance = SDK::EGsrPlayerStance::Stand;
 	SDK::EGsrPlayerStance PreviousStance = SDK::EGsrPlayerStance::Stand;
 	float ChangeStanceTimer = 0.0f;
@@ -72,8 +74,12 @@ public:
 	void FetchMotionControllers();
 	bool HandAttachedToWeapon = false;
 
+	void UpdateHandVisibility();
+
 	//EPlayerAnimState GetCurrentPlayerAnimState(const SDK::FName& State);
 private:
+	uevr::API::UObject* handsSkeletalMesh;
+
 	//Peep State Machine Name
 	SDK::FName fNameBehind;
 	//Peep States
@@ -88,4 +94,11 @@ private:
 	SDK::FName fNameRolling;
 	//Falling from edge State Machine Name
 	SDK::FName fNameElude;
+	//Melee attack
+	SDK::FName fNameCombo;
+	SDK::FName fNameCombo1;
+	SDK::FName fNameCombo2;
+	SDK::FName fNameCombo3;
+	SDK::FName fNameStab1;
+	SDK::FName fNameStab2;
 };

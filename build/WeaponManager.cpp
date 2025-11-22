@@ -1,40 +1,47 @@
 #include "WeaponManager.hpp"
 
+void WeaponManager::InitWeaponManager()
+{
+	tntSocketFname = SDK::UKismetStringLibrary::Conv_StringToName(L"TntTriggerSocket_LeftHand");
+	cqcKnifeSocketFname = SDK::UKismetStringLibrary::Conv_StringToName(L"BaseBody_LeftHand_MTPA");
+}
+
 inline const char* WeaponManager::WeaponIdToKey(EGsrEquipId id)
 {
 	switch (id)
 	{
-	case WP_Knife:			return "WP_Knife";
-	case WP_Fork:			return "WP_Fork";
-	case WP_CigarPistol:	return "WP_CigarPistol";
-	case WP_Handkerchief:	return "WP_Handkerchief";
-	case WP_Mk22:			return "WP_Mk22";
-	case WP_Gove:			return "WP_Gove";
-	case WP_EasyGun:		return "WP_EasyGun";
-	case WP_SAArmy:			return "WP_SAArmy";
-	case WP_PatriotPostol:	return "WP_PatriotPostol";
-	case WP_Scorpion:		return "WP_Scorpion";
-	case WP_M16a1:			return "WP_M16a1";
-	case WP_Akm:			return "WP_Akm";
-	case WP_M63:			return "WP_M63";
-	case WP_Ithaca:			return "WP_Ithaca";
-	case WP_Dragnov:		return "WP_Dragnov";
-	case WP_MosinNagant:	return "WP_MosinNagant";
-	case WP_Rpg:			return "WP_Rpg";
-	case WP_Torch:			return "WP_Torch";
-	case WP_Grenade:		return "WP_Grenade";
-	case WP_FireGrenade:	return "WP_FireGrenade";
-	case WP_StunGrenade:	return "WP_StunGrenade";
-	case WP_ChaffGrenade:	return "WP_ChaffGrenade";
-	case WP_SmokeGrenade:	return "WP_SmokeGrenade";
-	case WP_Magazine:		return "WP_Magazine";
-	case WP_Tnt:			return "WP_Tnt";
-	case WP_C3:				return "WP_C3";
-	case WP_Claymore:		return "WP_Claymore";
-	case WP_Book:			return "WP_Book";
-	case WP_RatTrap:		return "WP_RatTrap";
-	case WP_Microphone:		return "WP_Microphone";
-	default: return nullptr;
+	case WP_Knife:					HasObjectInLeftHand = false;		handShouldAttachToWeapon = false;		return "WP_Knife";
+	case WP_Fork:					HasObjectInLeftHand = false;		handShouldAttachToWeapon = false;		return "WP_Fork";
+	case WP_CigarPistol:			HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_CigarPistol";
+	case WP_Handkerchief:			HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_Handkerchief";
+	case WP_Mk22:					HasObjectInLeftHand = true;			handShouldAttachToWeapon = true;		return "WP_Mk22";
+	case WP_Gove:					HasObjectInLeftHand = true;			handShouldAttachToWeapon = true;		return "WP_Gove";
+	case WP_EasyGun:				HasObjectInLeftHand = true;			handShouldAttachToWeapon = true;		return "WP_EasyGun";
+	case WP_SAArmy:					HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_SAArmy";
+	case WP_PatriotPostol:			HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_PatriotPostol";
+	case WP_Scorpion:				HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_Scorpion";
+	case WP_M16a1:					HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_M16a1";
+	case WP_Akm:					HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_Akm";
+	case WP_M63:					HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_M63";
+	case WP_Ithaca:					HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_Ithaca";
+	case WP_Dragnov:				HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_Dragnov";
+	case WP_MosinNagant:			HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_MosinNagant";
+	case WP_Rpg:					HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_Rpg";
+	case WP_Torch:					HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_Torch";
+	case WP_Grenade:				HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_Grenade";
+	case WP_FireGrenade:			HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_FireGrenade";
+	case WP_StunGrenade:			HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_StunGrenade";
+	case WP_ChaffGrenade:			HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_ChaffGrenade";
+	case WP_SmokeGrenade:			HasObjectInLeftHand = false;		handShouldAttachToWeapon = true;		return "WP_SmokeGrenade";
+	case WP_Magazine:				HasObjectInLeftHand = false;		handShouldAttachToWeapon = false;		return "WP_Magazine";
+	case WP_Tnt:					HasObjectInLeftHand = true;			handShouldAttachToWeapon = false;		return "WP_Tnt";
+	case WP_C3:						HasObjectInLeftHand = false;		handShouldAttachToWeapon = false;		return "WP_C3";
+	case WP_Claymore:				HasObjectInLeftHand = false;		handShouldAttachToWeapon = false;		return "WP_Claymore";
+	case WP_Book:					HasObjectInLeftHand = false;		handShouldAttachToWeapon = false;		return "WP_Book";
+	case WP_RatTrap:				HasObjectInLeftHand = false;		handShouldAttachToWeapon = false;		return "WP_RatTrap";
+	case WP_Microphone:				HasObjectInLeftHand = false;		handShouldAttachToWeapon = false;		return "WP_Microphone";
+	case WP_MAX_PLAYER_WEAPONS:		HasObjectInLeftHand = false;		handShouldAttachToWeapon = false;		return "WP_MAX_PLAYER_WEAPONS";
+	default:						HasObjectInLeftHand = false;		handShouldAttachToWeapon = false;		return nullptr;
 	}
 }
 
@@ -93,11 +100,18 @@ void WeaponManager::ProcessWeapon(float delta)
 	}
 
 	EquipController->call_function(L"GetCurrentWeaponId", &params);
+	if (params.ReturnValue >= 31)
+	{
+		params.ReturnValue = EGsrEquipId::WP_MAX_PLAYER_WEAPONS;
+	}
+
 	if (CurrentWeaponEquippedID != params.ReturnValue)
 	{
 		CurrentWeaponEquippedID = params.ReturnValue;
 		Logger::DebugPrint("Weapon changed. New Weapon ID : %d", CurrentWeaponEquippedID);
 	}
+
+
 
 	struct ParameterCurrentWeapon {
 		uevr::API::UObject* ReturnValue;
@@ -110,13 +124,24 @@ void WeaponManager::ProcessWeapon(float delta)
 			ReceiverMesh->SetVisibility(false, false);
 		ReceiverMesh = nullptr;
 		WeaponRoot = nullptr;
+		LeftHandWeaponRoot = nullptr;
 		if (playerManager->HandAttachedToWeapon)
 			detachHandFromWeapon();
-		//Sending actual weapon to lua hands to set the pose for this weapon. Lua scripts takes a lowercase only value so we need to set it up :
-		auto weaponNameView = magic_enum::enum_name(params.ReturnValue);
-		std::string weaponName(weaponNameView); // make a real string copy
-		std::transform(weaponName.begin(), weaponName.end(), weaponName.begin(), ::tolower);
-		uevr::API::get()->dispatch_lua_event("CurrentWeapon", weaponName);
+
+		//If food and others, use the default position
+		if (CurrentWeaponEquippedID = EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
+		{
+			uevr::API::get()->dispatch_lua_event("CurrentWeapon", "wp_none");
+		}
+		else
+		{
+			//Sending actual weapon to lua hands to set the pose for this weapon. Lua scripts takes a lowercase only value so we need to set it up :
+			auto weaponNameView = magic_enum::enum_name(params.ReturnValue);
+			std::string weaponName(weaponNameView); // make a real string copy
+			std::transform(weaponName.begin(), weaponName.end(), weaponName.begin(), ::tolower);
+			uevr::API::get()->dispatch_lua_event("CurrentWeapon", weaponName);
+		}
+	
 
 		SwitchScopeState(false);
 
@@ -133,6 +158,14 @@ void WeaponManager::ProcessWeapon(float delta)
 		Logger::DebugPrint(WeaponRoot->get_full_name());
 
 		FetchWeaponOffsets(CurrentWeaponEquippedID, DefaultWeaponPosition, DefaultWeaponRotation, HandLocationOffest, HandRotationOffset);
+
+		//if (!weaponShouldAttach)
+		//{
+		//	auto sdkSceneComponent = (SDK::USceneComponent*)WeaponRoot;
+		//	AttachParent = sdkSceneComponent->GetAttachParent();
+		//}
+
+
 		Logger::DebugPrint("Applied weapon offsets from config");
 		Logger::DebugPrint("Position Offset : x=%f, y=%f, z=%f", DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z);
 		Logger::DebugPrint("Rotation Offset : w=%f, x=%f, y=%f, z=%f", DefaultWeaponRotation.w, DefaultWeaponRotation.x, DefaultWeaponRotation.y, DefaultWeaponRotation.z);
@@ -143,13 +176,15 @@ void WeaponManager::ProcessWeapon(float delta)
 		CurrentWeaponRotationEuler = glm::eulerAngles(CurrentWeaponRotation);
 
 		UEVR_Vector3f defaultPos = { DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z };
-		UEVR_Quaternionf defaultRot = { DefaultWeaponRotation.x, DefaultWeaponRotation.y, DefaultWeaponRotation.z, DefaultWeaponRotation.w };
+		UEVR_Quaternionf defaultRot = {DefaultWeaponRotation.w, DefaultWeaponRotation.x, DefaultWeaponRotation.y, DefaultWeaponRotation.z};
 
 		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(WeaponRoot);
 		motionState->set_location_offset(&defaultPos);
 		motionState->set_rotation_offset(&defaultRot);
 		motionState->set_hand(1);
 		motionState->set_permanent(true);
+
+
 
 		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
 		auto childrenArray = sdkWeaponRoot->AttachChildren;
@@ -197,21 +232,117 @@ void WeaponManager::ProcessWeapon(float delta)
 			return;
 		}
 
-		if (playerManager->RightHandMesh && !playerManager->HandAttachedToWeapon && !CurrentWeaponEquippedID == EGsrEquipId::WP_None)
+		if (playerManager->RightHandMesh && !playerManager->HandAttachedToWeapon && handShouldAttachToWeapon)
 		{
 			attachHandToWeapon();
 		}
 	}
 
+	if (CurrentWeaponEquippedID == EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
+	{
+		auto sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
+		//ActualFoodRotation += delta;
+		//SDK::FHitResult hitResult;
+		//sdkWeaponRoot->K2_SetWorldRotation({ 0.0f, ActualFoodRotation, 0.0f }, false, & hitResult, false);
+		auto motionState = uevr::API::UObjectHook::get_motion_controller_state(WeaponRoot);
+		ActualFoodRotation += delta * 10.0f;
 
-	//Logger::DebugPrint("Receiver Mesh Is Visible : %i", ReceiverMesh->IsVisible());
+		// quaternion from yaw only
+		float half = ActualFoodRotation * 0.5f;
+		float s = sin(half);
+		float c = cos(half);
+
+		glm::fquat newQuat = { 0.0f, 0.0f, s, c };
+		glm::fquat result = newQuat * DefaultWeaponRotation;
+		UEVR_Quaternionf defaultRot = {result.w, result.x, result.y , result.z};
+		motionState->set_rotation_offset(&defaultRot);
+		Logger::DebugPrint("%f", ActualFoodRotation);
+		ici
+		return;
+	}
+		
+
+	if (!LeftHandWeaponRoot && HasObjectInLeftHand)
+	{
+		auto leftHandSocketFname = CurrentWeaponEquippedID == EGsrEquipId::WP_Tnt ? tntSocketFname : cqcKnifeSocketFname;
+
+		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
+		auto parent = sdkWeaponRoot->GetAttachParent();
+		auto childrenArray = parent->AttachChildren;
+
+		for (int i = 0; i < childrenArray.Num(); i++)
+		{
+			SDK::USceneComponent* child = childrenArray[i];
+			if (!child) continue;
+			if (child->IsA(SDK::USkeletalMeshComponent::StaticClass())) {
+				if (child->GetAttachSocketName() == leftHandSocketFname)
+				{
+					LeftHandWeaponRoot = (uevr::API::UObject*)child;
+					Logger::DebugPrint(leftHandSocketFname.ToString().c_str());
+				}
+			}
+		}
+		Logger::DebugPrint(LeftHandWeaponRoot->get_full_name());
+
+		//SocketName = "BaseBody_LeftHand_MTPA"
+		//	Get all children and check their socket name. If match, then it's the knife'
+	}
+
+	//uevr seems to force uobject attachement each frame when a uobject file is present in uobjecthook folder
+	//we need to reset the position to 0 each frame because of uevr reattach tentative
+	if (playerManager->MeleeAttackRunning)
+	{
+		SDK::FHitResult outHit;
+		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
+		sdkWeaponRoot->K2_SetRelativeLocationAndRotation({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, false, & outHit, true);
+		uevr::API::UObjectHook::remove_motion_controller_state(WeaponRoot);
+		if (LeftHandWeaponRoot)
+		{
+			uevr::API::UObjectHook::remove_motion_controller_state(LeftHandWeaponRoot);
+			SDK::USceneComponent* sdkLeftWeaponRoot = (SDK::USceneComponent*)LeftHandWeaponRoot;
+			sdkLeftWeaponRoot->K2_SetRelativeLocationAndRotation({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, -90.0f }, false, &outHit, true);
+		}
+	}
+
+	if (playerManager->MeleeAttackRunning && !playerManager->WasMeleeAttackRunning && CurrentWeaponEquippedID == EGsrEquipId::WP_Tnt)
+	{
+		SDK::FHitResult outHit;
+		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
+		sdkWeaponRoot->K2_SetRelativeLocationAndRotation({0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, false, &outHit, true);
+
+		if (LeftHandWeaponRoot)
+		{
+			SDK::USceneComponent* sdkLeftWeaponRoot = (SDK::USceneComponent*)LeftHandWeaponRoot;
+			//Logger::DebugPrint("Left wpn : %s", sdkLeftWeaponRoot->GetFullName().c_str());
+			sdkLeftWeaponRoot->K2_SetRelativeLocationAndRotation({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, -90.0f }, false, &outHit, true);
+		}
+	}
+
+	if (!playerManager->MeleeAttackRunning && playerManager->WasMeleeAttackRunning)
+	{
+		UEVR_Vector3f defaultPos = { DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z };
+		UEVR_Quaternionf defaultRot = { DefaultWeaponRotation.x, DefaultWeaponRotation.y, DefaultWeaponRotation.z, DefaultWeaponRotation.w };
+
+		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(WeaponRoot);
+		motionState->set_location_offset(&defaultPos);
+		motionState->set_rotation_offset(&defaultRot);
+		motionState->set_hand(1);
+		motionState->set_permanent(true);
+
+		//if (CurrentWeaponEquippedID == EGsrEquipId::WP_Tnt)
+		//{
+		//	SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
+		//	SDK::USceneComponent* sdkLeftWeaponRoot = (SDK::USceneComponent*)LeftHandWeaponRoot;
+		//	sdkLeftWeaponRoot->SetVisibility(true, false);
+		//	sdkWeaponRoot->SetVisibility(true, false);
+		//}
+	}
 
 	//Toggle weapon visibility in FPS view;
 	if (ReceiverMesh)
 	{
 		bool isReceiverMeshVisible = ReceiverMesh->IsVisible();
 		static auto const gsrGunClass = (uevr::API::UClass*)SDK::AGsrGun::StaticClass();
-
 		if (CurrentWeapon->is_a(gsrGunClass) && !isReceiverMeshVisible)
 		{
 			ReceiverMesh->SetVisibility(true, false);
@@ -234,58 +365,62 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 
 		//Apply recoil
-	if (CurrentWeapon != NULL)
-		applyRecoil(delta);
+		if (CurrentWeapon != NULL)
+			applyRecoil(delta);
 
-	if (!*settingsManager->SniperScopeEnabledPtr)
-		return;
+		if (!*settingsManager->SniperScopeEnabledPtr)
+			return;
 
-	if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
-	{
-		if (!ReceiverMesh->IsVisible())
-			ReceiverMesh->SetVisibility(true, true);
-
-		SwitchScopeState(playerManager->IsAiming);
-
-
-		auto test = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
-		auto scopeMagnification = test->GetScopeMagnification();
-		//Logger::DebugPrint("scope magnification : %f", scopeMagnification);
-		float scopeFov = scopeMagnification == 3.0f ? 16.0f : 5.0f;
-		SceneCaptureComponent->FOVAngle = scopeFov;
-		//Toggle zoom :
-		if (ZoomInput > 0.0f && scopeMagnification == 3.0f)
+		if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
 		{
-			if (IsDragnov)
+			if (!ReceiverMesh->IsVisible())
+				ReceiverMesh->SetVisibility(true, true);
+
+			SwitchScopeState(playerManager->IsAiming);
+
+
+			auto test = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
+			auto scopeMagnification = test->GetScopeMagnification();
+			//Logger::DebugPrint("scope magnification : %f", scopeMagnification);
+			float scopeFov = scopeMagnification == 3.0f ? 16.0f : 5.0f;
+			SceneCaptureComponent->FOVAngle = scopeFov;
+			//Toggle zoom :
+			if (ZoomInput > 0.0f && scopeMagnification == 3.0f)
 			{
-				auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
-				widget->SightZoomIn();
-				widget->SetCamZoomToggle();
+				if (IsDragnov)
+				{
+					auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
+					widget->SightZoomIn();
+					widget->SetCamZoomToggle();
+				}
+				else
+				{
+					auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
+					widget->SightZoomIn();
+					widget->SetCamZoomToggle();
+				}
 			}
-			else
+			if (ZoomInput < 0.0f && scopeMagnification == 10.0f)
 			{
-				auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
-				widget->SightZoomIn();
-				widget->SetCamZoomToggle();
-			}
-		}
-		if (ZoomInput < 0.0f && scopeMagnification == 10.0f)
-		{
-			if (IsDragnov)
-			{
-				auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
-				widget->SightZoomOut();
-				widget->SetCamZoomToggle();
-			}
-			else
-			{
-				auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
-				widget->SightZoomOut();
-				widget->SetCamZoomToggle();
+				if (IsDragnov)
+				{
+					auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
+					widget->SightZoomOut();
+					widget->SetCamZoomToggle();
+				}
+				else
+				{
+					auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
+					widget->SightZoomOut();
+					widget->SetCamZoomToggle();
+				}
 			}
 		}
 	}
-	}
+
+	//left hand object gets deleted when in fps view, need to trigger the refetch every frames
+	if (playerManager->IsFirstPersonView)
+		LeftHandWeaponRoot = nullptr;
 }
 
 void WeaponManager::attachHandToWeapon()
@@ -298,10 +433,11 @@ void WeaponManager::attachHandToWeapon()
 		SDK::EAttachmentRule::KeepWorld,
 		SDK::EAttachmentRule::KeepWorld,
 		SDK::EAttachmentRule::KeepRelative,
-		true
+		false
 	);
 	playerManager->HandAttachedToWeapon = true;
 	SDK::FHitResult outHit;
+
 	playerManager->RightHandMesh->K2_AddRelativeLocation(HandLocationOffest, false, &outHit, false);
 	playerManager->RightHandMesh->K2_AddRelativeRotation(HandRotationOffset, false, &outHit, false);
 	playerManager->RightHandMesh->SetVisibility(true, true);
@@ -326,10 +462,10 @@ void WeaponManager::detachHandFromWeapon()
 		SDK::FHitResult outHit;
 		playerManager->RightHandMesh->K2_SetRelativeLocation({ 0.0f,0.0f,0.0f }, false, &outHit, false);
 		playerManager->RightHandMesh->K2_SetRelativeRotation({ 0.0f,-90.0f,0.0f }, false, &outHit, false);
+		playerManager->HandAttachedToWeapon = false;
+		playerManager->RightHandMesh->SetVisibility(true, true);
+		playerManager->LeftHandMesh->SetVisibility(true, true);
 	}
-	playerManager->HandAttachedToWeapon = false;
-	playerManager->RightHandMesh->SetVisibility(true, true);
-	playerManager->LeftHandMesh->SetVisibility(true, true);
 }
 
 void WeaponManager::FetchWeaponMeshAimData()

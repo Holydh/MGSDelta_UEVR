@@ -39,12 +39,20 @@ private:
 	void attachHandToWeapon();
 	void detachHandFromWeapon();
 
+	SDK::FName tntSocketFname;
+	SDK::FName cqcKnifeSocketFname;
+
 public:
 	WeaponManager(MemoryManager* mm, SettingsManager* sm, PlayerManager* pm) : memoryManager(mm), settingsManager(sm), playerManager(pm) {};
+
+	void InitWeaponManager();
+
 	bool IsShooting = false;
 	uevr::API::UObject* EquipController = nullptr;
 	uevr::API::UObject* CurrentWeapon = nullptr;
+	SDK::USceneComponent* AttachParent = nullptr;
 	uevr::API::UObject* WeaponRoot = nullptr;
+	uevr::API::UObject* LeftHandWeaponRoot = nullptr;
 	SDK::USkeletalMeshComponent* ReceiverMesh = nullptr;
 
 	bool IsDragnov = false;
@@ -73,6 +81,11 @@ public:
 	glm::dvec3 FirePosition{};
 	glm::dvec3 AimPosition{};
 	SDK::FRotator CurrentWeaponWorldRotation{};
+
+	bool handShouldAttachToWeapon = false;
+	bool HasObjectInLeftHand = false;
+
+	float ActualFoodRotation = 0.0f;
 
 	enum EGsrEquipId : uint8_t
 	{
