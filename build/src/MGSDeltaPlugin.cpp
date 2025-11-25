@@ -9,7 +9,7 @@ std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager, &weaponManager),
 inputs(),
 cameraController(&playerManager, &settingsManager), 
-weaponManager(&memoryManager, &settingsManager, &playerManager), 
+weaponManager(&memoryManager, &settingsManager, &playerManager, &cameraController), 
 memoryManager(),
 hookManager(&weaponManager, &cameraController, &playerManager), 
 playerManager() {}; //Constructor
@@ -429,6 +429,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.PreviousCameraMode = playerManager.CurrentCameraMode;
 	playerManager.WasMeleeAttackRunning = playerManager.MeleeAttackRunning;
 	weaponManager.PreviousWeaponEquippedID = weaponManager.CurrentWeaponEquippedID;
+	weaponManager.WasLeftGripInputPressed = weaponManager.LeftGripInputPressed;
 	imGuiMenu.MouseMovedThisFrame = false;
 	//auto end = std::chrono::high_resolution_clock::now();
 	//auto duration_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -540,6 +541,11 @@ void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, 
 
 	float rawYInput = (float)state->Gamepad.sThumbRY / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
 	weaponManager.ZoomInput = rawYInput > 0.5f || rawYInput < -0.5f ? rawYInput : 0.0f;
+
+	float triggerInput = (float)state->Gamepad.bRightTrigger / 255.0f; // Normalize to 0.0 to 1.0
+	weaponManager.LeftGripInputPressed = triggerInput > 0.5f ? true : false;
+
+	weaponManager.LeftGripInputPressed = state->Gamepad.wButtons == 256 ? true : false;
 }
 
 void MGSDeltaPlugin::on_xinput_set_state(uint32_t* retval, uint32_t user_index, XINPUT_VIBRATION* vibration)

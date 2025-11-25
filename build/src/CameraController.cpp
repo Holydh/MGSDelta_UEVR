@@ -216,8 +216,9 @@ void CameraController::ProcessCamera(float deltaTime)
 	CameraPosition.y = newPosition.y;
 	CameraPosition.z = newPosition.z;
 
+	YawProcessed = YawInput * 3.0f * *settingsManager->CameraRotationSpeedPtr * deltaTime;
 	if (YawInput != 0.0)
-		ActualYaw += YawInput * 3.0f * *settingsManager->CameraRotationSpeedPtr * deltaTime ;
+		ActualYaw += YawProcessed;
 
 	//if (ActualYaw >= 360.0f)
 	//	ActualYaw -= 360.0f;

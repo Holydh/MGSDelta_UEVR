@@ -25,6 +25,7 @@ public:
 	double ActualYaw = 0.0f;
 	
 	float YawInput = 0.0f;
+	float YawProcessed = 0.0f;
 	//UEVR_Vector3d playerPosition = { 0.0, 0.0, 0.0 };
 	/*void SetCameraRotation();*/
 	//void SetCameraPosition();
