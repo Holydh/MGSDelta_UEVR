@@ -109,6 +109,8 @@ namespace uevr {
     };
 }
 
+#ifdef UEVR_PLUGIN_ENTRY
+
 extern "C" __declspec(dllexport) void uevr_plugin_required_version(UEVR_PluginVersion* version) {
     version->major = UEVR_PLUGIN_VERSION_MAJOR;
     version->minor = UEVR_PLUGIN_VERSION_MINOR;
@@ -207,3 +209,4 @@ BOOL APIENTRY DllMain(HMODULE hmod, DWORD reason, LPVOID reserved) {
 
     return TRUE;
 }
+#endif

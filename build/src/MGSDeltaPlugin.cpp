@@ -1,3 +1,4 @@
+#define UEVR_PLUGIN_ENTRY
 #include "MGSDeltaPlugin.hpp"
 
 using namespace uevr;
