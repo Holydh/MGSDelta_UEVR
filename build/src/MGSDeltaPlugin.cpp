@@ -379,22 +379,26 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		playerManager.GetCurrentAimStateAndCameraMode();
 		/*Logger::DebugPrint("Before ResolveAddresses");*/
 		/*memoryManager.ResolveAddresses();*/
-		/*Logger::DebugPrint("Before FetchEquipController");*/
+	/*	Logger::DebugPrint("Before FetchEquipController");*/
 		weaponManager.FetchEquipController();
+		weaponManager.ProcessItem();
 		/*Logger::DebugPrint("Before ProcessWeapon");*/
 		weaponManager.ProcessWeapon(delta);
-		/*Logger::DebugPrint("Before FetchWeaponMeshAimData");*/
+		//Logger::DebugPrint("Before FetchWeaponMeshAimData");
 
 		weaponManager.FetchWeaponMeshAimData();
 
 		/*Logger::DebugPrint("Before ApplyAimDataToMemory");*/
 		//weaponController.ApplyAimDataToMemory();
-		/*Logger::DebugPrint("Before SetAimDirection");*/
+		//Logger::DebugPrint("Before SetAimDirection");
 		weaponManager.SetAimDirection();
-		/*Logger::DebugPrint("Before GetCurrentPlayerStance");*/
+	/*	Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
+		//Logger::DebugPrint("Before UpdatePeepingState");
 		playerManager.UpdatePeepingState(delta);
+		//Logger::DebugPrint("Before UpdateHandVisibility");
 		playerManager.UpdateHandVisibility();
+		//Logger::DebugPrint("Before ProcessCamera");
 		cameraController.ProcessCamera(delta);
 
 
@@ -429,7 +433,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.WasAiming = playerManager.IsAiming;
 	playerManager.PreviousCameraMode = playerManager.CurrentCameraMode;
 	playerManager.WasMeleeAttackRunning = playerManager.MeleeAttackRunning;
-	weaponManager.PreviousWeaponEquippedID = weaponManager.CurrentWeaponEquippedID;
+	weaponManager.PreviousWeaponID = weaponManager.CurrentWeaponID;
 	weaponManager.WasLeftGripInputPressed = weaponManager.LeftGripInputPressed;
 	imGuiMenu.MouseMovedThisFrame = false;
 	//auto end = std::chrono::high_resolution_clock::now();

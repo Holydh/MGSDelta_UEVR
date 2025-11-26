@@ -6,6 +6,40 @@ void WeaponManager::InitWeaponManager()
 	cqcKnifeSocketFname = SDK::UKismetStringLibrary::Conv_StringToName(L"BaseBody_LeftHand_MTPA");
 }
 
+void WeaponManager::ProcessItem()
+{
+	struct ParameterItemID {
+		SDK::EGsrItemId ReturnValue;
+	}params;
+	if (ItemController == NULL)
+	{
+		CurrentItemID = SDK::EGsrItemId::IT_None;
+		Logger::DebugPrint("No equipController found");
+		return;
+	}
+
+	auto newItemID = ItemController->GetItemId();
+	if (CurrentItemID != newItemID)
+	{
+		CurrentItemID = newItemID;
+		Logger::DebugPrint("Item changed. New Item ID : %d", CurrentItemID);
+
+		CurrentItem = ItemController->m_currentItem;
+		Logger::DebugPrint(CurrentItem->GetFullName().c_str());
+
+		if (CurrentItemID == SDK::EGsrItemId::IT_NightVision)
+		{
+			auto item = (SDK::ABP_IT_NightVision_C*)CurrentItem;
+			item->SKM_nvgo_dmo_hd->SetOnlyOwnerSee(true);
+		}
+		if (CurrentItemID == SDK::EGsrItemId::IT_Thermal)
+		{
+			auto item = (SDK::ABP_IT_Thermal_C*)CurrentItem;
+			item->SKM_thgo_dmo_hd->SetOnlyOwnerSee(true);
+		}
+	}
+}
+
 inline const char* WeaponManager::WeaponIdToKey(EGsrEquipId id)
 {
 	switch (id)
@@ -83,6 +117,18 @@ void WeaponManager::FetchEquipController()
 	{
 		Logger::DebugPrint("No equipController found");
 	}
+
+	struct ParameterItemController {
+		uevr::API::UObject* ReturnValue;
+	}params1;
+	pawn->call_function(L"GetItemControllerBP", &params1);
+	ItemController = (SDK::UGsrItemController*)params1.ReturnValue;
+	//Logger::DebugPrint("Fetch : ");
+	//Logger::DebugPrint(EquipController->get_full_name());
+	if (ItemController == NULL)
+	{
+		Logger::DebugPrint("No itemController found");
+	}
 }
 
 void WeaponManager::ProcessWeapon(float delta)
@@ -94,7 +140,7 @@ void WeaponManager::ProcessWeapon(float delta)
 	}params;
 	if (EquipController == NULL)
 	{
-		CurrentWeaponEquippedID = WP_None;
+		CurrentWeaponID = WP_None;
 		Logger::DebugPrint("No equipController found");
 		return;
 	}
@@ -106,10 +152,10 @@ void WeaponManager::ProcessWeapon(float delta)
 		params.ReturnValue = EGsrEquipId::WP_MAX_PLAYER_WEAPONS;
 	}
 
-	if (CurrentWeaponEquippedID != params.ReturnValue)
+	if (CurrentWeaponID != params.ReturnValue)
 	{
-		CurrentWeaponEquippedID = params.ReturnValue;
-		Logger::DebugPrint("Weapon changed. New Weapon ID : %d", CurrentWeaponEquippedID);
+		CurrentWeaponID = params.ReturnValue;
+		Logger::DebugPrint("Weapon changed. New Weapon ID : %d", CurrentWeaponID);
 	}
 	
 
@@ -121,7 +167,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	if (CurrentWeapon != params1.ReturnValue)
 	{
-		if (PreviousWeaponEquippedID == EGsrEquipId::WP_Dragnov || PreviousWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
+		if (PreviousWeaponID == EGsrEquipId::WP_Dragnov || PreviousWeaponID == EGsrEquipId::WP_MosinNagant)
 			ReceiverMesh->SetVisibility(false, false);
 		ReceiverMesh = nullptr;
 		WeaponRoot = nullptr;
@@ -130,7 +176,7 @@ void WeaponManager::ProcessWeapon(float delta)
 			detachHandFromWeapon();
 
 		//If food and others, use the default position
-		if (CurrentWeaponEquippedID == EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
+		if (CurrentWeaponID == EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
 		{
 			uevr::API::get()->dispatch_lua_event("CurrentWeapon", "wp_none");
 		}
@@ -158,7 +204,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 		Logger::DebugPrint(WeaponRoot->get_full_name());
 
-		FetchWeaponOffsets(CurrentWeaponEquippedID, DefaultWeaponPosition, DefaultWeaponRotation, HandLocationOffest, HandRotationOffset);
+		FetchWeaponOffsets(CurrentWeaponID, DefaultWeaponPosition, DefaultWeaponRotation, HandLocationOffest, HandRotationOffset);
 
 		//if (!weaponShouldAttach)
 		//{
@@ -202,8 +248,8 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (*settingsManager->SniperScopeEnabledPtr)
 		{
 			SwitchScopeState(false);
-			IsDragnov = CurrentWeaponEquippedID == EGsrEquipId::WP_Dragnov;
-			if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
+			IsDragnov = CurrentWeaponID == EGsrEquipId::WP_Dragnov;
+			if (IsDragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant)
 			{
 				if (!ReceiverMesh)
 				{
@@ -226,7 +272,7 @@ void WeaponManager::ProcessWeapon(float delta)
 			}
 		}
 
-		if (CurrentWeaponEquippedID == EGsrEquipId::WP_CigarPistol)
+		if (CurrentWeaponID == EGsrEquipId::WP_CigarPistol)
 		{
 			auto staticMesh = (SDK::UStaticMeshComponent*)WeaponRoot;
 			staticMesh->SetRelativeScale3D({ 1.5f, 1.5f, 1.5f });
@@ -239,7 +285,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 	}
 
-	if (CurrentWeaponEquippedID == EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
+	if (CurrentWeaponID == EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
 	{
 		//Food floating animation
 		auto sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
@@ -378,7 +424,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	if (!LeftHandWeaponRoot && HasObjectInLeftHand)
 	{
-		auto leftHandSocketFname = CurrentWeaponEquippedID == EGsrEquipId::WP_Tnt ? tntSocketFname : cqcKnifeSocketFname;
+		auto leftHandSocketFname = CurrentWeaponID == EGsrEquipId::WP_Tnt ? tntSocketFname : cqcKnifeSocketFname;
 
 		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
 		auto parent = sdkWeaponRoot->GetAttachParent();
@@ -418,7 +464,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 	}
 
-	if (playerManager->MeleeAttackRunning && !playerManager->WasMeleeAttackRunning && CurrentWeaponEquippedID == EGsrEquipId::WP_Tnt)
+	if (playerManager->MeleeAttackRunning && !playerManager->WasMeleeAttackRunning && CurrentWeaponID == EGsrEquipId::WP_Tnt)
 	{
 		SDK::FHitResult outHit;
 		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
@@ -485,7 +531,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (!*settingsManager->SniperScopeEnabledPtr)
 			return;
 
-		if (IsDragnov || CurrentWeaponEquippedID == EGsrEquipId::WP_MosinNagant)
+		if (IsDragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant)
 		{
 			if (!ReceiverMesh->IsVisible())
 				ReceiverMesh->SetVisibility(true, true);
@@ -631,7 +677,7 @@ void WeaponManager::FetchWeaponMeshAimData()
 
 		float aimOffsetValueHorizontal = 0.0f;
 		float aimOffsetValueVertical = 0.0f;
-		switch (CurrentWeaponEquippedID)
+		switch (CurrentWeaponID)
 		{
 		//case WP_Mk22:
 		//	aimOffsetValueHorizontal = 0.0f;
@@ -793,7 +839,7 @@ void WeaponManager::applyRecoil(float delta)
 	float recoilPositionRecoverySpeed = 10.0f;
 	float recoilRotationRecoverySpeed = 8.0f;
 
-	switch (CurrentWeaponEquippedID)
+	switch (CurrentWeaponID)
 	{
 	case WP_Mk22:
 		positionRecoilForce = { 0.75f, -0.005f, 0.0f };

@@ -19,6 +19,9 @@
 #include "SDK/SightDragnovWidget_classes.hpp"
 #include "SDK/SightMosinWidget_classes.hpp"
 
+#include "SDK/BP_IT_NightVision_classes.hpp"
+#include "SDK/BP_IT_Thermal_classes.hpp"
+
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
 
@@ -51,10 +54,15 @@ public:
 	bool IsShooting = false;
 	uevr::API::UObject* EquipController = nullptr;
 	uevr::API::UObject* CurrentWeapon = nullptr;
-	SDK::USceneComponent* AttachParent = nullptr;
+	SDK::USceneComponent* WeaponAttachParent = nullptr;
 	uevr::API::UObject* WeaponRoot = nullptr;
 	uevr::API::UObject* LeftHandWeaponRoot = nullptr;
 	SDK::USkeletalMeshComponent* ReceiverMesh = nullptr;
+
+	SDK::UGsrItemController* ItemController = nullptr;
+	SDK::UObject* CurrentItem = nullptr;
+	SDK::EGsrItemId CurrentItemID = SDK::EGsrItemId::IT_None;
+	SDK::EGsrItemId PreviousItemID = SDK::EGsrItemId::IT_None;
 
 	bool IsDragnov = false;
 	float ZoomInput = 0.0f;
@@ -338,8 +346,8 @@ public:
 		WP_MAX_OTHER = 73,
 		EGsrEquipId_MAX = 223,
 	};
-	EGsrEquipId CurrentWeaponEquippedID = WP_None;
-	EGsrEquipId PreviousWeaponEquippedID = WP_None;
+	EGsrEquipId CurrentWeaponID = WP_None;
+	EGsrEquipId PreviousWeaponID = WP_None;
 	
 
 
@@ -362,4 +370,6 @@ public:
 	void SpawnScope();
 	void DestroyScope();
 	void ChangeScopeResolution();
+
+	void ProcessItem();
 };
