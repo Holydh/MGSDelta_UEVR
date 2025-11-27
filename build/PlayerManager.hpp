@@ -109,5 +109,5 @@ private:
 	//Fork and knife not attacking state
 	SDK::FName fNameHold;
 	float forkAndKnifeTimer = 0.0f;
-	float forkAndKnifeDuration = 0.2f;
+	float forkAndKnifeDuration = 0.1f;
 };

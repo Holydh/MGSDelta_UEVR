@@ -231,15 +231,24 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 		//Logger::DebugPrint("Fork and knife melee started");
 		IsKnifeOrFork = true;
 	}
-		
-	
-	//Logger::DebugPrint("MeleeAttackRunning: %d", MeleeAttackRunning);
-	//Logger::DebugPrint("IsRolling: %d", IsRolling);
-	//Logger::DebugPrint("IsHanging: %d", IsHanging);
-	//Logger::DebugPrint("IsPeepingInternal: %d", IsPeepingInternal);
-	//Logger::DebugPrint("IsPeeping: %d", IsPeeping);
 	
 	//Logger::DebugPrint("StateMachineName: %s, StateName: %s", StateMachineName.ToString().c_str(), StateName.ToString().c_str());
+}
+
+void PlayerManager::UpdateForkAndKnifeMeleeState(float delta)
+{
+	//Logger::DebugPrint("CurrentAimingStatus : %d, IsAiming : %d", CurrentAimingStatus, IsAiming);
+	if (MeleeAttackRunning && IsKnifeOrFork && IsFirstPersonView && !IsAiming)
+	{
+		forkAndKnifeTimer += delta;
+		if (forkAndKnifeTimer >= forkAndKnifeDuration) //give some time to finish the attack animation
+		{
+			forkAndKnifeTimer = 0.0f;
+			//Logger::DebugPrint("stop melee because not aiming. CurrentAimingStatus : %d, IsAiming : %d ", CurrentAimingStatus,IsAiming);
+			MeleeAttackRunning = false;
+			IsKnifeOrFork = false;
+		}
+	}
 }
 
 void PlayerManager::GetCurrentAimStateAndCameraMode()
@@ -291,21 +300,5 @@ void PlayerManager::UpdateHandVisibility()
 			handsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &visibility);
 		}
 		uevr::API::get()->dispatch_lua_event("HideHands", MeleeAttackRunning ? "1" : "0");
-	}
-}
-
-void PlayerManager::UpdateForkAndKnifeMeleeState(float delta)
-{
-	//Logger::DebugPrint("MeleeAttackRunning : %d, IsKnifeOrFork : %d, IsAiming : %d", MeleeAttackRunning, IsKnifeOrFork, IsAiming);
-	if (MeleeAttackRunning && IsKnifeOrFork && !IsAiming)
-	{
-		forkAndKnifeTimer += delta;
-		if (forkAndKnifeTimer >= forkAndKnifeDuration) //give some time to finish the attack animation
-		{
-			forkAndKnifeTimer = 0.0f;
-			//Logger::DebugPrint("stop melee because not aiming. MeleeAttackRunning : %d, WasMeleeAttackRunning : %d ", MeleeAttackRunning,WasMeleeAttackRunning);
-			MeleeAttackRunning = false;
-			IsKnifeOrFork = false;
-		}
 	}
 }

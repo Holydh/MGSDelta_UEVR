@@ -48,4 +48,6 @@ public:
 	bool InstantCameraPositionNeeded = false;
 	void ProcessCameraResetTimer(float delta);
 	void DisableGrassFading();
+
+	bool UImenuOpen = false;
 };
