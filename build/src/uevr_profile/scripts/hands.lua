@@ -92,6 +92,11 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 			end
 		end
 	end
+
+	if event_name == "HandsReset" then
+		hands.destroyHands()
+		handsCreated = false
+	end
 end)
 
 function on_xinput_get_state(retval, user_index, state)

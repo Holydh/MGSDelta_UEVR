@@ -199,6 +199,13 @@ bool HookManager::mod_PlayerCqcAction_OnEnteredState_post(uevr::API::UFunction* 
 	return true;
 }
 
+bool HookManager::mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+	// Trigger a reset of the hands to get the new hand model applied
+	uevr::API::get()->dispatch_lua_event("HandsReset", "0");
+	return true;
+}
+
 bool HookManager::mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
 	if (!obj->is_a(Utilities::ABP_PlayerEludeAction_C))

@@ -263,7 +263,7 @@ void PlayerManager::UpdateHandVisibility()
 {
 	if (MeleeAttackRunning != WasMeleeAttackRunning)
 	{
-		Logger::DebugPrint("hello %d", MeleeAttackRunning);
+		/*Logger::DebugPrint("hello %d", MeleeAttackRunning);*/
 		bool visibility = !MeleeAttackRunning;
 		if (handsSkeletalMesh) {
 			handsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &visibility);

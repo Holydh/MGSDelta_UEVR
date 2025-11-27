@@ -70,6 +70,7 @@ public:
     static bool mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_PlayerKnife_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_PlayerCqcAction_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     //static bool mod_CameraModifier_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     /*static bool mod_SetCameraRotation_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);*/
     /*static bool mod_ISetAimPosition_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);*/
