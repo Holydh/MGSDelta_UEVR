@@ -52,6 +52,7 @@ public:
 	bool WasFirstPersonView = false;
 	bool MeleeAttackRunning = false;
 	bool WasMeleeAttackRunning = false;
+	bool IsKnifeOrFork = false;
 
 
 	SDK::EGsrPlayerStance CurrentStance = SDK::EGsrPlayerStance::Stand;
@@ -77,7 +78,7 @@ public:
 	bool HandAttachedToWeapon = false;
 
 	void UpdateHandVisibility();
-
+	void UpdateForkAndKnifeMeleeState(float delta);
 	//EPlayerAnimState GetCurrentPlayerAnimState(const SDK::FName& State);
 private:
 	uevr::API::UObject* handsSkeletalMesh;
@@ -103,4 +104,10 @@ private:
 	SDK::FName fNameCombo3;
 	SDK::FName fNameStab1;
 	SDK::FName fNameStab2;
+	//Fork and knife StateMachine Name
+	SDK::FName fNameMain;
+	//Fork and knife not attacking state
+	SDK::FName fNameHold;
+	float forkAndKnifeTimer = 0.0f;
+	float forkAndKnifeDuration = 0.2f;
 };

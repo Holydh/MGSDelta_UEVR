@@ -378,6 +378,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 	if (playerManager.IsPlayerControlled)
 	{
+		playerManager.UpdateForkAndKnifeMeleeState(delta);
 		playerManager.GetCurrentAimStateAndCameraMode();
 		/*Logger::DebugPrint("Before ResolveAddresses");*/
 		/*memoryManager.ResolveAddresses();*/
@@ -400,6 +401,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		playerManager.UpdatePeepingState(delta);
 		//Logger::DebugPrint("Before UpdateHandVisibility");
 		playerManager.UpdateHandVisibility();
+		
 		//Logger::DebugPrint("Before ProcessCamera");
 		cameraController.ProcessCamera(delta);
 

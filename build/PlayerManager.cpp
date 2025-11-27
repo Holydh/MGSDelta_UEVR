@@ -18,6 +18,8 @@ void PlayerManager::ConvertAllRequiredStringToFnames()
 	fNameStab1 = SDK::UKismetStringLibrary::Conv_StringToName(L"Stab1");
 	fNameStab2 = SDK::UKismetStringLibrary::Conv_StringToName(L"Stab2");
 	fNameEnemyCqc = SDK::UKismetStringLibrary::Conv_StringToName(L"SM_Cqc");
+	fNameMain = SDK::UKismetStringLibrary::Conv_StringToName(L"Main");
+	fNameHold = SDK::UKismetStringLibrary::Conv_StringToName(L"Hold");
 }
 
 void PlayerManager::ToggleMeshesVisibility(bool visible)
@@ -202,7 +204,18 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 	else
 		IsRolling = false;
 
-	MeleeAttackRunning = 
+	if (MeleeAttackRunning && IsKnifeOrFork && IsAiming)
+	{
+		MeleeAttackRunning = StateMachineName == fNameMain && StateName == fNameHold ? false : true;
+		IsKnifeOrFork = MeleeAttackRunning ? true : false;
+		//if (!MeleeAttackRunning)
+		//{
+		//	Logger::DebugPrint("Fork and knife melee ended");
+		//}
+	}
+	else
+	{
+		MeleeAttackRunning = 
 		StateMachineName == fNameCombo ||
 		StateMachineName == fNameEnemyCqc && !StateName.StartsWith("Gun") ||
 		StateName == fNameCombo1 || 
@@ -210,7 +223,16 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 		StateName == fNameCombo3 ||
 		StateName == fNameStab1 || 
 		StateName == fNameStab2 ? true : false;
-
+		//if (!MeleeAttackRunning && WasMeleeAttackRunning)
+		//	Logger::DebugPrint("Melee ended");
+	}
+	if (MeleeAttackRunning && StateMachineName == fNameMain)
+	{
+		//Logger::DebugPrint("Fork and knife melee started");
+		IsKnifeOrFork = true;
+	}
+		
+	
 	//Logger::DebugPrint("MeleeAttackRunning: %d", MeleeAttackRunning);
 	//Logger::DebugPrint("IsRolling: %d", IsRolling);
 	//Logger::DebugPrint("IsHanging: %d", IsHanging);
@@ -263,14 +285,27 @@ void PlayerManager::UpdateHandVisibility()
 {
 	if (MeleeAttackRunning != WasMeleeAttackRunning)
 	{
-		/*Logger::DebugPrint("hello %d", MeleeAttackRunning);*/
+		//Logger::DebugPrint("MeleeAttackRunning %d", MeleeAttackRunning);
 		bool visibility = !MeleeAttackRunning;
 		if (handsSkeletalMesh) {
 			handsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &visibility);
 		}
-		if (RightHandMesh)
-			RightHandMesh->SetVisibility(visibility, visibility);
-		if (LeftHandMesh)
-			LeftHandMesh->SetVisibility(visibility, visibility);
+		uevr::API::get()->dispatch_lua_event("HideHands", MeleeAttackRunning ? "1" : "0");
+	}
+}
+
+void PlayerManager::UpdateForkAndKnifeMeleeState(float delta)
+{
+	//Logger::DebugPrint("MeleeAttackRunning : %d, IsKnifeOrFork : %d, IsAiming : %d", MeleeAttackRunning, IsKnifeOrFork, IsAiming);
+	if (MeleeAttackRunning && IsKnifeOrFork && !IsAiming)
+	{
+		forkAndKnifeTimer += delta;
+		if (forkAndKnifeTimer >= forkAndKnifeDuration) //give some time to finish the attack animation
+		{
+			forkAndKnifeTimer = 0.0f;
+			//Logger::DebugPrint("stop melee because not aiming. MeleeAttackRunning : %d, WasMeleeAttackRunning : %d ", MeleeAttackRunning,WasMeleeAttackRunning);
+			MeleeAttackRunning = false;
+			IsKnifeOrFork = false;
+		}
 	}
 }
