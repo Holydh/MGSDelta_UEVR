@@ -1,0 +1,26 @@
+{
+    "path": [
+        "Acknowledged Pawn",
+        "Properties",
+        "Children",
+        "BP_WP_M16a1_C BP_WP_M16a1_C_2147469452",
+        "Components",
+        "SceneComponent RootSceneComponent"
+    ],
+    "state": {
+        "hand": 1,
+        "location_offset": {
+            "x": -3.996999979019165,
+            "y": -4.921000003814697,
+            "z": -0.7080000042915344
+        },
+        "permanent": true,
+        "rotation_offset": {
+            "w": -0.6125165820121765,
+            "x": -0.035218264907598495,
+            "y": 0.7850530743598938,
+            "z": -0.08529230952262878
+        }
+    },
+    "type": "motion_controller"
+}

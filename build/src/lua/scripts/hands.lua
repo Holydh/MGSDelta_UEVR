@@ -4,6 +4,7 @@ local controllers = require('libs/controllers')
 local handsCreated = false
 local handsRequired = true
 local isHoldingWeapon = false
+local leftHandCqcKnife = false
 local attachementName = "WP_None"
 
 function on_level_change(level)
@@ -68,6 +69,7 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 	if event_name == "CurrentWeapon" then
 		if hands.exists() then
 			attachementName = event_string
+			print(attachementName)
 			if event_string == "wp_none" then
 				isHoldingWeapon = false
 				hands.handleInputIndividualHand(true, false, Handed.Right, false, false)
@@ -75,9 +77,16 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 			else
 				isHoldingWeapon = true
 				hands.handleInputIndividualHand(false, attachementName, Handed.Right, false, false)
-				if attachementName == "wp_gove" then
+				if attachementName == "wp_gove" or
+				attachementName == "wp_mk22" or
+				attachementName == "wp_easygun" then
+					leftHandCqcKnife = true;
+					hands.handleInputIndividualHand(false, "wp_gove", Handed.Left, false, false)
+				elseif attachementName == "wp_tnt" then
+					leftHandCqcKnife = false;
 					hands.handleInputIndividualHand(false, attachementName, Handed.Left, false, false)
 				else
+					leftHandCqcKnife = false;
 					hands.handleInputIndividualHand(true, false, Handed.Left, false, false)
 				end
 			end
@@ -88,7 +97,9 @@ end)
 function on_xinput_get_state(retval, user_index, state)
 	if hands.exists() then
 		if isHoldingWeapon then
-			if attachementName == "wp_gove" then
+			if leftHandCqcKnife then
+				hands.handleInputIndividualHand(state, "wp_gove", Handed.Left, false, false)
+			elseif attachementName == "wp_tnt" then
 				hands.handleInputIndividualHand(state, attachementName, Handed.Left, false, false)
 			else
 				hands.handleInputIndividualHand(state, false, Handed.Left, false, false)

@@ -1,0 +1,26 @@
+{
+    "path": [
+        "Acknowledged Pawn",
+        "Properties",
+        "Children",
+        "BP_WP_SAArmy_C BP_WP_SAArmy_C_2147469464",
+        "Components",
+        "SceneComponent RootSceneComponent"
+    ],
+    "state": {
+        "hand": 1,
+        "location_offset": {
+            "x": -6.747000217437744,
+            "y": -2.3910000324249268,
+            "z": -0.39800000190734863
+        },
+        "permanent": true,
+        "rotation_offset": {
+            "w": -0.5432514548301697,
+            "x": 0.0017276224680244923,
+            "y": 0.8172135949134827,
+            "z": -0.19244937598705292
+        }
+    },
+    "type": "motion_controller"
+}
