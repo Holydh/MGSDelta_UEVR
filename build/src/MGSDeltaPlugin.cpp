@@ -116,6 +116,7 @@ void MGSDeltaPlugin::on_custom_event(const char* event_name, const char* event_d
 			Toggle6DOF(false);
 			Toggle6DOF(true);
 			playerManager.FetchMotionControllers();
+			weaponManager.SendHandStateToLua();
 		}
 	}
 }
@@ -435,6 +436,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.PreviousCameraMode = playerManager.CurrentCameraMode;
 	playerManager.WasMeleeAttackRunning = playerManager.MeleeAttackRunning;
 	weaponManager.PreviousWeaponID = weaponManager.CurrentWeaponID;
+	weaponManager.PreviousItemID = weaponManager.CurrentItemID;
 	weaponManager.WasLeftGripInputPressed = weaponManager.LeftGripInputPressed;
 	imGuiMenu.MouseMovedThisFrame = false;
 	//auto end = std::chrono::high_resolution_clock::now();

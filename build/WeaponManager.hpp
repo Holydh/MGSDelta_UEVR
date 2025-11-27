@@ -378,4 +378,5 @@ public:
 	void ToggleThermalVisionScanline();
 
 	void ProcessItem();
+	void SendHandStateToLua();
 };

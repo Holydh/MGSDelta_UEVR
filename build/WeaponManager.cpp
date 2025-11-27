@@ -47,10 +47,36 @@ void WeaponManager::ProcessItem()
 			playerCameraManager->ThermalPostProcessActor->Scanline->SetVisibility(*settingsManager->ThermalVisionDisableScanlinePtr, true);
 		}
 
-		if (CurrentItemID == SDK::EGsrItemId::IT_Stealth)
+		if (CurrentItemID == SDK::EGsrItemId::IT_Stealth && PreviousItemID != SDK::EGsrItemId::IT_Stealth)
 		{
-			
+			auto pawn = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
+			auto stealthMaterial = pawn->SkeletalMesh_Hand->OverlayMaterial;
+			playerManager->RightHandMesh->SetMaterial(0, stealthMaterial);
+			playerManager->RightHandMesh->SetMaterial(1, stealthMaterial);
+			playerManager->LeftHandMesh->SetMaterial(0, stealthMaterial);
+			playerManager->LeftHandMesh->SetMaterial(1, stealthMaterial);
 		}
+		if (CurrentItemID != SDK::EGsrItemId::IT_Stealth && PreviousItemID == SDK::EGsrItemId::IT_Stealth)
+		{
+			uevr::API::get()->dispatch_lua_event("HandsReset", "0");
+		}
+	}
+}
+
+void WeaponManager::SendHandStateToLua()
+{
+	//If food and others, use the default position
+	if (CurrentWeaponID == EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
+	{
+		uevr::API::get()->dispatch_lua_event("CurrentWeapon", "wp_none");
+	}
+	else
+	{
+		//Sending actual weapon to lua hands to set the pose for this weapon. Lua scripts takes a lowercase only value so we need to set it up :
+		auto weaponNameView = magic_enum::enum_name(CurrentWeaponID);
+		std::string weaponName(weaponNameView); // make a real string copy
+		std::transform(weaponName.begin(), weaponName.end(), weaponName.begin(), ::tolower);
+		uevr::API::get()->dispatch_lua_event("CurrentWeapon", weaponName);
 	}
 }
 
@@ -189,19 +215,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (playerManager->HandAttachedToWeapon)
 			detachHandFromWeapon();
 
-		//If food and others, use the default position
-		if (CurrentWeaponID == EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
-		{
-			uevr::API::get()->dispatch_lua_event("CurrentWeapon", "wp_none");
-		}
-		else
-		{
-			//Sending actual weapon to lua hands to set the pose for this weapon. Lua scripts takes a lowercase only value so we need to set it up :
-			auto weaponNameView = magic_enum::enum_name(params.ReturnValue);
-			std::string weaponName(weaponNameView); // make a real string copy
-			std::transform(weaponName.begin(), weaponName.end(), weaponName.begin(), ::tolower);
-			uevr::API::get()->dispatch_lua_event("CurrentWeapon", weaponName);
-		}
+		SendHandStateToLua();
 	
 
 		SwitchScopeState(false);
@@ -555,7 +569,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 			auto pawn = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
 			auto scopeMagnification = pawn->GetScopeMagnification();
-			Logger::DebugPrint("scope magnification : %f", scopeMagnification);
+			//Logger::DebugPrint("scope magnification : %f", scopeMagnification);
 			float scopeFov = scopeMagnification == 3.0f ? 10.0f : 3.0f;
 			SceneCaptureComponent->FOVAngle = scopeFov;
 			//Toggle zoom :
