@@ -31,11 +31,20 @@ void WeaponManager::ProcessItem()
 		{
 			auto item = (SDK::ABP_IT_NightVision_C*)CurrentItem;
 			item->SKM_nvgo_dmo_hd->SetOnlyOwnerSee(true);
+
 		}
 		if (CurrentItemID == SDK::EGsrItemId::IT_Thermal)
 		{
 			auto item = (SDK::ABP_IT_Thermal_C*)CurrentItem;
 			item->SKM_thgo_dmo_hd->SetOnlyOwnerSee(true);
+			auto static cameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"BlueprintGeneratedClass /Game/Blueprints/Camera/BP_PlayerCameraManager.BP_PlayerCameraManager_C");
+			playerCameraManager = (SDK::ABP_PlayerCameraManager_C*)cameraManager_c->get_first_object_matching(false);
+			if (playerCameraManager == nullptr)
+			{
+				Logger::DebugPrint("No player camera manager found");
+				return;
+			}
+			playerCameraManager->ThermalPostProcessActor->Scanline->SetVisibility(*settingsManager->ThermalVisionDisableScanlinePtr, true);
 		}
 	}
 }
@@ -438,11 +447,11 @@ void WeaponManager::ProcessWeapon(float delta)
 				if (child->GetAttachSocketName() == leftHandSocketFname)
 				{
 					LeftHandWeaponRoot = (uevr::API::UObject*)child;
-					Logger::DebugPrint(leftHandSocketFname.ToString().c_str());
+					//Logger::DebugPrint(leftHandSocketFname.ToString().c_str());
 				}
 			}
 		}
-		Logger::DebugPrint(LeftHandWeaponRoot->get_full_name());
+		//Logger::DebugPrint(LeftHandWeaponRoot->get_full_name());
 
 		//SocketName = "BaseBody_LeftHand_MTPA"
 		//	Get all children and check their socket name. If match, then it's the knife'
@@ -830,6 +839,18 @@ void WeaponManager::DestroyScope()
 void WeaponManager::ChangeScopeResolution()
 {
 	ScopeRenderTarget->SizeX = ScopeRenderTarget->SizeY = *settingsManager->ScopeResolutionPtr;
+}
+
+void WeaponManager::ToggleThermalVisionScanline()
+{
+	if (playerCameraManager == nullptr)
+	{
+		Logger::DebugPrint("No player camera manager found");
+		return;
+	}
+	if (playerCameraManager->ThermalPostProcessActor == nullptr)
+		return;
+	playerCameraManager->ThermalPostProcessActor->Scanline->SetVisibility(*settingsManager->ThermalVisionDisableScanlinePtr, true);
 }
 
 void WeaponManager::applyRecoil(float delta)

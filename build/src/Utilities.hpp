@@ -24,6 +24,7 @@ public:
 	static uevr::API::UClass* ABP_PlayerBehindAction_C;
 	static uevr::API::UClass* ABP_PlayerKnifeReadyAction_C;
 	static uevr::API::UClass* ABP_PlayerMeleeAction_C;
+	static uevr::API::UClass* ABP_EnemyCqc_C;
 
 	//Debug Arrow Actor
 	static SDK::AActor* DebugCigar0;

@@ -107,6 +107,8 @@ void SettingsManager::InitSettingsManager()
 
 	SniperScopeEnabledPtr = &sniperScopeEnabled;
 	ScopeResolutionPtr = &scopeResolution;
+
+	ThermalVisionDisableScanlinePtr = &thermalVisionDisableScanline;
 }
 
 void SettingsManager::FetchUevrSettings(bool writeToPlugin)
@@ -140,6 +142,8 @@ void SettingsManager::FetchPluginSettings()
 
 	sniperScopeEnabled = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "sniperScopeEnabled", true);
 	scopeResolution = SettingsManager::GetIntValueFromFile(pluginConfigFilePath, "scopeResolution", 1024);
+
+	thermalVisionDisableScanline = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "thermalVisionDisableScanline", true);
 	if (debugMod) Logger::DebugPrint("Plugin Settings Updated");
 }
 
@@ -157,6 +161,8 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "sniperScopeEnabled", sniperScopeEnabled);
 	SettingsManager::SetIntValueToFile(pluginConfigFilePath, "scopeResolution", scopeResolution);
+
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "thermalVisionDisableScanline", thermalVisionDisableScanline);
 }
 
 
@@ -181,8 +187,11 @@ void SettingsManager::GetOrCreateConfigFile()
 			"smoothCameraPosition=true\n"
 			"cameraPositionXYLerp=5.0\n"
 			"cameraPositionZLerp=5.0\n"
+			"------ Weapons Settings ------\n"
 			"sniperScopeEnabled=true\n"
-			"scopeResolution=1024\n";
+			"scopeResolution=1024\n"
+			"------ Items Settings ------\n"
+			"thermalVisionDisableScanline=true\n";
 
 		HANDLE hCreateFile = CreateFileA(pluginConfigFilePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hCreateFile != INVALID_HANDLE_VALUE)

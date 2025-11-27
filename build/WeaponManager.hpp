@@ -21,6 +21,8 @@
 
 #include "SDK/BP_IT_NightVision_classes.hpp"
 #include "SDK/BP_IT_Thermal_classes.hpp"
+#include "SDK/BP_PlayerCameraManager_classes.hpp"
+#include "SDK/BP_ThermalPostProcess_classes.hpp"
 
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
@@ -31,6 +33,8 @@ private:
 	SettingsManager* const settingsManager;
 	PlayerManager* const playerManager;
 	CameraController* const cameraController;
+
+	SDK::ABP_PlayerCameraManager_C* playerCameraManager = nullptr;
 
 	void applyRecoil(float delta);
 	float randomRange(float min, float max);
@@ -370,6 +374,8 @@ public:
 	void SpawnScope();
 	void DestroyScope();
 	void ChangeScopeResolution();
+
+	void ToggleThermalVisionScanline();
 
 	void ProcessItem();
 };

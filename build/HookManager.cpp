@@ -180,6 +180,25 @@ bool HookManager::mod_PlayerKnife_OnEnteredState_post(uevr::API::UFunction* fn, 
 	return true;
 }
 
+bool HookManager::mod_PlayerCqcAction_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{	
+	if (!obj->is_a(Utilities::ABP_EnemyCqc_C))
+		return true;
+
+	if (locals != nullptr)
+	{
+		auto true_locals = (char*)locals - 0x50;
+		SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
+		//SDK::FName nextState = params->NextStateName;
+		//SDK::FName StateMachine = params->StateMachineName;
+		//Logger::DebugPrint("State Machine : %s", StateMachine.ToString().c_str());
+		//Logger::DebugPrint("Next state : %s",nextState.ToString().c_str());
+		s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
+	}
+
+	return true;
+}
+
 bool HookManager::mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
 	if (!obj->is_a(Utilities::ABP_PlayerEludeAction_C))

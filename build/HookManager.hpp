@@ -23,7 +23,7 @@ private:
     PlayerManager* const playerManager;
     static WeaponManager* s_weaponManager;
     static CameraController* s_cameraController;
-	static PlayerManager* s_playerManager;
+    static PlayerManager* s_playerManager;
 
 
     static void* OnFireModded(uevr::API::UObject* equipcontroller, SDK::FGsrFireRequest* FireRequest);
@@ -69,6 +69,7 @@ public:
     static bool mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_PlayerKnife_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_PlayerCqcAction_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     //static bool mod_CameraModifier_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     /*static bool mod_SetCameraRotation_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);*/
     /*static bool mod_ISetAimPosition_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);*/

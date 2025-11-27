@@ -329,7 +329,7 @@ void ImGuiMenu::internalFrame()
 		ImGui::Separator();
 		ImGui::Text("--- Weapons Settings ---");
 
-		if (ImGui::Checkbox("Sniper Scopes Enabled", settingsManager->SniperScopeEnabledPtr))
+		if (ImGui::Checkbox("Enable Sniper Scopes", settingsManager->SniperScopeEnabledPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
 			if (!*settingsManager->SniperScopeEnabledPtr)
@@ -340,7 +340,7 @@ void ImGuiMenu::internalFrame()
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Sniper scopes have some impact on framerate");
 
-		if (ImGui::SliderInt("Scope Resolution", settingsManager->ScopeResolutionPtr, 100, 2100))
+		if (ImGui::SliderInt("Scopes Resolution", settingsManager->ScopeResolutionPtr, 100, 2100))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
 			weaponManager->ChangeScopeResolution();
@@ -351,6 +351,17 @@ void ImGuiMenu::internalFrame()
 			ImGui::Text("Requires to reload a save or reset the plugin to apply");
 			ImGui::EndTooltip();
 		}
+
+		ImGui::Separator();
+		ImGui::Text("--- Items Settings ---");
+
+		if (ImGui::Checkbox("Disable Thermal Goggles Scanline effect", settingsManager->ThermalVisionDisableScanlinePtr))
+		{
+			settingsManager->SettingsModifiedThisFrame = true;
+			weaponManager->ToggleThermalVisionScanline();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Removes the aggressive scanline effect from the thermal vision");
 
 		ImGui::PopItemWidth();
 		/*	

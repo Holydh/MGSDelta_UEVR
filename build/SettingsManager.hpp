@@ -52,6 +52,8 @@ public:
 
 	bool* SniperScopeEnabledPtr;
 	int* ScopeResolutionPtr;
+
+	bool* ThermalVisionDisableScanlinePtr;
 	
 private:
 	bool attachCameraToSnakeHead = false;
@@ -65,6 +67,8 @@ private:
 
 	bool sniperScopeEnabled = true;
 	int scopeResolution = 1024;
+
+	bool thermalVisionDisableScanline = true;
 
 
 	std::string GetConfigFilePath(bool uevr);

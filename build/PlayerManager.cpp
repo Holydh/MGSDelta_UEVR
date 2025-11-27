@@ -17,6 +17,7 @@ void PlayerManager::ConvertAllRequiredStringToFnames()
 	fNameCombo3 = SDK::UKismetStringLibrary::Conv_StringToName(L"Combo3");
 	fNameStab1 = SDK::UKismetStringLibrary::Conv_StringToName(L"Stab1");
 	fNameStab2 = SDK::UKismetStringLibrary::Conv_StringToName(L"Stab2");
+	fNameEnemyCqc = SDK::UKismetStringLibrary::Conv_StringToName(L"SM_Cqc");
 }
 
 void PlayerManager::ToggleMeshesVisibility(bool visible)
@@ -202,7 +203,8 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 		IsRolling = false;
 
 	MeleeAttackRunning = 
-		StateMachineName == fNameCombo || 
+		StateMachineName == fNameCombo ||
+		StateMachineName == fNameEnemyCqc && !StateName.StartsWith("Gun") ||
 		StateName == fNameCombo1 || 
 		StateName == fNameCombo2 || 
 		StateName == fNameCombo3 ||
@@ -214,7 +216,7 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 	//Logger::DebugPrint("IsHanging: %d", IsHanging);
 	//Logger::DebugPrint("IsPeepingInternal: %d", IsPeepingInternal);
 	//Logger::DebugPrint("IsPeeping: %d", IsPeeping);
-
+	
 	//Logger::DebugPrint("StateMachineName: %s, StateName: %s", StateMachineName.ToString().c_str(), StateName.ToString().c_str());
 }
 
@@ -261,6 +263,7 @@ void PlayerManager::UpdateHandVisibility()
 {
 	if (MeleeAttackRunning != WasMeleeAttackRunning)
 	{
+		Logger::DebugPrint("hello %d", MeleeAttackRunning);
 		bool visibility = !MeleeAttackRunning;
 		if (handsSkeletalMesh) {
 			handsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &visibility);
