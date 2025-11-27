@@ -46,6 +46,11 @@ void WeaponManager::ProcessItem()
 			}
 			playerCameraManager->ThermalPostProcessActor->Scanline->SetVisibility(*settingsManager->ThermalVisionDisableScanlinePtr, true);
 		}
+
+		if (CurrentItemID == SDK::EGsrItemId::IT_Stealth)
+		{
+			
+		}
 	}
 }
 
@@ -548,10 +553,10 @@ void WeaponManager::ProcessWeapon(float delta)
 			SwitchScopeState(playerManager->IsAiming);
 
 
-			auto test = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
-			auto scopeMagnification = test->GetScopeMagnification();
-			//Logger::DebugPrint("scope magnification : %f", scopeMagnification);
-			float scopeFov = scopeMagnification == 3.0f ? 16.0f : 5.0f;
+			auto pawn = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
+			auto scopeMagnification = pawn->GetScopeMagnification();
+			Logger::DebugPrint("scope magnification : %f", scopeMagnification);
+			float scopeFov = scopeMagnification == 3.0f ? 10.0f : 3.0f;
 			SceneCaptureComponent->FOVAngle = scopeFov;
 			//Toggle zoom :
 			if (ZoomInput > 0.0f && scopeMagnification == 3.0f)
