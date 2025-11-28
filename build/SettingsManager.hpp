@@ -51,9 +51,12 @@ public:
 	float* CameraPositionZLerpPtr;
 
 	bool* SniperScopeEnabledPtr;
+	int* ScopeResolutionSliderIndexPtr;
 	int* ScopeResolutionPtr;
 
-	bool* ThermalVisionDisableScanlinePtr;
+	bool* DisableThermalVisionScanlinePtr;
+
+	bool* Enable3DCutscenesAndMenusPtr;
 	
 private:
 	bool attachCameraToSnakeHead = false;
@@ -66,9 +69,12 @@ private:
 	float cameraPositionZLerp = 5.0f;
 
 	bool sniperScopeEnabled = true;
+	int scopeResolutionSliderIndex = 0;
 	int scopeResolution = 1024;
 
-	bool thermalVisionDisableScanline = true;
+	bool disableThermalVisionScanline = true;
+
+	bool enable3DCutscenesAndMenus = false;
 
 
 	std::string GetConfigFilePath(bool uevr);

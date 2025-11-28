@@ -340,10 +340,42 @@ void ImGuiMenu::internalFrame()
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Sniper scopes have some impact on framerate");
 
-		if (ImGui::SliderInt("Scopes Resolution", settingsManager->ScopeResolutionPtr, 100, 2100))
+		int resolution = *settingsManager->ScopeResolutionPtr;
+
+		// Your constants
+		const int step = 64;
+		const int minRes = 64;
+		const int maxRes = 2048;
+
+		int sliderMin = minRes / step;  // 1
+		int sliderMax = maxRes / step;  // 32
+
+		// Create slider index from actual resolution (only used for initialization)
+		int sliderIndex = resolution / step;
+
+		// Make sure the index pointer starts correct (optional safety)
+		*settingsManager->ScopeResolutionSliderIndexPtr = sliderIndex;
+
+		if (ImGui::SliderInt("Scopes Resolution",
+			settingsManager->ScopeResolutionSliderIndexPtr,
+			sliderMin,
+			sliderMax))
 		{
+			// Use the pointer that ImGui updated
+			int newIndex = *settingsManager->ScopeResolutionSliderIndexPtr;
+
+			// Convert to actual resolution
+			int newResolution = newIndex * step;
+
+			// Write resolution back to your real pointer
+			*settingsManager->ScopeResolutionPtr = newResolution;
+
 			settingsManager->SettingsModifiedThisFrame = true;
-			weaponManager->ChangeScopeResolution();
+			if (*settingsManager->SniperScopeEnabledPtr)
+			{
+				weaponManager->DestroyScope();
+				weaponManager->SpawnScope();
+			}
 		}
 		if (ImGui::IsItemHovered()) {
 			ImGui::BeginTooltip();
@@ -351,17 +383,33 @@ void ImGuiMenu::internalFrame()
 			ImGui::Text("Requires to reload a save or reset the plugin to apply");
 			ImGui::EndTooltip();
 		}
+		ImGui::SameLine();
+		ImGui::Text("%d x %d px", resolution, resolution);
 
 		ImGui::Separator();
 		ImGui::Text("--- Items Settings ---");
 
-		if (ImGui::Checkbox("Disable Thermal Goggles Scanline effect", settingsManager->ThermalVisionDisableScanlinePtr))
+		if (ImGui::Checkbox("Disable Thermal Goggles Scanline effect", settingsManager->DisableThermalVisionScanlinePtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
 			weaponManager->ToggleThermalVisionScanline();
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Removes the aggressive scanline effect from the thermal vision");
+
+		ImGui::Separator();
+		ImGui::Text("--- Misc Settings ---");
+
+		if (ImGui::Checkbox("Enable 3D Cutscenes And Menus", settingsManager->Enable3DCutscenesAndMenusPtr))
+		{
+			settingsManager->SettingsModifiedThisFrame = true;
+			if (*settingsManager->Enable3DCutscenesAndMenusPtr)
+				uevr::API::VR::set_mod_value("VR_WorldScale", 1.0f);
+			else
+				uevr::API::VR::set_mod_value("VR_WorldScale", 0.0f);
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Can be incompatible with some HMDs and/or softwares like Virtual Desktop. Disable it if you have black screen or other issues.");
 
 		ImGui::PopItemWidth();
 		/*	

@@ -44,7 +44,7 @@ void WeaponManager::ProcessItem()
 				Logger::DebugPrint("No player camera manager found");
 				return;
 			}
-			playerCameraManager->ThermalPostProcessActor->Scanline->SetVisibility(*settingsManager->ThermalVisionDisableScanlinePtr, true);
+			playerCameraManager->ThermalPostProcessActor->Scanline->SetVisibility(!*settingsManager->DisableThermalVisionScanlinePtr, true);
 		}
 
 		if (CurrentItemID == SDK::EGsrItemId::IT_Stealth && PreviousItemID != SDK::EGsrItemId::IT_Stealth)
@@ -838,6 +838,7 @@ void WeaponManager::SpawnScope()
 
 void WeaponManager::DestroyScope()
 {
+	Logger::DebugPrint("hello");
 	if (ScopeStaticMeshComponent) ScopeStaticMeshComponent->K2_DestroyComponent(ScopeStaticMeshComponent);
 	if (SceneCaptureComponent) SceneCaptureComponent->K2_DestroyComponent(SceneCaptureComponent);
 	if (SceneCaptureUStaticMeshComponent) SceneCaptureUStaticMeshComponent->K2_DestroyComponent(SceneCaptureUStaticMeshComponent);
@@ -855,11 +856,6 @@ void WeaponManager::DestroyScope()
 	MosinScopeWidget = nullptr;
 }
 
-void WeaponManager::ChangeScopeResolution()
-{
-	ScopeRenderTarget->SizeX = ScopeRenderTarget->SizeY = *settingsManager->ScopeResolutionPtr;
-}
-
 void WeaponManager::ToggleThermalVisionScanline()
 {
 	if (playerCameraManager == nullptr)
@@ -869,7 +865,7 @@ void WeaponManager::ToggleThermalVisionScanline()
 	}
 	if (playerCameraManager->ThermalPostProcessActor == nullptr)
 		return;
-	playerCameraManager->ThermalPostProcessActor->Scanline->SetVisibility(*settingsManager->ThermalVisionDisableScanlinePtr, true);
+	playerCameraManager->ThermalPostProcessActor->Scanline->SetVisibility(!*settingsManager->DisableThermalVisionScanlinePtr, true);
 }
 
 void WeaponManager::applyRecoil(float delta)
@@ -1026,11 +1022,11 @@ void WeaponManager::spawnScope()
 void WeaponManager::getRenderTarget(SDK::UWorld* world)
 {
 	SDK::FLinearColor linearColor{};
-	
+	Logger::DebugPrint(ScopeRenderTarget->GetFullName().c_str());
 	if (!ScopeRenderTarget)
 	{
 		ScopeRenderTarget = SDK::UKismetRenderingLibrary::CreateRenderTarget2D(world, *settingsManager->ScopeResolutionPtr, *settingsManager->ScopeResolutionPtr, SDK::ETextureRenderTargetFormat::RTF_RGBA16f, linearColor, false, false);
-		//Logger::DebugPrint("Render target created : %s", ScopeRenderTarget->GetFullName().c_str());
+		Logger::DebugPrint("Render target created : %s", ScopeRenderTarget->GetFullName().c_str());
 	}
 	//else
 	//	Logger::DebugPrint("Render target already exists");

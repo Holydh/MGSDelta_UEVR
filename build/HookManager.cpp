@@ -227,13 +227,27 @@ bool HookManager::mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunctio
 
 bool HookManager::mod_GsrPlayer_OnStartUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	s_cameraController->UImenuOpen = true;
+	s_cameraController->SmallUIOpen = true;
 	return true;
 }
 
 bool HookManager::mod_GsrPlayer_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	s_cameraController->UImenuOpen = false;
+	s_cameraController->SmallUIOpen = false;
+	return true;
+}
+
+bool HookManager::mod_BP_GsrPlayerDamageFilterController_OnStartUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+	s_cameraController->MenuOpen = true;
+	Logger::DebugPrint("Menu Opened");
+	return true;
+}
+
+bool HookManager::mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+	s_cameraController->MenuOpen = false;
+	Logger::DebugPrint("Menu Closed");
 	return true;
 }
 

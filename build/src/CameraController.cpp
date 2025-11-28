@@ -216,7 +216,7 @@ void CameraController::ProcessCamera(float deltaTime)
 	CameraPosition.y = newPosition.y;
 	CameraPosition.z = newPosition.z;
 
-	if (!UImenuOpen)
+	if (!SmallUIOpen)
 	{
 		YawProcessed = YawInput * 3.0f * *settingsManager->CameraRotationSpeedPtr * deltaTime;
 		if (YawInput != 0.0)

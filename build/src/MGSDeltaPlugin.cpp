@@ -56,6 +56,8 @@ void MGSDeltaPlugin::on_initialize() {
 	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/BP_Player.BP_Player_C", L"OnChangeCamouflageApply", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_GsrPlayer_OnChangeCamouflageApply_post, true);
 	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/BP_Player.BP_Player_C", L"OnStartUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_GsrPlayer_OnStartUIMenu_post, true);
 	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/BP_Player.BP_Player_C", L"OnEndUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_GsrPlayer_OnEndUIMenu_post, true);
+	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Effect/BP_GsrPlayerDamageFilterController.BP_GsrPlayerDamageFilterController_C", L"OnStartUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_BP_GsrPlayerDamageFilterController_OnStartUIMenu_post, true);
+	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Effect/BP_GsrPlayerDamageFilterController.BP_GsrPlayerDamageFilterController_C", L"OnEndUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post, true);
 
 	//AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerKnifeReadyAction_C.ABP_PlayerKnifeReadyAction_C
 	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetCameraRequestModelVisibility", (UEVR_UFunction_NativePostFn)HookManager::mod_ISetCameraRequestModelVisibility_post ,NULL, true);
@@ -352,7 +354,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.DetachCameraFromAttachementActor();
 		cameraController.DestroyCameraAttachementActor();
 		API::VR::set_mod_value("VR_2DScreenMode", true);
-		API::VR::set_mod_value("VR_WorldScale", 0.0f);
+		API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DCutscenesAndMenusPtr ? 1.0f : 0.0f);
 		API::get()->dispatch_lua_event("PlayerTookControl", "0");
 		weaponManager.DestroyScope();
 		
@@ -366,6 +368,9 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
 	//auto start = std::chrono::high_resolution_clock::now();
 	playerManager.FetchGameState();
+
+	if (cameraController.MenuOpen)
+		playerManager.IsPlayerControlled = false;
 
 	if (playerManager.IsPlayerControlled && !playerManager.WasPlayerControlled)
 	{

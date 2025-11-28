@@ -49,5 +49,6 @@ public:
 	void ProcessCameraResetTimer(float delta);
 	void DisableGrassFading();
 
-	bool UImenuOpen = false;
+	bool SmallUIOpen = false;
+	bool MenuOpen = false;
 };

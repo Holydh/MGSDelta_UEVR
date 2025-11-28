@@ -23,6 +23,7 @@
 #include "SDK/BP_IT_Thermal_classes.hpp"
 #include "SDK/BP_PlayerCameraManager_classes.hpp"
 #include "SDK/BP_ThermalPostProcess_classes.hpp"
+//#include "SDK/BP_IT_Cigar_classes.hpp"
 
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
@@ -373,7 +374,7 @@ public:
 	void SwitchScopeState(bool enable);
 	void SpawnScope();
 	void DestroyScope();
-	void ChangeScopeResolution();
+	void ChangeScopeResolution(int resolution);
 
 	void ToggleThermalVisionScanline();
 

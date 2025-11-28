@@ -106,9 +106,12 @@ void SettingsManager::InitSettingsManager()
 	CameraPositionZLerpPtr = &cameraPositionZLerp;
 
 	SniperScopeEnabledPtr = &sniperScopeEnabled;
+	ScopeResolutionSliderIndexPtr = &scopeResolutionSliderIndex;
 	ScopeResolutionPtr = &scopeResolution;
 
-	ThermalVisionDisableScanlinePtr = &thermalVisionDisableScanline;
+	DisableThermalVisionScanlinePtr = &disableThermalVisionScanline;
+
+	Enable3DCutscenesAndMenusPtr = &enable3DCutscenesAndMenus;
 }
 
 void SettingsManager::FetchUevrSettings(bool writeToPlugin)
@@ -143,7 +146,9 @@ void SettingsManager::FetchPluginSettings()
 	sniperScopeEnabled = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "sniperScopeEnabled", true);
 	scopeResolution = SettingsManager::GetIntValueFromFile(pluginConfigFilePath, "scopeResolution", 1024);
 
-	thermalVisionDisableScanline = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "thermalVisionDisableScanline", true);
+	disableThermalVisionScanline = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "disableThermalVisionScanline", true);
+
+	enable3DCutscenesAndMenus = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DCutscenesAndMenus", false);
 	if (debugMod) Logger::DebugPrint("Plugin Settings Updated");
 }
 
@@ -162,7 +167,9 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "sniperScopeEnabled", sniperScopeEnabled);
 	SettingsManager::SetIntValueToFile(pluginConfigFilePath, "scopeResolution", scopeResolution);
 
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "thermalVisionDisableScanline", thermalVisionDisableScanline);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "disableThermalVisionScanline", disableThermalVisionScanline);
+
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DCutscenesAndMenus", enable3DCutscenesAndMenus);
 }
 
 
@@ -182,16 +189,17 @@ void SettingsManager::GetOrCreateConfigFile()
 			"attachCameraToSnakeHead=false\n"
 			"cameraRotationSpeed=25.0\n"
 			"cameraRotationDeadZone=0.2\n"
-			"smoothCameraRotation=true\n"
+			"smoothCameraRotation=false\n"
 			"cameraYawLerp=5.0\n"
 			"smoothCameraPosition=true\n"
-			"cameraPositionXYLerp=5.0\n"
+			"cameraPositionXYLerp=3.5\n"
 			"cameraPositionZLerp=5.0\n"
 			"------ Weapons Settings ------\n"
 			"sniperScopeEnabled=true\n"
 			"scopeResolution=1024\n"
 			"------ Items Settings ------\n"
-			"thermalVisionDisableScanline=true\n";
+			"disableThermalVisionScanline=true\n"
+			"enable3DCutscenesAndMenus=false\n";
 
 		HANDLE hCreateFile = CreateFileA(pluginConfigFilePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hCreateFile != INVALID_HANDLE_VALUE)
