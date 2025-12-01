@@ -207,7 +207,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	if (CurrentWeapon != params1.ReturnValue)
 	{
-		if (PreviousWeaponID == EGsrEquipId::WP_Dragnov || PreviousWeaponID == EGsrEquipId::WP_MosinNagant)
+		if (PreviousWeaponID == EGsrEquipId::WP_Dragnov || PreviousWeaponID == EGsrEquipId::WP_MosinNagant || PreviousWeaponID == EGsrEquipId::WP_Rpg)
 			ReceiverMesh->SetVisibility(false, false);
 		ReceiverMesh = nullptr;
 		WeaponRoot = nullptr;
@@ -277,7 +277,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		{
 			SwitchScopeState(false);
 
-			if (CurrentWeaponID == EGsrEquipId::WP_Dragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant)
+			if (CurrentWeaponID == EGsrEquipId::WP_Dragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant || CurrentWeaponID == EGsrEquipId::WP_Rpg)
 			{
 				if (!ReceiverMesh)
 				{
@@ -559,7 +559,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (!*settingsManager->SniperScopeEnabledPtr)
 			return;
 
-		if (CurrentWeaponID == EGsrEquipId::WP_Dragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant)
+		if (CurrentWeaponID == EGsrEquipId::WP_Dragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant || CurrentWeaponID == EGsrEquipId::WP_Rpg)
 		{
 			if (!ReceiverMesh->IsVisible())
 				ReceiverMesh->SetVisibility(true, true);
@@ -571,6 +571,7 @@ void WeaponManager::ProcessWeapon(float delta)
 			auto scopeMagnification = pawn->GetScopeMagnification();
 			//Logger::DebugPrint("scope magnification : %f", scopeMagnification);
 			float scopeFov = scopeMagnification == 3.0f ? 10.0f : 3.0f;
+			scopeFov = CurrentWeaponID == EGsrEquipId::WP_Rpg ? 10.0f : scopeFov;
 			SceneCaptureComponent->FOVAngle = scopeFov;
 			//Toggle zoom :
 			if (ZoomInput > 0.0f && scopeMagnification == 3.0f)
@@ -581,7 +582,7 @@ void WeaponManager::ProcessWeapon(float delta)
 					widget->SightZoomIn();
 					widget->SetCamZoomToggle();
 				}
-				else
+				if (CurrentWeaponID == EGsrEquipId::WP_MosinNagant)
 				{
 					auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
 					widget->SightZoomIn();
@@ -596,7 +597,7 @@ void WeaponManager::ProcessWeapon(float delta)
 					widget->SightZoomOut();
 					widget->SetCamZoomToggle();
 				}
-				else
+				if (CurrentWeaponID == EGsrEquipId::WP_MosinNagant)
 				{
 					auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
 					widget->SightZoomOut();
@@ -817,16 +818,23 @@ void WeaponManager::SwitchScopeState(bool enable)
 	if (SceneCaptureUStaticMeshComponent) SceneCaptureUStaticMeshComponent->SetVisibility(enable, false);
 	if (ScopeStaticMeshComponent) ScopeStaticMeshComponent->SetVisibility(enable, false);
 
-	
-	if (CurrentWeaponID == EGsrEquipId::WP_Dragnov)
+	switch (CurrentWeaponID)
 	{
-		if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
-		if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
-	}
-	else
-	{
-		if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
-		if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
+		case EGsrEquipId::WP_Dragnov:
+			if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
+			if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
+			if (SourceRpgScopeWidget) SourceRpgScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
+		break;
+		case EGsrEquipId::WP_MosinNagant:
+			if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
+			if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
+			if (SourceRpgScopeWidget) SourceRpgScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
+			break;
+		case EGsrEquipId::WP_Rpg :
+			if (SourceRpgScopeWidget) SourceRpgScopeWidget->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
+			if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
+			if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
+			break;
 	}
 }
 
@@ -1005,6 +1013,8 @@ void WeaponManager::spawnScope()
 		SceneCaptureComponent = nullptr;
 		SceneCaptureUStaticMeshComponent = nullptr;
 		DragnovScopeWidget = nullptr;
+		MosinScopeWidget = nullptr;
+		RpgScopeWidget = nullptr;
 		ScopeActor = (SDK::AActor*)Utilities::SpawnActor(UEVR_Vector3d{0.0f, 0.0f, 0.0f}, (uevr::API::UObject*)ReceiverMesh->GetOwner());
 		//Logger::DebugPrint("Scope Actor : %s", ScopeActor->GetFullName().c_str());
 	}
@@ -1015,8 +1025,7 @@ void WeaponManager::spawnScope()
 	if (!SceneCaptureComponent)
 		spawnSceneCaptureComponent();
 	//Logger::DebugPrint("spawnScopeWidget()");
-	if (!DragnovScopeWidget || !MosinScopeWidget)
-		spawnScopeWidget();
+	spawnScopeWidget();
 }
 
 void WeaponManager::getRenderTarget(SDK::UWorld* world)
@@ -1179,34 +1188,31 @@ void WeaponManager::spawnScopeWidget()
 	//Fetch existing widget :
 	uevr::API::UClass* scopeWidgetClass = nullptr;
 	SDK::UUserWidget* sourceWidget = nullptr;;
-	if (CurrentWeaponID == EGsrEquipId::WP_Dragnov)
+	//if (!DragnovScopeWidget || !MosinScopeWidget || !RpgScopeWidget)
+	switch (CurrentWeaponID)
 	{
+	case EGsrEquipId::WP_Dragnov:
+		if (DragnovScopeWidget) return;
 		scopeWidgetClass = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraUI.CSightDragnovWidget");
-		auto widgets = scopeWidgetClass->get_objects_matching();
-		sourceWidget = (SDK::UUserWidget*)widgets[1];
-	}
-	else
-	{
+		sourceWidget = (SDK::UUserWidget*)scopeWidgetClass->get_objects_matching()[1]; //check
+		break;
+
+	case EGsrEquipId::WP_MosinNagant:
+		if (MosinScopeWidget) return;
 		scopeWidgetClass = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraUI.CSightMosinWidget");
-		sourceWidget = (SDK::UUserWidget*)scopeWidgetClass->get_first_object_matching();
+		sourceWidget = (SDK::UUserWidget*)scopeWidgetClass->get_first_object_matching(false); //check if false works here and below
+		break;
+
+	case EGsrEquipId::WP_Rpg:
+		if (RpgScopeWidget) return;
+		scopeWidgetClass = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraUI.CSightRpg7Widget");
+		sourceWidget = (SDK::UUserWidget*)scopeWidgetClass->get_first_object_matching(false);
+		break;
 	}
-	
+
 
 	
-	SDK::FVector2D drawSize = {2100.0f, 2100.0f};
-	//for (int i = 0; i < widgets.size(); i++)
-	//{
-	//	auto child = (SDK::UUserWidget*)widgets[i];
-	//	if (!child) continue;
-	//	Logger::DebugPrint(child->GetFullName().c_str());
-	//	auto sizeTemp = child->GetDesiredSize();
-	//	Logger::DebugPrint("Widget Desired Size x : %f, y : %f", sizeTemp.X, sizeTemp.Y);
-	//	if (sizeTemp.X == 0.0f) continue;
-	//	sourceWidget = child;
-	//	drawSize = sizeTemp;
-	//	Logger::DebugPrint(sourceWidget->GetFullName().c_str());
-	//	Logger::DebugPrint("Widget Desired Size x : %f, y : %f", drawSize.X, drawSize.Y);
-	//}
+	SDK::FVector2D drawSize = {2100.0f, 2100.0f}; //The original size of the widget found ingame
 
 	if (!sourceWidget)
 	{
@@ -1248,7 +1254,9 @@ void WeaponManager::spawnScopeWidget()
 	SDK::FLinearColor color = { 1.0f, 1.0f, 1.0f, 1.0f }; 
 	SDK::UCanvasPanel* arrowGroup = nullptr;
 
-	if (CurrentWeaponID == EGsrEquipId::WP_Dragnov)
+	switch (CurrentWeaponID)
+	{
+	case EGsrEquipId::WP_Dragnov:
 	{
 		auto uSightDragnovWidget_C = (SDK::USightDragnovWidget_C*)sourceWidget;
 		arrowGroup = uSightDragnovWidget_C->ArrowGroup;
@@ -1259,8 +1267,9 @@ void WeaponManager::spawnScopeWidget()
 		SourceDragnovScopeWidget = sourceWidget;
 		DragnovScopeWidget = widgetComponent;
 		//Logger::DebugPrint(DragnovScopeWidget->GetFullName().c_str());
+		break;
 	}
-	else
+	case EGsrEquipId::WP_MosinNagant:
 	{
 		auto uSightMosinWidget_C = (SDK::USightMosinWidget_C*)sourceWidget;
 		arrowGroup = (SDK::UCanvasPanel*)uSightMosinWidget_C->ArrowGroup;
@@ -1269,7 +1278,7 @@ void WeaponManager::spawnScopeWidget()
 		uSightMosinWidget_C->RightBox->SetVisibility(SDK::ESlateVisibility::Hidden);
 		uSightMosinWidget_C->LeftBox->SetVisibility(SDK::ESlateVisibility::Hidden);
 
-		SDK::FLinearColor mosinColor = { 1.0f, 1.0f, 1.0f, 0.0f }; 
+		SDK::FLinearColor mosinColor = { 1.0f, 1.0f, 1.0f, 0.0f };
 		auto root = (SDK::UCanvasPanel*)uSightMosinWidget_C->WidgetTree->RootWidget;
 		auto ImageWidget = (SDK::UImage*)root->GetChildAt(0);
 		Logger::DebugPrint(ImageWidget->GetFullName().c_str());
@@ -1280,7 +1289,23 @@ void WeaponManager::spawnScopeWidget()
 		SourceMosinScopeWidget = sourceWidget;
 		MosinScopeWidget = widgetComponent;
 		//Logger::DebugPrint(MosinScopeWidget->GetFullName().c_str());
+		break;
 	}
+	case EGsrEquipId::WP_Rpg:
+	{
+		auto uSightRpg7Widget_C = (SDK::USightRPG7Widget_C*)sourceWidget;
+		arrowGroup = uSightRpg7Widget_C->ArrowGroup;
+		uSightRpg7Widget_C->BoxBg->SetVisibility(SDK::ESlateVisibility::Hidden);
+		uSightRpg7Widget_C->RightBox->SetVisibility(SDK::ESlateVisibility::Hidden);
+		uSightRpg7Widget_C->LeftBox->SetVisibility(SDK::ESlateVisibility::Hidden);
+
+		SourceRpgScopeWidget = sourceWidget;
+		RpgScopeWidget = widgetComponent;
+		//Logger::DebugPrint(DragnovScopeWidget->GetFullName().c_str());
+		break;
+	}
+	}
+
 	SetAllImageTints((SDK::UUserWidget*)arrowGroup, color);
 
 
@@ -1338,8 +1363,9 @@ void WeaponManager::attachScopeToWeapon()
 	SceneCaptureComponent->Activate(true);
 	SceneCaptureComponent->K2_SetRelativeRotation({0.0f, 90.0f, 0.0f}, false, &hitResult, true);
 
-	if (CurrentWeaponID == EGsrEquipId::WP_Dragnov)
+	switch (CurrentWeaponID)
 	{
+	case EGsrEquipId::WP_Dragnov:
 		DragnovScopeWidget->K2_AttachToComponent(
 			ScopeStaticMeshComponent,
 			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
@@ -1348,16 +1374,15 @@ void WeaponManager::attachScopeToWeapon()
 			SDK::EAttachmentRule::KeepRelative,
 			true
 		);
-
+		SceneCaptureUStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.0f }, false, &hitResult, true);
 		ScopeStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, -30.9, 0.0f }, false, &hitResult, true);
 		ScopeStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
 		ScopeStaticMeshComponent->SetRelativeScale3D({ 0.15f, 0.15f, 0.15f });
 		DragnovScopeWidget->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.05f }, false, &hitResult, true);
 		DragnovScopeWidget->K2_SetRelativeRotation({ 90.0f, 0.0f, -90.0f }, false, &hitResult, true);
 		DragnovScopeWidget->SetRelativeScale3D({ 0.025f, 0.025f, 0.025f });
-	}
-	else
-	{
+		break;
+	case EGsrEquipId::WP_MosinNagant:
 		MosinScopeWidget->K2_AttachToComponent(
 			ScopeStaticMeshComponent,
 			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
@@ -1366,14 +1391,33 @@ void WeaponManager::attachScopeToWeapon()
 			SDK::EAttachmentRule::KeepRelative,
 			true
 		);
-
+		SceneCaptureUStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.0f }, false, &hitResult, true);
 		ScopeStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, -18.5f, 0.0f }, false, &hitResult, true);
 		ScopeStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
 		ScopeStaticMeshComponent->SetRelativeScale3D({ 0.12f, 0.12f, 0.12f });
 		MosinScopeWidget->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.05f }, false, &hitResult, true);
 		MosinScopeWidget->K2_SetRelativeRotation({ 90.0f, 0.0f, -90.0f }, false, &hitResult, true);
 		MosinScopeWidget->SetRelativeScale3D({ 0.023f, 0.023f, 0.023f });
+		break;
+	case EGsrEquipId::WP_Rpg:
+		RpgScopeWidget->K2_AttachToComponent(
+			ScopeStaticMeshComponent,
+			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
+			SDK::EAttachmentRule::SnapToTarget,
+			SDK::EAttachmentRule::SnapToTarget,
+			SDK::EAttachmentRule::KeepRelative,
+			true
+		);
+		SceneCaptureUStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, 25.0f, 0.0f }, false, &hitResult, true);
+		ScopeStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, 1.33f, 0.0f }, false, &hitResult, true);
+		ScopeStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
+		ScopeStaticMeshComponent->SetRelativeScale3D({ 0.185f, 0.185f, 0.185f });
+		RpgScopeWidget->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.1f }, false, &hitResult, true);
+		RpgScopeWidget->K2_SetRelativeRotation({ 90.0f, 0.0f, -90.0f }, false, &hitResult, true);
+		RpgScopeWidget->SetRelativeScale3D({ 0.012f, 0.012f, 0.012f });
+		break;
 	}
+
 	ScopeStaticMeshComponent->SetVisibility(false, false);
 
 	//ScopeWidgetStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, -26.0f, 0.0f }, false, &hitResult, true);

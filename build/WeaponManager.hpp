@@ -18,6 +18,7 @@
 #include "SDK/CobraUI_classes.hpp"
 #include "SDK/SightDragnovWidget_classes.hpp"
 #include "SDK/SightMosinWidget_classes.hpp"
+#include "SDK/SightRPG7Widget_classes.hpp"
 
 #include "SDK/BP_IT_NightVision_classes.hpp"
 #include "SDK/BP_IT_Thermal_classes.hpp"
@@ -75,6 +76,8 @@ public:
 	SDK::UWidgetComponent* DragnovScopeWidget = nullptr;
 	SDK::UUserWidget* SourceMosinScopeWidget = nullptr;
 	SDK::UWidgetComponent* MosinScopeWidget = nullptr;
+	SDK::UUserWidget* SourceRpgScopeWidget = nullptr;
+	SDK::UWidgetComponent* RpgScopeWidget = nullptr;
 
 	SDK::UStaticMeshComponent* ScopeStaticMeshComponent = nullptr;
 	SDK::USceneCaptureComponent2D* SceneCaptureComponent = nullptr;
