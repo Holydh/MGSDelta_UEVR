@@ -69,7 +69,6 @@ public:
 	SDK::EGsrItemId CurrentItemID = SDK::EGsrItemId::IT_None;
 	SDK::EGsrItemId PreviousItemID = SDK::EGsrItemId::IT_None;
 
-	bool IsDragnov = false;
 	float ZoomInput = 0.0f;
 	SDK::AActor* ScopeActor = nullptr;
 	SDK::UUserWidget* SourceDragnovScopeWidget = nullptr;

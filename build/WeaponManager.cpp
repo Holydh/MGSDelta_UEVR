@@ -276,8 +276,8 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (*settingsManager->SniperScopeEnabledPtr)
 		{
 			SwitchScopeState(false);
-			IsDragnov = CurrentWeaponID == EGsrEquipId::WP_Dragnov;
-			if (IsDragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant)
+
+			if (CurrentWeaponID == EGsrEquipId::WP_Dragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant)
 			{
 				if (!ReceiverMesh)
 				{
@@ -559,7 +559,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (!*settingsManager->SniperScopeEnabledPtr)
 			return;
 
-		if (IsDragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant)
+		if (CurrentWeaponID == EGsrEquipId::WP_Dragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant)
 		{
 			if (!ReceiverMesh->IsVisible())
 				ReceiverMesh->SetVisibility(true, true);
@@ -575,7 +575,7 @@ void WeaponManager::ProcessWeapon(float delta)
 			//Toggle zoom :
 			if (ZoomInput > 0.0f && scopeMagnification == 3.0f)
 			{
-				if (IsDragnov)
+				if (CurrentWeaponID == EGsrEquipId::WP_Dragnov)
 				{
 					auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
 					widget->SightZoomIn();
@@ -590,7 +590,7 @@ void WeaponManager::ProcessWeapon(float delta)
 			}
 			if (ZoomInput < 0.0f && scopeMagnification == 10.0f)
 			{
-				if (IsDragnov)
+				if (CurrentWeaponID == EGsrEquipId::WP_Dragnov)
 				{
 					auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
 					widget->SightZoomOut();
@@ -818,7 +818,7 @@ void WeaponManager::SwitchScopeState(bool enable)
 	if (ScopeStaticMeshComponent) ScopeStaticMeshComponent->SetVisibility(enable, false);
 
 	
-	if (IsDragnov)
+	if (CurrentWeaponID == EGsrEquipId::WP_Dragnov)
 	{
 		if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
 		if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
@@ -1179,7 +1179,7 @@ void WeaponManager::spawnScopeWidget()
 	//Fetch existing widget :
 	uevr::API::UClass* scopeWidgetClass = nullptr;
 	SDK::UUserWidget* sourceWidget = nullptr;;
-	if (IsDragnov)
+	if (CurrentWeaponID == EGsrEquipId::WP_Dragnov)
 	{
 		scopeWidgetClass = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraUI.CSightDragnovWidget");
 		auto widgets = scopeWidgetClass->get_objects_matching();
@@ -1248,7 +1248,7 @@ void WeaponManager::spawnScopeWidget()
 	SDK::FLinearColor color = { 1.0f, 1.0f, 1.0f, 1.0f }; 
 	SDK::UCanvasPanel* arrowGroup = nullptr;
 
-	if (IsDragnov)
+	if (CurrentWeaponID == EGsrEquipId::WP_Dragnov)
 	{
 		auto uSightDragnovWidget_C = (SDK::USightDragnovWidget_C*)sourceWidget;
 		arrowGroup = uSightDragnovWidget_C->ArrowGroup;
@@ -1338,7 +1338,7 @@ void WeaponManager::attachScopeToWeapon()
 	SceneCaptureComponent->Activate(true);
 	SceneCaptureComponent->K2_SetRelativeRotation({0.0f, 90.0f, 0.0f}, false, &hitResult, true);
 
-	if (IsDragnov)
+	if (CurrentWeaponID == EGsrEquipId::WP_Dragnov)
 	{
 		DragnovScopeWidget->K2_AttachToComponent(
 			ScopeStaticMeshComponent,
