@@ -571,7 +571,7 @@ void WeaponManager::ProcessWeapon(float delta)
 			auto scopeMagnification = pawn->GetScopeMagnification();
 			//Logger::DebugPrint("scope magnification : %f", scopeMagnification);
 			float scopeFov = scopeMagnification == 3.0f ? 10.0f : 3.0f;
-			scopeFov = CurrentWeaponID == EGsrEquipId::WP_Rpg ? 10.0f : scopeFov;
+			scopeFov = CurrentWeaponID == EGsrEquipId::WP_Rpg ? 16.0f : scopeFov;
 			SceneCaptureComponent->FOVAngle = scopeFov;
 			//Toggle zoom :
 			if (ZoomInput > 0.0f && scopeMagnification == 3.0f)
@@ -1408,7 +1408,7 @@ void WeaponManager::attachScopeToWeapon()
 			SDK::EAttachmentRule::KeepRelative,
 			true
 		);
-		SceneCaptureUStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, 25.0f, 0.0f }, false, &hitResult, true);
+		SceneCaptureUStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, 26.0f, 0.0f }, false, &hitResult, true);
 		ScopeStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, 1.33f, 0.0f }, false, &hitResult, true);
 		ScopeStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
 		ScopeStaticMeshComponent->SetRelativeScale3D({ 0.185f, 0.185f, 0.185f });
