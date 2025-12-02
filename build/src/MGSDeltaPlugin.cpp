@@ -344,6 +344,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		//Utilities::DebugCigar0 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 		//Utilities::DebugCigar1 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 		API::get()->dispatch_lua_event("PlayerTookControl", "1");
+		//cameraController.SetNearClipPlane(10000.0f);
 		vr_enabled = enable;
 	}
 

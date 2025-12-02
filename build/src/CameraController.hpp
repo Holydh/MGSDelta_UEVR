@@ -49,6 +49,8 @@ public:
 	void ProcessCameraResetTimer(float delta);
 	void DisableGrassFading();
 
+	//void SetNearClipPlane(float nearClip);
+
 	bool SmallUIOpen = false;
 	//Radio, inventory, etc.
 	bool MenuOpen = false;

@@ -269,4 +269,13 @@ void CameraController::DisableGrassFading()
 	}
 }
 
+//void CameraController::SetNearClipPlane(float nearClip)
+//{
+//	auto playerCameraActor_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraActor");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
+//	auto playerCamera = playerCameraActor_c->get_first_object_matching(false);
+//	auto sdkPlayerCamera = (SDK::AGsrPlayerCameraActor*)playerCamera;
+//	sdkPlayerCamera->CameraComponent->SetOrthoNearClipPlane(nearClip);
+//	Logger::DebugPrint("%f", sdkPlayerCamera->CameraComponent->OrthoNearClipPlane);
+//}
+
 
