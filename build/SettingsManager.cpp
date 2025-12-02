@@ -111,6 +111,7 @@ void SettingsManager::InitSettingsManager()
 
 	DisableThermalVisionScanlinePtr = &disableThermalVisionScanline;
 
+	EnableCutoutScreenForCutscenesAndMenusPtr = &enableCutoutScreenForCutscenesAndMenus;
 	Enable3DCutscenesAndMenusPtr = &enable3DCutscenesAndMenus;
 }
 
@@ -148,6 +149,7 @@ void SettingsManager::FetchPluginSettings()
 
 	disableThermalVisionScanline = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "disableThermalVisionScanline", true);
 
+	enableCutoutScreenForCutscenesAndMenus = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableCutoutScreenForCutscenesAndMenus", true);
 	enable3DCutscenesAndMenus = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DCutscenesAndMenus", false);
 	if (debugMod) Logger::DebugPrint("Plugin Settings Updated");
 }
@@ -169,6 +171,7 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "disableThermalVisionScanline", disableThermalVisionScanline);
 
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableCutoutScreenForCutscenesAndMenus", enableCutoutScreenForCutscenesAndMenus);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DCutscenesAndMenus", enable3DCutscenesAndMenus);
 }
 
@@ -199,6 +202,8 @@ void SettingsManager::GetOrCreateConfigFile()
 			"scopeResolution=1024\n"
 			"------ Items Settings ------\n"
 			"disableThermalVisionScanline=true\n"
+			"------ Misc Settings ------\n"
+			"enableCutoutScreenForCutscenesAndMenus=true\n"
 			"enable3DCutscenesAndMenus=false\n";
 
 		HANDLE hCreateFile = CreateFileA(pluginConfigFilePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);

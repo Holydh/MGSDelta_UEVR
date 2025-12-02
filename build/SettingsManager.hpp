@@ -56,6 +56,7 @@ public:
 
 	bool* DisableThermalVisionScanlinePtr;
 
+	bool* EnableCutoutScreenForCutscenesAndMenusPtr;
 	bool* Enable3DCutscenesAndMenusPtr;
 	
 private:
@@ -74,6 +75,7 @@ private:
 
 	bool disableThermalVisionScanline = true;
 
+	bool enableCutoutScreenForCutscenesAndMenus = true;
 	bool enable3DCutscenesAndMenus = false;
 
 

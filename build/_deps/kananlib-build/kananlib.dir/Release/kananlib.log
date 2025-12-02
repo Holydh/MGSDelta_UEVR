@@ -1,2 +1,15 @@
-﻿  Scan.cpp
+﻿  Address.cpp
+  Config.cpp
+  Emulation.cpp
+  Memory.cpp
+  Module.cpp
+  Patch.cpp
+  Pattern.cpp
+  PointerHook.cpp
+  RTTI.cpp
+  Registry.cpp
+  Scan.cpp
+  String.cpp
+  Thread.cpp
+  VtableHook.cpp
   kananlib.vcxproj -> C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\kananlib-build\Release\kananlib.lib

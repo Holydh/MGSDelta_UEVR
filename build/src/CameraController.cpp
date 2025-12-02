@@ -196,7 +196,7 @@ void CameraController::ProcessCamera(float deltaTime)
 
 	else
 	{
-		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr || CardBoardEquipped ? 
+		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr || CardBoardEquipped || playerManager->IsFirstPersonView? 
 			glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
 			glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
 		newPosition = *settingsManager->SmoothCameraPositionPtr ? 

@@ -184,6 +184,13 @@ void WeaponManager::FetchEquipController()
 
 void WeaponManager::ProcessWeapon(float delta)
 {
+	if (AttachHandNextFrame)
+	{
+		AttachHandToWeapon();
+		SendHandStateToLua();
+		AttachHandNextFrame = false;
+	}
+
 	//Get weapon ID
 	//Logger::DebugPrint(wobblingController->get_full_name());
 	struct ParameterWeaponID {
@@ -318,10 +325,8 @@ void WeaponManager::ProcessWeapon(float delta)
 			return;
 		}
 
-		if (playerManager->RightHandMesh && !playerManager->HandAttachedToWeapon && handShouldAttachToWeapon)
-		{
-			attachHandToWeapon();
-		}
+		
+		AttachHandNextFrame = true;	
 	}
 
 	if (CurrentWeaponID == EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
@@ -623,25 +628,29 @@ void WeaponManager::ProcessWeapon(float delta)
 		LeftHandWeaponRoot = nullptr;
 }
 
-void WeaponManager::attachHandToWeapon()
+void WeaponManager::AttachHandToWeapon()
 {
-	Logger::DebugPrint("attach Hand to weapon");
-	playerManager->RightHandMesh->DetachFromParent(true, false);
-	playerManager->RightHandMesh->K2_AttachToComponent(
-		(SDK::USceneComponent*)WeaponRoot,
-		SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
-		SDK::EAttachmentRule::KeepWorld,
-		SDK::EAttachmentRule::KeepWorld,
-		SDK::EAttachmentRule::KeepRelative,
-		false
-	);
-	playerManager->HandAttachedToWeapon = true;
-	SDK::FHitResult outHit;
+	if (!playerManager->RightHandMesh) return;
 
-	playerManager->RightHandMesh->K2_AddRelativeLocation(HandLocationOffest, false, &outHit, false);
-	playerManager->RightHandMesh->K2_AddRelativeRotation(HandRotationOffset, false, &outHit, false);
-	playerManager->RightHandMesh->SetVisibility(true, true);
-	playerManager->LeftHandMesh->SetVisibility(true, true);
+	if (!playerManager->HandAttachedToWeapon && handShouldAttachToWeapon)
+	{
+		Logger::DebugPrint("attach Hand to weapon");
+		playerManager->RightHandMesh->DetachFromParent(true, false);
+		playerManager->RightHandMesh->K2_AttachToComponent(
+			(SDK::USceneComponent*)WeaponRoot,
+			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
+			SDK::EAttachmentRule::KeepWorld,
+			SDK::EAttachmentRule::KeepWorld,
+			SDK::EAttachmentRule::KeepRelative,
+			false
+		);
+		playerManager->HandAttachedToWeapon = true;
+		//SDK::FHitResult outHit;
+		//playerManager->RightHandMesh->K2_AddRelativeLocation(HandLocationOffest, false, &outHit, false);
+		//playerManager->RightHandMesh->K2_AddRelativeRotation(HandRotationOffset, false, &outHit, false);
+		playerManager->RightHandMesh->SetVisibility(true, true);
+		playerManager->LeftHandMesh->SetVisibility(true, true);
+	}
 }
 
 void WeaponManager::detachHandFromWeapon()
@@ -857,7 +866,6 @@ void WeaponManager::SpawnScope()
 
 void WeaponManager::DestroyScope()
 {
-	Logger::DebugPrint("hello");
 	if (ScopeStaticMeshComponent) ScopeStaticMeshComponent->K2_DestroyComponent(ScopeStaticMeshComponent);
 	if (SceneCaptureComponent) SceneCaptureComponent->K2_DestroyComponent(SceneCaptureComponent);
 	if (SceneCaptureUStaticMeshComponent) SceneCaptureUStaticMeshComponent->K2_DestroyComponent(SceneCaptureUStaticMeshComponent);

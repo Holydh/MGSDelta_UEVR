@@ -122,6 +122,7 @@ void MGSDeltaPlugin::on_custom_event(const char* event_name, const char* event_d
 			Toggle6DOF(true);
 			playerManager.FetchMotionControllers();
 			weaponManager.SendHandStateToLua();
+			weaponManager.AttachHandNextFrame = true;
 		}
 	}
 }
@@ -354,7 +355,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		playerManager.ToggleReticleVisibility(true);
 		cameraController.DetachCameraFromAttachementActor();
 		cameraController.DestroyCameraAttachementActor();
-		API::VR::set_mod_value("VR_2DScreenMode", true);
+		API::VR::set_mod_value("VR_2DScreenMode", *settingsManager.EnableCutoutScreenForCutscenesAndMenusPtr);
 		API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DCutscenesAndMenusPtr ? 1.0f : 0.0f);
 		API::get()->dispatch_lua_event("PlayerTookControl", "0");
 		weaponManager.DestroyScope();

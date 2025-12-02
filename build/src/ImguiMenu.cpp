@@ -275,7 +275,7 @@ void ImGuiMenu::internalFrame()
 				API::VR::set_decoupled_pitch_enabled(!API::VR::is_decoupled_pitch_enabled());
 			}*/
 
-		if (ImGui::Checkbox("Attach To Snake Head", settingsManager->AttachCameraToSnakeHeadPtr))
+		if (ImGui::Checkbox("Attach camera to snake head", settingsManager->AttachCameraToSnakeHeadPtr))
 			settingsManager->SettingsModifiedThisFrame = true;
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Not recommended for comfort");
@@ -283,20 +283,20 @@ void ImGuiMenu::internalFrame()
 		float available = ImGui::GetContentRegionAvail().x;
 		ImGui::PushItemWidth(available * 0.5f);
 
-		if (ImGui::SliderFloat("Rotation Speed", settingsManager->CameraRotationSpeedPtr, 0.1f, 50.0f))
+		if (ImGui::SliderFloat("Rotation speed", settingsManager->CameraRotationSpeedPtr, 0.1f, 50.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Controls how fast the camera rotates when turning");
 
-		if (ImGui::SliderFloat("Rotation Deadzone", settingsManager->CameraRotationDeadZonePtr, 0.0f, 1.0f))
+		if (ImGui::SliderFloat("Rotation deadzone", settingsManager->CameraRotationDeadZonePtr, 0.0f, 1.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Thumbstick input below this threshold will be ignored");
 
-		if (ImGui::Checkbox("Smooth Camera Rotation", settingsManager->SmoothCameraRotationPtr))
+		if (ImGui::Checkbox("Smooth camera rotation", settingsManager->SmoothCameraRotationPtr))
 			settingsManager->SettingsModifiedThisFrame = true;
 
-		if (ImGui::SliderFloat("Rotation Smoothness", settingsManager->CameraYawLerpPtr, 0.0f, 10.0f))
+		if (ImGui::SliderFloat("Rotation smoothness", settingsManager->CameraYawLerpPtr, 0.0f, 10.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
 		if (ImGui::IsItemHovered()) {
 			ImGui::BeginTooltip();
@@ -305,10 +305,10 @@ void ImGuiMenu::internalFrame()
 			ImGui::EndTooltip();
 		}
 
-		if (ImGui::Checkbox("Smooth Camera Position", settingsManager->SmoothCameraPositionPtr))
+		if (ImGui::Checkbox("Smooth camera position", settingsManager->SmoothCameraPositionPtr))
 			settingsManager->SettingsModifiedThisFrame = true;
 
-		if (ImGui::SliderFloat("Horizontal Smoothness (X&Y Axis)", settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f))
+		if (ImGui::SliderFloat("Horizontal smoothness (X&Y Axis)", settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
 		if (ImGui::IsItemHovered()) {
 			ImGui::BeginTooltip();
@@ -317,7 +317,7 @@ void ImGuiMenu::internalFrame()
 			ImGui::EndTooltip();
 		}
 
-		if (ImGui::SliderFloat("Vertical Smoothness (Z Axis)", settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f))
+		if (ImGui::SliderFloat("Vertical smoothness (Z Axis)", settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f))
 			settingsManager->SettingsModifiedThisFrame = true;
 		if (ImGui::IsItemHovered()) {
 			ImGui::BeginTooltip();
@@ -329,7 +329,7 @@ void ImGuiMenu::internalFrame()
 		ImGui::Separator();
 		ImGui::Text("--- Weapons Settings ---");
 
-		if (ImGui::Checkbox("Enable Sniper Scopes", settingsManager->SniperScopeEnabledPtr))
+		if (ImGui::Checkbox("Enable VR scopes", settingsManager->SniperScopeEnabledPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
 			if (!*settingsManager->SniperScopeEnabledPtr)
@@ -338,7 +338,7 @@ void ImGuiMenu::internalFrame()
 				weaponManager->SpawnScope();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Sniper scopes have some impact on framerate");
+			ImGui::SetTooltip("VR scopes have an impact on framerate");
 
 		int resolution = *settingsManager->ScopeResolutionPtr;
 
@@ -356,7 +356,7 @@ void ImGuiMenu::internalFrame()
 		// Make sure the index pointer starts correct (optional safety)
 		*settingsManager->ScopeResolutionSliderIndexPtr = sliderIndex;
 
-		if (ImGui::SliderInt("Scopes Resolution",
+		if (ImGui::SliderInt("Scopes resolution",
 			settingsManager->ScopeResolutionSliderIndexPtr,
 			sliderMin,
 			sliderMax))
@@ -380,7 +380,6 @@ void ImGuiMenu::internalFrame()
 		if (ImGui::IsItemHovered()) {
 			ImGui::BeginTooltip();
 			ImGui::Text("Change the quality of the Scope view. Can help with performance.");
-			ImGui::Text("Requires to reload a save or reset the plugin to apply");
 			ImGui::EndTooltip();
 		}
 		ImGui::SameLine();
@@ -389,7 +388,7 @@ void ImGuiMenu::internalFrame()
 		ImGui::Separator();
 		ImGui::Text("--- Items Settings ---");
 
-		if (ImGui::Checkbox("Disable Thermal Goggles Scanline effect", settingsManager->DisableThermalVisionScanlinePtr))
+		if (ImGui::Checkbox("Disable thermal goggles scanline effect", settingsManager->DisableThermalVisionScanlinePtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
 			weaponManager->ToggleThermalVisionScanline();
@@ -400,19 +399,26 @@ void ImGuiMenu::internalFrame()
 		ImGui::Separator();
 		ImGui::Text("--- Misc Settings ---");
 
-		if (ImGui::Checkbox("Enable 3D Cutscenes And Menus", settingsManager->Enable3DCutscenesAndMenusPtr))
+		if (ImGui::Checkbox("Enable cutout screen for cutscenes and menus", settingsManager->EnableCutoutScreenForCutscenesAndMenusPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
 			if (cameraController->MenuOpen)
 			{
-				if (*settingsManager->Enable3DCutscenesAndMenusPtr)
-					uevr::API::VR::set_mod_value("VR_WorldScale", 1.0f);
-				else
-					uevr::API::VR::set_mod_value("VR_WorldScale", 0.0f);
+				uevr::API::VR::set_mod_value("VR_2DScreenMode", *settingsManager->EnableCutoutScreenForCutscenesAndMenusPtr);
+				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesAndMenusPtr ? 1.0f : 0.0f);
 			}
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Can be incompatible with some HMDs and/or softwares like Virtual Desktop. Disable it if you have black screen or other issues.");
+			ImGui::SetTooltip("Cutscenes warp issue workaround. Disable if you have black screen during cutscenes. Disable 3D cutscenes (setting below) if you have double vision");
+
+		if (ImGui::Checkbox("Enable 3D cutscenes and menus", settingsManager->Enable3DCutscenesAndMenusPtr))
+		{
+			settingsManager->SettingsModifiedThisFrame = true;
+			if (cameraController->MenuOpen)
+				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesAndMenusPtr ? 1.0f : 0.0f);
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Can be incompatible with some HMDs and link software combo (eg. Q3 + VD). Disable it if you have black screen or double vision.");
 
 		ImGui::PopItemWidth();
 		/*	

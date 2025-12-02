@@ -46,7 +46,6 @@ private:
 	void spawnSceneCaptureComponent();
 	void spawnScopeWidget();
 	void attachScopeToWeapon();
-	void attachHandToWeapon();
 	void detachHandFromWeapon();
 
 	SDK::FName tntSocketFname;
@@ -376,10 +375,11 @@ public:
 	void SwitchScopeState(bool enable);
 	void SpawnScope();
 	void DestroyScope();
-	void ChangeScopeResolution(int resolution);
 
 	void ToggleThermalVisionScanline();
 
 	void ProcessItem();
 	void SendHandStateToLua();
+	void AttachHandToWeapon();
+	bool AttachHandNextFrame = false;
 };
