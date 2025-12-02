@@ -60,6 +60,17 @@ void WeaponManager::ProcessItem()
 		{
 			uevr::API::get()->dispatch_lua_event("HandsReset", "0");
 		}
+
+		if (CurrentItemID == SDK::EGsrItemId::IT_CBoxA || CurrentItemID == SDK::EGsrItemId::IT_CBoxB || CurrentItemID == SDK::EGsrItemId::IT_CBoxC || CurrentItemID == SDK::EGsrItemId::IT_CBoxD)
+		{
+			cameraController->CardBoardEquipped = true;
+			uevr::API::VR::set_mod_value("VR_RoomscaleMovement", false);
+		}
+		else
+		{
+			cameraController->CardBoardEquipped = false;
+			uevr::API::VR::set_mod_value("VR_RoomscaleMovement", true);
+		}
 	}
 }
 

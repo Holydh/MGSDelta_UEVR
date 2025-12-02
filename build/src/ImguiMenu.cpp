@@ -403,10 +403,13 @@ void ImGuiMenu::internalFrame()
 		if (ImGui::Checkbox("Enable 3D Cutscenes And Menus", settingsManager->Enable3DCutscenesAndMenusPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
-			if (*settingsManager->Enable3DCutscenesAndMenusPtr)
-				uevr::API::VR::set_mod_value("VR_WorldScale", 1.0f);
-			else
-				uevr::API::VR::set_mod_value("VR_WorldScale", 0.0f);
+			if (cameraController->MenuOpen)
+			{
+				if (*settingsManager->Enable3DCutscenesAndMenusPtr)
+					uevr::API::VR::set_mod_value("VR_WorldScale", 1.0f);
+				else
+					uevr::API::VR::set_mod_value("VR_WorldScale", 0.0f);
+			}
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Can be incompatible with some HMDs and/or softwares like Virtual Desktop. Disable it if you have black screen or other issues.");

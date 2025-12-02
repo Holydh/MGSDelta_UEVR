@@ -40,6 +40,7 @@ public:
 	bool IsPeepingInternal = false;
 	bool WasPeepingInternal = false;
 	bool IsPeeping = false;
+	bool WasPeeping = false;
 	float ExtendPeepingStateTimer = 0.0f;
 	void UpdatePeepingState(float deltaTime);
 

@@ -196,14 +196,14 @@ void CameraController::ProcessCamera(float deltaTime)
 
 	else
 	{
-		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr ? 
+		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr || CardBoardEquipped ? 
 			glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
 			glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
 		newPosition = *settingsManager->SmoothCameraPositionPtr ? 
 			glm::fvec3(
 			glm::mix(LastCameraPosition.x, tempPosition.x, 11.25f * remappedLerpXYMultiplier * deltaTime),
 			glm::mix(LastCameraPosition.y, tempPosition.y, 11.25f * remappedLerpXYMultiplier * deltaTime),
-			glm::mix(LastCameraPosition.z, tempPosition.z, 2.25f * remappedLerpZMultiplier * deltaTime)):
+			glm::mix(LastCameraPosition.z, tempPosition.z, (CardBoardEquipped ? 5.0f : 2.25f) * remappedLerpZMultiplier * deltaTime)):
 			tempPosition;
 	}
 

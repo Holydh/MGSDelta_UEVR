@@ -4,6 +4,7 @@
 #include "Inputs.hpp"
 #include "SettingsManager.hpp"
 #include "WeaponManager.hpp"
+#include "CameraController.hpp"
 
 // only really necessary if you want to render to the screen
 #include "renderlib/uevr_imgui/imgui_impl_dx11.h"
@@ -22,6 +23,7 @@ class ImGuiMenu {
 private:
     SettingsManager* const settingsManager;
     WeaponManager* const weaponManager;
+	CameraController* const cameraController;
 
 	HWND m_wnd;
     bool m_initialized = false;
@@ -43,7 +45,7 @@ private:
     float mouseUseTimer = 1.0f;
 
 public:
-    ImGuiMenu(SettingsManager* sm, WeaponManager* wm) : settingsManager(sm), weaponManager(wm) {};
+    ImGuiMenu(SettingsManager* sm, WeaponManager* wm, CameraController* cm) : settingsManager(sm), weaponManager(wm), cameraController(cm) {};
 
 	void RenderImGuiFrame();
     void RenderImGuiVRFrameDX11(ID3D11DeviceContext* context, ID3D11Texture2D* texture, ID3D11RenderTargetView* rtv);

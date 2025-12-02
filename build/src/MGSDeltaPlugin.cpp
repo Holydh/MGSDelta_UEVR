@@ -7,7 +7,7 @@ using namespace uevr;
 
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager, &weaponManager),
+MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager, &weaponManager, &cameraController),
 inputs(),
 cameraController(&playerManager, &settingsManager), 
 weaponManager(&memoryManager, &settingsManager, &playerManager, &cameraController), 
@@ -339,6 +339,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.AttachCameraToAttachementActor();
 		API::VR::set_mod_value("VR_2DScreenMode", false);
 		API::VR::set_mod_value("VR_WorldScale", 1.0f);
+		uevr::API::VR::set_mod_value("VR_RoomscaleMovement", true);
 		//Utilities::DebugCigar0 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 		//Utilities::DebugCigar1 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 		API::get()->dispatch_lua_event("PlayerTookControl", "1");
@@ -445,6 +446,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.WasAiming = playerManager.IsAiming;
 	playerManager.PreviousCameraMode = playerManager.CurrentCameraMode;
 	playerManager.WasMeleeAttackRunning = playerManager.MeleeAttackRunning;
+	playerManager.WasPeeping = playerManager.IsPeeping;
 	weaponManager.PreviousWeaponID = weaponManager.CurrentWeaponID;
 	weaponManager.PreviousItemID = weaponManager.CurrentItemID;
 	weaponManager.WasLeftGripInputPressed = weaponManager.LeftGripInputPressed;
@@ -554,16 +556,23 @@ void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, 
 	PLUGIN_LOG_ONCE("XInput Get State");
 	//if (state->Gamepad.sThumbRX != 0.0)
 	//	Logger::DebugPrint("%d", state->Gamepad.sThumbRX);
-	float rawXInput = (float)state->Gamepad.sThumbRX / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
-	cameraController.YawInput = rawXInput > *settingsManager.CameraRotationDeadZonePtr || rawXInput < -*settingsManager.CameraRotationDeadZonePtr ? rawXInput : 0.0f;
+	float rawRightXInput = (float)state->Gamepad.sThumbRX / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
+	cameraController.YawInput = rawRightXInput > *settingsManager.CameraRotationDeadZonePtr || rawRightXInput < -*settingsManager.CameraRotationDeadZonePtr ? rawRightXInput : 0.0f;
 
-	float rawYInput = (float)state->Gamepad.sThumbRY / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
-	weaponManager.ZoomInput = rawYInput > 0.5f || rawYInput < -0.5f ? rawYInput : 0.0f;
+	float rawRightYInput = (float)state->Gamepad.sThumbRY / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
+	weaponManager.ZoomInput = rawRightYInput > 0.5f || rawRightYInput < -0.5f ? rawRightYInput : 0.0f;
 
 	float triggerInput = (float)state->Gamepad.bRightTrigger / 255.0f; // Normalize to 0.0 to 1.0
 	weaponManager.LeftGripInputPressed = triggerInput > 0.5f ? true : false;
 
 	weaponManager.LeftGripInputPressed = state->Gamepad.wButtons == 256 ? true : false;
+
+	//float rawLeftXInput = (float)state->Gamepad.sThumbLX / 32768.0f; // Normalize to -1.0 to 1.0
+	//float rawLeftYInput = (float)state->Gamepad.sThumbLY / 32768.0f; // Normalize to -1.0 to 1.0
+
+	//Logger::DebugPrint("Left Joystick X: %f", rawLeftXInput);
+	//Logger::DebugPrint("Left Joystick Y: %f", rawLeftYInput);
+	//Logger::DebugPrint("Total: %f", rawLeftXInput + rawLeftYInput);
 }
 
 void MGSDeltaPlugin::on_xinput_set_state(uint32_t* retval, uint32_t user_index, XINPUT_VIBRATION* vibration)

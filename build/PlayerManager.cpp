@@ -159,6 +159,11 @@ void PlayerManager::UpdatePeepingState(float deltaTime)
 		IsPeeping = false;
 		ExtendPeepingStateTimer = 0.0f;
 	}
+
+	if (IsPeepingInternal != WasPeepingInternal)
+	{
+		uevr::API::VR::set_mod_value("VR_RoomscaleMovement", !IsPeepingInternal);
+	}
 }
 
 void PlayerManager::GetCurrentPlayerStance(float deltaTime)

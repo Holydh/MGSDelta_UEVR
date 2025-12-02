@@ -50,5 +50,8 @@ public:
 	void DisableGrassFading();
 
 	bool SmallUIOpen = false;
+	//Radio, inventory, etc.
 	bool MenuOpen = false;
+
+	bool CardBoardEquipped = false;
 };
