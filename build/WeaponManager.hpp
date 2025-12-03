@@ -46,7 +46,6 @@ private:
 	void spawnSceneCaptureComponent();
 	void spawnScopeWidget();
 	void attachScopeToWeapon();
-	void detachHandFromWeapon();
 
 	SDK::FName tntSocketFname;
 	SDK::FName cqcKnifeSocketFname;
@@ -381,5 +380,7 @@ public:
 	void ProcessItem();
 	void SendHandStateToLua();
 	void AttachHandToWeapon();
+	bool DetachHandFromWeapon();
 	bool AttachHandNextFrame = false;
+	bool NextFrame = false;
 };

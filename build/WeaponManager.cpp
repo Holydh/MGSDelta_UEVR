@@ -58,6 +58,7 @@ void WeaponManager::ProcessItem()
 		}
 		if (CurrentItemID != SDK::EGsrItemId::IT_Stealth && PreviousItemID == SDK::EGsrItemId::IT_Stealth)
 		{
+			DetachHandFromWeapon();
 			uevr::API::get()->dispatch_lua_event("HandsReset", "0");
 		}
 
@@ -184,11 +185,12 @@ void WeaponManager::FetchEquipController()
 
 void WeaponManager::ProcessWeapon(float delta)
 {
-	if (AttachHandNextFrame)
+	if (AttachHandNextFrame && NextFrame)
 	{
 		AttachHandToWeapon();
 		SendHandStateToLua();
 		AttachHandNextFrame = false;
+		NextFrame = false;
 	}
 
 	//Get weapon ID
@@ -231,7 +233,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		WeaponRoot = nullptr;
 		LeftHandWeaponRoot = nullptr;
 		if (playerManager->HandAttachedToWeapon)
-			detachHandFromWeapon();
+			DetachHandFromWeapon();
 
 		SendHandStateToLua();
 	
@@ -653,10 +655,10 @@ void WeaponManager::AttachHandToWeapon()
 	}
 }
 
-void WeaponManager::detachHandFromWeapon()
+bool WeaponManager::DetachHandFromWeapon()
 {
 	Logger::DebugPrint("Detach Hand from weapon");
-	if (playerManager->RightHandMesh)
+	if (playerManager->RightHandMesh && playerManager->HandAttachedToWeapon)
 	{
 		playerManager->RightHandMesh->DetachFromParent(true, false);
 		playerManager->RightHandMesh->K2_AttachToComponent(
@@ -674,7 +676,9 @@ void WeaponManager::detachHandFromWeapon()
 		playerManager->HandAttachedToWeapon = false;
 		playerManager->RightHandMesh->SetVisibility(true, true);
 		playerManager->LeftHandMesh->SetVisibility(true, true);
+		return true;
 	}
+	return false;
 }
 
 void WeaponManager::FetchWeaponMeshAimData()

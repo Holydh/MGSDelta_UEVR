@@ -345,6 +345,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		//Utilities::DebugCigar1 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 		API::get()->dispatch_lua_event("PlayerTookControl", "1");
 		//cameraController.SetNearClipPlane(10000.0f);
+
 		vr_enabled = enable;
 	}
 
@@ -356,11 +357,12 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		playerManager.ToggleReticleVisibility(true);
 		cameraController.DetachCameraFromAttachementActor();
 		cameraController.DestroyCameraAttachementActor();
+		
 		API::VR::set_mod_value("VR_2DScreenMode", *settingsManager.EnableCutoutScreenForCutscenesAndMenusPtr);
 		API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DCutscenesAndMenusPtr ? 1.0f : 0.0f);
 		API::get()->dispatch_lua_event("PlayerTookControl", "0");
 		weaponManager.DestroyScope();
-		
+		weaponManager.DetachHandFromWeapon();
 	/*	Utilities::DestroyDebugCigars();*/
 		vr_enabled = enable;
 	}
@@ -409,7 +411,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	/*	Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
 		//Logger::DebugPrint("Before UpdatePeepingState");
-		playerManager.UpdatePeepingState(delta);
+		playerManager.UpdatePeepingAndCqcGrabState(delta);
 		//Logger::DebugPrint("Before UpdateHandVisibility");
 		playerManager.UpdateHandVisibility();
 		
@@ -449,6 +451,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.PreviousCameraMode = playerManager.CurrentCameraMode;
 	playerManager.WasMeleeAttackRunning = playerManager.MeleeAttackRunning;
 	playerManager.WasPeeping = playerManager.IsPeeping;
+	playerManager.WasCqcGrab = playerManager.IsCqcGrab;
 	weaponManager.PreviousWeaponID = weaponManager.CurrentWeaponID;
 	weaponManager.PreviousItemID = weaponManager.CurrentItemID;
 	weaponManager.WasLeftGripInputPressed = weaponManager.LeftGripInputPressed;
@@ -456,6 +459,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	//auto end = std::chrono::high_resolution_clock::now();
 	//auto duration_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 	//Logger::DebugPrint("execution time : %lld micro seconds", duration_ms.count());
+	if (weaponManager.AttachHandNextFrame)
+		weaponManager.NextFrame = true;
 }
 
 void MGSDeltaPlugin::on_post_engine_tick(API::UGameEngine* engine, float delta) {

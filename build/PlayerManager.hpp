@@ -42,7 +42,7 @@ public:
 	bool IsPeeping = false;
 	bool WasPeeping = false;
 	float ExtendPeepingStateTimer = 0.0f;
-	void UpdatePeepingState(float deltaTime);
+	void UpdatePeepingAndCqcGrabState(float deltaTime);
 
 	bool IsHanging = false;
 	bool IsChangingStance = false;
@@ -54,7 +54,8 @@ public:
 	bool MeleeAttackRunning = false;
 	bool WasMeleeAttackRunning = false;
 	bool IsKnifeOrFork = false;
-
+	bool IsCqcGrab = false;
+	bool WasCqcGrab = false;
 
 	SDK::EGsrPlayerStance CurrentStance = SDK::EGsrPlayerStance::Stand;
 	SDK::EGsrPlayerStance PreviousStance = SDK::EGsrPlayerStance::Stand;

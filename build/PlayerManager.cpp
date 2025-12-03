@@ -140,7 +140,7 @@ void PlayerManager::FetchGameState()
 	IsPlayerControlled = gsrGameStateSubsystem->CheckGameStatus(CurrentGameStatus);
 }
 
-void PlayerManager::UpdatePeepingState(float deltaTime)
+void PlayerManager::UpdatePeepingAndCqcGrabState(float deltaTime)
 {
 	if (IsPeepingInternal)
 		IsPeeping = true;
@@ -163,6 +163,11 @@ void PlayerManager::UpdatePeepingState(float deltaTime)
 	if (IsPeepingInternal != WasPeepingInternal)
 	{
 		uevr::API::VR::set_mod_value("VR_RoomscaleMovement", !IsPeepingInternal);
+	}
+
+	if (IsCqcGrab != WasCqcGrab)
+	{
+		uevr::API::VR::set_mod_value("VR_RoomscaleMovement", !IsCqcGrab);
 	}
 }
 
@@ -236,6 +241,9 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 		//Logger::DebugPrint("Fork and knife melee started");
 		IsKnifeOrFork = true;
 	}
+
+	IsCqcGrab = StateMachineName == fNameEnemyCqc ? true : false; //need check
+
 	
 	//Logger::DebugPrint("StateMachineName: %s, StateName: %s", StateMachineName.ToString().c_str(), StateName.ToString().c_str());
 }
