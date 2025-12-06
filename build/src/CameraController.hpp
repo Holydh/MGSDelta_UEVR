@@ -53,7 +53,8 @@ public:
 
 	bool SmallUIOpen = false;
 	//Radio, inventory, etc.
-	bool MenuOpen = false;
+	bool IsMenuOpen = false;
+	bool WasMenuOpen = false;
 
 	bool CardBoardEquipped = false;
 };

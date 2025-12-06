@@ -239,14 +239,14 @@ bool HookManager::mod_GsrPlayer_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr:
 
 bool HookManager::mod_BP_GsrPlayerDamageFilterController_OnStartUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	s_cameraController->MenuOpen = true;
+	s_cameraController->IsMenuOpen = true;
 	Logger::DebugPrint("Menu Opened");
 	return true;
 }
 
 bool HookManager::mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	s_cameraController->MenuOpen = false;
+	s_cameraController->IsMenuOpen = false;
 	Logger::DebugPrint("Menu Closed");
 	return true;
 }

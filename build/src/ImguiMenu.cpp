@@ -399,10 +399,10 @@ void ImGuiMenu::internalFrame()
 		ImGui::Separator();
 		ImGui::Text("--- Misc Settings ---");
 
-		if (ImGui::Checkbox("Enable cutout screen for cutscenes and menus", settingsManager->EnableCutoutScreenForCutscenesAndMenusPtr))
+		if (ImGui::Checkbox("Enable 2D screen for cutscenes and menus", settingsManager->EnableCutoutScreenForCutscenesAndMenusPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
-			if (cameraController->MenuOpen)
+			if (!playerManager->IsPlayerControlled)
 			{
 				uevr::API::VR::set_mod_value("VR_2DScreenMode", *settingsManager->EnableCutoutScreenForCutscenesAndMenusPtr);
 				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesAndMenusPtr ? 1.0f : 0.0f);
@@ -411,10 +411,10 @@ void ImGuiMenu::internalFrame()
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Cutscenes warp issue workaround. Disable if you have black screen during cutscenes. Disable 3D cutscenes (setting below) if you have double vision");
 
-		if (ImGui::Checkbox("Enable 3D cutscenes and menus", settingsManager->Enable3DCutscenesAndMenusPtr))
+		if (ImGui::Checkbox("Enable 3D in 2D screen for cutscenes and menus", settingsManager->Enable3DCutscenesAndMenusPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
-			if (cameraController->MenuOpen)
+			if (!playerManager->IsPlayerControlled)
 				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesAndMenusPtr ? 1.0f : 0.0f);
 		}
 		if (ImGui::IsItemHovered())

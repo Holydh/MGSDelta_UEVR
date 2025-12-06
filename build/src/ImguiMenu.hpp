@@ -24,6 +24,7 @@ private:
     SettingsManager* const settingsManager;
     WeaponManager* const weaponManager;
 	CameraController* const cameraController;
+	PlayerManager* const playerManager;
 
 	HWND m_wnd;
     bool m_initialized = false;
@@ -45,7 +46,7 @@ private:
     float mouseUseTimer = 1.0f;
 
 public:
-    ImGuiMenu(SettingsManager* sm, WeaponManager* wm, CameraController* cm) : settingsManager(sm), weaponManager(wm), cameraController(cm) {};
+    ImGuiMenu(SettingsManager* sm, WeaponManager* wm, CameraController* cm, PlayerManager* pm) : settingsManager(sm), weaponManager(wm), cameraController(cm), playerManager(pm) {};
 
 	void RenderImGuiFrame();
     void RenderImGuiVRFrameDX11(ID3D11DeviceContext* context, ID3D11Texture2D* texture, ID3D11RenderTargetView* rtv);

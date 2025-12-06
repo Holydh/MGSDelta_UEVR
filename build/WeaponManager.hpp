@@ -376,6 +376,7 @@ public:
 	void DestroyScope();
 
 	void ToggleThermalVisionScanline();
+	bool ToggleThermalVisionScanlineNextFrame = false;
 
 	void ProcessItem();
 	void SendHandStateToLua();

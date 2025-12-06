@@ -44,7 +44,7 @@ void WeaponManager::ProcessItem()
 				Logger::DebugPrint("No player camera manager found");
 				return;
 			}
-			playerCameraManager->ThermalPostProcessActor->Scanline->SetVisibility(!*settingsManager->DisableThermalVisionScanlinePtr, true);
+			ToggleThermalVisionScanlineNextFrame = true;
 		}
 
 		if (CurrentItemID == SDK::EGsrItemId::IT_Stealth && PreviousItemID != SDK::EGsrItemId::IT_Stealth)
@@ -191,6 +191,11 @@ void WeaponManager::ProcessWeapon(float delta)
 		SendHandStateToLua();
 		AttachHandNextFrame = false;
 		NextFrame = false;
+	}
+
+	if (ToggleThermalVisionScanlineNextFrame)
+	{
+		ToggleThermalVisionScanline();
 	}
 
 	//Get weapon ID
@@ -669,7 +674,6 @@ bool WeaponManager::DetachHandFromWeapon()
 			SDK::EAttachmentRule::KeepRelative,
 			true
 		);
-		
 		SDK::FHitResult outHit;
 		playerManager->RightHandMesh->K2_SetRelativeLocation({ 0.0f,0.0f,0.0f }, false, &outHit, false);
 		playerManager->RightHandMesh->K2_SetRelativeRotation({ 0.0f,-90.0f,0.0f }, false, &outHit, false);
@@ -895,8 +899,12 @@ void WeaponManager::ToggleThermalVisionScanline()
 		return;
 	}
 	if (playerCameraManager->ThermalPostProcessActor == nullptr)
+	{
 		return;
+	}
+	Logger::DebugPrint("Toggle Thermal Vision Scanline");
 	playerCameraManager->ThermalPostProcessActor->Scanline->SetVisibility(!*settingsManager->DisableThermalVisionScanlinePtr, true);
+	ToggleThermalVisionScanlineNextFrame = false;
 }
 
 void WeaponManager::applyRecoil(float delta)

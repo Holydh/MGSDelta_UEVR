@@ -7,7 +7,7 @@ using namespace uevr;
 
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager, &weaponManager, &cameraController),
+MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager, &weaponManager, &cameraController, &playerManager),
 inputs(),
 cameraController(&playerManager, &settingsManager), 
 weaponManager(&memoryManager, &settingsManager, &playerManager, &cameraController), 
@@ -345,7 +345,6 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		//Utilities::DebugCigar1 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 		API::get()->dispatch_lua_event("PlayerTookControl", "1");
 		//cameraController.SetNearClipPlane(10000.0f);
-
 		vr_enabled = enable;
 	}
 
@@ -362,7 +361,6 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DCutscenesAndMenusPtr ? 1.0f : 0.0f);
 		API::get()->dispatch_lua_event("PlayerTookControl", "0");
 		weaponManager.DestroyScope();
-		weaponManager.DetachHandFromWeapon();
 	/*	Utilities::DestroyDebugCigars();*/
 		vr_enabled = enable;
 	}
@@ -374,13 +372,19 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	//auto start = std::chrono::high_resolution_clock::now();
 	playerManager.FetchGameState();
 
-	if (cameraController.MenuOpen)
+	if (cameraController.IsMenuOpen)
+	{
 		playerManager.IsPlayerControlled = false;
+	}
+
+	if (cameraController.IsMenuOpen && !cameraController.WasMenuOpen)
+		weaponManager.DetachHandFromWeapon();
 
 	if (playerManager.IsPlayerControlled && !playerManager.WasPlayerControlled)
 	{
 		Toggle6DOF(true);
 		Logger::DebugPrint("Player took control");
+		//playerManager.SetPlayerStance(SDK::EGsrPlayerStance::Crawl);
 	}
 
 	if (!playerManager.IsPlayerControlled && playerManager.WasPlayerControlled)
@@ -455,6 +459,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	weaponManager.PreviousWeaponID = weaponManager.CurrentWeaponID;
 	weaponManager.PreviousItemID = weaponManager.CurrentItemID;
 	weaponManager.WasLeftGripInputPressed = weaponManager.LeftGripInputPressed;
+	cameraController.WasMenuOpen = cameraController.IsMenuOpen;
 	imGuiMenu.MouseMovedThisFrame = false;
 	//auto end = std::chrono::high_resolution_clock::now();
 	//auto duration_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
