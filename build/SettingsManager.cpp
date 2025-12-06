@@ -105,6 +105,10 @@ void SettingsManager::InitSettingsManager()
 	CameraPositionXYLerpPtr = &cameraPositionXYLerp;
 	CameraPositionZLerpPtr = &cameraPositionZLerp;
 
+	EnableRoomscaleProneAndCrouchPtr = &enableRoomscaleProneAndCrouch;
+	SquatUnderThisValuePtr = &squatUnderThisValue;
+	CrawlUnderThisValuePtr = &crawlUnderThisValue;
+
 	SniperScopeEnabledPtr = &sniperScopeEnabled;
 	ScopeResolutionSliderIndexPtr = &scopeResolutionSliderIndex;
 	ScopeResolutionPtr = &scopeResolution;
@@ -144,6 +148,10 @@ void SettingsManager::FetchPluginSettings()
 	cameraPositionXYLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraPositionXYLerp", 5.0f);
 	cameraPositionZLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraPositionZLerp", 5.0f);
 
+	enableRoomscaleProneAndCrouch = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableRoomscaleProneAndCrouch", false);
+	squatUnderThisValue = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "squatUnderThisValue", -0.4f);
+	crawlUnderThisValue = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "crawlUnderThisValue", -0.8f);
+
 	sniperScopeEnabled = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "sniperScopeEnabled", true);
 	scopeResolution = SettingsManager::GetIntValueFromFile(pluginConfigFilePath, "scopeResolution", 1024);
 
@@ -165,6 +173,10 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraPosition", smoothCameraPosition);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraPositionXYLerp", cameraPositionXYLerp);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraPositionZLerp", cameraPositionZLerp);
+
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableRoomscaleProneAndCrouch", enableRoomscaleProneAndCrouch);
+	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "squatUnderThisValue", squatUnderThisValue);
+	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "crawlUnderThisValue", crawlUnderThisValue);
 
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "sniperScopeEnabled", sniperScopeEnabled);
 	SettingsManager::SetIntValueToFile(pluginConfigFilePath, "scopeResolution", scopeResolution);
@@ -197,6 +209,10 @@ void SettingsManager::GetOrCreateConfigFile()
 			"smoothCameraPosition=true\n"
 			"cameraPositionXYLerp=3.5\n"
 			"cameraPositionZLerp=5.0\n"
+			"------ Gameplay Settings ------\n"
+			"enableRoomscaleProneAndCrouch=false\n"
+			"squatUnderThisValue=-0.4\n"
+			"crawlUnderThisValue=-0.8\n"
 			"------ Weapons Settings ------\n"
 			"sniperScopeEnabled=true\n"
 			"scopeResolution=1024\n"

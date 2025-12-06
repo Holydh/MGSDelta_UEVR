@@ -16,6 +16,9 @@ private:
 	PlayerManager* const playerManager;
 	SettingsManager* const settingsManager;
 
+	UEVR_Vector3d headColliderPosition{};
+	float crawlOffset = 55.0f;
+
 public:
 	CameraController(PlayerManager* pm, SettingsManager* sm) : playerManager(pm), settingsManager(sm){};
 	//virtual ~CameraController() = default;
@@ -30,7 +33,7 @@ public:
 	/*void SetCameraRotation();*/
 	//void SetCameraPosition();
 	float CameraHeightOffset = 0.0f;
-	UEVR_Vector3d CameraPosition = { 0.0f, 0.0f, 0.0f };
+	UEVR_Vector3d OriginalCameraPosition = { 0.0f, 0.0f, 0.0f };
 	glm::fvec3 LastCameraPosition = { 0.0f, 0.0f, 0.0f };
 	UEVR_Rotatord CameraRotation = { 0.0f, 0.0f, 0.0f };
 	UEVR_Rotatord LastCameraRotation = { 0.0f, 0.0f, 0.0f };
@@ -48,6 +51,8 @@ public:
 	bool InstantCameraPositionNeeded = false;
 	void ProcessCameraResetTimer(float delta);
 	void DisableGrassFading();
+
+	void ProcessRoomscaleStance();
 
 	//void SetNearClipPlane(float nearClip);
 

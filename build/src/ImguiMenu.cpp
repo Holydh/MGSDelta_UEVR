@@ -327,6 +327,35 @@ void ImGuiMenu::internalFrame()
 		}
 
 		ImGui::Separator();
+		ImGui::Text("--- Gameplay Settings ---");
+
+		if (ImGui::Checkbox("Enable RoomScale Prone And Crouch", settingsManager->EnableRoomscaleProneAndCrouchPtr))
+			settingsManager->SettingsModifiedThisFrame = true;
+		if (ImGui::IsItemHovered()) {
+			ImGui::BeginTooltip();
+			ImGui::Text("Allows the game to set Snake's Stance from your own IRL stance");
+			ImGui::EndTooltip();
+		}
+
+		if (ImGui::SliderFloat("Squat under this value", settingsManager->SquatUnderThisValuePtr, -1.0f, 0.0f))
+			settingsManager->SettingsModifiedThisFrame = true;
+		if (ImGui::IsItemHovered()) {
+			ImGui::BeginTooltip();
+			ImGui::Text("In meter. The hmd's own height after recentering is at 0.");
+			ImGui::Text("The game will set Snake to Squat when your hmd's height is below this value.");
+			ImGui::EndTooltip();
+		}
+
+		if (ImGui::SliderFloat("Crawl under this value", settingsManager->CrawlUnderThisValuePtr, -2.0f, 0.0f))
+			settingsManager->SettingsModifiedThisFrame = true;
+		if (ImGui::IsItemHovered()) {
+			ImGui::BeginTooltip();
+			ImGui::Text("In meter. The hmd's own height after recentering is at 0.");
+			ImGui::Text("The game will set Snake to Crawl when your hmd's height is below this value.");
+			ImGui::EndTooltip();
+		}
+
+		ImGui::Separator();
 		ImGui::Text("--- Weapons Settings ---");
 
 		if (ImGui::Checkbox("Enable VR scopes", settingsManager->SniperScopeEnabledPtr))

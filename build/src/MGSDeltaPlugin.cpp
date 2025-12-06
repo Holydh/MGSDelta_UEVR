@@ -378,7 +378,16 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	}
 
 	if (cameraController.IsMenuOpen && !cameraController.WasMenuOpen)
+	{
 		weaponManager.DetachHandFromWeapon();
+	}
+
+	//test
+	//if (!cameraController.IsMenuOpen && cameraController.WasMenuOpen)
+	//{
+	//	playerManager.SetPlayerStance(SDK::EGsrPlayerStance::Crawl);
+
+	//}
 
 	if (playerManager.IsPlayerControlled && !playerManager.WasPlayerControlled)
 	{
@@ -422,7 +431,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		//Logger::DebugPrint("Before ProcessCamera");
 		cameraController.ProcessCamera(delta);
 
-
+		cameraController.ProcessRoomscaleStance();
 		//if (weaponController.ScopeWidgetDynamicMaterial)
 		//{
 		//	auto rt = weaponController.ScopeWidget->GetRenderTarget();
@@ -488,9 +497,9 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
-		pos->x = cameraController.CameraPosition.x;
-		pos->y = cameraController.CameraPosition.y;
-		pos->z = cameraController.CameraPosition.z;
+		pos->x = cameraController.OriginalCameraPosition.x;
+		pos->y = cameraController.OriginalCameraPosition.y;
+		pos->z = cameraController.OriginalCameraPosition.z;
 		rot->pitch = cameraController.CameraRotation.pitch;
 		rot->yaw = cameraController.CameraRotation.yaw;
 		rot->roll = cameraController.CameraRotation.roll;

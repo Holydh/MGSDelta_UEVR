@@ -266,11 +266,10 @@ void PlayerManager::UpdateForkAndKnifeMeleeState(float delta)
 
 void PlayerManager::SetPlayerStance(SDK::EGsrPlayerStance NewStance)
 {
-	static auto gsrPlayerBasicAction_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerBasicAction");
-	auto gsrPlayerBasicAction = (SDK::UGsrPlayerBasicAction*)gsrPlayerBasicAction_C->get_first_object_matching(false);
-	Logger::DebugPrint("HEEEEEEEEEEEEEEEEEEEEELLLLLLLLLLLLLLLLLLLLLLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-	Logger::DebugPrint(gsrPlayerBasicAction->GetFullName().c_str());
-	gsrPlayerBasicAction->UpdateTargetStanceByInput(NewStance);
+	static auto gsrPlayerActionCore_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerActionCore");
+	auto gsrPlayerActionCore = (SDK::UGsrPlayerActionCore*)gsrPlayerActionCore_C->get_first_object_matching(false);
+	Logger::DebugPrint(gsrPlayerActionCore->GetFullName().c_str());
+	gsrPlayerActionCore->RequestChangeStance(NewStance);
 }
 
 void PlayerManager::GetCurrentAimStateAndCameraMode()

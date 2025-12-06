@@ -50,6 +50,10 @@ public:
 	float* CameraPositionXYLerpPtr;
 	float* CameraPositionZLerpPtr;
 
+	bool* EnableRoomscaleProneAndCrouchPtr;
+	float* SquatUnderThisValuePtr;
+	float* CrawlUnderThisValuePtr;
+
 	bool* SniperScopeEnabledPtr;
 	int* ScopeResolutionSliderIndexPtr;
 	int* ScopeResolutionPtr;
@@ -68,6 +72,10 @@ private:
 	bool smoothCameraPosition = true;
 	float cameraPositionXYLerp = 5.0f;
 	float cameraPositionZLerp = 5.0f;
+
+	bool enableRoomscaleProneAndCrouch = false;
+	float squatUnderThisValue = -0.4f;
+	float crawlUnderThisValue = -0.8f;
 
 	bool sniperScopeEnabled = true;
 	int scopeResolutionSliderIndex = 0;

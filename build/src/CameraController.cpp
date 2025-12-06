@@ -64,15 +64,15 @@ void CameraController::ToggleCameraWobblingController(bool enabled) {
 
 void CameraController::SpawnCameraAttachementActor()
 {
-	CameraController::CameraAttachementActor = Utilities::SpawnActor(UEVR_Vector3d{ LastCameraPosition.x, LastCameraPosition.y, LastCameraPosition.z }, nullptr);
+	CameraAttachementActor = Utilities::SpawnActor(UEVR_Vector3d{ LastCameraPosition.x, LastCameraPosition.y, LastCameraPosition.z }, nullptr);
 	CameraAttachementActorAvailable = true;
 }
 
 void CameraController::DestroyCameraAttachementActor()
 {
-	if (CameraController::CameraAttachementActor != nullptr) {
-		CameraController::CameraAttachementActor->call_function(L"K2_DestroyActor", nullptr);
-		CameraController::CameraAttachementActor = nullptr;
+	if (CameraAttachementActor != nullptr) {
+		CameraAttachementActor->call_function(L"K2_DestroyActor", nullptr);
+		CameraAttachementActor = nullptr;
 		Logger::DebugPrint("Camera Attachement Actor Destroyed");
 	}
 	CameraAttachementActorAvailable = false;
@@ -80,7 +80,7 @@ void CameraController::DestroyCameraAttachementActor()
 
 void CameraController::AttachCameraToAttachementActor()
 {
-	auto rootComponent = CameraController::CameraAttachementActor->get_property<uevr::API::UObject*>(L"RootComponent");
+	auto rootComponent = CameraAttachementActor->get_property<uevr::API::UObject*>(L"RootComponent");
 	auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(rootComponent);
 	//UEVR_Vector3f test = { 0.0, 0.0, 0.0 };
 	//UEVR_Quaternionf testQ = { 0.0, 0.0, 0.0, 1.0 };
@@ -99,14 +99,14 @@ void CameraController::DetachCameraFromAttachementActor()
 void CameraController::ProcessCamera(float deltaTime)
 {
 	auto pawn = uevr::API::get()->get_local_pawn(0);
-	UEVR_Vector3d floorPosition;
-	pawn->call_function(L"GetFloorPosition", &floorPosition);
+	//UEVR_Vector3d floorPosition;
+	//pawn->call_function(L"GetFloorPosition", &floorPosition);
 	//Logger::DebugPrint("GetFloorPosition : %f, %f, %f", floorPosition.x, floorPosition.y, floorPosition.z);
 	UEVR_Vector3d pawnPosition;
 	pawn->call_function(L"K2_GetActorLocation", &pawnPosition);
 	//Logger::DebugPrint("Pawn Position : %f, %f, %f", pawnPosition.x, pawnPosition.y, pawnPosition.z);
 	auto grassVolumeCollisionHead = pawn->get_property<uevr::API::UObject*>(L"GrassVolumeCollisionHead");
-	UEVR_Vector3d headColliderPosition;
+	
 	grassVolumeCollisionHead->call_function(L"K2_GetComponentLocation", &headColliderPosition);
 	//Logger::DebugPrint("headColliderPosition : %f, %f, %f", headColliderPosition.x, headColliderPosition.y, headColliderPosition.z);
 
@@ -115,14 +115,14 @@ void CameraController::ProcessCamera(float deltaTime)
 	//Logger::DebugPrint("Current Player Stance : %i", playerManager.CurrentStance);
 	//Logger::DebugPrint("Player Is Peeping: %i", playerManager.IsPeeping);
 
-	//Logger::DebugPrint
+
 
 	// Reset camera position and rotation when player respawn or teleport
 	if (InstantCameraPositionNeeded)
 	{
 		LastCameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
 		//CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
-		CameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
+		OriginalCameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
 
 		auto pawn = uevr::API::get()->get_local_pawn(0);
 		UEVR_Rotatord pawnRotation;
@@ -137,27 +137,47 @@ void CameraController::ProcessCamera(float deltaTime)
 	//Logger::DebugPrint("Next State Name : %s ", playerManager->debugParamsTest.NextStateName.ToString().c_str());
 	//Logger::DebugPrint("Prev State Name : %s ", playerManager->debugParamsTest.PrevStateName.ToString().c_str());
 	//CameraHeightOffset = headColliderPosition.z - pawnPosition.z;
-	//Logger::DebugPrint("Camera Height Offset : %f", CameraHeightOffset);
+	Logger::DebugPrint("pawnPosition.z : %f", pawnPosition.z);
 
-	switch (playerManager->CurrentStance)
+	if (!*settingsManager->EnableRoomscaleProneAndCrouchPtr)
 	{
-	case SDK::EGsrPlayerStance::Stand:
-		CameraHeightOffset = 83.0f; //-85.0f
-		break;
-	case SDK::EGsrPlayerStance::Squat:
-		CameraHeightOffset = 6.7f;
-		break;
-	case SDK::EGsrPlayerStance::Crawl:
-		CameraHeightOffset = 10.0f;
-		break;
-	default:
-		break;
+		switch (playerManager->CurrentStance)
+		{
+		case SDK::EGsrPlayerStance::Stand:
+			CameraHeightOffset = 83.0f; //-85.0f
+			break;
+		case SDK::EGsrPlayerStance::Squat:
+			CameraHeightOffset = 6.7f;
+			break;
+		case SDK::EGsrPlayerStance::Crawl:
+			CameraHeightOffset = 10.0f;
+			break;
+		default:
+			break;
+		}
+		if (playerManager->IsChangingStance || playerManager->IsRolling || playerManager->IsHanging)
+		{
+			CameraHeightOffset = headColliderPosition.z - pawnPosition.z;
+		}
+	}
+	else
+	{
+		switch (playerManager->CurrentStance)
+		{
+		case SDK::EGsrPlayerStance::Stand:
+			CameraHeightOffset = 83.0f; //-85.0f
+			break;
+		case SDK::EGsrPlayerStance::Squat:
+			CameraHeightOffset = 83.0f;
+			break;
+		case SDK::EGsrPlayerStance::Crawl:
+			CameraHeightOffset = 83.0f + crawlOffset;
+			break;
+		default:
+			break;
+		}
 	}
 
-	if (playerManager->IsChangingStance || playerManager->IsRolling || playerManager->IsHanging)
-	{
-		CameraHeightOffset = headColliderPosition.z - pawnPosition.z;
-	}
 
 	
 	//if (playerManager->IsHanging)
@@ -196,7 +216,7 @@ void CameraController::ProcessCamera(float deltaTime)
 
 	else
 	{
-		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr || CardBoardEquipped || playerManager->IsFirstPersonView? 
+		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr || CardBoardEquipped || (playerManager->IsFirstPersonView && !*settingsManager->EnableRoomscaleProneAndCrouchPtr) ? 
 			glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
 			glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
 		newPosition = *settingsManager->SmoothCameraPositionPtr ? 
@@ -212,9 +232,9 @@ void CameraController::ProcessCamera(float deltaTime)
 
 	//Logger::DebugPrint("Camera Height Offset : %f", cameraController.CameraHeightOffset);
 	LastCameraPosition = { newPosition.x, newPosition.y, newPosition.z };
-	CameraPosition.x = newPosition.x;
-	CameraPosition.y = newPosition.y;
-	CameraPosition.z = newPosition.z;
+	OriginalCameraPosition.x = newPosition.x;
+	OriginalCameraPosition.y = newPosition.y;
+	OriginalCameraPosition.z = newPosition.z;
 
 	if (!SmallUIOpen)
 	{
@@ -267,6 +287,36 @@ void CameraController::DisableGrassFading()
 		sdkComponent->ClearCache();
 		sdkComponent->Deactivate();
 	}
+}
+
+void CameraController::ProcessRoomscaleStance()
+{
+	if (!*settingsManager->EnableRoomscaleProneAndCrouchPtr)
+		return;
+
+	auto sdkActor = (SDK::AActor*)CameraController::CameraAttachementActor;
+	auto cameraAttachementPosition = sdkActor->K2_GetActorLocation();
+	Logger::DebugPrint("cameraAttachementPosition : %f", cameraAttachementPosition.Z);
+	Logger::DebugPrint("headColliderPosition : %f", headColliderPosition.z);
+	auto difference = cameraAttachementPosition.Z - headColliderPosition.z;
+	Logger::DebugPrint("Head Collider - cameraAttachementPosition Difference : %f", difference);
+
+	UEVR_Matrix4x4f hmdTransform{};
+	uevr::API::get()->param()->vr->get_transform(uevr::API::VR::get_hmd_index(), &hmdTransform);
+	auto hmdHeight = hmdTransform.m[3][1];
+	//Logger::DebugPrint("HMD Transform Z Position : %f", hmdTransform.m[3][1]);
+
+	if (playerManager->CurrentStance == SDK::EGsrPlayerStance::Stand && hmdHeight <= *settingsManager->SquatUnderThisValuePtr)
+		playerManager->SetPlayerStance(SDK::EGsrPlayerStance::Squat);
+
+	if (playerManager->CurrentStance == SDK::EGsrPlayerStance::Squat && hmdHeight <= *settingsManager->CrawlUnderThisValuePtr)
+		playerManager->SetPlayerStance(SDK::EGsrPlayerStance::Crawl);
+
+	if (playerManager->CurrentStance == SDK::EGsrPlayerStance::Squat && hmdHeight >= *settingsManager->SquatUnderThisValuePtr)
+		playerManager->SetPlayerStance(SDK::EGsrPlayerStance::Stand);
+
+	if (playerManager->CurrentStance == SDK::EGsrPlayerStance::Crawl && hmdHeight >= *settingsManager->CrawlUnderThisValuePtr)
+		playerManager->SetPlayerStance(SDK::EGsrPlayerStance::Squat);
 }
 
 //void CameraController::SetNearClipPlane(float nearClip)
