@@ -18,6 +18,7 @@ private:
 
 	UEVR_Vector3d headColliderPosition{};
 	float crawlOffset = 55.0f;
+	float previousPawnPositionZ = 0.0f;
 
 public:
 	CameraController(PlayerManager* pm, SettingsManager* sm) : playerManager(pm), settingsManager(sm){};
@@ -44,7 +45,9 @@ public:
 	void DestroyCameraAttachementActor();
 	void AttachCameraToAttachementActor();
 	void DetachCameraFromAttachementActor();
+	bool IsCameraAttachedToAttachementActor = false;
 	bool CameraAttachementActorAvailable = false;
+	void CameraAttachementActorPositionSafeguard();
 
 	void ProcessCamera(float deltaTime);
 	float InstantCameraPositionTimer = 0.25f;

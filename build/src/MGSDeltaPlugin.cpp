@@ -437,7 +437,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		//	auto rt = weaponController.ScopeWidget->GetRenderTarget();
 		//	weaponController.ScopeWidgetDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"Color_ExponentIn"), rt);
 		//}
-
+		cameraController.CameraAttachementActorPositionSafeguard();
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);

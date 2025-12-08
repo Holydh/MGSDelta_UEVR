@@ -73,6 +73,7 @@ void CameraController::DestroyCameraAttachementActor()
 	if (CameraAttachementActor != nullptr) {
 		CameraAttachementActor->call_function(L"K2_DestroyActor", nullptr);
 		CameraAttachementActor = nullptr;
+		IsCameraAttachedToAttachementActor = false;
 		Logger::DebugPrint("Camera Attachement Actor Destroyed");
 	}
 	CameraAttachementActorAvailable = false;
@@ -91,6 +92,7 @@ void CameraController::AttachCameraToAttachementActor()
 		motionState->set_hand(2);
 		motionState->set_permanent(true);
 		Logger::DebugPrint("Actor attached to VR Camera");
+		IsCameraAttachedToAttachementActor = true;
 	}
 	else
 	{
@@ -104,9 +106,28 @@ void CameraController::DetachCameraFromAttachementActor()
 	auto rootComponent = CameraAttachementActor->get_property<uevr::API::UObject*>(L"RootComponent");
     if (rootComponent) {
         uevr::API::UObjectHook::remove_motion_controller_state(rootComponent);
+		IsCameraAttachedToAttachementActor = false;
     } else {
         Logger::DebugPrint("DetachCameraFromAttachementActor: RootComponent is null");
     }
+}
+
+void CameraController::CameraAttachementActorPositionSafeguard()
+{
+	if (!CameraAttachementActor) return;
+	UEVR_Vector3d actorPosition;
+	CameraAttachementActor->call_function(L"K2_GetActorLocation", &actorPosition);
+	float distance = glm::distance(glm::fvec3{ (float)actorPosition.x, (float)actorPosition.y, (float)actorPosition.z }, LastCameraPosition);
+	Logger::DebugPrint("Camera Attachement Actor Position Safeguard Check. Distance: %f", distance);
+	if (distance > 200.0f && IsCameraAttachedToAttachementActor)
+	{
+		Logger::DebugPrint("Camera Attachement Actor Position Safeguard Activated. Distance: %f", distance);
+		DetachCameraFromAttachementActor();
+	}
+	else if (!IsCameraAttachedToAttachementActor)
+	{
+		AttachCameraToAttachementActor();
+	}
 }
 
 void CameraController::ProcessCamera(float deltaTime)
@@ -150,6 +171,7 @@ void CameraController::ProcessCamera(float deltaTime)
 	//Logger::DebugPrint("Next State Name : %s ", playerManager->debugParamsTest.NextStateName.ToString().c_str());
 	//Logger::DebugPrint("Prev State Name : %s ", playerManager->debugParamsTest.PrevStateName.ToString().c_str());
 	//CameraHeightOffset = headColliderPosition.z - pawnPosition.z;
+	//Logger::DebugPrint("stance : %i", playerManager->CurrentStance);
 	//Logger::DebugPrint("pawnPosition.z : %f", pawnPosition.z);
 
 	if (!*settingsManager->EnableRoomscaleProneAndCrouchPtr)
@@ -181,10 +203,11 @@ void CameraController::ProcessCamera(float deltaTime)
 			CameraHeightOffset = 83.0f; //-85.0f
 			break;
 		case SDK::EGsrPlayerStance::Squat:
-			CameraHeightOffset = 83.0f;
+			CameraHeightOffset = 83.0f ;
 			break;
 		case SDK::EGsrPlayerStance::Crawl:
-			CameraHeightOffset = 83.0f + crawlOffset;
+			// playerPosition.Z actualise one frame after change stance, we need to compensate for that or it results in a sudden camera jump
+			CameraHeightOffset = playerManager->PreviousStance == SDK::EGsrPlayerStance::Squat ? 83.0f : 83.0f + crawlOffset;
 			break;
 		default:
 			break;
@@ -240,6 +263,7 @@ void CameraController::ProcessCamera(float deltaTime)
 			tempPosition;
 	}
 
+	//Logger::DebugPrint("%f", pawnPosition.z + CameraHeightOffset);
 	//Logger::DebugPrint("%f, %f", remappedLerpZMultiplier, 2.25f * remappedLerpZMultiplier * DeltaTime);
 	//Logger::DebugPrint("%f", DeltaTime);
 
@@ -269,6 +293,7 @@ void CameraController::ProcessCamera(float deltaTime)
 		ActualYaw;
 	
 	LastCameraRotation = CameraRotation;
+	previousPawnPositionZ = pawnPosition.z;
 	/*SetCameraRotation();*/
 }
 
