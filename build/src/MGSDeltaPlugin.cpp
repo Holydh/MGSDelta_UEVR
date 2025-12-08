@@ -63,7 +63,7 @@ void MGSDeltaPlugin::on_initialize() {
 	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetCameraRequestModelVisibility", (UEVR_UFunction_NativePostFn)HookManager::mod_ISetCameraRequestModelVisibility_post ,NULL, true);
 
 	//weaponController.Initialize();
-	memoryManager.InitMemoryManager();
+	/*memoryManager.InitMemoryManager();*/
 	hookManager.HookFireFunction();
 	//hookManager.HookCameraModifyFunction();
 }

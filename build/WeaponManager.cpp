@@ -821,8 +821,11 @@ void WeaponManager::SetAimDirection()
 
 	//Logger::DebugPrint(root_component->get_full_name());
 	if (cameraController == nullptr || !CameraController::CameraAttachementActor)
+	{
+		Logger::DebugPrint("SetAimDirection : No CameraController or no CameraAttachementActor found");
 		return;
-	
+	}
+
 	auto sdkActor = (SDK::AActor*)CameraController::CameraAttachementActor;
 	SDK::FRotator params;
 	params = sdkActor->K2_GetActorRotation();

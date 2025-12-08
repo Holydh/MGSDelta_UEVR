@@ -268,7 +268,7 @@ void PlayerManager::SetPlayerStance(SDK::EGsrPlayerStance NewStance)
 {
 	static auto gsrPlayerActionCore_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerActionCore");
 	auto gsrPlayerActionCore = (SDK::UGsrPlayerActionCore*)gsrPlayerActionCore_C->get_first_object_matching(false);
-	Logger::DebugPrint(gsrPlayerActionCore->GetFullName().c_str());
+	//Logger::DebugPrint(gsrPlayerActionCore->GetFullName().c_str());
 	gsrPlayerActionCore->RequestChangeStance(NewStance);
 }
 

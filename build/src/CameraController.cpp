@@ -80,20 +80,33 @@ void CameraController::DestroyCameraAttachementActor()
 
 void CameraController::AttachCameraToAttachementActor()
 {
+	if (!CameraAttachementActor) return;
 	auto rootComponent = CameraAttachementActor->get_property<uevr::API::UObject*>(L"RootComponent");
-	auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(rootComponent);
-	//UEVR_Vector3f test = { 0.0, 0.0, 0.0 };
-	//UEVR_Quaternionf testQ = { 0.0, 0.0, 0.0, 1.0 };
-	//motionState->set_location_offset(&test);
-	//motionState->set_rotation_offset(&testQ);
-	motionState->set_hand(2);
-	motionState->set_permanent(true);
-	Logger::DebugPrint("Actor attached to VR Camera");
+	if (rootComponent) {
+		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(rootComponent);
+		//UEVR_Vector3f test = { 0.0, 0.0, 0.0 };
+		//UEVR_Quaternionf testQ = { 0.0, 0.0, 0.0, 1.0 };
+		//motionState->set_location_offset(&test);
+		//motionState->set_rotation_offset(&testQ);
+		motionState->set_hand(2);
+		motionState->set_permanent(true);
+		Logger::DebugPrint("Actor attached to VR Camera");
+	}
+	else
+	{
+		Logger::DebugPrint("AttachCameraToAttachementActor: RootComponent is null");
+	}
 }
 
 void CameraController::DetachCameraFromAttachementActor()
 {
-	if (CameraAttachementActor)	uevr::API::UObjectHook::remove_motion_controller_state(CameraAttachementActor);
+	if (!CameraAttachementActor) return;
+	auto rootComponent = CameraAttachementActor->get_property<uevr::API::UObject*>(L"RootComponent");
+    if (rootComponent) {
+        uevr::API::UObjectHook::remove_motion_controller_state(rootComponent);
+    } else {
+        Logger::DebugPrint("DetachCameraFromAttachementActor: RootComponent is null");
+    }
 }
 
 void CameraController::ProcessCamera(float deltaTime)
@@ -137,7 +150,7 @@ void CameraController::ProcessCamera(float deltaTime)
 	//Logger::DebugPrint("Next State Name : %s ", playerManager->debugParamsTest.NextStateName.ToString().c_str());
 	//Logger::DebugPrint("Prev State Name : %s ", playerManager->debugParamsTest.PrevStateName.ToString().c_str());
 	//CameraHeightOffset = headColliderPosition.z - pawnPosition.z;
-	Logger::DebugPrint("pawnPosition.z : %f", pawnPosition.z);
+	//Logger::DebugPrint("pawnPosition.z : %f", pawnPosition.z);
 
 	if (!*settingsManager->EnableRoomscaleProneAndCrouchPtr)
 	{
@@ -294,12 +307,17 @@ void CameraController::ProcessRoomscaleStance()
 	if (!*settingsManager->EnableRoomscaleProneAndCrouchPtr)
 		return;
 
-	auto sdkActor = (SDK::AActor*)CameraController::CameraAttachementActor;
+	if (!CameraAttachementActor)
+	{
+		Logger::DebugPrint("ProcessRoomscaleStance: CameraAttachementActor is null");
+		return;
+	}
+	auto sdkActor = (SDK::AActor*)CameraAttachementActor;
 	auto cameraAttachementPosition = sdkActor->K2_GetActorLocation();
-	Logger::DebugPrint("cameraAttachementPosition : %f", cameraAttachementPosition.Z);
-	Logger::DebugPrint("headColliderPosition : %f", headColliderPosition.z);
+	//Logger::DebugPrint("cameraAttachementPosition : %f", cameraAttachementPosition.Z);
+	//Logger::DebugPrint("headColliderPosition : %f", headColliderPosition.z);
 	auto difference = cameraAttachementPosition.Z - headColliderPosition.z;
-	Logger::DebugPrint("Head Collider - cameraAttachementPosition Difference : %f", difference);
+	//Logger::DebugPrint("Head Collider - cameraAttachementPosition Difference : %f", difference);
 
 	UEVR_Matrix4x4f hmdTransform{};
 	uevr::API::get()->param()->vr->get_transform(uevr::API::VR::get_hmd_index(), &hmdTransform);
