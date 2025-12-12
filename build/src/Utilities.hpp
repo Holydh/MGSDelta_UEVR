@@ -1,6 +1,8 @@
 #pragma once
 #include "uevr/API.hpp"
 #include "glm/glm.hpp"
+#include "glm/gtc/quaternion.hpp"
+#include "glm/gtx/quaternion.hpp"
 #include "Logger.hpp"
 
 #include "SDK/CoreUObject_structs.hpp"
@@ -36,5 +38,7 @@ public:
 	static void DestroyDebugCigars();
 
 	static float Remap(float value, float inMin, float inMax, float outMin, float outMax);
+	static glm::quat FRotatorToQuat(SDK::FRotator rotator);
+	static SDK::FRotator QuatToFRotator(glm::quat quaternion);
 	//static glm::fvec3 OffsetLocalPositionFromWorld(glm::fvec3 worldPosition, glm::fvec3 forwardVector, glm::fvec3 upVector, glm::fvec3 rightVector, glm::fvec3 offsets);
 };

@@ -413,6 +413,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		weaponManager.ProcessItem();
 		/*Logger::DebugPrint("Before ProcessWeapon");*/
 		weaponManager.ProcessWeapon(delta);
+		
 		//Logger::DebugPrint("Before FetchWeaponMeshAimData");
 
 		weaponManager.FetchWeaponMeshAimData();
@@ -479,6 +480,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 void MGSDeltaPlugin::on_post_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Post Engine Tick: %f", delta);
+	
 }
 
 void MGSDeltaPlugin::on_pre_slate_draw_window(UEVR_FSlateRHIRendererHandle renderer, UEVR_FViewportInfoHandle viewport_info) {
@@ -562,6 +564,9 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 	//	positiond->y = newPosition.y;
 	//	positiond->z = newPosition.z;
 	//}
+	
+	if (playerManager.IsPlayerControlled)
+		weaponManager.ProcessTwoHandsGrabWeapon();
 }
 
 void MGSDeltaPlugin::on_pre_viewport_client_draw(UEVR_UGameViewportClientHandle viewport_client, UEVR_FViewportHandle viewport, UEVR_FCanvasHandle canvas) {

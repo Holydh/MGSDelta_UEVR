@@ -384,4 +384,6 @@ public:
 	bool DetachHandFromWeapon();
 	bool AttachHandNextFrame = false;
 	bool NextFrame = false;
+
+	void ProcessTwoHandsGrabWeapon();
 };

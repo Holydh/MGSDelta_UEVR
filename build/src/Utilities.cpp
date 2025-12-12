@@ -259,6 +259,34 @@ float Utilities::Remap(float value, float inMin, float inMax, float outMin, floa
     return glm::mix(outMin, outMax, t);
 }
 
+glm::quat Utilities::FRotatorToQuat(SDK::FRotator rot)
+{
+    float pitch = glm::radians(rot.Pitch);
+    float yaw   = glm::radians(rot.Yaw);
+    float roll  = glm::radians(rot.Roll);
+
+    // Unreal order: Pitch(Y) -> Yaw(Z) -> Roll(X)
+    glm::quat qPitch = glm::angleAxis(pitch, glm::vec3(1, 0, 0));   // Actually X, but matches UE's coordinate handedness when modding
+    glm::quat qYaw   = glm::angleAxis(yaw,   glm::vec3(0, 0, 1));
+    glm::quat qRoll  = glm::angleAxis(roll,  glm::vec3(0, 1, 0));
+
+    // UE applies: Rot = QYaw * QPitch * QRoll
+    return qYaw * qPitch * qRoll;
+}
+
+SDK::FRotator Utilities::QuatToFRotator(glm::quat quaternion)
+{
+	glm::vec3 e = glm::eulerAngles(quaternion);  // returns radians
+    SDK::FRotator out;
+
+    // Map back to UE Rotator fields
+    out.Pitch = glm::degrees(e.x);
+    out.Yaw   = glm::degrees(e.y);
+    out.Roll  = glm::degrees(e.z);
+
+    return out;
+}
+
 
 //glm::fvec3 Utilities::OffsetLocalPositionFromWorld(glm::fvec3 worldPosition, glm::fvec3 forwardVector, glm::fvec3 upVector, glm::fvec3 rightVector, glm::fvec3 offsets)
 //{

@@ -183,6 +183,43 @@ void WeaponManager::FetchEquipController()
 	}
 }
 
+void WeaponManager::ProcessTwoHandsGrabWeapon()
+{
+	auto rightHandPos = playerManager->RightController->K2_GetComponentLocation();
+	Logger::DebugPrint("Right Hand Pos : x=%f, y=%f, z=%f", rightHandPos.X, rightHandPos.Y, rightHandPos.Z);
+	if (LeftGripInputPressed) {
+		auto leftHandPos = playerManager->LeftController->K2_GetComponentLocation();
+		auto directionToLeftHand = glm::normalize(glm::vec3(leftHandPos.X - rightHandPos.X, leftHandPos.Y - rightHandPos.Y, leftHandPos.Z - rightHandPos.Z));
+		auto sdkCurrentWeapon = (SDK::AActor*)CurrentWeapon;
+		auto weaponUpVector = sdkCurrentWeapon->GetActorUpVector();
+		auto finalRotation = SDK::UKismetMathLibrary::MakeRotFromXZ({ directionToLeftHand.x, directionToLeftHand.y, directionToLeftHand.z }, weaponUpVector);
+		//SDK::UKismetMathLibrary::FindLookAtRotation(rightHandPos, leftHandPos); if (WeaponRoot) { SDK::FHitResult outHit; SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot; sdkWeaponRoot->K2_AddWorldRotation(finalRotation, false, &outHit, false); } }
+		if (WeaponRoot)
+		{
+			SDK::FHitResult outHit;
+			SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
+			sdkWeaponRoot->K2_SetWorldRotation(finalRotation, false, &outHit, false);
+			SDK::FRotator offset(0.f, -90.f, 0.f);
+			sdkWeaponRoot->K2_AddLocalRotation(offset, false, &outHit, false);
+		}
+	}
+		
+		//else
+	//{
+	//	auto rightHandRot = playerManager->RightController->K2_GetComponentRotation();
+	//	if (WeaponRoot)
+	//	{
+	//		auto offset = Utilities::QuatToFRotator({DefaultWeaponRotation.x,  DefaultWeaponRotation.y,  DefaultWeaponRotation.z, DefaultWeaponRotation.w});
+	//		offset = { offset.Pitch, offset.Yaw, offset.Roll + 180.0f};
+	//		SDK::FHitResult outHit;
+	//		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
+	//		sdkWeaponRoot->K2_SetWorldRotation(rightHandRot, false, &outHit, false);
+	//		sdkWeaponRoot->K2_AddLocalRotation(offset, false, &outHit, false);
+	//	}
+	//}
+}
+
+
 void WeaponManager::ProcessWeapon(float delta)
 {
 	if (AttachHandNextFrame && NextFrame)
