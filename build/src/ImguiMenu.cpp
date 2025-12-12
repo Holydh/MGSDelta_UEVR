@@ -358,10 +358,10 @@ void ImGuiMenu::internalFrame()
 		ImGui::Separator();
 		ImGui::Text("--- Weapons Settings ---");
 
-		if (ImGui::Checkbox("Enable VR scopes", settingsManager->SniperScopeEnabledPtr))
+		if (ImGui::Checkbox("Enable VR scopes", settingsManager->EnableWeaponsScopesPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
-			if (!*settingsManager->SniperScopeEnabledPtr)
+			if (!*settingsManager->EnableWeaponsScopesPtr)
 				weaponManager->DestroyScope();
 			else
 				weaponManager->SpawnScope();
@@ -400,7 +400,7 @@ void ImGuiMenu::internalFrame()
 			*settingsManager->ScopeResolutionPtr = newResolution;
 
 			settingsManager->SettingsModifiedThisFrame = true;
-			if (*settingsManager->SniperScopeEnabledPtr)
+			if (*settingsManager->EnableWeaponsScopesPtr)
 			{
 				weaponManager->DestroyScope();
 				weaponManager->SpawnScope();
@@ -413,6 +413,27 @@ void ImGuiMenu::internalFrame()
 		}
 		ImGui::SameLine();
 		ImGui::Text("%d x %d px", resolution, resolution);
+
+		if (ImGui::Checkbox("Disable all recoil", settingsManager->DisableAllRecoilPtr))
+		{
+			settingsManager->SettingsModifiedThisFrame = true;
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Disable recoil for all weapons");
+
+		if (ImGui::Checkbox("Enable two handed grip pivot", settingsManager->EnableTwoHandsPivotPtr))
+		{
+			settingsManager->SettingsModifiedThisFrame = true;
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Allow the weapon to align with both hands when gripped");
+
+		if (ImGui::Checkbox("Enable two handed realistic recoil", settingsManager->EnableTwoHandsRealisticRecoilPtr))
+		{
+			settingsManager->SettingsModifiedThisFrame = true;
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Weapon recoil will be stronger when gripped with single hand. Lighter when gripped with both hands.");
 
 		ImGui::Separator();
 		ImGui::Text("--- Items Settings ---");

@@ -77,7 +77,7 @@ public:
 	SDK::UPoseableMeshComponent* RightHandMesh;
 
 	void FetchMotionControllers();
-	bool HandAttachedToWeapon = false;
+	bool MainHandAttachedToWeapon = false;
 
 	void UpdateHandVisibility();
 	void UpdateForkAndKnifeMeleeState(float delta);

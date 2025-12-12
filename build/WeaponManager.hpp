@@ -28,6 +28,7 @@
 
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
+#include "Inputs.hpp"
 
 class WeaponManager {
 private:
@@ -49,6 +50,8 @@ private:
 
 	SDK::FName tntSocketFname;
 	SDK::FName cqcKnifeSocketFname;
+
+	bool secondHandAttachedToWeapon = false;
 
 public:
 	WeaponManager(MemoryManager* mm, SettingsManager* sm, PlayerManager* pm, CameraController* cc) : memoryManager(mm), settingsManager(sm), playerManager(pm), cameraController(cc) {};
@@ -98,6 +101,7 @@ public:
 
 	bool handShouldAttachToWeapon = false;
 	bool HasObjectInLeftHand = false;
+	bool canBeTwoHanded = false;
 
 	float ActualFoodRotation = 0.0f;
 	glm::vec3 FoodIdleStart = {0.0f, 0.0f, 0.0f};
@@ -105,9 +109,6 @@ public:
 	glm::fquat FoodCurrentLocalRotation = {1.0, 0.0, 0.0, 0.0};
 	glm::quat FoodGrabRelativeRotation;
 	glm::vec3 FoodGrabRelativePosition;
-
-	bool LeftGripInputPressed;
-	bool WasLeftGripInputPressed;
 
 	enum EGsrEquipId : uint8_t
 	{
@@ -386,4 +387,5 @@ public:
 	bool NextFrame = false;
 
 	void ProcessTwoHandsGrabWeapon();
+	bool RanOnce = false;
 };

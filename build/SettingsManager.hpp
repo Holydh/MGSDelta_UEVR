@@ -54,9 +54,12 @@ public:
 	float* SquatUnderThisValuePtr;
 	float* CrawlUnderThisValuePtr;
 
-	bool* SniperScopeEnabledPtr;
+	bool* EnableWeaponsScopesPtr;
 	int* ScopeResolutionSliderIndexPtr;
 	int* ScopeResolutionPtr;
+	bool* DisableAllRecoilPtr;
+	bool* EnableTwoHandsPivotPtr;
+	bool* EnableTwoHandsRealisticRecoilPtr;
 
 	bool* DisableThermalVisionScanlinePtr;
 
@@ -77,9 +80,12 @@ private:
 	float squatUnderThisValue = -0.4f;
 	float crawlUnderThisValue = -0.8f;
 
-	bool sniperScopeEnabled = true;
+	bool enableWeaponsScopes = true;
 	int scopeResolutionSliderIndex = 0;
 	int scopeResolution = 1024;
+	bool disableAllRecoil = false;
+	bool enableTwoHandsPivot = true;
+	bool enableTwoHandsRealisticRecoil = true;
 
 	bool disableThermalVisionScanline = true;
 

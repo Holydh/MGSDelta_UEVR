@@ -404,6 +404,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 	if (playerManager.IsPlayerControlled)
 	{
+		Inputs::CheckSecondHandGrip(delta);
 		playerManager.UpdateForkAndKnifeMeleeState(delta);
 		playerManager.GetCurrentAimStateAndCameraMode();
 		/*Logger::DebugPrint("Before ResolveAddresses");*/
@@ -468,7 +469,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.WasCqcGrab = playerManager.IsCqcGrab;
 	weaponManager.PreviousWeaponID = weaponManager.CurrentWeaponID;
 	weaponManager.PreviousItemID = weaponManager.CurrentItemID;
-	weaponManager.WasLeftGripInputPressed = weaponManager.LeftGripInputPressed;
+	Inputs::WasLeftGripInputPressed = Inputs::LeftGripInputPressed;
 	cameraController.WasMenuOpen = cameraController.IsMenuOpen;
 	imGuiMenu.MouseMovedThisFrame = false;
 	//auto end = std::chrono::high_resolution_clock::now();
@@ -476,6 +477,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	//Logger::DebugPrint("execution time : %lld micro seconds", duration_ms.count());
 	if (weaponManager.AttachHandNextFrame)
 		weaponManager.NextFrame = true;
+
+	weaponManager.RanOnce = false;
 }
 
 void MGSDeltaPlugin::on_post_engine_tick(API::UGameEngine* engine, float delta) {
@@ -566,7 +569,9 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 	//}
 	
 	if (playerManager.IsPlayerControlled)
+	{
 		weaponManager.ProcessTwoHandsGrabWeapon();
+	}
 }
 
 void MGSDeltaPlugin::on_pre_viewport_client_draw(UEVR_UGameViewportClientHandle viewport_client, UEVR_FViewportHandle viewport, UEVR_FCanvasHandle canvas) {
@@ -589,9 +594,9 @@ void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, 
 	weaponManager.ZoomInput = rawRightYInput > 0.5f || rawRightYInput < -0.5f ? rawRightYInput : 0.0f;
 
 	float triggerInput = (float)state->Gamepad.bRightTrigger / 255.0f; // Normalize to 0.0 to 1.0
-	weaponManager.LeftGripInputPressed = triggerInput > 0.5f ? true : false;
+	Inputs::LeftGripInputPressed = triggerInput > 0.5f ? true : false;
 
-	weaponManager.LeftGripInputPressed = state->Gamepad.wButtons == 256 ? true : false;
+	Inputs::LeftGripInputPressed = state->Gamepad.wButtons == 256 ? true : false;
 
 	//float rawLeftXInput = (float)state->Gamepad.sThumbLX / 32768.0f; // Normalize to -1.0 to 1.0
 	//float rawLeftYInput = (float)state->Gamepad.sThumbLY / 32768.0f; // Normalize to -1.0 to 1.0

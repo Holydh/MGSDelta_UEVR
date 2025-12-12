@@ -109,9 +109,12 @@ void SettingsManager::InitSettingsManager()
 	SquatUnderThisValuePtr = &squatUnderThisValue;
 	CrawlUnderThisValuePtr = &crawlUnderThisValue;
 
-	SniperScopeEnabledPtr = &sniperScopeEnabled;
+	EnableWeaponsScopesPtr = &enableWeaponsScopes;
 	ScopeResolutionSliderIndexPtr = &scopeResolutionSliderIndex;
 	ScopeResolutionPtr = &scopeResolution;
+	DisableAllRecoilPtr = &disableAllRecoil;
+	EnableTwoHandsPivotPtr = &enableTwoHandsPivot;
+	EnableTwoHandsRealisticRecoilPtr = &enableTwoHandsRealisticRecoil;
 
 	DisableThermalVisionScanlinePtr = &disableThermalVisionScanline;
 
@@ -152,8 +155,11 @@ void SettingsManager::FetchPluginSettings()
 	squatUnderThisValue = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "squatUnderThisValue", -0.4f);
 	crawlUnderThisValue = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "crawlUnderThisValue", -0.8f);
 
-	sniperScopeEnabled = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "sniperScopeEnabled", true);
+	enableWeaponsScopes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableWeaponsScopes", true);
 	scopeResolution = SettingsManager::GetIntValueFromFile(pluginConfigFilePath, "scopeResolution", 1024);
+	disableAllRecoil = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "disableAllRecoil", false);
+	enableTwoHandsPivot = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableTwoHandsPivot", true);
+	enableTwoHandsRealisticRecoil = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableTwoHandsRealisticRecoil", true);
 
 	disableThermalVisionScanline = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "disableThermalVisionScanline", true);
 
@@ -178,8 +184,11 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "squatUnderThisValue", squatUnderThisValue);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "crawlUnderThisValue", crawlUnderThisValue);
 
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "sniperScopeEnabled", sniperScopeEnabled);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableWeaponsScopes", enableWeaponsScopes);
 	SettingsManager::SetIntValueToFile(pluginConfigFilePath, "scopeResolution", scopeResolution);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "disableAllRecoil", disableAllRecoil);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableTwoHandsPivot", enableTwoHandsPivot);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableTwoHandsRealisticRecoil", enableTwoHandsRealisticRecoil);
 
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "disableThermalVisionScanline", disableThermalVisionScanline);
 
@@ -216,6 +225,9 @@ void SettingsManager::GetOrCreateConfigFile()
 			"------ Weapons Settings ------\n"
 			"sniperScopeEnabled=true\n"
 			"scopeResolution=1024\n"
+			"disableAllRecoil=false\n"
+			"enableTwoHandsPivot=true\n"
+			"enableTwoHandsRealisticRecoil=true\n"
 			"------ Items Settings ------\n"
 			"disableThermalVisionScanline=true\n"
 			"------ Misc Settings ------\n"
