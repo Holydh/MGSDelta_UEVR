@@ -370,6 +370,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
 	//auto start = std::chrono::high_resolution_clock::now();
+	deltaTime = delta;
 	playerManager.FetchGameState();
 
 	if (cameraController.IsMenuOpen)
@@ -478,7 +479,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	if (weaponManager.AttachHandNextFrame)
 		weaponManager.NextFrame = true;
 
-	weaponManager.RanOnce = false;
+	ranOnce = false;
 }
 
 void MGSDeltaPlugin::on_post_engine_tick(API::UGameEngine* engine, float delta) {
@@ -568,10 +569,13 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 	//	positiond->z = newPosition.z;
 	//}
 	
-	if (playerManager.IsPlayerControlled)
+	if (playerManager.IsPlayerControlled && ranOnce)
 	{
 		weaponManager.ProcessTwoHandsGrabWeapon();
+		weaponManager.ApplyRecoil(deltaTime);
 	}
+
+	ranOnce = true;
 }
 
 void MGSDeltaPlugin::on_pre_viewport_client_draw(UEVR_UGameViewportClientHandle viewport_client, UEVR_FViewportHandle viewport, UEVR_FCanvasHandle canvas) {

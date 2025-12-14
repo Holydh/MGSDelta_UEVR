@@ -39,7 +39,6 @@ private:
 
 	SDK::ABP_PlayerCameraManager_C* playerCameraManager = nullptr;
 
-	void applyRecoil(float delta);
 	float randomRange(float min, float max);
 	void spawnScope();
 	void getRenderTarget(SDK::UWorld* world);
@@ -87,11 +86,13 @@ public:
 	SDK::UTextureRenderTarget2D* ScopeRenderTarget = nullptr;
 
 
-	glm::fquat DefaultWeaponRotation{};
-	glm::fvec3 DefaultWeaponPosition{};
-	glm::fquat CurrentWeaponRotation{};
-	glm::fvec3 CurrentWeaponRotationEuler{};
-	glm::fvec3 CurrentWeaponPosition{};
+	glm::fquat DefaultUevrHookWeaponRotation{};
+	glm::fvec3 DefaultUevrHookWeaponPosition{};
+	glm::fquat CurrentRelativeWeaponRotation = {};
+	glm::fvec3 CurrentRelativeWeaponRotationEuler {0.0f, 0.0f, 0.0f};
+	glm::fvec3 CurrentRelativeWeaponPosition {0.0f, 0.0f, 0.0f};
+	glm::fvec3 DefaultRelativeWeaponPosition {0.0f, 0.0f, 0.0f};
+	glm::fquat DefaultRelativeWeaponRotation { 1.0f, 0.0f, 0.0f, 0.0f };
 	SDK::FVector HandLocationOffest{};
 	SDK::FRotator HandRotationOffset{};
 
@@ -387,5 +388,5 @@ public:
 	bool NextFrame = false;
 
 	void ProcessTwoHandsGrabWeapon();
-	bool RanOnce = false;
+	void ApplyRecoil(float delta);
 };

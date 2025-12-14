@@ -188,21 +188,17 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 	if (!canBeTwoHanded)
 		return;
 
-
-	//on_post_calculate_stereo_view_offset run twice per frame, so we need to run this only once
-	if (!RanOnce)
+	if (Inputs::SecondHandGripTriggeredBeforeDelay && !secondHandAttachedToWeapon)
 	{
-		if (Inputs::SecondHandGripTriggeredBeforeDelay && !secondHandAttachedToWeapon)
-		{
-			Logger::DebugPrint("Attaching second hand to weapon");
-			secondHandAttachedToWeapon = true;
-		}
-		else if (Inputs::SecondHandGripTriggeredBeforeDelay && secondHandAttachedToWeapon)
-		{
-			Logger::DebugPrint("Dettaching second hand to weapon");
-			secondHandAttachedToWeapon = false;
-		}
+		Logger::DebugPrint("Attaching second hand to weapon");
+		secondHandAttachedToWeapon = true;
 	}
+	else if (Inputs::SecondHandGripTriggeredBeforeDelay && secondHandAttachedToWeapon)
+	{
+		Logger::DebugPrint("Dettaching second hand to weapon");
+		secondHandAttachedToWeapon = false;
+	}
+
 
 	//Logger::DebugPrint("Right Hand Pos : x=%f, y=%f, z=%f", rightHandPos.X, rightHandPos.Y, rightHandPos.Z);
 	if (secondHandAttachedToWeapon) {
@@ -236,7 +232,6 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 	//		sdkWeaponRoot->K2_AddLocalRotation(offset, false, &outHit, false);
 	//	}
 	//}
-	RanOnce = true;
 }
 
 
@@ -314,7 +309,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 		Logger::DebugPrint(WeaponRoot->get_full_name());
 
-		FetchWeaponOffsets(CurrentWeaponID, DefaultWeaponPosition, DefaultWeaponRotation, HandLocationOffest, HandRotationOffset);
+		FetchWeaponOffsets(CurrentWeaponID, DefaultUevrHookWeaponPosition, DefaultUevrHookWeaponRotation, HandLocationOffest, HandRotationOffset);
 
 		//if (!weaponShouldAttach)
 		//{
@@ -324,16 +319,17 @@ void WeaponManager::ProcessWeapon(float delta)
 
 
 		Logger::DebugPrint("Applied weapon offsets from config");
-		Logger::DebugPrint("Position Offset : x=%f, y=%f, z=%f", DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z);
-		Logger::DebugPrint("Rotation Offset : w=%f, x=%f, y=%f, z=%f", DefaultWeaponRotation.w, DefaultWeaponRotation.x, DefaultWeaponRotation.y, DefaultWeaponRotation.z);
-		Logger::DebugPrint("Hand Position Offset : x=%f, y=%f, z=%f", HandLocationOffest.X, HandLocationOffest.Y, HandLocationOffest.Z);
-		Logger::DebugPrint("Hand Rotation Offset : Pitch=%f, Yaw=%f, Roll=%f", HandRotationOffset.Pitch, HandRotationOffset.Yaw, HandRotationOffset.Roll);
-		CurrentWeaponPosition = DefaultWeaponPosition;
-		CurrentWeaponRotation = DefaultWeaponRotation;
-		CurrentWeaponRotationEuler = glm::eulerAngles(CurrentWeaponRotation);
+		Logger::DebugPrint("Position Offset : x=%f, y=%f, z=%f", DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y, DefaultUevrHookWeaponPosition.z);
+		Logger::DebugPrint("Rotation Offset : w=%f, x=%f, y=%f, z=%f", DefaultUevrHookWeaponRotation.w, DefaultUevrHookWeaponRotation.x, DefaultUevrHookWeaponRotation.y, DefaultUevrHookWeaponRotation.z);
+		//Logger::DebugPrint("Hand Position Offset : x=%f, y=%f, z=%f", HandLocationOffest.X, HandLocationOffest.Y, HandLocationOffest.Z);
+		//Logger::DebugPrint("Hand Rotation Offset : Pitch=%f, Yaw=%f, Roll=%f", HandRotationOffset.Pitch, HandRotationOffset.Yaw, HandRotationOffset.Roll);
 
-		UEVR_Vector3f defaultPos = { DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z };
-		UEVR_Quaternionf defaultRot = {DefaultWeaponRotation.w, DefaultWeaponRotation.x, DefaultWeaponRotation.y, DefaultWeaponRotation.z};
+		CurrentRelativeWeaponPosition = DefaultRelativeWeaponPosition;
+		CurrentRelativeWeaponRotation = DefaultRelativeWeaponRotation;
+		CurrentRelativeWeaponRotationEuler = glm::eulerAngles(CurrentRelativeWeaponRotation);
+
+		UEVR_Vector3f defaultPos = { DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y, DefaultUevrHookWeaponPosition.z };
+		UEVR_Quaternionf defaultRot = {DefaultUevrHookWeaponRotation.w, DefaultUevrHookWeaponRotation.x, DefaultUevrHookWeaponRotation.y, DefaultUevrHookWeaponRotation.z};
 
 		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(WeaponRoot);
 		motionState->set_location_offset(&defaultPos);
@@ -588,8 +584,8 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	if (!playerManager->MeleeAttackRunning && playerManager->WasMeleeAttackRunning)
 	{
-		UEVR_Vector3f defaultPos = { DefaultWeaponPosition.x, DefaultWeaponPosition.y, DefaultWeaponPosition.z };
-		UEVR_Quaternionf defaultRot = { DefaultWeaponRotation.x, DefaultWeaponRotation.y, DefaultWeaponRotation.z, DefaultWeaponRotation.w };
+		UEVR_Vector3f defaultPos = { DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y, DefaultUevrHookWeaponPosition.z };
+		UEVR_Quaternionf defaultRot = { DefaultUevrHookWeaponRotation.x, DefaultUevrHookWeaponRotation.y, DefaultUevrHookWeaponRotation.z, DefaultUevrHookWeaponRotation.w };
 
 		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(WeaponRoot);
 		motionState->set_location_offset(&defaultPos);
@@ -634,7 +630,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 		//Apply recoil
 		if (CurrentWeapon != NULL)
-			applyRecoil(delta);
+			ApplyRecoil(delta);
 
 		if (!*settingsManager->EnableWeaponsScopesPtr)
 			return;
@@ -701,7 +697,7 @@ void WeaponManager::AttachHandToWeapon()
 		Logger::DebugPrint("attach Hand to weapon");
 		playerManager->RightHandMesh->DetachFromParent(true, false);
 		playerManager->RightHandMesh->K2_AttachToComponent(
-			(SDK::USceneComponent*)WeaponRoot,
+			(SDK::USceneComponent*)ReceiverMesh,
 			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
 			SDK::EAttachmentRule::KeepWorld,
 			SDK::EAttachmentRule::KeepWorld,
@@ -967,7 +963,7 @@ void WeaponManager::ToggleThermalVisionScanline()
 	ToggleThermalVisionScanlineNextFrame = false;
 }
 
-void WeaponManager::applyRecoil(float delta)
+void WeaponManager::ApplyRecoil(float delta)
 {
 	glm::fvec3 positionRecoilForce = { 0.0f, 0.0f, 0.0f };
 	glm::fvec3 rotationRecoilForceEuler = { 0.0f, 0.0f, 0.0f };
@@ -977,107 +973,100 @@ void WeaponManager::applyRecoil(float delta)
 	switch (CurrentWeaponID)
 	{
 	case WP_Mk22:
-		positionRecoilForce = { 0.75f, -0.005f, 0.0f };
-		rotationRecoilForceEuler = { -0.1f, 0.0f, 0.0f };
+		positionRecoilForce = { 0.0f, -0.75f, 0.005f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -2.0f };
 		break;
+
 	case WP_Gove:
-		positionRecoilForce = { 4.0f, -0.005f, randomRange(-0.25, 0.25) };
-		rotationRecoilForceEuler = { -0.1f, 0.0f, 0.0f };
+		positionRecoilForce = { randomRange(-0.25f, 0.25f), -4.0f, 0.005f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -2.0f };
 		recoilPositionRecoverySpeed = 14.0f;
 		recoilRotationRecoverySpeed = 12.0f;
 		break;
+
 	case WP_EasyGun:
-		positionRecoilForce = { 0.75f, -0.005f, 0.0f };
-		rotationRecoilForceEuler = { -0.1f, 0.0f, 0.0f };
+		positionRecoilForce = { 0.0f, -0.75f, 0.005f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -2.0f };
 		break;
+
 	case WP_SAArmy: //This one x is the z there for some reasons
-		positionRecoilForce = { 5.0f, -0.005f, 0.0f /*RandomRange(-0.15, 0.15)*/ };
-		rotationRecoilForceEuler = { 0.0f, 0.0f, -0.75f };
-		//recoilPositionRecoverySpeed = 7.0f;
-		//recoilRotationRecoverySpeed = 5.0f;
+		positionRecoilForce = { 0.0f, -5.0f, 0.005f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -15.0f };
 		break;
+
 	case WP_PatriotPostol:
-		positionRecoilForce = { 0.75f, -0.18f, randomRange(-0.1, 0.1)};
-		rotationRecoilForceEuler = { -0.005f, 0.0f, 0.0f };
+		positionRecoilForce = { randomRange(-0.1f, 0.1f), -0.75f, 0.18f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -0.1f };
 		break;
+
 	case WP_Scorpion:
-		positionRecoilForce = { 1.0f, -0.25f, randomRange(-0.2, 0.2)};
-		rotationRecoilForceEuler = { 0.0f, 0.0f, -0.01f };
+		positionRecoilForce = { randomRange(-0.2f, 0.2f), -1.0f, 0.25f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -0.2f };
 		break;
-	case WP_M16a1: // {forward,  up down, left right}
-		positionRecoilForce = { 1.0f, -0.25f, randomRange(-0.2, 0.2)};
-		rotationRecoilForceEuler = { -0.01f, 0.0f, 0.0f };
+
+	case WP_M16a1: // already corrected
+		positionRecoilForce = { randomRange(-0.2f, 0.2f), -1.0f, 0.25f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -0.2f };
 		break;
+
 	case WP_Akm:
-		positionRecoilForce = { 1.0f, -0.25f, randomRange(-0.2, 0.2)};
-		rotationRecoilForceEuler = { -0.01f, 0.0f, 0.0f };
+		positionRecoilForce = { randomRange(-0.2f, 0.2f), -1.0f, 0.25f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -0.2f };
 		break;
+
 	case WP_M63:
-		positionRecoilForce = { 2.0f, -0.25f, randomRange(-0.2, 0.2)};
-		rotationRecoilForceEuler = { -0.01f, 0.0f, 0.0f };
+		positionRecoilForce = { randomRange(-0.2f, 0.2f), -2.0f, 0.25f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -0.2f };
 		recoilPositionRecoverySpeed = 14.0f;
 		recoilRotationRecoverySpeed = 12.0f;
 		break;
+
 	case WP_Ithaca:
-		positionRecoilForce = { 30.0f, -10.0f, 1.0 };
-		rotationRecoilForceEuler = { -0.3f, 0.0f, 0.0f };
+		positionRecoilForce = { 1.0f, -30.0f, 10.0f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -6.0f };
 		recoilPositionRecoverySpeed = 7.0f;
 		recoilRotationRecoverySpeed = 5.0f;
 		break;
+
 	case WP_Dragnov:
-		positionRecoilForce = { 4.0f, -0.005f, 0.0f };
-		rotationRecoilForceEuler = { -0.02f, 0.0f, 0.0f };
+		positionRecoilForce = { 0.0f, -4.0f, 0.005f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -0.4f };
 		break;
+
 	case WP_MosinNagant:
-		positionRecoilForce = { 2.0f, -0.005f, randomRange(-0.2, 0.2)};
-		rotationRecoilForceEuler = { -0.02f, 0.0f, 0.0f };
+		positionRecoilForce = { randomRange(-0.2f, 0.2f), -2.0f, 0.005f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -0.4f };
 		break;
+
 	case WP_Rpg:
-		positionRecoilForce = { 5.0f, -0.005f, 0.0f };
-		rotationRecoilForceEuler = { -0.1f, 0.0f, 0.0f };
+		positionRecoilForce = { 0.0f, -5.0f, 0.005f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -2.0f };
 		break;
 
 	default:
 		return;
-		
 	}
 
 	auto motionState = uevr::API::UObjectHook::get_motion_controller_state(WeaponRoot);
-	
+	SDK::FHitResult outHit;
 	//Logger::DebugPrint("%d", IsShooting);
 	if (IsShooting)
 	{
-		//auto sdkCurrentWeapon = (SDK::AActor*)CurrentWeapon;
-		//auto rotation = sdkCurrentWeapon->K2_GetActorRotation();
-		////Logger::DebugPrint("Recoil applied : forward.x %f, forward.y %f, forward.z %f", forward.X, forward.Y, forward.Z);
-		//auto glmRotation = glm::normalize(glm::fvec3(rotation.Pitch, rotation.Yaw, rotation.Roll));
-		//
-
-		CurrentWeaponPosition += /*glmRotation * */positionRecoilForce;
-		CurrentWeaponRotationEuler += rotationRecoilForceEuler;
-		CurrentWeaponRotation = glm::fquat(CurrentWeaponRotationEuler);
-		glm::dquat rotQuat = glm::dquat(CurrentWeaponRotationEuler);
-		UEVR_Vector3f pos = { CurrentWeaponPosition.x, CurrentWeaponPosition.y, CurrentWeaponPosition.z };
-		UEVR_Quaternionf rot = { rotQuat.w, rotQuat.x, rotQuat.y, rotQuat.z };
-
-		motionState->set_location_offset(&pos);
-		motionState->set_rotation_offset(&rot);
-		motionState->set_permanent(true);
+		CurrentRelativeWeaponPosition += positionRecoilForce;
+		CurrentRelativeWeaponRotationEuler += rotationRecoilForceEuler;
+		CurrentRelativeWeaponRotation = glm::fquat(glm::radians(CurrentRelativeWeaponRotationEuler));
+		ReceiverMesh->K2_SetRelativeLocation({ CurrentRelativeWeaponPosition.x, CurrentRelativeWeaponPosition.y, CurrentRelativeWeaponPosition.z }, false, &outHit, false);
+		ReceiverMesh->K2_SetRelativeRotation({ CurrentRelativeWeaponRotationEuler.x, CurrentRelativeWeaponRotationEuler.y, CurrentRelativeWeaponRotationEuler.z }, false, &outHit, false);
 		IsShooting = false;
 	}
 	else
 	{
 		// Smoothly return position to base
-		CurrentWeaponPosition = glm::mix(CurrentWeaponPosition, DefaultWeaponPosition, delta * recoilPositionRecoverySpeed);
-		glm::fquat smoothedQuat = glm::slerp(CurrentWeaponRotation, DefaultWeaponRotation, delta * recoilRotationRecoverySpeed);
-		CurrentWeaponRotation = smoothedQuat;
-		CurrentWeaponRotationEuler = glm::eulerAngles(smoothedQuat);
-
-		UEVR_Vector3f pos = { CurrentWeaponPosition.x, CurrentWeaponPosition.y, CurrentWeaponPosition.z };
-		UEVR_Quaternionf rot = { smoothedQuat.w, smoothedQuat.x, smoothedQuat.y, smoothedQuat.z };
-
-		motionState->set_location_offset(&pos);
-		motionState->set_rotation_offset(&rot);
+		CurrentRelativeWeaponPosition = glm::mix(CurrentRelativeWeaponPosition, DefaultRelativeWeaponPosition, delta * recoilPositionRecoverySpeed);
+		CurrentRelativeWeaponRotation = glm::slerp(CurrentRelativeWeaponRotation, DefaultRelativeWeaponRotation, delta * recoilRotationRecoverySpeed);
+		CurrentRelativeWeaponRotationEuler = glm::degrees(glm::eulerAngles(CurrentRelativeWeaponRotation));
+		ReceiverMesh->K2_SetRelativeLocation({ CurrentRelativeWeaponPosition.x, CurrentRelativeWeaponPosition.y, CurrentRelativeWeaponPosition.z }, false, &outHit, false);
+		ReceiverMesh->K2_SetRelativeRotation({ CurrentRelativeWeaponRotationEuler.x, CurrentRelativeWeaponRotationEuler.y, CurrentRelativeWeaponRotationEuler.z }, false, &outHit, false);
 	}
 }
 

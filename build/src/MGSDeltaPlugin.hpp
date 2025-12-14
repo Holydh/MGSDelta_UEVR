@@ -36,6 +36,10 @@ class MGSDeltaPlugin : public uevr::Plugin {
 private:
 	void Toggle6DOF(bool enable);
     bool vr_enabled = false;
+
+    //on_post_calculate_stereo_view_offset run twice per frame, so we need to run this only once
+    bool ranOnce = false;
+	float deltaTime = 0.0f;
 public:
     MGSDeltaPlugin();
     virtual ~MGSDeltaPlugin();
