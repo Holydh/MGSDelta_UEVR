@@ -47,7 +47,7 @@ public:
 	void DetachCameraFromAttachementActor();
 	bool IsCameraAttachedToAttachementActor = false;
 	bool CameraAttachementActorAvailable = false;
-	void CameraAttachementActorPositionSafeguard();
+	bool CameraAttachementActorPositionSafeguard();
 
 	void ProcessCamera(float deltaTime);
 	float InstantCameraPositionTimer = 0.25f;

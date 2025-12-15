@@ -50,7 +50,7 @@ private:
 	SDK::FName tntSocketFname;
 	SDK::FName cqcKnifeSocketFname;
 
-	bool secondHandAttachedToWeapon = false;
+	
 
 public:
 	WeaponManager(MemoryManager* mm, SettingsManager* sm, PlayerManager* pm, CameraController* cc) : memoryManager(mm), settingsManager(sm), playerManager(pm), cameraController(cc) {};
@@ -100,9 +100,11 @@ public:
 	glm::dvec3 AimPosition{};
 	SDK::FRotator CurrentWeaponWorldRotation{};
 
-	bool handShouldAttachToWeapon = false;
+	bool mainHandShouldAttachToWeapon = false;
+	bool secondHandShouldAttachToWeapon = false;
 	bool HasObjectInLeftHand = false;
 	bool canBeTwoHanded = false;
+	bool twoHandedPivot = false;
 
 	float ActualFoodRotation = 0.0f;
 	glm::vec3 FoodIdleStart = {0.0f, 0.0f, 0.0f};
@@ -382,8 +384,10 @@ public:
 
 	void ProcessItem();
 	void SendHandStateToLua();
-	void AttachHandToWeapon();
+	void AttachMainHandToWeapon();
 	bool DetachHandFromWeapon();
+	void AttachSecondHandToWeapon();
+	bool DetachSecondHandFromWeapon();
 	bool AttachHandNextFrame = false;
 	bool NextFrame = false;
 

@@ -112,9 +112,9 @@ void CameraController::DetachCameraFromAttachementActor()
     }
 }
 
-void CameraController::CameraAttachementActorPositionSafeguard()
+bool CameraController::CameraAttachementActorPositionSafeguard()
 {
-	if (!CameraAttachementActor) return;
+	if (!CameraAttachementActor) return false;
 	UEVR_Vector3d actorPosition;
 	CameraAttachementActor->call_function(L"K2_GetActorLocation", &actorPosition);
 	float distance = glm::distance(glm::fvec3{ (float)actorPosition.x, (float)actorPosition.y, (float)actorPosition.z }, LastCameraPosition);
@@ -122,11 +122,11 @@ void CameraController::CameraAttachementActorPositionSafeguard()
 	if (distance > 200.0f && IsCameraAttachedToAttachementActor)
 	{
 		Logger::DebugPrint("Camera Attachement Actor Position Safeguard Activated. Distance: %f", distance);
-		DetachCameraFromAttachementActor();
+		return true;
 	}
-	else if (!IsCameraAttachedToAttachementActor)
+	else
 	{
-		AttachCameraToAttachementActor();
+		return false;
 	}
 }
 
