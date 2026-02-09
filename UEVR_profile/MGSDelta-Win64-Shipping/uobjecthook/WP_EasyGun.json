@@ -1,0 +1,36 @@
+{
+    "path": [
+        "Acknowledged Pawn",
+        "Properties",
+        "Children",
+        "BP_WP_EasyGun_C BP_WP_EasyGun_C_2146241673",
+        "Properties",
+        "RootSceneComponent"
+    ],
+    "state": {
+        "hand": 1,
+        "location_offset": {
+            "x": -4.486999988555908,
+            "y": -4.491000175476074,
+            "z": -1.3480000495910645
+        },
+        "permanent": true,
+        "rotation_offset": {
+            "w": -0.6278106570243835,
+            "x": -0.07715290784835815,
+            "y": 0.7727933526039124,
+            "z": -0.05188107118010521
+		},
+		"hand_location_offset" : {
+			"x": 0.940,
+            "y": -3.640,
+            "z": -5.920
+		},
+		"hand_rotation_offset" : {
+			"Pitch": -16.440,
+            "Yaw": -10.130,
+            "Roll": 0.360
+		}
+    },
+    "type": "motion_controller"
+}

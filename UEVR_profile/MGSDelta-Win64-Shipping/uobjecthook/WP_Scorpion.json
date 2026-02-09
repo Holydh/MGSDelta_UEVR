@@ -1,0 +1,36 @@
+{
+    "path": [
+        "Acknowledged Pawn",
+        "Properties",
+        "Children",
+        "BP_WP_Scorpion_C BP_WP_Scorpion_C_2147469468",
+        "Components",
+        "SceneComponent RootSceneComponent"
+    ],
+    "state": {
+        "hand": 1,
+        "location_offset": {
+            "x": -3.496999979019165,
+            "y": -5.190999984741211,
+            "z": -0.578000009059906
+        },
+        "permanent": true,
+        "rotation_offset": {
+            "w": -0.6023978590965271,
+            "x": -0.10920209437608719,
+            "y": 0.7812254428863525,
+            "z": -0.12197766453027725
+		},
+		"hand_location_offset" : {
+			"x": 0.351,
+            "y": 8.747,
+            "z": -3.145
+		},
+		"hand_rotation_offset" : {
+			"Pitch": -6.610,
+            "Yaw": 38.800,
+            "Roll": -12.040
+		}
+    },
+    "type": "motion_controller"
+}

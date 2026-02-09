@@ -1,0 +1,36 @@
+{
+    "path": [
+        "Acknowledged Pawn",
+        "Properties",
+        "Children",
+        "BP_WP_Ithaca_C BP_WP_Ithaca_C_2147469456",
+        "Components",
+        "SceneComponent RootSceneComponent"
+    ],
+    "state": {
+        "hand": 1,
+        "location_offset": {
+            "x": -14.63700008392334,
+            "y": 0.7689999938011169,
+            "z": -0.2879999876022339
+        },
+        "permanent": true,
+        "rotation_offset": {
+            "w": -0.6252077221870422,
+            "x": 0.15727129578590393,
+            "y": 0.761579692363739,
+            "z": 0.0661623477935791
+		},
+		"hand_location_offset" : {
+			"x": 0.351,
+            "y": 20.977,
+            "z": 3.835
+		},
+		"hand_rotation_offset" : {
+			"Pitch": -100.552,
+            "Yaw": 11.017,
+            "Roll": 30.197
+		}
+    },
+    "type": "motion_controller"
+}

@@ -1,0 +1,36 @@
+{
+    "path": [
+        "Acknowledged Pawn",
+        "Properties",
+        "Children",
+        "BP_WP_MosinNagant_C BP_WP_MosinNagant_C_2146585185",
+        "Components",
+        "SceneComponent RootSceneComponent"
+    ],
+    "state": {
+        "hand": 1,
+        "location_offset": {
+            "x": -8.027000427246094,
+            "y": -9.180999755859375,
+            "z": -0.9279999732971191
+        },
+        "permanent": true,
+        "rotation_offset": {
+            "w": -0.6113684177398682,
+            "x": -0.08241722732782364,
+            "y": 0.779987096786499,
+            "z": -0.10514841228723526
+		},
+		"hand_location_offset" : {
+			"x": 0.351,
+            "y": 19.977,
+            "z": -1.955
+		},
+		"hand_rotation_offset" : {
+			"Pitch": -79.448,
+            "Yaw": -168.983,
+            "Roll": -149.803
+		}
+    },
+    "type": "motion_controller"
+}
