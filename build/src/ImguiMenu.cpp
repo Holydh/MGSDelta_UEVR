@@ -97,10 +97,8 @@ void ImGuiMenu::ProcessImGui(float deltaTime)
 	//ImGui::GetIO().MousePos = ImVec2(100, 100);
 	checkMouseFocus(deltaTime);
 
-	handleVRcursor();
-
 	ImGui_ImplWin32_NewFrame();
-
+	handleVRcursor();
 	ImGui::NewFrame();
 
 	internalFrame();

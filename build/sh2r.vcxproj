@@ -152,6 +152,7 @@
       <DebugInformationFormat>
       </DebugInformationFormat>
       <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+      <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;NOMINMAX;WINVER=0x0A00;BDDISASM_HAS_VSNPRINTF;BDDISASM_HAS_MEMSET;SPDLOG_COMPILED_LIB;CMAKE_INTDIR=\"Release\";sh2r_EXPORTS</PreprocessorDefinitions>
