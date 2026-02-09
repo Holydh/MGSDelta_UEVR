@@ -8,6 +8,7 @@ local leftHandCqcKnife = false
 local attachementName = "WP_None"
 local handsVisible = false
 local hideHands = false
+local twoHandsHandling = false
 
 function on_level_change(level)
 	controllers.createController(0)
@@ -92,23 +93,46 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 			print(attachementName)
 			if event_string == "wp_none" then
 				isHoldingWeapon = false
-				hands.handleInputIndividualHand(true, false, Handed.Right, false, false)
-				hands.handleInputIndividualHand(true, false, Handed.Left, false, false)
+				hands.handleInputIndividualHand(true, false, Handed.Right, false, false, false)
+				hands.handleInputIndividualHand(true, false, Handed.Left, false, false, false)
 			else
 				isHoldingWeapon = true
-				hands.handleInputIndividualHand(false, attachementName, Handed.Right, false, false)
+				hands.handleInputIndividualHand(false, attachementName, Handed.Right, false, false, false)
 				if attachementName == "wp_gove" or
 				attachementName == "wp_mk22" or
 				attachementName == "wp_easygun" then
 					leftHandCqcKnife = true;
-					hands.handleInputIndividualHand(false, "wp_gove", Handed.Left, false, false)
+					hands.handleInputIndividualHand(false, "wp_gove", Handed.Left, false, false, false)
 				elseif attachementName == "wp_tnt" then
 					leftHandCqcKnife = false;
-					hands.handleInputIndividualHand(false, attachementName, Handed.Left, false, false)
+					hands.handleInputIndividualHand(false, attachementName, Handed.Left, false, false, false)
 				else
 					leftHandCqcKnife = false;
-					hands.handleInputIndividualHand(true, false, Handed.Left, false, false)
+					hands.handleInputIndividualHand(true, false, Handed.Left, false, false, false)
 				end
+			end
+		end
+	end
+
+	if event_name == "TwoHandsHandling" then
+		if event_string == "1" then
+			twoHandsHandling = true
+			if attachementName == "wp_gove" or
+				attachementName == "wp_mk22" or
+				attachementName == "wp_easygun" or
+				attachementName == "wp_saarmy" then
+					hands.handleInputIndividualHand(false, "wp_gove2", Handed.Left, false, false, true)
+				else
+					hands.handleInputIndividualHand(false, attachementName, Handed.Left, false, false, true)
+			end
+		else
+			twoHandsHandling = false
+			if attachementName == "wp_gove" or
+				attachementName == "wp_mk22" or
+				attachementName == "wp_easygun" then
+				hands.handleInputIndividualHand(false, "wp_gove", Handed.Left, false, false, false)
+			else
+				hands.handleInputIndividualHand(true, false, Handed.Left, false, false, false)
 			end
 		end
 	end
@@ -123,16 +147,20 @@ function on_xinput_get_state(retval, user_index, state)
 	if hands.exists() then
 		if isHoldingWeapon then
 			if leftHandCqcKnife then
-				hands.handleInputIndividualHand(state, "wp_gove", Handed.Left, false, false)
+				if twoHandsHandling then
+					hands.handleInputIndividualHand(state, "wp_gove2", Handed.Left, false, false, true)
+				else
+					hands.handleInputIndividualHand(state, "wp_gove", Handed.Left, false, false, false)
+				end
 			elseif attachementName == "wp_tnt" then
-				hands.handleInputIndividualHand(state, attachementName, Handed.Left, false, false)
+				hands.handleInputIndividualHand(state, attachementName, Handed.Left, false, false, false)
 			else
-				hands.handleInputIndividualHand(state, false, Handed.Left, false, false)
+				hands.handleInputIndividualHand(state, false, Handed.Left, false, false, false)
 			end
-			hands.handleInputIndividualHand(state, attachementName, Handed.Right, false, false)
+			hands.handleInputIndividualHand(state, attachementName, Handed.Right, false, false, false)
 		else
-			hands.handleInputIndividualHand(state, false, Handed.Right, false, false)
-			hands.handleInputIndividualHand(state, false, Handed.Left, false, false)
+			hands.handleInputIndividualHand(state, false, Handed.Right, false, false, false)
+			hands.handleInputIndividualHand(state, false, Handed.Left, false, false, false)
 		end
 	end
 end

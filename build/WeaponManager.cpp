@@ -765,6 +765,7 @@ void WeaponManager::AttachSecondHandToWeapon()
 		playerManager->LeftHandMesh->K2_SetRelativeRotation(HandRotationOffset, false, &outHit, false);
 		playerManager->RightHandMesh->SetVisibility(true, true);
 		playerManager->LeftHandMesh->SetVisibility(true, true);
+		uevr::API::get()->dispatch_lua_event("TwoHandsHandling", "1");
 	}
 }
 
@@ -788,6 +789,7 @@ bool WeaponManager::DetachSecondHandFromWeapon()
 		playerManager->SecondHandAttachedToWeapon = false;
 		playerManager->RightHandMesh->SetVisibility(true, true);
 		playerManager->LeftHandMesh->SetVisibility(true, true);
+		uevr::API::get()->dispatch_lua_event("TwoHandsHandling", "0");
 		return true;
 	}
 	return false;

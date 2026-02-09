@@ -359,7 +359,7 @@ function M.updateAnimationFromMesh(hand, mesh, componentName)
 	end
 end
 
-function M.handleInputIndividualHand(state, attachment, hand, overrideTrigger, allowAutoHandle)
+function M.handleInputIndividualHand(state, attachment, hand, overrideTrigger, allowAutoHandle, noTriggerOrGripAnimation)
 	if allowAutoHandle ~= true then
 		autoHandleInput = false -- if something else is calling this then don't auto handle input
 	end
@@ -420,8 +420,11 @@ function M.handleInputIndividualHand(state, attachment, hand, overrideTrigger, a
 			-- Weapon attachment animations
 			local triggerValue = (isRightHanded or overrideTrigger)
 				and state.Gamepad.bRightTrigger or state.Gamepad.bLeftTrigger
-			animation.updateAnimation(handStr.."_"..target, handStr.."_trigger_weapon" .. attachmentExtension, triggerValue > 100, {duration = animDuration})
-			animation.updateAnimation(handStr.."_"..target, handStr.."_grip_weapon" .. attachmentExtension, uevrUtils.isButtonPressed(state, isRightHanded and XINPUT_GAMEPAD_RIGHT_SHOULDER or XINPUT_GAMEPAD_LEFT_SHOULDER), {duration = animDuration})
+			if not noTriggerOrGripAnimation then
+				print(attachment)
+				animation.updateAnimation(handStr.."_"..target, handStr.."_trigger_weapon" .. attachmentExtension, triggerValue > 100, {duration = animDuration})
+				animation.updateAnimation(handStr.."_"..target, handStr.."_grip_weapon" .. attachmentExtension, uevrUtils.isButtonPressed(state, isRightHanded and XINPUT_GAMEPAD_RIGHT_SHOULDER or XINPUT_GAMEPAD_LEFT_SHOULDER), {duration = animDuration})
+			end
 		end
 	end
 end
