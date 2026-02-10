@@ -1073,8 +1073,8 @@
                 "left_grip_weapon_wp_gove2": {
                     "off": {
                         "BaseBody_LeftHandMiddle1": [
-                            2.2499,
-                            -54.224,
+                            3.038,
+                            -58.163,
                             16.875
                         ],
                         "BaseBody_LeftHandMiddle2": [
@@ -1089,7 +1089,7 @@
                         ],
                         "BaseBody_LeftHandPinky1": [
                             1.133,
-                            -50.814,
+                            -61.0551,
                             -25.0388
                         ],
                         "BaseBody_LeftHandPinky2": [
@@ -1104,7 +1104,7 @@
                         ],
                         "BaseBody_LeftHandRing1": [
                             -0.3771,
-                            -59.7981,
+                            -64.5251,
                             -14.8136
                         ],
                         "BaseBody_LeftHandRing2": [
