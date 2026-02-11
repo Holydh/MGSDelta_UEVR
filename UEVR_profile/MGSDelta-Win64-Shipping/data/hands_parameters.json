@@ -1073,13 +1073,13 @@
                 "left_grip_weapon_wp_gove2": {
                     "off": {
                         "BaseBody_LeftHandMiddle1": [
-                            3.038,
-                            -58.163,
-                            16.875
+                            5.262,
+                            -60.544,
+                            4.083
                         ],
                         "BaseBody_LeftHandMiddle2": [
-                            -12.452,
-                            -31.4231,
+                            3.276,
+                            -21.2601,
                             0.0
                         ],
                         "BaseBody_LeftHandMiddle3": [
@@ -1089,47 +1089,47 @@
                         ],
                         "BaseBody_LeftHandPinky1": [
                             1.133,
-                            -61.0551,
+                            -90.1894,
                             -25.0388
                         ],
                         "BaseBody_LeftHandPinky2": [
-                            3.8368,
-                            -40.134,
+                            13.9617,
+                            -75.0094,
                             0.0
                         ],
                         "BaseBody_LeftHandPinky3": [
                             -5.14,
-                            -17.8921,
+                            -42.642,
                             6.038
                         ],
                         "BaseBody_LeftHandRing1": [
-                            -0.3771,
-                            -64.5251,
+                            5.7389,
+                            -73.071,
                             -14.8136
                         ],
                         "BaseBody_LeftHandRing2": [
-                            3.388,
-                            -29.026,
+                            2.5139,
+                            -17.7431,
                             0.0
                         ],
                         "BaseBody_LeftHandRing3": [
                             2.2639,
-                            -34.4721,
+                            -10.8802,
                             9.057
                         ],
                         "BaseBody_LeftHandThumb1": [
-                            -13.0201,
-                            -29.21,
-                            80.384
+                            -0.645,
+                            -34.835,
+                            118.6341
                         ],
                         "BaseBody_LeftHandThumb2": [
-                            24.804,
-                            -2.689,
+                            21.429,
+                            -14.6591,
                             0.0
                         ],
                         "BaseBody_LeftHandThumb3": [
                             7.347,
-                            -24.6701,
+                            -98.2901,
                             23.878
                         ]
                     }
@@ -1407,18 +1407,18 @@
                 "left_trigger_weapon_wp_gove2": {
                     "off": {
                         "BaseBody_LeftHandIndex1": [
-                            3.7829,
-                            -40.377,
+                            9.2749,
+                            -49.989,
                             9.0354
                         ],
                         "BaseBody_LeftHandIndex2": [
-                            4.5858,
-                            -34.5761,
+                            -3.0491,
+                            -20.0971,
                             0.0
                         ],
                         "BaseBody_LeftHandIndex3": [
                             -5.283,
-                            -38.8681,
+                            -18.771,
                             0.0
                         ]
                     },
