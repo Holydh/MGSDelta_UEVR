@@ -22,10 +22,8 @@ struct WeaponConfig
 {
     glm::fvec3 location_offset{};
     glm::fquat rotation_offset{};
-	SDK::FVector right_hand_location_offset{};
-	SDK::FRotator right_hand_rotation_offset{};
-	SDK::FVector left_hand_location_offset{};
-	SDK::FRotator left_hand_rotation_offset{};
+	SDK::FVector hand_location_offset{};
+	SDK::FRotator hand_rotation_offset{};
 };
 
 class SettingsManager {

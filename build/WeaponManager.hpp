@@ -93,10 +93,8 @@ public:
 	glm::fvec3 CurrentRelativeWeaponPosition {0.0f, 0.0f, 0.0f};
 	glm::fvec3 DefaultRelativeWeaponPosition {0.0f, 0.0f, 0.0f};
 	glm::fquat DefaultRelativeWeaponRotation { 1.0f, 0.0f, 0.0f, 0.0f };
-	SDK::FVector RightHandLocationOffest{};
-	SDK::FRotator RightHandRotationOffset{};
-	SDK::FVector LeftHandLocationOffest{};
-	SDK::FRotator LeftHandRotationOffset{};
+	SDK::FVector HandLocationOffest{};
+	SDK::FRotator HandRotationOffset{};
 
 	glm::dvec3 FirePosition{};
 	glm::dvec3 AimPosition{};
@@ -366,10 +364,8 @@ public:
 	void FetchWeaponOffsets(EGsrEquipId currentWeapon,
 		glm::fvec3& outPos,
 		glm::fquat& outRot,
-		SDK::FVector& outRightHandLocationOffset,
-		SDK::FRotator& outRightHandRotationOffset, 
-		SDK::FVector& outLeftHandLocationOffset,
-		SDK::FRotator& outLeftHandRotationOffset);
+		SDK::FVector& outHandLocationOffset,
+		SDK::FRotator& outHandRotationOffset);
 
 	//void Initialize();
 	void FetchEquipController();
