@@ -1073,13 +1073,13 @@
                 "left_grip_weapon_wp_gove2": {
                     "off": {
                         "BaseBody_LeftHandMiddle1": [
-                            5.262,
+                            7.392,
                             -60.544,
                             4.083
                         ],
                         "BaseBody_LeftHandMiddle2": [
-                            3.276,
-                            -21.2601,
+                            -3.905,
+                            -23.39,
                             0.0
                         ],
                         "BaseBody_LeftHandMiddle3": [
@@ -1113,8 +1113,8 @@
                             0.0
                         ],
                         "BaseBody_LeftHandRing3": [
-                            2.2639,
-                            -10.8802,
+                            -4.127,
+                            -11.5901,
                             9.057
                         ],
                         "BaseBody_LeftHandThumb1": [
@@ -1129,7 +1129,7 @@
                         ],
                         "BaseBody_LeftHandThumb3": [
                             7.347,
-                            -98.2901,
+                            -98.2902,
                             23.878
                         ]
                     }
@@ -2552,7 +2552,7 @@
                     "off": {
                         "BaseBody_RightHandMiddle1": [
                             16.981,
-                            -73.3712,
+                            -73.3713,
                             4.083
                         ],
                         "BaseBody_RightHandMiddle2": [
@@ -2576,18 +2576,18 @@
                             0.0
                         ],
                         "BaseBody_RightHandPinky3": [
-                            -0.7361,
+                            -0.7362,
                             -45.7081,
                             6.038
                         ],
                         "BaseBody_RightHandRing1": [
                             3.8859,
-                            -85.0771,
+                            -85.0772,
                             -14.8136
                         ],
                         "BaseBody_RightHandRing2": [
                             -8.6872,
-                            -70.7872,
+                            -70.7873,
                             0.0
                         ],
                         "BaseBody_RightHandRing3": [
@@ -2596,19 +2596,19 @@
                             9.057
                         ],
                         "BaseBody_RightHandThumb1": [
-                            -3.8211,
-                            -54.3541,
-                            118.6341
+                            -14.4721,
+                            -47.9641,
+                            85.5619
                         ],
                         "BaseBody_RightHandThumb2": [
                             31.9549,
-                            -13.1842,
-                            21.4379
+                            -13.1843,
+                            6.5269
                         ],
                         "BaseBody_RightHandThumb3": [
-                            7.347,
-                            -23.7741,
-                            23.878
+                            21.548,
+                            -18.0931,
+                            18.1979
                         ]
                     },
                     "on": {
