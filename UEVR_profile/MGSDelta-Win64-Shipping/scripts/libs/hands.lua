@@ -421,7 +421,6 @@ function M.handleInputIndividualHand(state, attachment, hand, overrideTrigger, a
 			local triggerValue = (isRightHanded or overrideTrigger)
 				and state.Gamepad.bRightTrigger or state.Gamepad.bLeftTrigger
 			if not noTriggerOrGripAnimation then
-				print(attachment)
 				animation.updateAnimation(handStr.."_"..target, handStr.."_trigger_weapon" .. attachmentExtension, triggerValue > 100, {duration = animDuration})
 				animation.updateAnimation(handStr.."_"..target, handStr.."_grip_weapon" .. attachmentExtension, uevrUtils.isButtonPressed(state, isRightHanded and XINPUT_GAMEPAD_RIGHT_SHOULDER or XINPUT_GAMEPAD_LEFT_SHOULDER), {duration = animDuration})
 			end

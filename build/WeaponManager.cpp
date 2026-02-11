@@ -701,6 +701,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 void WeaponManager::AttachMainHandToWeapon()
 {
+	//return;
 	if (!playerManager->RightHandMesh) return;
 
 	if (!playerManager->MainHandAttachedToWeapon && mainHandShouldAttachToWeapon)
