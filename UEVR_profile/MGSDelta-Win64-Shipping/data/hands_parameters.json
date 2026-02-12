@@ -1407,12 +1407,12 @@
                 "left_trigger_weapon_wp_gove2": {
                     "off": {
                         "BaseBody_LeftHandIndex1": [
-                            9.2749,
+                            5.5089,
                             -49.989,
                             9.0354
                         ],
                         "BaseBody_LeftHandIndex2": [
-                            -3.0491,
+                            4.4819,
                             -20.0971,
                             0.0
                         ],
@@ -1424,18 +1424,18 @@
                     },
                     "on": {
                         "BaseBody_LeftHandIndex1": [
-                            3.7829,
-                            -40.377,
+                            5.5089,
+                            -49.989,
                             9.0354
                         ],
                         "BaseBody_LeftHandIndex2": [
-                            4.5858,
-                            -34.5761,
+                            4.4819,
+                            -20.0971,
                             0.0
                         ],
                         "BaseBody_LeftHandIndex3": [
                             -5.283,
-                            -38.8681,
+                            -18.771,
                             0.0
                         ]
                     }
