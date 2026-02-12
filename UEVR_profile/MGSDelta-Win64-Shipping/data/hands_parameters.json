@@ -4632,12 +4632,12 @@
                     "off": {
                         "BaseBody_RightHandMiddle1": [
                             -1.265,
-                            -77.9861,
+                            -83.2571,
                             4.083
                         ],
                         "BaseBody_RightHandMiddle2": [
                             -13.9112,
-                            -58.175,
+                            -59.681,
                             0.0
                         ],
                         "BaseBody_RightHandMiddle3": [
@@ -4647,12 +4647,12 @@
                         ],
                         "BaseBody_RightHandPinky1": [
                             -12.693,
-                            -78.8292,
+                            -78.8293,
                             -25.0388
                         ],
                         "BaseBody_RightHandPinky2": [
                             11.8739,
-                            -9.08,
+                            -29.4151,
                             0.0
                         ],
                         "BaseBody_RightHandPinky3": [
@@ -4662,17 +4662,17 @@
                         ],
                         "BaseBody_RightHandRing1": [
                             -8.761,
-                            -82.201,
+                            -85.9671,
                             -14.8136
                         ],
                         "BaseBody_RightHandRing2": [
                             10.704,
-                            -45.494,
+                            -49.259,
                             0.0
                         ],
                         "BaseBody_RightHandRing3": [
                             -5.283,
-                            -48.4762,
+                            -48.4763,
                             9.057
                         ],
                         "BaseBody_RightHandThumb1": [
@@ -4681,7 +4681,7 @@
                             68.521
                         ],
                         "BaseBody_RightHandThumb2": [
-                            33.375,
+                            33.3749,
                             -1.823,
                             0.136
                         ],
@@ -4694,63 +4694,63 @@
                     "on": {
                         "BaseBody_RightHandMiddle1": [
                             -1.265,
-                            -77.9861,
+                            -83.2571,
                             4.083
                         ],
                         "BaseBody_RightHandMiddle2": [
-                            -13.9111,
-                            -58.175,
+                            -13.9112,
+                            -59.681,
                             0.0
                         ],
                         "BaseBody_RightHandMiddle3": [
                             0.33,
-                            -45.8311,
+                            -45.8312,
                             0.0
                         ],
                         "BaseBody_RightHandPinky1": [
                             -12.693,
-                            -78.8291,
+                            -78.8293,
                             -25.0388
                         ],
                         "BaseBody_RightHandPinky2": [
                             11.8739,
-                            -9.08,
+                            -29.4151,
                             0.0
                         ],
                         "BaseBody_RightHandPinky3": [
-                            4.3229,
+                            4.3228,
                             -45.7081,
                             6.038
                         ],
                         "BaseBody_RightHandRing1": [
                             -8.761,
-                            -82.201,
+                            -85.9671,
                             -14.8136
                         ],
                         "BaseBody_RightHandRing2": [
                             10.704,
-                            -45.494,
+                            -49.259,
                             0.0
                         ],
                         "BaseBody_RightHandRing3": [
                             -5.283,
-                            -48.4761,
+                            -48.4763,
                             9.057
                         ],
                         "BaseBody_RightHandThumb1": [
-                            0.3939,
-                            -54.3541,
-                            118.6341
+                            -20.198,
+                            -45.8331,
+                            68.521
                         ],
                         "BaseBody_RightHandThumb2": [
-                            31.9549,
-                            -13.1842,
-                            21.4379
+                            33.3749,
+                            -1.823,
+                            0.136
                         ],
                         "BaseBody_RightHandThumb3": [
-                            7.347,
+                            17.9979,
                             -23.7741,
-                            23.878
+                            18.107
                         ]
                     }
                 },
@@ -6298,34 +6298,34 @@
                     "off": {
                         "BaseBody_RightHandIndex1": [
                             13.911,
-                            -13.554,
+                            -4.516,
                             9.0354
                         ],
                         "BaseBody_RightHandIndex2": [
-                            -16.47,
-                            -63.404,
+                            -13.457,
+                            -80.727,
                             0.0
                         ],
                         "BaseBody_RightHandIndex3": [
                             -8.431,
-                            -30.7701,
+                            -9.6821,
                             0.0
                         ]
                     },
                     "on": {
                         "BaseBody_RightHandIndex1": [
                             13.911,
-                            -13.554,
+                            -4.516,
                             9.0354
                         ],
                         "BaseBody_RightHandIndex2": [
-                            -16.47,
-                            -68.295,
+                            -8.938,
+                            -93.53,
                             0.0
                         ],
                         "BaseBody_RightHandIndex3": [
                             -8.431,
-                            -30.7701,
+                            -9.6822,
                             0.0
                         ]
                     }
