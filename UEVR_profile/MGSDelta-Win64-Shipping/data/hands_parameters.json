@@ -4636,18 +4636,18 @@
                             4.083
                         ],
                         "BaseBody_RightHandMiddle2": [
-                            -13.9111,
+                            -13.9112,
                             -58.175,
                             0.0
                         ],
                         "BaseBody_RightHandMiddle3": [
                             0.33,
-                            -45.8311,
+                            -45.8312,
                             0.0
                         ],
                         "BaseBody_RightHandPinky1": [
                             -12.693,
-                            -78.8291,
+                            -78.8292,
                             -25.0388
                         ],
                         "BaseBody_RightHandPinky2": [
@@ -4656,7 +4656,7 @@
                             0.0
                         ],
                         "BaseBody_RightHandPinky3": [
-                            4.3229,
+                            4.3228,
                             -45.7081,
                             6.038
                         ],
@@ -4672,23 +4672,23 @@
                         ],
                         "BaseBody_RightHandRing3": [
                             -5.283,
-                            -48.4761,
+                            -48.4762,
                             9.057
                         ],
                         "BaseBody_RightHandThumb1": [
-                            0.3939,
-                            -54.3541,
-                            118.6341
+                            -20.198,
+                            -45.8331,
+                            68.521
                         ],
                         "BaseBody_RightHandThumb2": [
-                            31.9549,
-                            -13.1842,
-                            21.4379
+                            33.375,
+                            -1.823,
+                            0.136
                         ],
                         "BaseBody_RightHandThumb3": [
-                            7.347,
+                            17.9979,
                             -23.7741,
-                            23.878
+                            18.107
                         ]
                     },
                     "on": {
