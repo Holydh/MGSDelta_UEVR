@@ -22,14 +22,14 @@
             "z": -0.15105122327804565
 		},
 		"hand_location_offset" : {
-			"x": 0.351,
-            "y": 8.747,
-            "z": -3.145
+			"x": 1.281,
+            "y": 10.017,
+            "z": -4.795
 		},
 		"hand_rotation_offset" : {
-			"Pitch": -6.610,
-            "Yaw": 38.800,
-            "Roll": -12.040
+			"Pitch": -9.150,
+            "Yaw": -38.830,
+            "Roll": 80.310
 		}
     },
     "type": "motion_controller"
