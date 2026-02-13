@@ -90,7 +90,6 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 	if event_name == "CurrentWeapon" then
 		if hands.exists() then
 			attachementName = event_string
-			print(attachementName)
 			if event_string == "wp_none" then
 				isHoldingWeapon = false
 				hands.handleInputIndividualHand(true, false, Handed.Right, false, false, false)
@@ -125,6 +124,9 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 				else
 					hands.handleInputIndividualHand(false, attachementName, Handed.Left, false, false, true)
 			end
+			if attachementName == "wp_patriotpostol" then
+				hands.handleInputIndividualHand(false, "wp_patriotpostol2", Handed.Left, false, false, true)
+			end
 		else
 			twoHandsHandling = false
 			if attachementName == "wp_gove" or
@@ -144,23 +146,23 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 end)
 
 function on_xinput_get_state(retval, user_index, state)
-	if hands.exists() then
-		if isHoldingWeapon then
-			if leftHandCqcKnife then
-				if twoHandsHandling then
-					hands.handleInputIndividualHand(state, "wp_gove2", Handed.Left, false, false, true)
-				else
-					hands.handleInputIndividualHand(state, "wp_gove", Handed.Left, false, false, false)
-				end
-			elseif attachementName == "wp_tnt" then
-				hands.handleInputIndividualHand(state, attachementName, Handed.Left, false, false, false)
-			else
-				hands.handleInputIndividualHand(state, false, Handed.Left, false, false, false)
-			end
-			hands.handleInputIndividualHand(state, attachementName, Handed.Right, false, false, false)
-		else
-			hands.handleInputIndividualHand(state, false, Handed.Right, false, false, false)
-			hands.handleInputIndividualHand(state, false, Handed.Left, false, false, false)
-		end
-	end
+	-- if hands.exists() then
+	-- 	if isHoldingWeapon then
+	-- 		if leftHandCqcKnife then
+	-- 			if twoHandsHandling then
+	-- 				hands.handleInputIndividualHand(state, "wp_gove2", Handed.Left, false, false, true)
+	-- 			else
+	-- 				hands.handleInputIndividualHand(state, "wp_gove", Handed.Left, false, false, false)
+	-- 			end
+	-- 		elseif attachementName == "wp_tnt" then
+	-- 			hands.handleInputIndividualHand(state, attachementName, Handed.Left, false, false, false)
+	-- 		else
+	-- 			hands.handleInputIndividualHand(state, false, Handed.Left, false, false, false)
+	-- 		end
+	-- 		hands.handleInputIndividualHand(state, attachementName, Handed.Right, false, false, false)
+	-- 	else
+	-- 		hands.handleInputIndividualHand(state, false, Handed.Right, false, false, false)
+	-- 		hands.handleInputIndividualHand(state, false, Handed.Left, false, false, false)
+	-- 	end
+	-- end
 end
