@@ -19,5 +19,5 @@ scopeResolution=1024
 ------ Items Settings ------
 disableThermalVisionScanline=true
 ------ Misc Settings ------
-enableCutoutScreenForCutscenesAndMenus=true
+enableCutoutScreenForCutscenesAndMenus=false
 enable3DCutscenesAndMenus=false
