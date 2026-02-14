@@ -202,6 +202,16 @@
                         "off"
                     ]
                 ],
+                "grip_left_weapon_wp_m63_2": [
+                    [
+                        "left_grip_weapon_wp_m63_2",
+                        "on"
+                    ],
+                    [
+                        "left_trigger_weapon_wp_m63_2",
+                        "off"
+                    ]
+                ],
                 "grip_left_weapon_wp_magazine": [
                     [
                         "left_grip_weapon_wp_magazine",
@@ -549,6 +559,16 @@
                     ],
                     [
                         "right_trigger_weapon_wp_m63",
+                        "off"
+                    ]
+                ],
+                "grip_right_weapon_wp_m63_2": [
+                    [
+                        "right_grip_weapon_wp_m63_2",
+                        "on"
+                    ],
+                    [
+                        "right_trigger_weapon_wp_m63_2",
                         "off"
                     ]
                 ],
@@ -1174,6 +1194,132 @@
                         ]
                     }
                 },
+                "left_grip_weapon_wp_m63_2": {
+                    "off": {
+                        "BaseBody_LeftHandMiddle1": [
+                            0.651,
+                            1.074,
+                            -0.3581
+                        ],
+                        "BaseBody_LeftHandMiddle2": [
+                            0.0,
+                            -102.7041,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandMiddle3": [
+                            0.0,
+                            -29.702,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandPinky1": [
+                            3.4217,
+                            -31.1421,
+                            0.7269
+                        ],
+                        "BaseBody_LeftHandPinky2": [
+                            0.0,
+                            -41.153,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandPinky3": [
+                            0.0,
+                            -70.266,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandRing1": [
+                            5.1574,
+                            -16.1031,
+                            0.2169
+                        ],
+                        "BaseBody_LeftHandRing2": [
+                            0.0,
+                            -87.6741,
+                            0.358
+                        ],
+                        "BaseBody_LeftHandRing3": [
+                            0.0,
+                            -37.3443,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb1": [
+                            -34.0872,
+                            -36.4861,
+                            129.3699
+                        ],
+                        "BaseBody_LeftHandThumb2": [
+                            0.0,
+                            -4.0002,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb3": [
+                            0.0,
+                            -6.0002,
+                            0.0
+                        ]
+                    },
+                    "on": {
+                        "BaseBody_LeftHandMiddle1": [
+                            0.651,
+                            1.074,
+                            -0.3581
+                        ],
+                        "BaseBody_LeftHandMiddle2": [
+                            0.0,
+                            -102.7042,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandMiddle3": [
+                            0.0,
+                            -29.702,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandPinky1": [
+                            3.4217,
+                            -31.1421,
+                            0.7268
+                        ],
+                        "BaseBody_LeftHandPinky2": [
+                            0.0,
+                            -41.153,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandPinky3": [
+                            0.0,
+                            -70.266,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandRing1": [
+                            5.1574,
+                            -16.1031,
+                            0.2169
+                        ],
+                        "BaseBody_LeftHandRing2": [
+                            0.0,
+                            -87.6742,
+                            0.358
+                        ],
+                        "BaseBody_LeftHandRing3": [
+                            0.0,
+                            -37.3443,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb1": [
+                            -34.0873,
+                            -36.4861,
+                            129.3699
+                        ],
+                        "BaseBody_LeftHandThumb2": [
+                            0.0,
+                            -4.0002,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandThumb3": [
+                            0.0,
+                            -6.0002,
+                            0.0
+                        ]
+                    }
+                },
                 "left_grip_weapon_wp_patriotpostol2": {
                     "off": {
                         "BaseBody_LeftHandMiddle1": [
@@ -1728,6 +1874,42 @@
                         "BaseBody_LeftHandIndex3": [
                             -5.283,
                             -18.771,
+                            0.0
+                        ]
+                    }
+                },
+                "left_trigger_weapon_wp_m63_2": {
+                    "off": {
+                        "BaseBody_LeftHandIndex1": [
+                            -4.0575,
+                            2.505,
+                            9.0361
+                        ],
+                        "BaseBody_LeftHandIndex2": [
+                            0.0,
+                            -92.423,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandIndex3": [
+                            0.0,
+                            -31.133,
+                            0.0
+                        ]
+                    },
+                    "on": {
+                        "BaseBody_LeftHandIndex1": [
+                            -4.0575,
+                            2.505,
+                            9.0361
+                        ],
+                        "BaseBody_LeftHandIndex2": [
+                            0.0,
+                            -92.423,
+                            0.0
+                        ],
+                        "BaseBody_LeftHandIndex3": [
+                            0.0,
+                            -31.133,
                             0.0
                         ]
                     }
@@ -4050,12 +4232,12 @@
                     "off": {
                         "BaseBody_RightHandMiddle1": [
                             0.763,
-                            -73.4693,
-                            4.083
+                            -73.4691,
+                            -9.5151
                         ],
                         "BaseBody_RightHandMiddle2": [
                             -15.155,
-                            -52.9411,
+                            -55.0881,
                             0.0
                         ],
                         "BaseBody_RightHandMiddle3": [
@@ -4064,9 +4246,9 @@
                             0.0
                         ],
                         "BaseBody_RightHandPinky1": [
-                            -7.8991,
-                            -90.2571,
-                            -25.0388
+                            -19.3501,
+                            -85.2471,
+                            -27.1861
                         ],
                         "BaseBody_RightHandPinky2": [
                             4.2859,
@@ -4079,13 +4261,13 @@
                             0.0
                         ],
                         "BaseBody_RightHandRing1": [
-                            -6.896,
-                            -87.792,
-                            -14.8136
+                            -9.759,
+                            -82.0661,
+                            -26.9811
                         ],
                         "BaseBody_RightHandRing2": [
                             4.8979,
-                            -40.521,
+                            -47.6781,
                             0.0
                         ],
                         "BaseBody_RightHandRing3": [
@@ -4094,30 +4276,30 @@
                             0.0
                         ],
                         "BaseBody_RightHandThumb1": [
-                            -12.7202,
-                            -52.9482,
-                            118.6341
+                            -22.025,
+                            -41.4971,
+                            85.527
                         ],
                         "BaseBody_RightHandThumb2": [
-                            21.429,
-                            -13.1842,
+                            17.135,
+                            -11.037,
                             0.0
                         ],
                         "BaseBody_RightHandThumb3": [
-                            7.347,
-                            -6.0002,
-                            23.878
+                            20.9449,
+                            -25.324,
+                            12.427
                         ]
                     },
                     "on": {
                         "BaseBody_RightHandMiddle1": [
                             0.763,
-                            -73.4693,
-                            4.083
+                            -73.4691,
+                            -9.5151
                         ],
                         "BaseBody_RightHandMiddle2": [
                             -15.155,
-                            -52.9411,
+                            -55.0881,
                             0.0
                         ],
                         "BaseBody_RightHandMiddle3": [
@@ -4126,9 +4308,9 @@
                             0.0
                         ],
                         "BaseBody_RightHandPinky1": [
-                            -7.8991,
-                            -90.2571,
-                            -25.0388
+                            -19.3501,
+                            -85.2471,
+                            -27.1861
                         ],
                         "BaseBody_RightHandPinky2": [
                             4.2859,
@@ -4141,13 +4323,13 @@
                             0.0
                         ],
                         "BaseBody_RightHandRing1": [
-                            -6.896,
-                            -87.792,
-                            -14.8136
+                            -9.759,
+                            -82.0661,
+                            -26.9811
                         ],
                         "BaseBody_RightHandRing2": [
                             4.8979,
-                            -40.521,
+                            -47.6781,
                             0.0
                         ],
                         "BaseBody_RightHandRing3": [
@@ -4156,19 +4338,19 @@
                             0.0
                         ],
                         "BaseBody_RightHandThumb1": [
-                            -12.7202,
-                            -52.9482,
-                            118.6341
+                            -22.025,
+                            -41.4971,
+                            85.527
                         ],
                         "BaseBody_RightHandThumb2": [
-                            21.429,
-                            -13.1842,
+                            17.135,
+                            -11.037,
                             0.0
                         ],
                         "BaseBody_RightHandThumb3": [
-                            7.347,
-                            -6.0002,
-                            23.878
+                            20.9449,
+                            -25.324,
+                            12.427
                         ]
                     }
                 },
@@ -6497,13 +6679,13 @@
                 "right_trigger_weapon_wp_m63": {
                     "off": {
                         "BaseBody_RightHandIndex1": [
-                            1.2649,
+                            5.559,
                             -10.138,
                             9.0354
                         ],
                         "BaseBody_RightHandIndex2": [
-                            -11.2532,
-                            -81.3591,
+                            -12.6851,
+                            -81.3592,
                             0.0
                         ],
                         "BaseBody_RightHandIndex3": [
@@ -6514,13 +6696,13 @@
                     },
                     "on": {
                         "BaseBody_RightHandIndex1": [
-                            1.2649,
+                            5.559,
                             -10.138,
                             9.0354
                         ],
                         "BaseBody_RightHandIndex2": [
-                            -11.2532,
-                            -88.104,
+                            -12.6851,
+                            -91.379,
                             0.0
                         ],
                         "BaseBody_RightHandIndex3": [
@@ -7058,6 +7240,9 @@
         },
         "wp_m63": {
             "label": "WP_M63"
+        },
+        "wp_m63_2": {
+            "label": "WP_M63_2"
         },
         "wp_magazine": {
             "label": "WP_Magazine"
