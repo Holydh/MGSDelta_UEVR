@@ -120,12 +120,13 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 				attachementName == "wp_mk22" or
 				attachementName == "wp_easygun" or
 				attachementName == "wp_saarmy" then
-					hands.handleInputIndividualHand(false, "wp_gove2", Handed.Left, false, false, true)
-				else
-					hands.handleInputIndividualHand(false, attachementName, Handed.Left, false, false, true)
-			end
-			if attachementName == "wp_patriotpostol" then
+				hands.handleInputIndividualHand(false, "wp_gove2", Handed.Left, false, false, true)
+			elseif attachementName == "wp_patriotpostol" then
 				hands.handleInputIndividualHand(false, "wp_patriotpostol2", Handed.Left, false, false, true)
+			elseif attachementName == "wp_scorpion" then
+				hands.handleInputIndividualHand(false, "wp_scorpion2", Handed.Left, false, false, true)
+			else
+				hands.handleInputIndividualHand(false, attachementName, Handed.Left, false, false, true)
 			end
 		else
 			twoHandsHandling = false

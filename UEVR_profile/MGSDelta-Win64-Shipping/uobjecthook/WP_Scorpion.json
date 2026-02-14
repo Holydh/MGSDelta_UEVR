@@ -28,8 +28,8 @@
 		},
 		"hand_rotation_offset" : {
 			"Pitch": -9.150,
-            "Yaw": -38.830,
-            "Roll": 80.310
+            "Yaw": 80.310,
+            "Roll":-38.830
 		}
     },
     "type": "motion_controller"
