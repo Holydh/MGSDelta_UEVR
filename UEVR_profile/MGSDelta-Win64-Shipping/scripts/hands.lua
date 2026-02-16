@@ -64,6 +64,30 @@ uevr.sdk.callbacks.on_pre_engine_tick(function(engine, delta)
 	end
 end)
 
+local function two_hands_weapon_handling(attachementName)
+	if attachementName == "wp_gove" or
+		attachementName == "wp_mk22" or
+		attachementName == "wp_easygun" or
+		attachementName == "wp_saarmy" then
+		hands.handleInputIndividualHand(false, "wp_gove2", Handed.Left, false, false, true)
+	elseif attachementName == "wp_patriotpostol" then
+		hands.handleInputIndividualHand(false, "wp_patriotpostol2", Handed.Left, false, false, true)
+	elseif attachementName == "wp_scorpion" then
+		hands.handleInputIndividualHand(false, "wp_scorpion2", Handed.Left, false, false, true)
+	elseif attachementName == "wp_m63" or
+		attachementName == "wp_m16a1" then
+		hands.handleInputIndividualHand(false, "wp_m63_2", Handed.Left, false, false, true)
+	elseif attachementName == "wp_ithaca" then
+		hands.handleInputIndividualHand(false, "wp_ithaca2", Handed.Left, false, false, true)
+	elseif attachementName == "wp_akm" or
+		attachementName == "wp_dragnov" or
+		attachementName == "wp_mosinnagant" then
+		hands.handleInputIndividualHand(false, "wp_akm2", Handed.Left, false, false, true)
+	else
+		hands.handleInputIndividualHand(false, attachementName, Handed.Left, false, false, true)
+	end
+end
+
 uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 	if event_name == "HideHands" then
 		if event_string == "1" then
@@ -89,11 +113,13 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 
 	if event_name == "CurrentWeapon" then
 		if hands.exists() then
-			attachementName = event_string
+			attachementName = event_string	
 			if event_string == "wp_none" then
 				isHoldingWeapon = false
 				hands.handleInputIndividualHand(true, false, Handed.Right, false, false, false)
 				hands.handleInputIndividualHand(true, false, Handed.Left, false, false, false)
+			elseif (twoHandsHandling) then
+				two_hands_weapon_handling(event_string)
 			else
 				isHoldingWeapon = true
 				hands.handleInputIndividualHand(false, attachementName, Handed.Right, false, false, false)
@@ -116,25 +142,7 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 	if event_name == "TwoHandsHandling" then
 		if event_string == "1" then
 			twoHandsHandling = true
-			if attachementName == "wp_gove" or
-			attachementName == "wp_mk22" or
-			attachementName == "wp_easygun" or
-			attachementName == "wp_saarmy" then
-				hands.handleInputIndividualHand(false, "wp_gove2", Handed.Left, false, false, true)
-			elseif attachementName == "wp_patriotpostol" then
-				hands.handleInputIndividualHand(false, "wp_patriotpostol2", Handed.Left, false, false, true)
-			elseif attachementName == "wp_scorpion" then
-				hands.handleInputIndividualHand(false, "wp_scorpion2", Handed.Left, false, false, true)
-			elseif attachementName == "wp_m63" or 
-			attachementName == "wp_m16a1" then
-				hands.handleInputIndividualHand(false, "wp_m63_2", Handed.Left, false, false, true)
-			elseif attachementName == "wp_ithaca" then
-				hands.handleInputIndividualHand(false, "wp_ithaca2", Handed.Left, false, false, true)
-			elseif attachementName == "wp_akm" then
-				hands.handleInputIndividualHand(false, "wp_akm2", Handed.Left, false, false, true)
-			else
-				hands.handleInputIndividualHand(false, attachementName, Handed.Left, false, false, true)
-			end
+			two_hands_weapon_handling(attachementName)
 		else
 			twoHandsHandling = false
 			if attachementName == "wp_gove" or

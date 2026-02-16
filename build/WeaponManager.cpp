@@ -190,13 +190,13 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 
 	if (Inputs::SecondHandGripTriggeredBeforeDelay && !secondHandShouldAttachToWeapon)
 	{
-		Logger::DebugPrint("Attaching second hand to weapon");
+		//Logger::DebugPrint("Attaching second hand to weapon");
 		secondHandShouldAttachToWeapon = true;
-		AttachSecondHandToWeapon();
+		AttachSecondHandNextFrame = true;
 	}
 	else if (Inputs::SecondHandGripTriggeredBeforeDelay && secondHandShouldAttachToWeapon)
 	{
-		Logger::DebugPrint("Dettaching second hand to weapon");
+		//Logger::DebugPrint("Dettaching second hand to weapon");
 		secondHandShouldAttachToWeapon = false;
 		DetachSecondHandFromWeapon();
 	}
@@ -206,7 +206,7 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 	if (!*settingsManager->EnableTwoHandsPivotPtr)
 		return;
 
-	if (secondHandShouldAttachToWeapon && twoHandedPivot) {
+	if (playerManager->SecondHandAttachedToWeapon && twoHandedPivot) {
 		auto rightHandPos = playerManager->RightController->K2_GetComponentLocation();
 		auto leftHandPos = playerManager->LeftController->K2_GetComponentLocation();
 		auto directionToLeftHand = glm::normalize(glm::vec3(leftHandPos.X - rightHandPos.X, leftHandPos.Y - rightHandPos.Y, leftHandPos.Z - rightHandPos.Z));
@@ -242,9 +242,17 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 
 void WeaponManager::ProcessWeapon(float delta)
 {
+	if (AttachSecondHandNextFrame)
+	{
+		AttachSecondHandToWeapon();
+		AttachSecondHandNextFrame = false;
+	}
+
 	if (AttachHandNextFrame && NextFrame)
 	{
+		Logger::DebugPrint("Attaching main hand rn");
 		AttachMainHandToWeapon();
+		AttachSecondHandNextFrame = true;
 		SendHandStateToLua();
 		AttachHandNextFrame = false;
 		NextFrame = false;
@@ -296,6 +304,8 @@ void WeaponManager::ProcessWeapon(float delta)
 		LeftHandWeaponRoot = nullptr;
 		if (playerManager->MainHandAttachedToWeapon)
 			DetachHandFromWeapon();
+		if (playerManager->SecondHandAttachedToWeapon)
+			DetachSecondHandFromWeapon();
 
 		SendHandStateToLua();
 	
@@ -760,13 +770,13 @@ void WeaponManager::AttachSecondHandToWeapon()
 			SDK::EAttachmentRule::KeepRelative,
 			false
 		);
-		playerManager->SecondHandAttachedToWeapon = true;
 		SDK::FHitResult outHit;
 		playerManager->LeftHandMesh->K2_SetRelativeLocation(HandLocationOffest, false, &outHit, false);
 		playerManager->LeftHandMesh->K2_SetRelativeRotation(HandRotationOffset, false, &outHit, false);
 		playerManager->RightHandMesh->SetVisibility(true, true);
 		playerManager->LeftHandMesh->SetVisibility(true, true);
 		uevr::API::get()->dispatch_lua_event("TwoHandsHandling", "1");
+		playerManager->SecondHandAttachedToWeapon = true;
 	}
 }
 

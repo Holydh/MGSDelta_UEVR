@@ -390,6 +390,7 @@ public:
 	bool DetachSecondHandFromWeapon();
 	bool AttachHandNextFrame = false;
 	bool NextFrame = false;
+	bool AttachSecondHandNextFrame = false;
 
 	void ProcessTwoHandsGrabWeapon();
 	void ApplyRecoil(float delta);
