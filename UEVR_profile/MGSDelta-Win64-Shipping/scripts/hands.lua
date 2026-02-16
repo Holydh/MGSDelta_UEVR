@@ -130,6 +130,8 @@ uevr.sdk.callbacks.on_lua_event(function(event_name, event_string)
 				hands.handleInputIndividualHand(false, "wp_m63_2", Handed.Left, false, false, true)
 			elseif attachementName == "wp_ithaca" then
 				hands.handleInputIndividualHand(false, "wp_ithaca2", Handed.Left, false, false, true)
+			elseif attachementName == "wp_akm" then
+				hands.handleInputIndividualHand(false, "wp_akm2", Handed.Left, false, false, true)
 			else
 				hands.handleInputIndividualHand(false, attachementName, Handed.Left, false, false, true)
 			end
