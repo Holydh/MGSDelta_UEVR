@@ -1259,13 +1259,13 @@
                     },
                     "on": {
                         "BaseBody_LeftHandMiddle1": [
-                            0.651,
+                            4.026,
                             1.074,
                             -0.3581
                         ],
                         "BaseBody_LeftHandMiddle2": [
                             0.0,
-                            -102.7042,
+                            -102.7043,
                             0.0
                         ],
                         "BaseBody_LeftHandMiddle3": [
@@ -1289,13 +1289,13 @@
                             0.0
                         ],
                         "BaseBody_LeftHandRing1": [
-                            5.1574,
+                            4.5,
                             -16.1031,
                             0.2169
                         ],
                         "BaseBody_LeftHandRing2": [
                             0.0,
-                            -87.6742,
+                            -87.6743,
                             0.358
                         ],
                         "BaseBody_LeftHandRing3": [
