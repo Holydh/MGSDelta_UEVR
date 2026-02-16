@@ -112,7 +112,7 @@ inline const char* WeaponManager::WeaponIdToKey(EGsrEquipId id)
 	case WP_Ithaca:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_Ithaca";
 	case WP_Dragnov:				HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_Dragnov";
 	case WP_MosinNagant:			HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_MosinNagant";
-	case WP_Rpg:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_Rpg";
+	case WP_Rpg:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;			return "WP_Rpg";
 	case WP_Torch:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Torch";
 	case WP_Grenade:				HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Grenade";
 	case WP_FireGrenade:			HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_FireGrenade";

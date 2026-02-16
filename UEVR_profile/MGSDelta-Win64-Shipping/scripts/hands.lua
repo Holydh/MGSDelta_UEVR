@@ -83,6 +83,8 @@ local function two_hands_weapon_handling(attachementName)
 		attachementName == "wp_dragnov" or
 		attachementName == "wp_mosinnagant" then
 		hands.handleInputIndividualHand(false, "wp_akm2", Handed.Left, false, false, true)
+	elseif attachementName == "wp_rpg" then
+		hands.handleInputIndividualHand(false, "wp_rpg2", Handed.Left, false, false, true)
 	else
 		hands.handleInputIndividualHand(false, attachementName, Handed.Left, false, false, true)
 	end
