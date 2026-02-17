@@ -1761,23 +1761,23 @@
                 "left_grip_weapon_wp_rpg2": {
                     "off": {
                         "BaseBody_LeftHandMiddle1": [
-                            -0.4441,
-                            -65.6361,
-                            -0.3581
+                            -11.98,
+                            -88.695,
+                            -4.601
                         ],
                         "BaseBody_LeftHandMiddle2": [
                             0.0,
-                            -46.704,
+                            -16.737,
                             0.0
                         ],
                         "BaseBody_LeftHandMiddle3": [
                             0.0,
-                            -53.702,
+                            -78.158,
                             0.0
                         ],
                         "BaseBody_LeftHandPinky1": [
-                            -1.0231,
-                            -63.362,
+                            -18.6841,
+                            -98.3731,
                             -25.0387
                         ],
                         "BaseBody_LeftHandPinky2": [
@@ -1787,37 +1787,37 @@
                         ],
                         "BaseBody_LeftHandPinky3": [
                             0.0,
-                            -62.2221,
+                            -8.0,
                             0.0
                         ],
                         "BaseBody_LeftHandRing1": [
-                            1.6019,
-                            -74.686,
+                            -13.0001,
+                            -94.2881,
                             -14.8127
                         ],
                         "BaseBody_LeftHandRing2": [
                             0.0,
-                            -16.556,
+                            -13.0001,
                             0.0
                         ],
                         "BaseBody_LeftHandRing3": [
                             0.0,
-                            -101.3331,
+                            -56.947,
                             0.0
                         ],
                         "BaseBody_LeftHandThumb1": [
-                            -1.777,
-                            -51.1111,
-                            153.3009
+                            -13.3323,
+                            -52.948,
+                            118.634
                         ],
                         "BaseBody_LeftHandThumb2": [
                             0.0,
-                            -21.779,
-                            3.111
+                            -4.0,
+                            0.0
                         ],
                         "BaseBody_LeftHandThumb3": [
                             0.0,
-                            -45.1111,
+                            -43.105,
                             0.0
                         ]
                     }
@@ -2402,17 +2402,17 @@
                     "off": {
                         "BaseBody_LeftHandIndex1": [
                             -4.0575,
-                            -53.489,
-                            9.0361
+                            -74.1491,
+                            -5.174
                         ],
                         "BaseBody_LeftHandIndex2": [
                             0.0,
-                            -47.0901,
+                            -40.3681,
                             0.0
                         ],
                         "BaseBody_LeftHandIndex3": [
                             0.0,
-                            -31.133,
+                            -62.5131,
                             0.0
                         ]
                     }
