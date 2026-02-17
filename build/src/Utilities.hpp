@@ -34,7 +34,7 @@ public:
 
 	static void InitHelperClasses();
 	static uevr::API::UObject* SpawnActor(UEVR_Vector3d Position, uevr::API::UObject* Owner);
-	static SDK::AActor* SpawnDebugCigars(UEVR_Vector3d Position);
+	static SDK::AActor* SpawnDebugCigars(SDK::FVector Position);
 	static void DestroyDebugCigars();
 
 	static float Remap(float value, float inMin, float inMax, float outMin, float outMax);

@@ -93,8 +93,9 @@ public:
 	glm::fvec3 CurrentRelativeWeaponPosition {0.0f, 0.0f, 0.0f};
 	glm::fvec3 DefaultRelativeWeaponPosition {0.0f, 0.0f, 0.0f};
 	glm::fquat DefaultRelativeWeaponRotation { 1.0f, 0.0f, 0.0f, 0.0f };
-	SDK::FVector HandLocationOffest{};
+	SDK::FVector HandLocationOffset{};
 	SDK::FRotator HandRotationOffset{};
+	float LeftHandWeaponGrabOffset = 0.0f;
 
 	glm::dvec3 FirePosition{};
 	glm::dvec3 AimPosition{};

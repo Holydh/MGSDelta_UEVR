@@ -161,9 +161,10 @@ uevr::API::UObject* Utilities::SpawnActor(UEVR_Vector3d Position, uevr::API::UOb
 	return actor;
 }
 
-SDK::AActor* Utilities::SpawnDebugCigars(UEVR_Vector3d Position)
+SDK::AActor* Utilities::SpawnDebugCigars(SDK::FVector Position)
 {
-	auto uevrActor = SpawnActor(Position, nullptr);
+	UEVR_Vector3d uevrVector = { Position.X, Position.Y, Position.Z };
+	auto uevrActor = SpawnActor(uevrVector, nullptr);
 	auto actor = (SDK::AActor*)uevrActor;
 	if (!actor)
 	{

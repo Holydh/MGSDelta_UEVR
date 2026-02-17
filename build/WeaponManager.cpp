@@ -103,38 +103,38 @@ inline const char* WeaponManager::WeaponIdToKey(EGsrEquipId id)
 {
 	switch (id)
 	{
-	case WP_Knife:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Knife";
-	case WP_Fork:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Fork";
-	case WP_CigarPistol:			HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_CigarPistol";
-	case WP_Handkerchief:			HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Handkerchief";
-	case WP_Mk22:					HasObjectInLeftHand = true;			mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;			return "WP_Mk22";
-	case WP_Gove:					HasObjectInLeftHand = true;			mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;			return "WP_Gove";
-	case WP_EasyGun:				HasObjectInLeftHand = true;			mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;			return "WP_EasyGun";
-	case WP_SAArmy:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;			return "WP_SAArmy";
-	case WP_PatriotPostol:			HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_PatriotPostol";
-	case WP_Scorpion:				HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_Scorpion";
-	case WP_M16a1:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_M16a1";
-	case WP_Akm:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_Akm";
-	case WP_M63:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_M63";
-	case WP_Ithaca:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_Ithaca";
-	case WP_Dragnov:				HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_Dragnov";
-	case WP_MosinNagant:			HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_MosinNagant";
-	case WP_Rpg:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;			return "WP_Rpg";
-	case WP_Torch:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Torch";
-	case WP_Grenade:				HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Grenade";
-	case WP_FireGrenade:			HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_FireGrenade";
-	case WP_StunGrenade:			HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_StunGrenade";
-	case WP_ChaffGrenade:			HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_ChaffGrenade";
-	case WP_SmokeGrenade:			HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_SmokeGrenade";
-	case WP_Magazine:				HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Magazine";
-	case WP_Tnt:					HasObjectInLeftHand = true;			mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Tnt";
-	case WP_C3:						HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_C3";
-	case WP_Claymore:				HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Claymore";
-	case WP_Book:					HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Book";
-	case WP_RatTrap:				HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_RatTrap";
-	case WP_Microphone:				HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Microphone";
-	case WP_MAX_PLAYER_WEAPONS:		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_MAX_PLAYER_WEAPONS";
-	default:						HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return nullptr;
+	case WP_Knife:				LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Knife";
+	case WP_Fork:				LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Fork";
+	case WP_CigarPistol:		LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_CigarPistol";
+	case WP_Handkerchief:		LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Handkerchief";
+	case WP_Mk22:				LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = true;			mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;			return "WP_Mk22";
+	case WP_Gove:				LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = true;			mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;			return "WP_Gove";
+	case WP_EasyGun:			LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = true;			mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;			return "WP_EasyGun";
+	case WP_SAArmy:				LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;			return "WP_SAArmy";
+	case WP_PatriotPostol:		LeftHandWeaponGrabOffset = -4.68f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_PatriotPostol";
+	case WP_Scorpion:			LeftHandWeaponGrabOffset = -1.75f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_Scorpion";
+	case WP_M16a1:				LeftHandWeaponGrabOffset = -4.90f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_M16a1";
+	case WP_Akm:				LeftHandWeaponGrabOffset = -3.94f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_Akm";
+	case WP_M63:				LeftHandWeaponGrabOffset = -3.59f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_M63";
+	case WP_Ithaca:				LeftHandWeaponGrabOffset = 1.91f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_Ithaca";
+	case WP_Dragnov:			LeftHandWeaponGrabOffset = -3.22f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_Dragnov";
+	case WP_MosinNagant:		LeftHandWeaponGrabOffset = -3.32f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;			return "WP_MosinNagant";
+	case WP_Rpg:				LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;			return "WP_Rpg";
+	case WP_Torch:				LeftHandWeaponGrabOffset = 0.0f; 		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Torch";
+	case WP_Grenade:			LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Grenade";
+	case WP_FireGrenade:		LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_FireGrenade";
+	case WP_StunGrenade:		LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_StunGrenade";
+	case WP_ChaffGrenade:		LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_ChaffGrenade";
+	case WP_SmokeGrenade:		LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_SmokeGrenade";
+	case WP_Magazine:			LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Magazine";
+	case WP_Tnt:				LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = true;			mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Tnt";
+	case WP_C3:					LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_C3";
+	case WP_Claymore:			LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Claymore";
+	case WP_Book:				LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Book";
+	case WP_RatTrap:			LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_RatTrap";
+	case WP_Microphone:			LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_Microphone";
+	case WP_MAX_PLAYER_WEAPONS:	LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return "WP_MAX_PLAYER_WEAPONS";
+	default:					LeftHandWeaponGrabOffset = 0.0f;		HasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;			return nullptr;
 	}
 }
 
@@ -200,12 +200,15 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 		//Logger::DebugPrint("Attaching second hand to weapon");
 		secondHandShouldAttachToWeapon = true;
 		AttachSecondHandNextFrame = true;
+		Utilities::DebugCigar0 = Utilities::SpawnDebugCigars(playerManager->RightController->K2_GetComponentLocation());
+		Utilities::DebugCigar1 = Utilities::SpawnDebugCigars(playerManager->LeftController->K2_GetComponentLocation());
 	}
 	else if (Inputs::SecondHandGripTriggeredBeforeDelay && secondHandShouldAttachToWeapon)
 	{
 		//Logger::DebugPrint("Dettaching second hand to weapon");
 		secondHandShouldAttachToWeapon = false;
 		DetachSecondHandFromWeapon();
+		Utilities::DestroyDebugCigars();
 	}
 
 
@@ -213,23 +216,125 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 	if (!*settingsManager->EnableTwoHandsPivotPtr)
 		return;
 
-	if (playerManager->SecondHandAttachedToWeapon && twoHandedPivot) {
+	if (playerManager->SecondHandAttachedToWeapon && twoHandedPivot && WeaponRoot) {
+		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
+
+		// 1. Get raw controller world positions
+		auto rightCtrlPos = playerManager->RightController->K2_GetComponentLocation();
+		auto leftCtrlPos = playerManager->LeftController->K2_GetComponentLocation();
+
+		// 2. Get the Weapon's Up Vector (World Space)
+		auto sdkCurrentWeapon = (SDK::AActor*)CurrentWeapon;
+		auto weaponUpVector = sdkCurrentWeapon->GetActorUpVector();
+
+		// 3. APPLY THE OFFSET HERE
+		// Change '5.0f' to however many centimeters you need (positive is up, negative is down)
+		
+		//Debug:
+		//if (ZoomInput > 0.8f)
+		//{
+		//	LeftHandWeaponGrabOffset += 0.01f; // Example: Add an extra 5 cm when the A button is pressed
+		//}
+		//if (ZoomInput < -0.8f)
+		//{
+		//	LeftHandWeaponGrabOffset -= 0.01f; // Example: Subtract 5 cm when the B button is pressed
+		//}
+		Logger::DebugPrint("Applying up offset of %f cm to left hand position", LeftHandWeaponGrabOffset);
+		SDK::FVector adjustedLeftPos = leftCtrlPos + (weaponUpVector * LeftHandWeaponGrabOffset);
+
+		// 4. Calculate direction using the ADJUSTED position
+		SDK::FVector directionVec = adjustedLeftPos - rightCtrlPos;
+		directionVec.Normalize();
+
+		// 5. Calculate Target World Rotation
+		SDK::FRotator targetRot = SDK::UKismetMathLibrary::MakeRotFromXZ(directionVec, weaponUpVector);
+
+		// Apply the -90 fix-up
+		SDK::FRotator fixUp(0.f, -90.f, 0.f);
+		targetRot = SDK::UKismetMathLibrary::ComposeRotators(fixUp, targetRot);
+
+		// 6. Calculate the Pivot-Corrected Location
+		SDK::FVector localOffset(DefaultUevrHookWeaponPosition.z, DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y);
+		SDK::FVector rotatedOffset = SDK::UKismetMathLibrary::GreaterGreater_VectorRotator(localOffset, targetRot);
+
+		SDK::FVector finalRootPos = rightCtrlPos - rotatedOffset;
+
+		// 7. Apply to WeaponRoot
+		SDK::FHitResult outHit;
+		sdkWeaponRoot->K2_SetWorldLocationAndRotation(finalRootPos, targetRot, false, &outHit, false);
+
+		// Debug: See where the controllers are vs the weapon
+		Utilities::DebugCigar0->K2_SetActorLocationAndRotation(rightCtrlPos, playerManager->RightController->K2_GetComponentRotation(), false, &outHit, true);
+		Utilities::DebugCigar1->K2_SetActorLocationAndRotation(leftCtrlPos, playerManager->LeftController->K2_GetComponentRotation(), false, &outHit, true);
+	}
+
+	//works :
+	//if (playerManager->SecondHandAttachedToWeapon && twoHandedPivot && WeaponRoot) {
+	//	SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
+
+	//	// 1. Get raw controller world positions
+	//	auto rightCtrlPos = playerManager->RightController->K2_GetComponentLocation();
+	//	auto leftCtrlPos = playerManager->LeftController->K2_GetComponentLocation();
+
+	//	// 2. Calculate the look direction (from Right Hand to Left Hand)
+	//	SDK::FVector directionVec = leftCtrlPos - rightCtrlPos;
+	//	directionVec.Normalize();
+
+	//	// 3. Calculate Target World Rotation
+	//	// We include your -90 fix-up here so the final rotation is the "true" visual rotation
+	//	auto sdkCurrentWeapon = (SDK::AActor*)CurrentWeapon;
+	//	auto weaponUpVector = sdkCurrentWeapon->GetActorUpVector();
+	//	SDK::FRotator targetRot = SDK::UKismetMathLibrary::MakeRotFromXZ(directionVec, weaponUpVector);
+
+	//	// Apply the -90 offset to the target rotation immediately
+	//	// Combine targetRot with a local Y -90 rotation
+	//	SDK::FRotator fixUp(0.f, -90.f, 0.f);
+	//	targetRot = SDK::UKismetMathLibrary::ComposeRotators(fixUp, targetRot);
+
+	//	// 4. Calculate the Pivot-Corrected Location
+	//	// Since rightHandOffset is LOCAL to the WeaponRoot, we rotate it by our target world rotation
+	//	// and subtract it from the controller's world position to find where the Root should be.
+	//	SDK::FVector localOffset(DefaultUevrHookWeaponPosition.z, DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y);
+	//	//SDK::FVector localOffset(DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y, DefaultUevrHookWeaponPosition.z);
+	//	SDK::FVector rotatedOffset = SDK::UKismetMathLibrary::GreaterGreater_VectorRotator(localOffset, targetRot);
+
+	//	SDK::FVector finalRootPos = rightCtrlPos - rotatedOffset;
+
+	//	// 5. Apply to WeaponRoot
+	//	SDK::FHitResult outHit;
+	//	sdkWeaponRoot->K2_SetWorldLocationAndRotation(finalRootPos, targetRot, false, &outHit, false);
+
+	//	// Debug: See where the controllers are vs the weapon
+	//	Utilities::DebugCigar0->K2_SetActorLocationAndRotation(rightCtrlPos, playerManager->RightController->K2_GetComponentRotation(), false, &outHit, true);
+	//	Utilities::DebugCigar1->K2_SetActorLocationAndRotation(leftCtrlPos, playerManager->LeftController->K2_GetComponentRotation(), false, &outHit, true);
+	//}
+
+	/*if (playerManager->SecondHandAttachedToWeapon && twoHandedPivot) {
 		auto rightHandPos = playerManager->RightController->K2_GetComponentLocation();
 		auto leftHandPos = playerManager->LeftController->K2_GetComponentLocation();
+		SDK::FHitResult outHit;
+		Utilities::DebugCigar0->K2_SetActorLocationAndRotation(rightHandPos, playerManager->RightController->K2_GetComponentRotation(), false, &outHit, true);
+		Utilities::DebugCigar1->K2_SetActorLocationAndRotation(leftHandPos, playerManager->LeftController->K2_GetComponentRotation(), false, &outHit, true);
+		glm::fvec3 rightHandOffset = DefaultUevrHookWeaponPosition;
+		glm::fquat rightHandRotOffset = DefaultUevrHookWeaponRotation;
+		SDK::FVector leftHandOffset = HandLocationOffest;
+		SDK::FRotator leftHandRotOffset = HandRotationOffset;
+		
+
 		auto directionToLeftHand = glm::normalize(glm::vec3(leftHandPos.X - rightHandPos.X, leftHandPos.Y - rightHandPos.Y, leftHandPos.Z - rightHandPos.Z));
 		auto sdkCurrentWeapon = (SDK::AActor*)CurrentWeapon;
 		auto weaponUpVector = sdkCurrentWeapon->GetActorUpVector();
 		auto finalRotation = SDK::UKismetMathLibrary::MakeRotFromXZ({ directionToLeftHand.x, directionToLeftHand.y, directionToLeftHand.z }, weaponUpVector);
-		//SDK::UKismetMathLibrary::FindLookAtRotation(rightHandPos, leftHandPos); if (WeaponRoot) { SDK::FHitResult outHit; SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot; sdkWeaponRoot->K2_AddWorldRotation(finalRotation, false, &outHit, false); } }
 		if (WeaponRoot)
 		{
 			SDK::FHitResult outHit;
 			SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
+
 			sdkWeaponRoot->K2_SetWorldRotation(finalRotation, false, &outHit, false);
 			SDK::FRotator offset(0.f, -90.f, 0.f);
 			sdkWeaponRoot->K2_AddLocalRotation(offset, false, &outHit, false);
 		}
-	}
+	}*/
 		
 		//else
 	//{
@@ -336,7 +441,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 		Logger::DebugPrint(WeaponRoot->get_full_name());
 
-		FetchWeaponOffsets(CurrentWeaponID, DefaultUevrHookWeaponPosition, DefaultUevrHookWeaponRotation, HandLocationOffest, HandRotationOffset);
+		FetchWeaponOffsets(CurrentWeaponID, DefaultUevrHookWeaponPosition, DefaultUevrHookWeaponRotation, HandLocationOffset, HandRotationOffset);
 
 		//if (!weaponShouldAttach)
 		//{
@@ -347,8 +452,8 @@ void WeaponManager::ProcessWeapon(float delta)
 
 		Logger::DebugPrint("Applied weapon offsets from config");
 		Logger::DebugPrint("Position Offset : x=%f, y=%f, z=%f", DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y, DefaultUevrHookWeaponPosition.z);
-		Logger::DebugPrint("Rotation Offset : w=%f, x=%f, y=%f, z=%f", DefaultUevrHookWeaponRotation.w, DefaultUevrHookWeaponRotation.x, DefaultUevrHookWeaponRotation.y, DefaultUevrHookWeaponRotation.z);
-		//Logger::DebugPrint("Hand Position Offset : x=%f, y=%f, z=%f", HandLocationOffest.X, HandLocationOffest.Y, HandLocationOffest.Z);
+		//Logger::DebugPrint("Rotation Offset : w=%f, x=%f, y=%f, z=%f", DefaultUevrHookWeaponRotation.w, DefaultUevrHookWeaponRotation.x, DefaultUevrHookWeaponRotation.y, DefaultUevrHookWeaponRotation.z);
+		//Logger::DebugPrint("Hand Position Offset : x=%f, y=%f, z=%f", HandLocationOffset.X, HandLocationOffset.Y, HandLocationOffset.Z);
 		//Logger::DebugPrint("Hand Rotation Offset : Pitch=%f, Yaw=%f, Roll=%f", HandRotationOffset.Pitch, HandRotationOffset.Yaw, HandRotationOffset.Roll);
 
 		CurrentRelativeWeaponPosition = DefaultRelativeWeaponPosition;
@@ -784,7 +889,7 @@ void WeaponManager::AttachSecondHandToWeapon()
 			false
 		);
 		SDK::FHitResult outHit;
-		playerManager->LeftHandMesh->K2_SetRelativeLocation(HandLocationOffest, false, &outHit, false);
+		playerManager->LeftHandMesh->K2_SetRelativeLocation(HandLocationOffset, false, &outHit, false);
 		playerManager->LeftHandMesh->K2_SetRelativeRotation(HandRotationOffset, false, &outHit, false);
 		playerManager->RightHandMesh->SetVisibility(true, true);
 		playerManager->LeftHandMesh->SetVisibility(true, true);
