@@ -58,8 +58,15 @@ void WeaponManager::ProcessItem()
 		}
 		if (CurrentItemID != SDK::EGsrItemId::IT_Stealth && PreviousItemID == SDK::EGsrItemId::IT_Stealth)
 		{
-			DetachHandFromWeapon();
-			uevr::API::get()->dispatch_lua_event("HandsReset", "0");
+			if (playerManager->MainHandAttachedToWeapon)
+			{
+				DetachHandFromWeapon();
+				if (playerManager->SecondHandAttachedToWeapon)
+				{
+					DetachSecondHandFromWeapon();
+				}
+				uevr::API::get()->dispatch_lua_event("HandsReset", "0");
+			}
 		}
 
 		if (CurrentItemID == SDK::EGsrItemId::IT_CBoxA || CurrentItemID == SDK::EGsrItemId::IT_CBoxB || CurrentItemID == SDK::EGsrItemId::IT_CBoxC || CurrentItemID == SDK::EGsrItemId::IT_CBoxD)
@@ -305,7 +312,12 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (playerManager->MainHandAttachedToWeapon)
 			DetachHandFromWeapon();
 		if (playerManager->SecondHandAttachedToWeapon)
+		{
 			DetachSecondHandFromWeapon();
+			if (CurrentWeaponID == WP_None)
+				secondHandShouldAttachToWeapon = false;
+		}
+
 
 		SendHandStateToLua();
 	
