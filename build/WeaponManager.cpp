@@ -722,10 +722,11 @@ void WeaponManager::AttachMainHandToWeapon()
 
 	if (!playerManager->MainHandAttachedToWeapon && mainHandShouldAttachToWeapon)
 	{
+
 		Logger::DebugPrint("attach Main Hand to weapon");
 		playerManager->RightHandMesh->DetachFromParent(true, false);
 		playerManager->RightHandMesh->K2_AttachToComponent(
-			(SDK::USceneComponent*)ReceiverMesh,
+			(SDK::USceneComponent*)ReceiverMesh == nullptr ? (SDK::USceneComponent*)WeaponRoot : (SDK::USceneComponent*)ReceiverMesh,
 			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
 			SDK::EAttachmentRule::KeepWorld,
 			SDK::EAttachmentRule::KeepWorld,
