@@ -65,8 +65,8 @@ void WeaponManager::ProcessItem()
 				{
 					DetachSecondHandFromWeapon();
 				}
-				uevr::API::get()->dispatch_lua_event("HandsReset", "0");
 			}
+			uevr::API::get()->dispatch_lua_event("HandsReset", "0");
 		}
 
 		if (CurrentItemID == SDK::EGsrItemId::IT_CBoxA || CurrentItemID == SDK::EGsrItemId::IT_CBoxB || CurrentItemID == SDK::EGsrItemId::IT_CBoxC || CurrentItemID == SDK::EGsrItemId::IT_CBoxD)
