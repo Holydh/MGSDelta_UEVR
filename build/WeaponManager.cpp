@@ -200,15 +200,15 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 		//Logger::DebugPrint("Attaching second hand to weapon");
 		secondHandShouldAttachToWeapon = true;
 		AttachSecondHandNextFrame = true;
-		Utilities::DebugCigar0 = Utilities::SpawnDebugCigars(playerManager->RightController->K2_GetComponentLocation());
-		Utilities::DebugCigar1 = Utilities::SpawnDebugCigars(playerManager->LeftController->K2_GetComponentLocation());
+		//Utilities::DebugCigar0 = Utilities::SpawnDebugCigars(playerManager->RightController->K2_GetComponentLocation());
+		//Utilities::DebugCigar1 = Utilities::SpawnDebugCigars(playerManager->LeftController->K2_GetComponentLocation());
 	}
 	else if (Inputs::SecondHandGripTriggeredBeforeDelay && secondHandShouldAttachToWeapon)
 	{
 		//Logger::DebugPrint("Dettaching second hand to weapon");
 		secondHandShouldAttachToWeapon = false;
 		DetachSecondHandFromWeapon();
-		Utilities::DestroyDebugCigars();
+		//Utilities::DestroyDebugCigars();
 	}
 
 
@@ -219,16 +219,11 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 	if (playerManager->SecondHandAttachedToWeapon && twoHandedPivot && WeaponRoot) {
 		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
 
-		// 1. Get raw controller world positions
 		auto rightCtrlPos = playerManager->RightController->K2_GetComponentLocation();
 		auto leftCtrlPos = playerManager->LeftController->K2_GetComponentLocation();
 
-		// 2. Get the Weapon's Up Vector (World Space)
 		auto sdkCurrentWeapon = (SDK::AActor*)CurrentWeapon;
 		auto weaponUpVector = sdkCurrentWeapon->GetActorUpVector();
-
-		// 3. APPLY THE OFFSET HERE
-		// Change '5.0f' to however many centimeters you need (positive is up, negative is down)
 		
 		//Debug:
 		//if (ZoomInput > 0.8f)
@@ -239,33 +234,27 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 		//{
 		//	LeftHandWeaponGrabOffset -= 0.01f; // Example: Subtract 5 cm when the B button is pressed
 		//}
-		Logger::DebugPrint("Applying up offset of %f cm to left hand position", LeftHandWeaponGrabOffset);
 		SDK::FVector adjustedLeftPos = leftCtrlPos + (weaponUpVector * LeftHandWeaponGrabOffset);
 
-		// 4. Calculate direction using the ADJUSTED position
 		SDK::FVector directionVec = adjustedLeftPos - rightCtrlPos;
 		directionVec.Normalize();
 
-		// 5. Calculate Target World Rotation
 		SDK::FRotator targetRot = SDK::UKismetMathLibrary::MakeRotFromXZ(directionVec, weaponUpVector);
 
-		// Apply the -90 fix-up
 		SDK::FRotator fixUp(0.f, -90.f, 0.f);
 		targetRot = SDK::UKismetMathLibrary::ComposeRotators(fixUp, targetRot);
 
-		// 6. Calculate the Pivot-Corrected Location
 		SDK::FVector localOffset(DefaultUevrHookWeaponPosition.z, DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y);
 		SDK::FVector rotatedOffset = SDK::UKismetMathLibrary::GreaterGreater_VectorRotator(localOffset, targetRot);
 
 		SDK::FVector finalRootPos = rightCtrlPos - rotatedOffset;
 
-		// 7. Apply to WeaponRoot
 		SDK::FHitResult outHit;
 		sdkWeaponRoot->K2_SetWorldLocationAndRotation(finalRootPos, targetRot, false, &outHit, false);
 
-		// Debug: See where the controllers are vs the weapon
-		Utilities::DebugCigar0->K2_SetActorLocationAndRotation(rightCtrlPos, playerManager->RightController->K2_GetComponentRotation(), false, &outHit, true);
-		Utilities::DebugCigar1->K2_SetActorLocationAndRotation(leftCtrlPos, playerManager->LeftController->K2_GetComponentRotation(), false, &outHit, true);
+		// Debug:
+		//Utilities::DebugCigar0->K2_SetActorLocationAndRotation(rightCtrlPos, playerManager->RightController->K2_GetComponentRotation(), false, &outHit, true);
+		//Utilities::DebugCigar1->K2_SetActorLocationAndRotation(leftCtrlPos, playerManager->LeftController->K2_GetComponentRotation(), false, &outHit, true);
 	}
 
 	//works :
