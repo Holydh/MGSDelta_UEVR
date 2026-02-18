@@ -1120,11 +1120,11 @@ void WeaponManager::ApplyRecoil(float delta)
 	{
 	case WP_Mk22:
 		positionRecoilForce = { 0.0f, -0.75f, 0.005f };
-		rotationRecoilForceEuler = { 0.0f, 0.0f, -2.0f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -1.0f };
 		break;
 
 	case WP_Gove:
-		positionRecoilForce = { randomRange(-0.25f, 0.25f), -4.0f, 0.005f };
+		positionRecoilForce = { randomRange(-0.25f, 0.25f), -2.5f, 0.005f };
 		rotationRecoilForceEuler = { 0.0f, 0.0f, -2.0f };
 		recoilPositionRecoverySpeed = 14.0f;
 		recoilRotationRecoverySpeed = 12.0f;
@@ -1132,12 +1132,12 @@ void WeaponManager::ApplyRecoil(float delta)
 
 	case WP_EasyGun:
 		positionRecoilForce = { 0.0f, -0.75f, 0.005f };
-		rotationRecoilForceEuler = { 0.0f, 0.0f, -2.0f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -1.0f };
 		break;
 
 	case WP_SAArmy: //This one x is the z there for some reasons
 		positionRecoilForce = { 0.0f, -5.0f, 0.005f };
-		rotationRecoilForceEuler = { 0.0f, 0.0f, -15.0f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -10.0f };
 		break;
 
 	case WP_PatriotPostol:
@@ -1152,26 +1152,26 @@ void WeaponManager::ApplyRecoil(float delta)
 
 	case WP_M16a1: // already corrected
 		positionRecoilForce = { randomRange(-0.2f, 0.2f), -1.0f, 0.25f };
-		rotationRecoilForceEuler = { 0.0f, 0.0f, -0.2f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -1.0f };
 		break;
 
 	case WP_Akm:
 		positionRecoilForce = { randomRange(-0.2f, 0.2f), -1.0f, 0.25f };
-		rotationRecoilForceEuler = { 0.0f, 0.0f, -0.2f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -1.0f };
 		break;
 
 	case WP_M63:
 		positionRecoilForce = { randomRange(-0.2f, 0.2f), -2.0f, 0.25f };
-		rotationRecoilForceEuler = { 0.0f, 0.0f, -0.2f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -1.0f };
 		recoilPositionRecoverySpeed = 14.0f;
 		recoilRotationRecoverySpeed = 12.0f;
 		break;
 
 	case WP_Ithaca:
 		positionRecoilForce = { 1.0f, -30.0f, 10.0f };
-		rotationRecoilForceEuler = { 0.0f, 0.0f, -6.0f };
-		recoilPositionRecoverySpeed = 7.0f;
-		recoilRotationRecoverySpeed = 5.0f;
+		rotationRecoilForceEuler = { 0.0f, 0.0f, playerManager->SecondHandAttachedToWeapon ? -6.0f : -40.0f };
+		recoilPositionRecoverySpeed = 5.0f;
+		recoilRotationRecoverySpeed = 3.0f;
 		break;
 
 	case WP_Dragnov:
@@ -1185,8 +1185,10 @@ void WeaponManager::ApplyRecoil(float delta)
 		break;
 
 	case WP_Rpg:
-		positionRecoilForce = { 0.0f, -5.0f, 0.005f };
-		rotationRecoilForceEuler = { 0.0f, 0.0f, -2.0f };
+		positionRecoilForce = { 0.0f, -15.0f, 1.0f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, -6.0f };
+		recoilPositionRecoverySpeed = 3.0f;
+		recoilRotationRecoverySpeed = 5.0f;
 		break;
 
 	default:
@@ -1198,6 +1200,12 @@ void WeaponManager::ApplyRecoil(float delta)
 	//Logger::DebugPrint("%d", IsShooting);
 	if (IsShooting)
 	{
+		if (!playerManager->SecondHandAttachedToWeapon)
+		{
+			positionRecoilForce *= 1.5f;
+			rotationRecoilForceEuler *= 1.5f;
+		}
+
 		CurrentRelativeWeaponPosition += positionRecoilForce;
 		CurrentRelativeWeaponRotationEuler += rotationRecoilForceEuler;
 		CurrentRelativeWeaponRotation = glm::fquat(glm::radians(CurrentRelativeWeaponRotationEuler));
@@ -1207,6 +1215,11 @@ void WeaponManager::ApplyRecoil(float delta)
 	}
 	else
 	{
+		if (!playerManager->SecondHandAttachedToWeapon)
+		{
+			recoilPositionRecoverySpeed *= 0.75f;
+			recoilRotationRecoverySpeed *= 0.75f;
+		}
 		// Smoothly return position to base
 		CurrentRelativeWeaponPosition = glm::mix(CurrentRelativeWeaponPosition, DefaultRelativeWeaponPosition, delta * recoilPositionRecoverySpeed);
 		CurrentRelativeWeaponRotation = glm::slerp(CurrentRelativeWeaponRotation, DefaultRelativeWeaponRotation, delta * recoilRotationRecoverySpeed);

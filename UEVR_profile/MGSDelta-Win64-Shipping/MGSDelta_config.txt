@@ -3,7 +3,7 @@
 ------ Camera Settings ------
 attachCameraToSnakeHead=false
 cameraRotationSpeed=25.000000
-cameraRotationDeadZone=0.200000
+cameraRotationDeadZone=0.000000
 smoothCameraRotation=false
 cameraYawLerp=5.000000
 smoothCameraPosition=true
