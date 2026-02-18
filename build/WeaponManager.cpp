@@ -192,15 +192,23 @@ void WeaponManager::FetchEquipController()
 
 void WeaponManager::ToggleCQCKnifeMeshOnSecondHandGrab(bool enable)
 {
+	if (!LeftHandWeaponRoot)
+		return;
 	SDK::USceneComponent* sdkLeftWeaponRoot = (SDK::USceneComponent*)LeftHandWeaponRoot;
 	SDK::USkeletalMeshComponent* sdkLeftWeaponMesh = (SDK::USkeletalMeshComponent*)LeftHandWeaponRoot;
 	if (enable)
 	{
 		if (CqcKnifeMeshActor == nullptr)
 		{
+			constexpr SDK::FVector cqcKnifeRelativeLocation = {1.248f, -2.072f, -4.754f};
+			constexpr SDK::FRotator cqcKnifeRelativeRotation = {7.228f, 58.205f, -169.534f};
+			
 			SDK::FTransform leftWeaponTsf = sdkLeftWeaponRoot->K2_GetComponentToWorld();
+
 			CqcKnifeMeshActor = Utilities::SpawnMesh(leftWeaponTsf, L"SkeletalMesh /Game/Gsr/Weapon/cqck/Mesh/SM_Cqck.SM_Cqck"); //L"SkeletalMesh /Game/Gsr/Weapon/cqck/Mesh/SM_Cqck.SM_Cqck"
 			CqcKnifeMeshActor->K2_AttachRootComponentTo(playerManager->LeftHandMesh, SDK::UKismetStringLibrary::Conv_StringToName(L"None"), SDK::EAttachLocation::KeepWorldPosition, false);
+			SDK::USkeletalMeshComponent* cqcKnifeMesh = (SDK::USkeletalMeshComponent*)CqcKnifeMeshActor;
+			cqcKnifeMesh->K2_SetRelativeLocationAndRotation(cqcKnifeRelativeLocation, cqcKnifeRelativeRotation, false, nullptr, true);
 		}
 		CqcKnifeMeshActor->SetActorHiddenInGame(false);
 		sdkLeftWeaponMesh->SetOnlyOwnerSee(true);
@@ -311,13 +319,15 @@ void WeaponManager::RemoveUobjectHookFromHand(Hand handSide)
 
 void WeaponManager::ProcessWeapon(float delta)
 {
-	if (AttachSecondHandNextFrame)
+	if (AttachSecondHandNextFrame && !playerManager->MeleeAttackRunning)
 	{
 		AttachSecondHandToWeapon();
 		AttachSecondHandNextFrame = false;
+		if (holdCQCKnifeInLeftHand)
+			ToggleCQCKnifeMeshOnSecondHandGrab(true);
 	}
 
-	if (AttachHandNextFrame && NextFrame)
+	if (AttachHandNextFrame && NextFrame && !playerManager->MeleeAttackRunning)
 	{
 		Logger::DebugPrint("Attaching main hand rn");
 		AttachMainHandToWeapon();
@@ -368,6 +378,7 @@ void WeaponManager::ProcessWeapon(float delta)
 	{
 		if (PreviousWeaponID == EGsrEquipId::WP_Dragnov || PreviousWeaponID == EGsrEquipId::WP_MosinNagant || PreviousWeaponID == EGsrEquipId::WP_Rpg)
 			ReceiverMesh->SetVisibility(false, false);
+		ToggleCQCKnifeMeshOnSecondHandGrab(false);
 		ReceiverMesh = nullptr;
 		WeaponRoot = nullptr;
 		LeftHandWeaponRoot = nullptr;
@@ -635,6 +646,7 @@ void WeaponManager::ProcessWeapon(float delta)
 				}
 			}
 		}
+
 		//Logger::DebugPrint(LeftHandWeaponRoot->get_full_name());
 
 		//SocketName = "BaseBody_LeftHand_MTPA"
@@ -649,7 +661,20 @@ void WeaponManager::ProcessWeapon(float delta)
 		RemoveUobjectHookFromHand(Right);
 	}
 
-	if (playerManager->SecondHandAttachedToWeapon && holdCQCKnifeInLeftHand)
+	// detach hands when melee attack
+	if (!playerManager->WasMeleeAttackRunning && playerManager->MeleeAttackRunning)
+	{
+		if (playerManager->SecondHandAttachedToWeapon)
+		{
+			DetachSecondHandFromWeapon();
+		}
+	}
+	if (playerManager->WasMeleeAttackRunning && !playerManager->MeleeAttackRunning)
+	{
+		AttachSecondHandToWeapon();
+	}
+
+	if (holdCQCKnifeInLeftHand)
 	{
 		if (!playerManager->WasMeleeAttackRunning && playerManager->MeleeAttackRunning)
 			ToggleCQCKnifeMeshOnSecondHandGrab(false);
