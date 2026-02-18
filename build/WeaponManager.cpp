@@ -1111,6 +1111,9 @@ void WeaponManager::ToggleThermalVisionScanline()
 
 void WeaponManager::ApplyRecoil(float delta)
 {
+	if (*settingsManager->DisableAllRecoilPtr)
+		return;
+
 	glm::fvec3 positionRecoilForce = { 0.0f, 0.0f, 0.0f };
 	glm::fvec3 rotationRecoilForceEuler = { 0.0f, 0.0f, 0.0f };
 	float recoilPositionRecoverySpeed = 10.0f;
@@ -1168,10 +1171,10 @@ void WeaponManager::ApplyRecoil(float delta)
 		break;
 
 	case WP_Ithaca:
-		positionRecoilForce = { 1.0f, -30.0f, 10.0f };
-		rotationRecoilForceEuler = { 0.0f, 0.0f, playerManager->SecondHandAttachedToWeapon ? -6.0f : -40.0f };
+		positionRecoilForce = { 1.0f, -30.0f, 8.0f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, playerManager->SecondHandAttachedToWeapon || !*settingsManager->EnableTwoHandsRealisticRecoilPtr ? -6.0f : -30.0f };
 		recoilPositionRecoverySpeed = 5.0f;
-		recoilRotationRecoverySpeed = 3.0f;
+		recoilRotationRecoverySpeed = 4.0f;
 		break;
 
 	case WP_Dragnov:
@@ -1200,7 +1203,7 @@ void WeaponManager::ApplyRecoil(float delta)
 	//Logger::DebugPrint("%d", IsShooting);
 	if (IsShooting)
 	{
-		if (!playerManager->SecondHandAttachedToWeapon)
+		if (!playerManager->SecondHandAttachedToWeapon && *settingsManager->EnableTwoHandsRealisticRecoilPtr)
 		{
 			positionRecoilForce *= 1.5f;
 			rotationRecoilForceEuler *= 1.5f;
@@ -1215,7 +1218,7 @@ void WeaponManager::ApplyRecoil(float delta)
 	}
 	else
 	{
-		if (!playerManager->SecondHandAttachedToWeapon)
+		if (!playerManager->SecondHandAttachedToWeapon && *settingsManager->EnableTwoHandsRealisticRecoilPtr)
 		{
 			recoilPositionRecoverySpeed *= 0.75f;
 			recoilRotationRecoverySpeed *= 0.75f;
