@@ -13,8 +13,8 @@ uevr::API::UClass* Utilities::ABP_PlayerBehindAction_C = nullptr;
 uevr::API::UClass* Utilities::ABP_PlayerMeleeAction_C = nullptr;
 uevr::API::UClass* Utilities::ABP_EnemyCqc_C = nullptr;
 
-SDK::AActor* Utilities::DebugCigar0 = nullptr;
-SDK::AActor* Utilities::DebugCigar1 = nullptr;
+SDK::AActor* Utilities::DebugMesh0 = nullptr;
+SDK::AActor* Utilities::DebugMesh1 = nullptr;
 
 void Utilities::InitHelperClasses()
 {
@@ -161,9 +161,9 @@ uevr::API::UObject* Utilities::SpawnActor(UEVR_Vector3d Position, uevr::API::UOb
 	return actor;
 }
 
-SDK::AActor* Utilities::SpawnDebugCigars(SDK::FVector Position)
+SDK::AActor* Utilities::SpawnMesh(SDK::FTransform worldTransform, std::wstring_view meshFullName)
 {
-	UEVR_Vector3d uevrVector = { Position.X, Position.Y, Position.Z };
+	UEVR_Vector3d uevrVector = { worldTransform.Translation.X, worldTransform.Translation.Y, worldTransform.Translation.Z };
 	auto uevrActor = SpawnActor(uevrVector, nullptr);
 	auto actor = (SDK::AActor*)uevrActor;
 	if (!actor)
@@ -171,60 +171,130 @@ SDK::AActor* Utilities::SpawnDebugCigars(SDK::FVector Position)
 		return nullptr;
 	}
 	
-    // 1. Find the arrow mesh asset already loaded in memory (your code is correct)
-    static SDK::UStaticMesh* mesh = nullptr;
-    if (!mesh)
+    // 1. Find the mesh asset already loaded in memory
+    static SDK::UStaticMesh* staticMesh = nullptr;
+	static SDK::USkeletalMesh* skeletalMesh = nullptr;
+	auto meshUEVR = uevr::API::get()->find_uobject<uevr::API::UObject>(meshFullName);
+	auto sdkMesh = (SDK::UObject*)meshUEVR;
+    if (sdkMesh->IsA(SDK::UStaticMesh::StaticClass()))
     {
-		auto meshUEVR = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Game/Art/Environment/HD_GameplayAssets/Mesh/ciga_cigar_dmo_hd.ciga_cigar_dmo_hd");
-		mesh = (SDK::UStaticMesh*)meshUEVR;
-        if (!mesh)
+		staticMesh = (SDK::UStaticMesh*)meshUEVR;
+
+        if (!staticMesh)
         {
-            Logger::DebugPrint("Failed to find S_Arrow mesh");
+            Logger::DebugPrint("Failed to find static mesh");
             return nullptr;
-        }
-    }
-	Logger::DebugPrint("Found mesh %s : ", mesh->GetFullName().c_str());
-    // 2. Create a new Static Mesh Component as a sub-object of the Actor
-    // This makes the Actor the "owner" of the new component.
-    auto* staticMeshComponent = static_cast<SDK::UStaticMeshComponent*>(actor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), 
-                                                                                               false, // bManualAttachment
-                                                                                               SDK::FTransform{}, // RelativeTransform
-                                                                                               false // bDeferConstruction
-                                                                                               ));
+		}
+		Logger::DebugPrint("Found static mesh %s : ", staticMesh->GetFullName().c_str());
+	}
+	else if (sdkMesh->IsA(SDK::USkeletalMesh::StaticClass()))
+	{
+		skeletalMesh = (SDK::USkeletalMesh*)meshUEVR;
+		if (!skeletalMesh)
+		{
+			Logger::DebugPrint("Failed to find skeletal mesh");
+			return nullptr;
+		}
+		Logger::DebugPrint("Found skeletal mesh %s : ", skeletalMesh->GetFullName().c_str());
+	}
+	else
+	{
+		Logger::DebugPrint("Asset found is not a StaticMesh or SkeletalMesh");
+		return nullptr;
+	}
 
-    if (!staticMeshComponent)
-    {
-        Logger::DebugPrint("Failed to create UStaticMeshComponent");
-        return nullptr;
-    }
-	Logger::DebugPrint("Created StaticMeshComponent: %s", staticMeshComponent->GetFullName().c_str());
-    // 3. Assign the mesh asset to our new component instance
-    staticMeshComponent->SetStaticMesh(mesh);
-	Logger::DebugPrint("Assigned mesh to StaticMeshComponent");
+	if (staticMesh)
+	{
+		// 2. Create a new Static Mesh Component as a sub-object of the Actor
+		// This makes the Actor the "owner" of the new component.
+		auto* staticMeshComponent = static_cast<SDK::UStaticMeshComponent*>(actor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(),
+			false, // bManualAttachment
+			SDK::FTransform{}, // RelativeTransform
+			false // bDeferConstruction
+		));
 
-	// 4. Attach the new component to the Actor's root component
-	staticMeshComponent->K2_AttachToComponent(
-		actor->K2_GetRootComponent(),                      // Parent
-		SDK::FName(),                                      // SocketName (none)
-		SDK::EAttachmentRule::KeepRelative,             // Use the relative location we just set
-		SDK::EAttachmentRule::KeepRelative,             // Use the relative rotation we just set
-		SDK::EAttachmentRule::KeepRelative,             // Use the relative scale we just set
-		true                                            // bWeldSimulatedBodies
-	);
-	Logger::DebugPrint("Attached StaticMeshComponent to Actor's root component");
+		if (!staticMeshComponent)
+		{
+			Logger::DebugPrint("Failed to create UStaticMeshComponent");
+			return nullptr;
+		}
+		Logger::DebugPrint("Created StaticMeshComponent: %s", staticMeshComponent->GetFullName().c_str());
+		// 3. Assign the mesh asset to our new component instance
+		staticMeshComponent->SetStaticMesh(staticMesh);
+		Logger::DebugPrint("Assigned mesh to StaticMeshComponent");
 
-    // 6. Register the component to make it "live" and renderable in the world
-    staticMeshComponent->Activate(true);
-	Logger::DebugPrint("Activated StaticMeshComponent");
+		// 4. Attach the new component to the Actor's root component
+		staticMeshComponent->K2_AttachToComponent(
+			actor->K2_GetRootComponent(),                      // Parent
+			SDK::FName(),                                      // SocketName (none)
+			SDK::EAttachmentRule::KeepRelative,             // Use the relative location we just set
+			SDK::EAttachmentRule::KeepRelative,             // Use the relative rotation we just set
+			SDK::EAttachmentRule::KeepRelative,             // Use the relative scale we just set
+			true                                            // bWeldSimulatedBodies
+		);
+		Logger::DebugPrint("Attached StaticMeshComponent to Actor's root component");
+
+		// 6. Register the component to make it "live" and renderable in the world
+		staticMeshComponent->Activate(true);
+		Logger::DebugPrint("Activated StaticMeshComponent");
+
+		// Optional: Disable collision if it's just for visuals
+		staticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
+
+		staticMeshComponent->Activate(true);
+		staticMeshComponent->SetVisibility(true, false);
+		staticMeshComponent->SetHiddenInGame(false, false);
+		staticMeshComponent->SetRenderCustomDepth(true);
+		staticMeshComponent->SetWorldScale3D({ 1, 1, 1 });
+	}
+
+	if (skeletalMesh)
+	{
+		// 2. Create a new Static Mesh Component as a sub-object of the Actor
+		// This makes the Actor the "owner" of the new component.
+		auto* skeletalMeshComponent = static_cast<SDK::USkeletalMeshComponent*>(actor->AddComponentByClass(SDK::USkeletalMeshComponent::StaticClass(),
+			false, // bManualAttachment
+			SDK::FTransform{}, // RelativeTransform
+			false // bDeferConstruction
+		));
+
+		if (!skeletalMeshComponent)
+		{
+			Logger::DebugPrint("Failed to create USkeletalMeshComponent");
+			return nullptr;
+		}
+		Logger::DebugPrint("Created SkeletalMeshComponent: %s", skeletalMeshComponent->GetFullName().c_str());
+		// 3. Assign the mesh asset to our new component instance
+		skeletalMeshComponent->SetSkeletalMeshAsset(skeletalMesh);
+		Logger::DebugPrint("Assigned mesh to SkeletalMeshComponent");
+
+		// 4. Attach the new component to the Actor's root component
+		skeletalMeshComponent->K2_AttachToComponent(
+			actor->K2_GetRootComponent(),                      // Parent
+			SDK::FName(),                                      // SocketName (none)
+			SDK::EAttachmentRule::KeepRelative,             // Use the relative location we just set
+			SDK::EAttachmentRule::KeepRelative,             // Use the relative rotation we just set
+			SDK::EAttachmentRule::KeepRelative,             // Use the relative scale we just set
+			true                                            // bWeldSimulatedBodies
+		);
+		Logger::DebugPrint("Attached SkeletalMeshComponent to Actor's root component");
+
+		// 6. Register the component to make it "live" and renderable in the world
+		skeletalMeshComponent->Activate(true);
+		Logger::DebugPrint("Activated SkeletalMeshComponent");
+
+		// Optional: Disable collision if it's just for visuals
+		skeletalMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
+
+		skeletalMeshComponent->Activate(true);
+		skeletalMeshComponent->SetVisibility(true, false);
+		skeletalMeshComponent->SetHiddenInGame(false, false);
+		skeletalMeshComponent->SetRenderCustomDepth(true);
+		skeletalMeshComponent->SetWorldScale3D({ 1, 1, 1 });
+	}
     
-    // Optional: Disable collision if it's just for visuals
-    staticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
-
-	staticMeshComponent->Activate(true);
-	staticMeshComponent->SetVisibility(true, false);
-	staticMeshComponent->SetHiddenInGame(false, false);
-	staticMeshComponent->SetRenderCustomDepth(true);
-	staticMeshComponent->SetWorldScale3D({ 3, 3, 3 });
+	SDK::FHitResult outHit;
+	actor->K2_SetActorTransform(worldTransform, false, &outHit, true);
 
 	/*auto defaultMat = uevr::API::get()->find_uobject<uevr::API::UObject*>(L"Material /Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial");
 
@@ -240,17 +310,17 @@ else
     return actor;
 }
 
-void Utilities::DestroyDebugCigars()
+void Utilities::DestroyDebugMeshes()
 {
-	if (DebugCigar0)
+	if (DebugMesh0)
 	{
-		DebugCigar0->K2_DestroyActor();
-		DebugCigar0 = nullptr;
+		DebugMesh0->K2_DestroyActor();
+		DebugMesh0 = nullptr;
 	}
-	if (DebugCigar1)
+	if (DebugMesh1)
 	{
-		DebugCigar1->K2_DestroyActor();
-		DebugCigar1 = nullptr;
+		DebugMesh1->K2_DestroyActor();
+		DebugMesh1 = nullptr;
 	}
 }
 

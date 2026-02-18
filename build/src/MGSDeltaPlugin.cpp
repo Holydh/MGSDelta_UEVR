@@ -360,8 +360,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		API::VR::set_mod_value("VR_2DScreenMode", *settingsManager.EnableCutoutScreenForCutscenesAndMenusPtr);
 		API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DCutscenesAndMenusPtr ? 1.0f : 0.0f);
 		API::get()->dispatch_lua_event("PlayerTookControl", "0");
-		weaponManager.DestroyScope();
-	/*	Utilities::DestroyDebugCigars();*/
+		weaponManager.Cleanup();
 		vr_enabled = enable;
 	}
 	//Logger::DebugPrint("%i", API::VR::get_mod_value<bool>("VR_2DScreenMode"));

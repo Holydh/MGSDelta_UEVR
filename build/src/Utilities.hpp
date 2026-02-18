@@ -29,13 +29,13 @@ public:
 	static uevr::API::UClass* ABP_EnemyCqc_C;
 
 	//Debug Arrow Actor
-	static SDK::AActor* DebugCigar0;
-	static SDK::AActor* DebugCigar1;
+	static SDK::AActor* DebugMesh0;
+	static SDK::AActor* DebugMesh1;
 
 	static void InitHelperClasses();
 	static uevr::API::UObject* SpawnActor(UEVR_Vector3d Position, uevr::API::UObject* Owner);
-	static SDK::AActor* SpawnDebugCigars(SDK::FVector Position);
-	static void DestroyDebugCigars();
+	static SDK::AActor* SpawnMesh(SDK::FTransform worldTransform, std::wstring_view meshFullName);
+	static void DestroyDebugMeshes();
 
 	static float Remap(float value, float inMin, float inMax, float outMin, float outMax);
 	static glm::quat FRotatorToQuat(SDK::FRotator rotator);

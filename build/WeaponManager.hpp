@@ -101,9 +101,13 @@ public:
 	glm::dvec3 AimPosition{};
 	SDK::FRotator CurrentWeaponWorldRotation{};
 
+	SDK::AActor* CqcKnifeMeshActor;
+	SDK::FTransform CqcKnifeMeshActorTransform;
+
 	bool mainHandShouldAttachToWeapon = false;
 	bool secondHandShouldAttachToWeapon = false;
-	bool HasObjectInLeftHand = false;
+	bool hasObjectInLeftHand = false;
+	bool holdCQCKnifeInLeftHand = false;
 	bool canBeTwoHanded = false;
 	bool twoHandedPivot = false;
 
@@ -359,7 +363,11 @@ public:
 	EGsrEquipId CurrentWeaponID = WP_None;
 	EGsrEquipId PreviousWeaponID = WP_None;
 	
-
+	enum Hand
+	{
+		Left = 0,
+		Right = 1
+	};
 
 	inline const char* WeaponIdToKey(EGsrEquipId id);
 	void FetchWeaponOffsets(EGsrEquipId currentWeapon,
@@ -370,6 +378,8 @@ public:
 
 	//void Initialize();
 	void FetchEquipController();
+	void ToggleCQCKnifeMeshOnSecondHandGrab(bool enable);
+	void RemoveUobjectHookFromHand(Hand handSide);
 	void ProcessWeapon(float delta);
 	void FetchWeaponMeshAimData();
 	void ApplyAimDataToMemory();
@@ -379,6 +389,8 @@ public:
 	void SwitchScopeState(bool enable);
 	void SpawnScope();
 	void DestroyScope();
+
+	void Cleanup();
 
 	void ToggleThermalVisionScanline();
 	bool ToggleThermalVisionScanlineNextFrame = false;
