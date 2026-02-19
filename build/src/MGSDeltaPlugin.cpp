@@ -436,16 +436,19 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		cameraController.ProcessCamera(delta);
 
 		cameraController.ProcessRoomscaleStance();
+
+		weaponManager.ProcessTwoHandsGrabWeapon();
 		//if (weaponController.ScopeWidgetDynamicMaterial)
 		//{
 		//	auto rt = weaponController.ScopeWidget->GetRenderTarget();
 		//	weaponController.ScopeWidgetDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"Color_ExponentIn"), rt);
 		//}
-		if (cameraController.CameraAttachementActorPositionSafeguard())
-		{
-			Toggle6DOF(false);
-			Toggle6DOF(true);
-		}
+		
+		//if (cameraController.CameraAttachementActorPositionSafeguard())
+		//{
+		//	Toggle6DOF(false);
+		//	Toggle6DOF(true);
+		//}
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);
@@ -463,7 +466,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	//}
 
 	imGuiMenu.ProcessImGui(delta);
-
+			
+	playerManager.WasSecondHandAttachedToWeapon = playerManager.SecondHandAttachedToWeapon;
 	playerManager.WasPlayerControlled = playerManager.IsPlayerControlled;
 	playerManager.WasPeepingInternal = playerManager.IsPeepingInternal;
 	playerManager.PreviousStance = playerManager.CurrentStance;
@@ -574,11 +578,11 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 	//	positiond->z = newPosition.z;
 	//}
 	
-	if (playerManager.IsPlayerControlled && ranOnce)
+	//we need to override uevr attachement controls so we're running this later
+	if (playerManager.IsPlayerControlled && playerManager.SecondHandAttachedToWeapon && ranOnce)
 	{
-		weaponManager.ProcessTwoHandsGrabWeapon();
 		weaponManager.ApplyRecoil(deltaTime);
-		playerManager.WasSecondHandAttachedToWeapon = playerManager.SecondHandAttachedToWeapon;
+		weaponManager.ProcessTwoHandsGrabWeaponLocationAndRotation();
 	}
 
 	ranOnce = true;

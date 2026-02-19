@@ -161,7 +161,7 @@ uevr::API::UObject* Utilities::SpawnActor(UEVR_Vector3d Position, uevr::API::UOb
 	return actor;
 }
 
-SDK::AActor* Utilities::SpawnMesh(SDK::FTransform worldTransform, std::wstring_view meshFullName)
+SDK::AActor* Utilities::SpawnMesh(SDK::FTransform worldTransform, std::wstring_view meshFullName, SDK::UObject*& outMeshComponent)
 {
 	UEVR_Vector3d uevrVector = { worldTransform.Translation.X, worldTransform.Translation.Y, worldTransform.Translation.Z };
 	auto uevrActor = SpawnActor(uevrVector, nullptr);
@@ -246,6 +246,7 @@ SDK::AActor* Utilities::SpawnMesh(SDK::FTransform worldTransform, std::wstring_v
 		staticMeshComponent->SetHiddenInGame(false, false);
 		staticMeshComponent->SetRenderCustomDepth(true);
 		staticMeshComponent->SetWorldScale3D({ 1, 1, 1 });
+		outMeshComponent = (SDK::UObject*)staticMeshComponent;
 	}
 
 	if (skeletalMesh)
@@ -291,6 +292,7 @@ SDK::AActor* Utilities::SpawnMesh(SDK::FTransform worldTransform, std::wstring_v
 		skeletalMeshComponent->SetHiddenInGame(false, false);
 		skeletalMeshComponent->SetRenderCustomDepth(true);
 		skeletalMeshComponent->SetWorldScale3D({ 1, 1, 1 });
+		outMeshComponent = (SDK::UObject*)skeletalMeshComponent;
 	}
     
 	SDK::FHitResult outHit;

@@ -102,7 +102,7 @@ public:
 	SDK::FRotator CurrentWeaponWorldRotation{};
 
 	SDK::AActor* DummyCqcKnifeMeshActor;
-	SDK::FTransform CqcKnifeMeshActorTransform;
+	SDK::USkeletalMeshComponent* DummyCqcKnifeMesh;
 
 	bool mainHandShouldAttachToWeapon = false;
 	bool secondHandShouldAttachToWeapon = false;
@@ -407,5 +407,6 @@ public:
 	bool AttachSecondHandNextFrame = false;
 
 	void ProcessTwoHandsGrabWeapon();
+	void ProcessTwoHandsGrabWeaponLocationAndRotation();
 	void ApplyRecoil(float delta);
 };

@@ -34,7 +34,7 @@ public:
 
 	static void InitHelperClasses();
 	static uevr::API::UObject* SpawnActor(UEVR_Vector3d Position, uevr::API::UObject* Owner);
-	static SDK::AActor* SpawnMesh(SDK::FTransform worldTransform, std::wstring_view meshFullName);
+	static SDK::AActor* SpawnMesh(SDK::FTransform worldTransform, std::wstring_view meshFullName, SDK::UObject*& outMeshComponent);
 	static void DestroyDebugMeshes();
 
 	static float Remap(float value, float inMin, float inMax, float outMin, float outMax);
