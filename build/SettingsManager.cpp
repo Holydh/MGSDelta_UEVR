@@ -44,20 +44,28 @@ bool SettingsManager::LoadWeaponConfigFromFile(const fs::path& path, WeaponConfi
         outCfg.rotation_offset.z = rot.value("z", 0.0);
     }
 
-    if (state.contains("hand_location_offset"))
+	if (state.contains("right_hand_rotation_offset"))
     {
-        auto& handLoc = state["hand_location_offset"];
-        outCfg.hand_location_offset.X = handLoc.value("x", 0.0);
-        outCfg.hand_location_offset.Y = handLoc.value("y", 0.0);
-        outCfg.hand_location_offset.Z = handLoc.value("z", 0.0);
+        auto& rightHandRot = state["right_hand_rotation_offset"];
+        outCfg.right_hand_rotation_offset.Pitch = rightHandRot.value("Pitch", 0.0);
+        outCfg.right_hand_rotation_offset.Yaw = rightHandRot.value("Yaw", 0.0);
+        outCfg.right_hand_rotation_offset.Roll = rightHandRot.value("Roll", 0.0);
     }
 
-	if (state.contains("hand_rotation_offset"))
+    if (state.contains("left_hand_location_offset"))
     {
-        auto& handLoc = state["hand_rotation_offset"];
-        outCfg.hand_rotation_offset.Pitch = handLoc.value("Pitch", 0.0);
-        outCfg.hand_rotation_offset.Yaw = handLoc.value("Yaw", 0.0);
-        outCfg.hand_rotation_offset.Roll = handLoc.value("Roll", 0.0);
+        auto& leftHandLoc = state["left_hand_location_offset"];
+        outCfg.left_hand_location_offset.X = leftHandLoc.value("x", 0.0);
+        outCfg.left_hand_location_offset.Y = leftHandLoc.value("y", 0.0);
+        outCfg.left_hand_location_offset.Z = leftHandLoc.value("z", 0.0);
+    }
+
+	if (state.contains("left_hand_rotation_offset"))
+    {
+        auto& leftHandRot = state["left_hand_rotation_offset"];
+        outCfg.left_hand_rotation_offset.Pitch = leftHandRot.value("Pitch", 0.0);
+        outCfg.left_hand_rotation_offset.Yaw = leftHandRot.value("Yaw", 0.0);
+        outCfg.left_hand_rotation_offset.Roll = leftHandRot.value("Roll", 0.0);
     }
 
     return true;

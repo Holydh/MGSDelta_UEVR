@@ -139,7 +139,7 @@ inline const char* WeaponManager::WeaponIdToKey(EGsrEquipId id)
 	}
 }
 
-void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot, SDK::FVector& outHandLocationOffset, SDK::FRotator& outHandRotationOffset)
+void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot, SDK::FRotator& outRightHandRotationOffset, SDK::FVector& outLeftHandLocationOffset, SDK::FRotator& outLeftHandRotationOffset)
 {
 	const char* key = WeaponIdToKey(currentWeapon);
 	if (!key)
@@ -159,8 +159,9 @@ void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& ou
 	const WeaponConfig& cfg = it->second;
     outPos = cfg.location_offset;
     outRot = cfg.rotation_offset;
-	outHandLocationOffset = cfg.hand_location_offset;
-	outHandRotationOffset = cfg.hand_rotation_offset;
+	outRightHandRotationOffset = cfg.right_hand_rotation_offset;
+	outLeftHandLocationOffset = cfg.left_hand_location_offset;
+	outLeftHandRotationOffset = cfg.left_hand_rotation_offset;
 }
 
 void WeaponManager::FetchEquipController()
@@ -429,7 +430,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 		Logger::DebugPrint(WeaponRoot->get_full_name());
 
-		FetchWeaponOffsets(CurrentWeaponID, DefaultUevrHookWeaponPosition, DefaultUevrHookWeaponRotation, HandLocationOffset, HandRotationOffset);
+		FetchWeaponOffsets(CurrentWeaponID, DefaultUevrHookWeaponPosition, DefaultUevrHookWeaponRotation, RightHandRotationOffset, LeftHandLocationOffset, LeftHandRotationOffset);
 
 		//if (!weaponShouldAttach)
 		//{
@@ -797,13 +798,17 @@ void WeaponManager::AttachMainHandToWeapon()
 		playerManager->RightHandMesh->K2_AttachToComponent(
 			(SDK::USceneComponent*)ReceiverMesh == nullptr ? (SDK::USceneComponent*)WeaponRoot : (SDK::USceneComponent*)ReceiverMesh,
 			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
-			SDK::EAttachmentRule::KeepWorld,
-			SDK::EAttachmentRule::KeepWorld,
+			SDK::EAttachmentRule::KeepRelative,
+			SDK::EAttachmentRule::KeepRelative,
 			SDK::EAttachmentRule::KeepRelative,
 			false
 		);
+
+		SDK::FVector rightHandLocation = {-DefaultUevrHookWeaponPosition.z, DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y };
+		SDK::FHitResult outHit;
+		playerManager->RightHandMesh->K2_SetRelativeLocationAndRotation(rightHandLocation, RightHandRotationOffset, false, &outHit, true);
 		playerManager->MainHandAttachedToWeapon = true;
-		//SDK::FHitResult outHit;
+
 		//playerManager->RightHandMesh->K2_AddRelativeLocation(HandLocationOffest, false, &outHit, false);
 		//playerManager->RightHandMesh->K2_AddRelativeRotation(HandRotationOffset, false, &outHit, false);
 		playerManager->RightHandMesh->SetVisibility(true, true);
@@ -853,8 +858,8 @@ void WeaponManager::AttachSecondHandToWeapon()
 			false
 		);
 		SDK::FHitResult outHit;
-		playerManager->LeftHandMesh->K2_SetRelativeLocation(HandLocationOffset, false, &outHit, false);
-		playerManager->LeftHandMesh->K2_SetRelativeRotation(HandRotationOffset, false, &outHit, false);
+		playerManager->LeftHandMesh->K2_SetRelativeLocation(LeftHandLocationOffset, false, &outHit, false);
+		playerManager->LeftHandMesh->K2_SetRelativeRotation(LeftHandRotationOffset, false, &outHit, false);
 		playerManager->RightHandMesh->SetVisibility(true, true);
 		playerManager->LeftHandMesh->SetVisibility(true, true);
 		uevr::API::get()->dispatch_lua_event("TwoHandsHandling", "1");

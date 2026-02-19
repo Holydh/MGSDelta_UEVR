@@ -21,12 +21,17 @@
             "y": 0.7839659452438354,
             "z": 0.016964193433523178
 		},
-		"hand_location_offset" : {
+		"right_hand_rotation_offset": {
+			"Pitch": -7.092,
+            "Yaw": 13.388,
+            "Roll": 8.084
+		},
+		"left_hand_location_offset" : {
 			"x": 0.831,
             "y": 35.727,
             "z": 1.365
 		},
-		"hand_rotation_offset" : {
+		"left_hand_rotation_offset" : {
 			"Pitch": -80.098,
             "Yaw": -168.983,
             "Roll": -135.253
