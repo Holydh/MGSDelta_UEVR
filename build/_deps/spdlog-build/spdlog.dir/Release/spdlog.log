@@ -1,8 +1,0 @@
-﻿  async.cpp
-  cfg.cpp
-  color_sinks.cpp
-  file_sinks.cpp
-  fmt.cpp
-  spdlog.cpp
-  stdout_sinks.cpp
-  spdlog.vcxproj -> C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\spdlog-build\Release\spdlog.lib
