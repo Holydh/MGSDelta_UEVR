@@ -101,7 +101,7 @@ public:
 	glm::dvec3 AimPosition{};
 	SDK::FRotator CurrentWeaponWorldRotation{};
 
-	SDK::AActor* CqcKnifeMeshActor;
+	SDK::AActor* DummyCqcKnifeMeshActor;
 	SDK::FTransform CqcKnifeMeshActorTransform;
 
 	bool mainHandShouldAttachToWeapon = false;
@@ -378,7 +378,8 @@ public:
 
 	//void Initialize();
 	void FetchEquipController();
-	void ToggleCQCKnifeMeshOnSecondHandGrab(bool enable);
+	void SpawnDummyCqcKnifeMesh();
+	void ToggleDummyCQCKnifeMeshVisibility(bool enable);
 	void RemoveUobjectHookFromHand(Hand handSide);
 	void ProcessWeapon(float delta);
 	void FetchWeaponMeshAimData();

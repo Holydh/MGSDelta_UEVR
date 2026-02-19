@@ -62,10 +62,19 @@ void CameraController::ToggleCameraWobblingController(bool enabled) {
 
 
 
-void CameraController::SpawnCameraAttachementActor()
+bool CameraController::SpawnCameraAttachementActor()
 {
 	CameraAttachementActor = Utilities::SpawnActor(UEVR_Vector3d{ LastCameraPosition.x, LastCameraPosition.y, LastCameraPosition.z }, nullptr);
-	CameraAttachementActorAvailable = true;
+	if (CameraAttachementActor != nullptr)
+	{
+		CameraAttachementActorAvailable = true;
+		return true;
+	}
+	else
+	{
+		CameraAttachementActorAvailable = false;
+		return false;
+	}
 }
 
 void CameraController::DestroyCameraAttachementActor()

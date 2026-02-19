@@ -336,7 +336,8 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		//memoryManager.ToggleAimRelatedMemoryInstructions(false);
 		playerManager.ToggleMeshesVisibility(false);
 		playerManager.ToggleReticleVisibility(false);
-		cameraController.SpawnCameraAttachementActor();
+		if (!cameraController.SpawnCameraAttachementActor())
+			return;
 		cameraController.AttachCameraToAttachementActor();
 		API::VR::set_mod_value("VR_2DScreenMode", false);
 		API::VR::set_mod_value("VR_WorldScale", 1.0f);
@@ -380,6 +381,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	if (cameraController.IsMenuOpen && !cameraController.WasMenuOpen)
 	{
 		weaponManager.DetachHandFromWeapon();
+		weaponManager.DetachSecondHandFromWeapon();
 	}
 
 	//test
@@ -576,6 +578,7 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 	{
 		weaponManager.ProcessTwoHandsGrabWeapon();
 		weaponManager.ApplyRecoil(deltaTime);
+		playerManager.WasSecondHandAttachedToWeapon = playerManager.SecondHandAttachedToWeapon;
 	}
 
 	ranOnce = true;

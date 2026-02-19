@@ -41,7 +41,7 @@ public:
 	SDK::FVector CameraForwardVector = { 1.0f, 0.0f, 0.0f };
 
 	static uevr::API::UObject* CameraAttachementActor;
-	void SpawnCameraAttachementActor();
+	bool SpawnCameraAttachementActor();
 	void DestroyCameraAttachementActor();
 	void AttachCameraToAttachementActor();
 	void DetachCameraFromAttachementActor();

@@ -8,9 +8,9 @@ smoothCameraRotation=false
 cameraYawLerp=5.000000
 smoothCameraPosition=true
 cameraPositionXYLerp=3.500000
-cameraPositionZLerp=5.000000
+cameraPositionZLerp=3.160000
 ------ Gameplay Settings ------
-enableRoomscaleProneAndCrouch=false
+enableRoomscaleProneAndCrouch=true
 squatUnderThisValue=-0.400000
 crawlUnderThisValue=-1.776000
 ------ Weapons Settings ------

@@ -79,6 +79,7 @@ public:
 	void FetchMotionControllers();
 	bool MainHandAttachedToWeapon = false;
 	bool SecondHandAttachedToWeapon = false;
+	bool WasSecondHandAttachedToWeapon = false;
 
 	void UpdateHandVisibility();
 	void UpdateForkAndKnifeMeleeState(float delta);
