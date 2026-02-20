@@ -406,8 +406,6 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (playerManager->SecondHandAttachedToWeapon)
 		{
 			DetachSecondHandFromWeapon();
-			if (CurrentWeaponID == WP_None)
-				secondHandShouldAttachToWeapon = false;
 		}
 
 
@@ -841,6 +839,13 @@ bool WeaponManager::DetachHandFromWeapon()
 void WeaponManager::AttachSecondHandToWeapon()
 {
 	if (!playerManager->LeftHandMesh) return;
+
+	if (secondHandShouldAttachToWeapon && !canBeTwoHanded)
+	{
+		secondHandShouldAttachToWeapon = false;
+		//Logger::DebugPrint("Weapon can't be two handed, ignoring second hand attach");
+		return;
+	}
 
 	if (!playerManager->SecondHandAttachedToWeapon && secondHandShouldAttachToWeapon)
 	{
