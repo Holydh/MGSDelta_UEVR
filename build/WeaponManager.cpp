@@ -395,11 +395,6 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (PreviousWeaponID == EGsrEquipId::WP_Dragnov || PreviousWeaponID == EGsrEquipId::WP_MosinNagant || PreviousWeaponID == EGsrEquipId::WP_Rpg)
 			ReceiverMesh->SetVisibility(false, false);
 
-		if (LeftHandWeaponRoot)
-			Logger::DebugPrint("Left hand weapon root found : %ls", LeftHandWeaponRoot->get_full_name().c_str());
-		else
-			Logger::DebugPrint("No left hand weapon root found");
-
 		ToggleDummyCQCKnifeMeshVisibility(false);
 
 		ReceiverMesh = nullptr;
@@ -666,7 +661,6 @@ void WeaponManager::ProcessWeapon(float delta)
 				if (child->GetAttachSocketName() == leftHandSocketFname)
 				{
 					LeftHandWeaponRoot = (uevr::API::UObject*)child;
-					Logger::DebugPrint(LeftHandWeaponRoot->get_full_name());
 				}
 			}
 		}
