@@ -11,6 +11,7 @@ uevr::API::UClass* Utilities::ABP_PlayerKnifeReadyAction_C = nullptr;
 uevr::API::UClass* Utilities::ABP_PlayerRollingAction_C = nullptr;
 uevr::API::UClass* Utilities::ABP_PlayerBehindAction_C = nullptr;
 uevr::API::UClass* Utilities::ABP_PlayerMeleeAction_C = nullptr;
+uevr::API::UClass* Utilities::ABP_PlayerCarryAction_C = nullptr;
 uevr::API::UClass* Utilities::ABP_EnemyCqc_C = nullptr;
 
 SDK::AActor* Utilities::DebugMesh0 = nullptr;
@@ -91,6 +92,14 @@ void Utilities::InitHelperClasses()
 		return;
 	}
 	ABP_PlayerMeleeAction_C = abp_PlayerMeleeAction_C;
+
+	static auto abp_PlayerCarryAction_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerCarryAction.ABP_PlayerCarryAction_C");
+	if (!abp_PlayerCarryAction_C)
+	{
+		uevr::API::get()->log_error("abp_PlayerCarryAction_C not found");
+		return;
+	}
+	ABP_PlayerCarryAction_C = abp_PlayerCarryAction_C;
 
 	static auto abp_EnemyCqc_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Enemy/Animation/Cqc/ABP_EnemyCqc.ABP_EnemyCqc_C");
 	if (!abp_EnemyCqc_C)

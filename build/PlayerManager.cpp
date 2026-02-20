@@ -20,6 +20,7 @@ void PlayerManager::ConvertAllRequiredStringToFnames()
 	fNameEnemyCqc = SDK::UKismetStringLibrary::Conv_StringToName(L"SM_Cqc");
 	fNameMain = SDK::UKismetStringLibrary::Conv_StringToName(L"Main");
 	fNameHold = SDK::UKismetStringLibrary::Conv_StringToName(L"Hold");
+	fNameCarry = SDK::UKismetStringLibrary::Conv_StringToName(L"CARRY");
 }
 
 void PlayerManager::ToggleMeshesVisibility(bool visible)
@@ -214,6 +215,11 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 	else
 		IsRolling = false;
 
+	if (StateMachineName == fNameCarry)
+		IsCarrying = true;
+	else
+		IsCarrying = false;
+
 	if (MeleeAttackRunning && IsKnifeOrFork && IsAiming)
 	{
 		MeleeAttackRunning = StateMachineName == fNameMain && StateName == fNameHold ? false : true;
@@ -311,15 +317,17 @@ void PlayerManager::FetchMotionControllers()
 	}
 }
 
-void PlayerManager::UpdateHandVisibility()
+void PlayerManager::ToggleVRHandsVisibility(bool enable)
 {
-	if (MeleeAttackRunning != WasMeleeAttackRunning)
-	{
-		//Logger::DebugPrint("MeleeAttackRunning %d", MeleeAttackRunning);
-		bool visibility = !MeleeAttackRunning;
-		if (handsSkeletalMesh) {
-			handsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &visibility);
-		}
-		uevr::API::get()->dispatch_lua_event("HideHands", MeleeAttackRunning ? "1" : "0");
+	bool visibility = enable;
+	if (handsSkeletalMesh) {
+		handsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &visibility);
 	}
+	uevr::API::get()->dispatch_lua_event("HideHands", !visibility ? "1" : "0");
+}
+
+void PlayerManager::ProcessVRHandsVisibility()
+{
+	if (MeleeAttackRunning != WasMeleeAttackRunning || IsCarrying != WasCarrying)
+		ToggleVRHandsVisibility(MeleeAttackRunning || IsCarrying ? false : true);
 }

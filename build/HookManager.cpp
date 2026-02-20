@@ -144,7 +144,8 @@ bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::U
 	if (obj->is_a(Utilities::ABP_SnakeBasicAction_C) || 
 		obj->is_a(Utilities::ABP_PlayerRollingAction_C) || 
 		obj->is_a(Utilities::ABP_PlayerBehindAction_C) || 
-		obj->is_a(Utilities::ABP_PlayerMeleeAction_C))
+		obj->is_a(Utilities::ABP_PlayerMeleeAction_C) ||
+		obj->is_a(Utilities::ABP_PlayerCarryAction_C))
 	{
 		if (locals != nullptr)
 		{

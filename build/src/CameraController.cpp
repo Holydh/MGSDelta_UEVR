@@ -158,7 +158,8 @@ void CameraController::ProcessCamera(float deltaTime)
 	//Logger::DebugPrint("Current Player Stance : %i", playerManager.CurrentStance);
 	//Logger::DebugPrint("Player Is Peeping: %i", playerManager.IsPeeping);
 
-
+	// Cap deltaTime to prevent camera from yeeting into orbit when the game freezes or low fps.
+	deltaTime = glm::min(deltaTime, 0.05f);
 
 	// Reset camera position and rotation when player respawn or teleport
 	if (InstantCameraPositionNeeded)
@@ -242,8 +243,11 @@ void CameraController::ProcessCamera(float deltaTime)
 		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr ? 
 			glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) : 
 			glm::fvec3(headColliderPosition.x, headColliderPosition.y, pawnPosition.z + CameraHeightOffset);
-		newPosition = *settingsManager->SmoothCameraPositionPtr ? 
-			glm::mix(LastCameraPosition, tempPosition, 0.1f) :
+		// prevent camera yeeting into orbit on low fps
+		constexpr float speed = 3.0f;
+		float alpha = 1.0f - expf(-speed * deltaTime);
+		newPosition = *settingsManager->SmoothCameraPositionPtr ?
+			glm::mix(LastCameraPosition, tempPosition, alpha) :
 			tempPosition;
 	}
 	else if (playerManager->IsPeeping) // stops peeping
@@ -251,11 +255,16 @@ void CameraController::ProcessCamera(float deltaTime)
 		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr ? 
 			glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) : 
 			glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
+		// prevent camera yeeting into orbit on low fps
+		float speedXY = 4.5f * remappedLerpXYMultiplier;
+		float alphaXY = 1.0f - expf(-speedXY * deltaTime);
+		float speedZ = 2.25f * remappedLerpZMultiplier;
+		float alphaZ = 1.0f - expf(-speedZ * deltaTime);
 		newPosition = *settingsManager->SmoothCameraPositionPtr ? 
 			glm::fvec3(
-			glm::mix(LastCameraPosition.x, tempPosition.x, 4.5f * remappedLerpXYMultiplier * deltaTime),
-			glm::mix(LastCameraPosition.y, tempPosition.y, 4.5f * remappedLerpXYMultiplier * deltaTime),
-			glm::mix(LastCameraPosition.z, tempPosition.z, 2.25f * remappedLerpZMultiplier * deltaTime)) :
+			glm::mix(LastCameraPosition.x, tempPosition.x, alphaXY),
+			glm::mix(LastCameraPosition.y, tempPosition.y, alphaXY),
+			glm::mix(LastCameraPosition.z, tempPosition.z, alphaZ)) :
 			tempPosition;
 	}
 
@@ -264,11 +273,16 @@ void CameraController::ProcessCamera(float deltaTime)
 		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr || CardBoardEquipped || (playerManager->IsFirstPersonView && !*settingsManager->EnableRoomscaleProneAndCrouchPtr) ? 
 			glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
 			glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
+		// prevent camera yeeting into orbit on low fps
+		float speedXY = 11.25f * remappedLerpXYMultiplier;
+		float alphaXY = 1.0f - expf(-speedXY * deltaTime);
+		float speedZ = (CardBoardEquipped ? 5.0f : 2.25f) * remappedLerpZMultiplier;
+		float alphaZ = 1.0f - expf(-speedZ * deltaTime);
 		newPosition = *settingsManager->SmoothCameraPositionPtr ? 
 			glm::fvec3(
-			glm::mix(LastCameraPosition.x, tempPosition.x, 11.25f * remappedLerpXYMultiplier * deltaTime),
-			glm::mix(LastCameraPosition.y, tempPosition.y, 11.25f * remappedLerpXYMultiplier * deltaTime),
-			glm::mix(LastCameraPosition.z, tempPosition.z, (CardBoardEquipped ? 5.0f : 2.25f) * remappedLerpZMultiplier * deltaTime)):
+			glm::mix(LastCameraPosition.x, tempPosition.x, alphaXY),
+			glm::mix(LastCameraPosition.y, tempPosition.y, alphaXY),
+			glm::mix(LastCameraPosition.z, tempPosition.z, alphaZ)):
 			tempPosition;
 	}
 
@@ -297,8 +311,11 @@ void CameraController::ProcessCamera(float deltaTime)
 
 	//The Imgui menu shows the smoothness "quantity", not the lerp factor. We need the inverse for the calculation. Makes more sense for users.
 	float remappedRotationLerpMultiplier = Utilities::Remap(*settingsManager->CameraYawLerpPtr, 0.0f, 10.0f, 2.0f, 0.1f);
+	// prevent camera yeeting into orbit on low fps
+	float speed = 10.25f * remappedRotationLerpMultiplier;
+	float alpha = 1.0f - expf(-speed * deltaTime);
 	CameraRotation.yaw = *settingsManager->SmoothCameraRotationPtr ? 
-		glm::mix(LastCameraRotation.yaw, ActualYaw, 10.25f * remappedRotationLerpMultiplier * deltaTime) :
+		glm::mix(LastCameraRotation.yaw, ActualYaw, alpha) :
 		ActualYaw;
 	
 	LastCameraRotation = CameraRotation;

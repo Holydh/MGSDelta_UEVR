@@ -430,7 +430,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		//Logger::DebugPrint("Before UpdatePeepingState");
 		playerManager.UpdatePeepingAndCqcGrabState(delta);
 		//Logger::DebugPrint("Before UpdateHandVisibility");
-		playerManager.UpdateHandVisibility();
+		playerManager.ProcessVRHandsVisibility();
 		
 		//Logger::DebugPrint("Before ProcessCamera");
 		cameraController.ProcessCamera(delta);
@@ -442,12 +442,6 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		//{
 		//	auto rt = weaponController.ScopeWidget->GetRenderTarget();
 		//	weaponController.ScopeWidgetDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"Color_ExponentIn"), rt);
-		//}
-		
-		//if (cameraController.CameraAttachementActorPositionSafeguard())
-		//{
-		//	Toggle6DOF(false);
-		//	Toggle6DOF(true);
 		//}
 	}
 
@@ -477,6 +471,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.WasMeleeAttackRunning = playerManager.MeleeAttackRunning;
 	playerManager.WasPeeping = playerManager.IsPeeping;
 	playerManager.WasCqcGrab = playerManager.IsCqcGrab;
+	playerManager.WasCarrying = playerManager.IsCarrying;
 	weaponManager.PreviousWeaponID = weaponManager.CurrentWeaponID;
 	weaponManager.PreviousItemID = weaponManager.CurrentItemID;
 	Inputs::WasLeftGripInputPressed = Inputs::LeftGripInputPressed;

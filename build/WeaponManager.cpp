@@ -194,8 +194,6 @@ void WeaponManager::FetchEquipController()
 
 void WeaponManager::SpawnDummyCqcKnifeMesh()
 {
-	if (DummyCqcKnifeMeshActor)
-		Logger::DebugPrint("Dafuck hello ? : %s", DummyCqcKnifeMeshActor->GetFullName().c_str());
 	if (!LeftHandWeaponRoot || DummyCqcKnifeMeshActor)
 		return;
 
@@ -663,7 +661,7 @@ void WeaponManager::ProcessWeapon(float delta)
 				if (child->GetAttachSocketName() == leftHandSocketFname)
 				{
 					LeftHandWeaponRoot = (uevr::API::UObject*)child;
-					//Logger::DebugPrint(leftHandSocketFname.ToString().c_str());
+					Logger::DebugPrint(LeftHandWeaponRoot->get_full_name());
 				}
 			}
 		}
@@ -680,7 +678,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	//uevr seems to force uobject attachement each frame when a uobject file is present in uobjecthook folder
 	//we need to reset the position to 0 each frame because of uevr reattach tentative
-	if (playerManager->MeleeAttackRunning)
+	if (playerManager->MeleeAttackRunning || playerManager->IsCarrying)
 	{
 		RemoveUobjectHookFromHand(Left);
 		RemoveUobjectHookFromHand(Right);
@@ -704,7 +702,7 @@ void WeaponManager::ProcessWeapon(float delta)
 	{
 		bool isReceiverMeshVisible = ReceiverMesh->IsVisible();
 		static auto const gsrGunClass = (uevr::API::UClass*)SDK::AGsrGun::StaticClass();
-		if (CurrentWeapon->is_a(gsrGunClass) && !isReceiverMeshVisible)
+		if (CurrentWeapon->is_a(gsrGunClass) && !isReceiverMeshVisible && !playerManager->IsCarrying)
 		{
 			ReceiverMesh->SetVisibility(true, false);
 			auto sdkGun = (SDK::AGsrGun*)CurrentWeapon;

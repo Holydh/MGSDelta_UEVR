@@ -10,40 +10,37 @@ local handsVisible = false
 local hideHands = false
 local twoHandsHandling = false
 
-function on_level_change(level)
-	controllers.createController(0)
-	controllers.createController(1)
-	hands.reset()
+-- function on_level_change(level)
+-- 	-- controllers.createController(0)
+-- 	-- controllers.createController(1)
+-- 	-- hands.reset()
 
 	
-	local paramsFile = 'hands_parameters' -- found in the [game profile]/data directory
-	local configName = 'Main' -- the name you gave your config
-	local animationName = 'Shared' -- the name you gave your animation
-	hands.createFromConfig(paramsFile, configName, animationName)
+-- 	local paramsFile = 'hands_parameters' -- found in the [game profile]/data directory
+-- 	local configName = 'Main' -- the name you gave your config
+-- 	local animationName = 'Shared' -- the name you gave your animation
+-- 	hands.createFromConfig(paramsFile, configName, animationName)
 
-	if (hands.exists()) then
-		uevr.api:dispatch_custom_event("HandsCreated", "1")
-		handsCreated = true
-	end
-end
+-- 	if (hands.exists()) then
+-- 		uevr.api:dispatch_custom_event("HandsCreated", "1")
+-- 		handsCreated = true
+-- 	end
+-- end
 
 uevr.sdk.callbacks.on_pre_engine_tick(function(engine, delta)
 	if hands.exists() and not handsVisible and not hideHands then
 		hands.hideHands(false);
-		print("hideHands")
 	end
 
 	if hands.exists() and not handsRequired then
 		hands.destroyHands()
 		uevr.api:dispatch_custom_event("HandsCreated", "0")
 		handsCreated = false
-		print("2")
 		return
 	end
 
 	if hands.exists() and handsRequired then
 		handsCreated = true
-		print("3")
 		return
 	end
 
@@ -51,7 +48,6 @@ uevr.sdk.callbacks.on_pre_engine_tick(function(engine, delta)
 		controllers.createController(0)
 		controllers.createController(1)
 		hands.reset()
-		print("3")
 
 		local paramsFile = 'hands_parameters' -- found in the [game profile]/data directory
 		local configName = 'Main'      -- the name you gave your config

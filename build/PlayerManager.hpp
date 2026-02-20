@@ -56,6 +56,8 @@ public:
 	bool IsKnifeOrFork = false;
 	bool IsCqcGrab = false;
 	bool WasCqcGrab = false;
+	bool IsCarrying = false;
+	bool WasCarrying = false;
 
 	SDK::EGsrPlayerStance CurrentStance = SDK::EGsrPlayerStance::Stand;
 	SDK::EGsrPlayerStance PreviousStance = SDK::EGsrPlayerStance::Stand;
@@ -81,7 +83,8 @@ public:
 	bool SecondHandAttachedToWeapon = false;
 	bool WasSecondHandAttachedToWeapon = false;
 
-	void UpdateHandVisibility();
+	void ToggleVRHandsVisibility(bool enable);
+	void ProcessVRHandsVisibility();
 	void UpdateForkAndKnifeMeleeState(float delta);
 
 	void SetPlayerStance(SDK::EGsrPlayerStance NewStance);
@@ -115,6 +118,8 @@ private:
 	SDK::FName fNameMain;
 	//Fork and knife not attacking state
 	SDK::FName fNameHold;
+	//Carry State Machine Name
+	SDK::FName fNameCarry;
 	float forkAndKnifeTimer = 0.0f;
 	float forkAndKnifeDuration = 0.1f;
 };
