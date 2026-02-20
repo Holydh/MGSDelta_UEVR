@@ -12,7 +12,7 @@ cameraPositionZLerp=3.160000
 ------ Gameplay Settings ------
 enableRoomscaleProneAndCrouch=false
 squatUnderThisValue=-0.400000
-crawlUnderThisValue=-1.776000
+crawlUnderThisValue=0.000000
 ------ Weapons Settings ------
 sniperScopeEnabled=true
 scopeResolution=1024

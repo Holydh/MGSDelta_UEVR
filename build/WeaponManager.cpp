@@ -199,7 +199,7 @@ void WeaponManager::SpawnDummyCqcKnifeMesh()
 
 	SDK::USceneComponent* sdkLeftWeaponRoot = (SDK::USceneComponent*)LeftHandWeaponRoot;
 
-	if (DummyCqcKnifeMeshActor == nullptr)
+	if (DummyCqcKnifeMeshActor == nullptr && playerManager->LeftHandMesh)
 	{
 		constexpr SDK::FVector cqcKnifeRelativeLocation = { 1.248f, -2.072f, -4.754f };
 		constexpr SDK::FRotator cqcKnifeRelativeRotation = { 7.228f, -169.534f, 58.205f};
@@ -230,7 +230,6 @@ void WeaponManager::ToggleDummyCQCKnifeMeshVisibility(bool enable)
 		return;
 	}
 		
-	Logger::DebugPrint(DummyCqcKnifeMesh->GetFullName().c_str());
 	SDK::USkeletalMeshComponent* sdkLeftWeaponMesh = (SDK::USkeletalMeshComponent*)LeftHandWeaponRoot;
 	DummyCqcKnifeMesh->SetOnlyOwnerSee(!enable);
 	sdkLeftWeaponMesh->SetOnlyOwnerSee(enable);
