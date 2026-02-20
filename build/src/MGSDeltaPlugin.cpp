@@ -118,8 +118,8 @@ void MGSDeltaPlugin::on_custom_event(const char* event_name, const char* event_d
 	{
 		if (strcmp(event_data, "1") == 0)
 		{
-			Toggle6DOF(false);
-			Toggle6DOF(true);
+			//Toggle6DOF(false);
+			//Toggle6DOF(true);
 			playerManager.FetchMotionControllers();
 			weaponManager.SendHandStateToLua();
 			weaponManager.AttachHandNextFrame = true;
@@ -362,6 +362,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DCutscenesAndMenusPtr ? 1.0f : 0.0f);
 		API::get()->dispatch_lua_event("PlayerTookControl", "0");
 		weaponManager.Cleanup();
+		playerManager.Cleanup();
 		vr_enabled = enable;
 	}
 	//Logger::DebugPrint("%i", API::VR::get_mod_value<bool>("VR_2DScreenMode"));
@@ -553,26 +554,6 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 	UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Post Calculate Stereo View Offset");
-	//auto rotationd = (UEVR_Rotatord*)rotation;
-	//rotationd->yaw = 90.0f;
-	//Logger::DebugPrint("on_post rotation->yaw: %f", rotation->yaw);
-	//auto positiond = (UEVR_Vector3d*)position;
-	//if (playerManager.isPlayerControlled)
-	//{
-	//	auto pawn = uevr::API::get()->get_local_pawn(0);
-	//	UEVR_Vector3d pawnPosition;
-	//	pawn->call_function(L"K2_GetActorLocation", &pawnPosition);
-	//	//Logger::DebugPrint("Pawn Position : %f, %f, %f", pawnPosition.x, pawnPosition.y, pawnPosition.z);
-	//	auto grassVolumeCollisionHead = pawn->get_property<uevr::API::UObject*>(L"GrassVolumeCollisionHead");
-	//	UEVR_Vector3d headColliderPosition;
-	//	grassVolumeCollisionHead->call_function(L"K2_GetComponentLocation", &headColliderPosition);
-	//	auto newPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, headColliderPosition.z);
-	//	cameraController.playerPosition = newPosition;
-	//	positiond->x = newPosition.x;
-	//	positiond->y = newPosition.y;
-	//	positiond->z = newPosition.z;
-	//}
-	
 	//we need to override uevr attachement controls so we're running this later
 	if (playerManager.IsPlayerControlled && playerManager.SecondHandAttachedToWeapon && ranOnce)
 	{

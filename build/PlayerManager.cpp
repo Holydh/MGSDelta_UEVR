@@ -331,3 +331,9 @@ void PlayerManager::ProcessVRHandsVisibility()
 	if (MeleeAttackRunning != WasMeleeAttackRunning || IsCarrying != WasCarrying)
 		ToggleVRHandsVisibility(MeleeAttackRunning || IsCarrying ? false : true);
 }
+
+void PlayerManager::Cleanup()
+{
+	LeftHandMesh = nullptr;
+	RightHandMesh = nullptr;
+}

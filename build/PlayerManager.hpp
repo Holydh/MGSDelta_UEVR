@@ -88,7 +88,7 @@ public:
 	void UpdateForkAndKnifeMeleeState(float delta);
 
 	void SetPlayerStance(SDK::EGsrPlayerStance NewStance);
-
+	void Cleanup();
 	//EPlayerAnimState GetCurrentPlayerAnimState(const SDK::FName& State);
 private:
 	uevr::API::UObject* handsSkeletalMesh;
