@@ -7,18 +7,18 @@ void WeaponManager::InitWeaponManager()
 	DummyCqcKnifeMeshActor = nullptr;
 }
 
-//void WeaponManager::ReapplyHandMaterialToVRHands()
-//{
-//	if (CurrentItemID == SDK::EGsrItemId::IT_Stealth)
-//	{
-//		auto pawn = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
-//		auto stealthMaterial = pawn->SkeletalMesh_Hand->OverlayMaterial;
-//		playerManager->RightHandMesh->SetMaterial(0, stealthMaterial);
-//		playerManager->RightHandMesh->SetMaterial(1, stealthMaterial);
-//		playerManager->LeftHandMesh->SetMaterial(0, stealthMaterial);
-//		playerManager->LeftHandMesh->SetMaterial(1, stealthMaterial);
-//	}
-//}
+void WeaponManager::ReapplyHandMaterialToVRHands()
+{
+	if (CurrentItemID == SDK::EGsrItemId::IT_Stealth)
+	{
+		auto pawn = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
+		auto stealthMaterial = pawn->SkeletalMesh_Hand->OverlayMaterial;
+		playerManager->RightHandMesh->SetMaterial(0, stealthMaterial);
+		playerManager->RightHandMesh->SetMaterial(1, stealthMaterial);
+		playerManager->LeftHandMesh->SetMaterial(0, stealthMaterial);
+		playerManager->LeftHandMesh->SetMaterial(1, stealthMaterial);
+	}
+}
 
 void WeaponManager::ProcessItem()
 {

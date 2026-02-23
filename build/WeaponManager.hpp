@@ -57,7 +57,7 @@ public:
 
 	void InitWeaponManager();
 
-	//void ReapplyHandMaterialToVRHands();
+	void ReapplyHandMaterialToVRHands();
 
 	bool IsShooting = false;
 	uevr::API::UObject* EquipController = nullptr;
