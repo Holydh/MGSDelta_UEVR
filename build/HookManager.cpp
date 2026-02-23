@@ -221,15 +221,6 @@ bool HookManager::mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn
 
 bool HookManager::mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	// Trigger a reset of the hands to get the new hand model applied
-	if (s_playerManager->MainHandAttachedToWeapon)
-	{
-		s_weaponManager->DetachHandFromWeapon();
-		if (s_playerManager->SecondHandAttachedToWeapon)
-		{
-			s_weaponManager->DetachSecondHandFromWeapon();
-		}
-	}
 	uevr::API::get()->dispatch_lua_event("HandsReset", "0");
 	return true;
 }

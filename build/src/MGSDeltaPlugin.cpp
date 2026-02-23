@@ -122,7 +122,7 @@ void MGSDeltaPlugin::on_custom_event(const char* event_name, const char* event_d
 			playerManager.FetchMotionControllers();
 			weaponManager.SendHandStateToLua();
 			weaponManager.AttachHandNextFrame = true;
-			weaponManager.ReapplyHandMaterialToVRHands();
+			weaponManager.ApplyHandMaterialToVRHands();
 		}
 	}
 }

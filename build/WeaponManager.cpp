@@ -7,17 +7,26 @@ void WeaponManager::InitWeaponManager()
 	DummyCqcKnifeMeshActor = nullptr;
 }
 
-void WeaponManager::ReapplyHandMaterialToVRHands()
+void WeaponManager::ApplyHandMaterialToVRHands()
 {
-	if (CurrentItemID == SDK::EGsrItemId::IT_Stealth)
+	auto pawn = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
+	auto handMaterial = pawn->SkeletalMesh_Hand->GetMaterials();
+	auto previousMaterialCount = playerManager->LeftHandMesh->GetNumMaterials();
+	// Cleanup additional override material slots
+	for (int i = handMaterial.Num(); i < handMaterial.Num(); i++)
 	{
-		auto pawn = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
-		auto stealthMaterial = pawn->SkeletalMesh_Hand->OverlayMaterial;
-		playerManager->RightHandMesh->SetMaterial(0, stealthMaterial);
-		playerManager->RightHandMesh->SetMaterial(1, stealthMaterial);
-		playerManager->LeftHandMesh->SetMaterial(0, stealthMaterial);
-		playerManager->LeftHandMesh->SetMaterial(1, stealthMaterial);
+		playerManager->LeftHandMesh->SetMaterial(i, nullptr);
+		playerManager->RightHandMesh->SetMaterial(i, nullptr);
 	}
+
+	for (int i = 0; i < handMaterial.Num(); i++)
+	{
+		playerManager->LeftHandMesh->SetMaterial(i, handMaterial[i]);
+		playerManager->RightHandMesh->SetMaterial(i, handMaterial[i]);
+	}
+	auto handOverlayMaterial = pawn->SkeletalMesh_Hand->GetOverlayMaterial();
+	playerManager->RightHandMesh->SetOverlayMaterial(handOverlayMaterial);
+	playerManager->LeftHandMesh->SetOverlayMaterial(handOverlayMaterial);
 }
 
 void WeaponManager::ProcessItem()
@@ -63,24 +72,11 @@ void WeaponManager::ProcessItem()
 
 		if (CurrentItemID == SDK::EGsrItemId::IT_Stealth && PreviousItemID != SDK::EGsrItemId::IT_Stealth)
 		{
-			auto pawn = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
-			auto stealthMaterial = pawn->SkeletalMesh_Hand->OverlayMaterial;
-			playerManager->RightHandMesh->SetMaterial(0, stealthMaterial);
-			playerManager->RightHandMesh->SetMaterial(1, stealthMaterial);
-			playerManager->LeftHandMesh->SetMaterial(0, stealthMaterial);
-			playerManager->LeftHandMesh->SetMaterial(1, stealthMaterial);
+			ApplyHandMaterialToVRHands();
 		}
 		if (CurrentItemID != SDK::EGsrItemId::IT_Stealth && PreviousItemID == SDK::EGsrItemId::IT_Stealth)
 		{
-			if (playerManager->MainHandAttachedToWeapon)
-			{
-				DetachHandFromWeapon();
-				if (playerManager->SecondHandAttachedToWeapon)
-				{
-					DetachSecondHandFromWeapon();
-				}
-			}
-			uevr::API::get()->dispatch_lua_event("HandsReset", "0");
+			ApplyHandMaterialToVRHands();
 		}
 
 		if (CurrentItemID == SDK::EGsrItemId::IT_CBoxA || CurrentItemID == SDK::EGsrItemId::IT_CBoxB || CurrentItemID == SDK::EGsrItemId::IT_CBoxC || CurrentItemID == SDK::EGsrItemId::IT_CBoxD)
