@@ -10,8 +10,7 @@ std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager, &weaponManager, &cameraController, &playerManager),
 inputs(),
 cameraController(&playerManager, &settingsManager), 
-weaponManager(&memoryManager, &settingsManager, &playerManager, &cameraController), 
-memoryManager(),
+weaponManager(/*&memoryManager, */&settingsManager, &playerManager, &cameraController),
 hookManager(&weaponManager, &cameraController, &playerManager), 
 playerManager() {}; //Constructor
 MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
@@ -123,6 +122,7 @@ void MGSDeltaPlugin::on_custom_event(const char* event_name, const char* event_d
 			playerManager.FetchMotionControllers();
 			weaponManager.SendHandStateToLua();
 			weaponManager.AttachHandNextFrame = true;
+			//weaponManager.ReapplyHandMaterialToVRHands();
 		}
 	}
 }
@@ -331,7 +331,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 {
 	if (enable && !vr_enabled)
 	{
-		cameraController.DisableGrassFading();
+		//cameraController.DisableGrassFading();
 		cameraController.ToggleCameraWobblingController(false);
 		//memoryManager.ToggleAimRelatedMemoryInstructions(false);
 		playerManager.ToggleMeshesVisibility(false);
@@ -555,7 +555,7 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 {
 	PLUGIN_LOG_ONCE("Post Calculate Stereo View Offset");
 	//we need to override uevr attachement controls so we're running this later
-	if (playerManager.IsPlayerControlled && playerManager.SecondHandAttachedToWeapon && ranOnce)
+	if (playerManager.IsPlayerControlled && playerManager.SecondHandAttachedToWeapon && !ranOnce)
 	{
 		weaponManager.ApplyRecoil(deltaTime);
 		weaponManager.ProcessTwoHandsGrabWeaponLocationAndRotation();

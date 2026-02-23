@@ -121,23 +121,24 @@ void CameraController::DetachCameraFromAttachementActor()
     }
 }
 
-bool CameraController::CameraAttachementActorPositionSafeguard()
-{
-	if (!CameraAttachementActor) return false;
-	UEVR_Vector3d actorPosition;
-	CameraAttachementActor->call_function(L"K2_GetActorLocation", &actorPosition);
-	float distance = glm::distance(glm::fvec3{ (float)actorPosition.x, (float)actorPosition.y, (float)actorPosition.z }, LastCameraPosition);
-	//Logger::DebugPrint("Camera Attachement Actor Position Safeguard Check. Distance: %f", distance);
-	if (distance > 200.0f && IsCameraAttachedToAttachementActor)
-	{
-		Logger::DebugPrint("Camera Attachement Actor Position Safeguard Activated. Distance: %f", distance);
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
+// not needed anymore after delta time capped in camera controller ?
+//bool CameraController::CameraAttachementActorPositionSafeguard()
+//{
+//	if (!CameraAttachementActor) return false;
+//	UEVR_Vector3d actorPosition;
+//	CameraAttachementActor->call_function(L"K2_GetActorLocation", &actorPosition);
+//	float distance = glm::distance(glm::fvec3{ (float)actorPosition.x, (float)actorPosition.y, (float)actorPosition.z }, LastCameraPosition);
+//	//Logger::DebugPrint("Camera Attachement Actor Position Safeguard Check. Distance: %f", distance);
+//	if (distance > 200.0f && IsCameraAttachedToAttachementActor)
+//	{
+//		Logger::DebugPrint("Camera Attachement Actor Position Safeguard Activated. Distance: %f", distance);
+//		return true;
+//	}
+//	else
+//	{
+//		return false;
+//	}
+//}
 
 void CameraController::ProcessCamera(float deltaTime)
 {
@@ -337,21 +338,22 @@ void CameraController::ProcessCameraResetTimer(float delta)
 	InstantCameraPositionTimer -= delta;
 }
 
-void CameraController::DisableGrassFading()
-{
-	Logger::DebugPrint("DisableGrassFading");
-	auto uClass = (uevr::API::UClass*)SDK::UCameraFadingComponent::StaticClass();
-	auto uCameraFadingComponents = uClass->get_objects_matching();
-	for (size_t i = 0; i < uCameraFadingComponents.size(); i++)
-	{
-		Logger::DebugPrint(uCameraFadingComponents[i]->get_full_name());
-		auto sdkComponent = (SDK::UCameraFadingComponent*)uCameraFadingComponents[i];
-		sdkComponent->bAutoActivate = false;
-		sdkComponent->GrassFadingRadius = 0.0f;
-		sdkComponent->ClearCache();
-		sdkComponent->Deactivate();
-	}
-}
+//Need more tests
+//void CameraController::DisableGrassFading()
+//{
+//	Logger::DebugPrint("DisableGrassFading");
+//	auto uClass = (uevr::API::UClass*)SDK::UCameraFadingComponent::StaticClass();
+//	auto uCameraFadingComponents = uClass->get_objects_matching();
+//	for (size_t i = 0; i < uCameraFadingComponents.size(); i++)
+//	{
+//		Logger::DebugPrint(uCameraFadingComponents[i]->get_full_name());
+//		auto sdkComponent = (SDK::UCameraFadingComponent*)uCameraFadingComponents[i];
+//		sdkComponent->bAutoActivate = false;
+//		sdkComponent->GrassFadingRadius = 0.0f;
+//		sdkComponent->ClearCache();
+//		sdkComponent->Deactivate();
+//	}
+//}
 
 void CameraController::ProcessRoomscaleStance()
 {

@@ -48,7 +48,7 @@ public:
     Inputs inputs;
     CameraController cameraController;
 	WeaponManager weaponManager;
-	MemoryManager memoryManager;
+	//MemoryManager memoryManager;
 	HookManager hookManager;
 	SettingsManager settingsManager;
 	PlayerManager playerManager;

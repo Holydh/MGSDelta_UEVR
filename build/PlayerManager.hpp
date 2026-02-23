@@ -91,7 +91,6 @@ public:
 	void Cleanup();
 	//EPlayerAnimState GetCurrentPlayerAnimState(const SDK::FName& State);
 private:
-	uevr::API::UObject* handsSkeletalMesh;
 	//Peep State Machine Name
 	SDK::FName fNameBehind;
 	//Peep States

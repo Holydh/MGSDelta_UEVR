@@ -28,7 +28,7 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	auto pawn = uevr::API::get()->get_local_pawn(0);
 	auto headSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Head");
 	auto hairSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hair");
-	handsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hand");
+	auto handsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hand");
 	auto armsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Arm");
 	auto bodySkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Body");
 	auto backpackSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Backpack");
@@ -320,6 +320,8 @@ void PlayerManager::FetchMotionControllers()
 void PlayerManager::ToggleVRHandsVisibility(bool enable)
 {
 	bool visibility = enable;
+	auto pawn = uevr::API::get()->get_local_pawn(0);
+	auto handsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hand");
 	if (handsSkeletalMesh) {
 		handsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &visibility);
 	}

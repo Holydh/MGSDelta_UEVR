@@ -47,13 +47,13 @@ public:
 	void DetachCameraFromAttachementActor();
 	bool IsCameraAttachedToAttachementActor = false;
 	bool CameraAttachementActorAvailable = false;
-	bool CameraAttachementActorPositionSafeguard();
+	//bool CameraAttachementActorPositionSafeguard();
 
 	void ProcessCamera(float deltaTime);
 	float InstantCameraPositionTimer = 0.25f;
 	bool InstantCameraPositionNeeded = false;
 	void ProcessCameraResetTimer(float delta);
-	void DisableGrassFading();
+	//void DisableGrassFading();
 
 	void ProcessRoomscaleStance();
 

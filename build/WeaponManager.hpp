@@ -32,7 +32,7 @@
 
 class WeaponManager {
 private:
-	MemoryManager* const memoryManager;
+	//MemoryManager* const memoryManager;
 	SettingsManager* const settingsManager;
 	PlayerManager* const playerManager;
 	CameraController* const cameraController;
@@ -53,9 +53,11 @@ private:
 	
 
 public:
-	WeaponManager(MemoryManager* mm, SettingsManager* sm, PlayerManager* pm, CameraController* cc) : memoryManager(mm), settingsManager(sm), playerManager(pm), cameraController(cc) {};
+	WeaponManager(/*MemoryManager* mm, */SettingsManager* sm, PlayerManager* pm, CameraController* cc) : /*memoryManager(mm), */settingsManager(sm), playerManager(pm), cameraController(cc) {};
 
 	void InitWeaponManager();
+
+	//void ReapplyHandMaterialToVRHands();
 
 	bool IsShooting = false;
 	uevr::API::UObject* EquipController = nullptr;
@@ -102,8 +104,8 @@ public:
 	glm::dvec3 AimPosition{};
 	SDK::FRotator CurrentWeaponWorldRotation{};
 
-	SDK::AActor* DummyCqcKnifeMeshActor;
-	SDK::USkeletalMeshComponent* DummyCqcKnifeMesh;
+	SDK::AActor* DummyCqcKnifeMeshActor = nullptr;
+	SDK::USkeletalMeshComponent* DummyCqcKnifeMesh = nullptr;
 
 	bool mainHandShouldAttachToWeapon = false;
 	bool secondHandShouldAttachToWeapon = false;
@@ -116,8 +118,8 @@ public:
 	glm::vec3 FoodIdleStart = {0.0f, 0.0f, 0.0f};
 	glm::vec3 FoodIdlePosition = {0.0f, 0.0f, 0.0f};
 	glm::fquat FoodCurrentLocalRotation = {1.0, 0.0, 0.0, 0.0};
-	glm::quat FoodGrabRelativeRotation;
-	glm::vec3 FoodGrabRelativePosition;
+	glm::quat FoodGrabRelativeRotation = {};
+	glm::vec3 FoodGrabRelativePosition = {};
 
 	enum EGsrEquipId : uint8_t
 	{
@@ -385,7 +387,7 @@ public:
 	void RemoveUobjectHookFromHand(Hand handSide);
 	void ProcessWeapon(float delta);
 	void FetchWeaponMeshAimData();
-	void ApplyAimDataToMemory();
+	//void ApplyAimDataToMemory();
 
 	void SetAimDirection();
 

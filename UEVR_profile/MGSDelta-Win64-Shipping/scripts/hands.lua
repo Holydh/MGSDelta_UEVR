@@ -28,6 +28,11 @@ local twoHandsHandling = false
 -- end
 
 uevr.sdk.callbacks.on_pre_engine_tick(function(engine, delta)
+	print("hands.exists() : ", hands.exists())
+	print("handsVisible : ", handsVisible)
+	print("hideHands : ", hideHands)
+	print("handsCreated : ", handsCreated)
+	print("handsRequired : ", handsRequired)
 	if hands.exists() and not handsVisible and not hideHands then
 		hands.hideHands(false);
 	end
@@ -44,7 +49,7 @@ uevr.sdk.callbacks.on_pre_engine_tick(function(engine, delta)
 		return
 	end
 
-	if handsRequired and not handsCreated then
+	if handsRequired and not hands.exists() then
 		controllers.createController(0)
 		controllers.createController(1)
 		hands.reset()
