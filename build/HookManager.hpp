@@ -4,6 +4,7 @@
 //#include <utility/Module.hpp>
 //#include <utility/String.hpp>
 //#include <utility/PointerHook.hpp>
+#include "magic_enum/magic_enum.hpp"
 
 #include "uevr/API.hpp"
 #include "Logger.hpp"
@@ -15,6 +16,7 @@
 #include "SDK/Gsr_structs.hpp"
 #include "SDK/Ics_parameters.hpp"
 #include "SDK/Gsr_parameters.hpp"
+#include "SDK/CobraUI_parameters.hpp"
 
 class HookManager {
 private:
@@ -61,7 +63,7 @@ public:
     void Initialize();
     //void SetGunAdjustValuesFromConfig(const std::filesystem::path& ConfigFile);
     void HookFireFunction();
-    void HookCameraModifyFunction();
+    //void HookCameraModifyFunction();
     /*void hook_ISetSmoothedAimPosition_fn();*/
 
     // Standard hook :
@@ -70,14 +72,20 @@ public:
     static bool mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_PlayerKnife_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_PlayerCqcAction_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    
     static bool mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
-    static bool mod_GsrPlayer_OnStartUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
-    static bool mod_GsrPlayer_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
-    static bool mod_BP_GsrPlayerDamageFilterController_OnStartUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
-    static bool mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    //static bool mod_GsrPlayer_OnStartUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    //static bool mod_GsrPlayer_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    
+    //static bool mod_BP_GsrPlayerDamageFilterController_OnStartUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    //static bool mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    //
     static bool mod_CutsceneObject_OnSequencePlay_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_CutsceneObject_OnSequencePause_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_CutsceneObject_PlaySequenceFinished_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    
+    //static bool mod_sv_main_OnSurvivalViewerChanged_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+
     //static bool mod_CameraModifier_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     /*static bool mod_SetCameraRotation_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);*/
     /*static bool mod_ISetAimPosition_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);*/

@@ -225,31 +225,31 @@ bool HookManager::mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunctio
 	return true;
 }
 
-bool HookManager::mod_GsrPlayer_OnStartUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
-{
-	s_cameraController->SmallUIOpen = true;
-	return true;
-}
+//bool HookManager::mod_GsrPlayer_OnStartUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+//{
+//	s_cameraController->SmallUIOpen = true;
+//	return true;
+//}
+//
+//bool HookManager::mod_GsrPlayer_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+//{
+//	s_cameraController->SmallUIOpen = false;
+//	return true;
+//}
 
-bool HookManager::mod_GsrPlayer_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
-{
-	s_cameraController->SmallUIOpen = false;
-	return true;
-}
-
-bool HookManager::mod_BP_GsrPlayerDamageFilterController_OnStartUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
-{
-	s_cameraController->IsMenuOpen = true;
-	Logger::DebugPrint("Menu Opened");
-	return true;
-}
-
-bool HookManager::mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
-{
-	s_cameraController->IsMenuOpen = false;
-	Logger::DebugPrint("Menu Closed");
-	return true;
-}
+//bool HookManager::mod_BP_GsrPlayerDamageFilterController_OnStartUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+//{
+//	s_cameraController->IsMenuOpen = true;
+//	Logger::DebugPrint("Menu Opened");
+//	return true;
+//}
+//
+//bool HookManager::mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+//{
+//	s_cameraController->IsMenuOpen = false;
+//	Logger::DebugPrint("Menu Closed");
+//	return true;
+//}
 
 bool HookManager::mod_CutsceneObject_OnSequencePlay_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
@@ -272,6 +272,44 @@ bool HookManager::mod_CutsceneObject_PlaySequenceFinished_post(uevr::API::UFunct
 	return true;
 }
 
+//bool HookManager::mod_sv_main_OnSurvivalViewerChanged_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+//{
+//	auto true_locals = (char*)locals;
+//
+//	SDK::Params::CPauseMenuState_OnSurvivalViewerChanged* params = (SDK::Params::CPauseMenuState_OnSurvivalViewerChanged*)true_locals;
+//	//s_cameraController->CurrentMenuType = params->to;
+//	//std::string menuName(magic_enum::enum_name(s_cameraController->CurrentMenuType));
+//	//Logger::DebugPrint("menu type : %i", (int)params->to);
+//	Logger::DebugPrint(fn->get_full_name().c_str());
+//	Logger::DebugPrint(obj->get_full_name().c_str());
+//	uint8_t* p = (uint8_t*)locals;
+//
+//	Logger::DebugPrint(
+//		"Raw bytes: %02X %02X %02X %02X",
+//		p[0], p[1], p[2], p[3]
+//	);
+//
+//	//for (uevr::API::FField* field = (uevr::API::FField*)fn->get_child_properties(); field; field = field->get_next())
+//	//{
+//	//	auto prop = static_cast<uevr::API::FProperty*>(field);
+//	//	const auto name = prop->get_fname()->to_string();
+//	//	auto sdkProp = (SDK::FProperty*)prop;
+//	//	Logger::DebugPrint(
+//	//		"Param: %s | Offset: 0x%X | Size: %d",
+//	//		/*prop->get_fname()->to_string().c_str()*/
+//	//		sdkProp->Name.ToString().c_str(),
+//	//		sdkProp->Offset,
+//	//		sdkProp->ElementSize
+//	//	);
+//	//	Logger::DebugPrint("sdkProp: 0x%p", sdkProp);
+//
+//	//	auto offset = prop->get_offset();
+//	//	uint8_t value = *(uint8_t*)((uint8_t*)locals + offset);
+//	//	Logger::DebugPrint("sdkProp: %i", (int)value);
+//	//}
+//
+//	return true;
+//}
 
 //bool HookManager::mod_CameraModifier_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 //{

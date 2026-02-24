@@ -257,7 +257,7 @@ void CameraController::ProcessCamera(float deltaTime)
 	OriginalCameraPosition.y = newPosition.y;
 	OriginalCameraPosition.z = newPosition.z;
 
-	if (!SmallUIOpen)
+	if (playerManager->CurrentMenuType == SDK::EGsrUIMenuType::None)
 	{
 		YawProcessed = YawInput * 3.0f * *settingsManager->CameraRotationSpeedPtr * deltaTime;
 		if (YawInput != 0.0)
@@ -359,7 +359,7 @@ void CameraController::ProcessRoomscaleStance()
 //	Logger::DebugPrint("%f", sdkPlayerCamera->CameraComponent->OrthoNearClipPlane);
 //}
 
-void CameraController::FixUIMenuRendering()
+void CameraController::FixSurvivalViewerMenuRendering()
 {
 	auto static sv_main_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/sv_main.sv_main_C");
 	auto sv_main = sv_main_c->get_first_object_matching(false);
@@ -368,7 +368,7 @@ void CameraController::FixUIMenuRendering()
 	mainWidget->ModelCaptureCanvas->SetVisibility(SDK::ESlateVisibility::Hidden);
 	mainWidget->menuBLIcon->SetVisibility(SDK::ESlateVisibility::Hidden);
 	mainWidget->Mask->SetVisibility(SDK::ESlateVisibility::Hidden);
-
+	// Get menu type : mainWidget->GetSvStep();
 
 	auto rootWidgetCanvasPanel = (SDK::UPanelWidget*)mainWidget->WidgetTree->RootWidget;
 	Logger::DebugPrint(rootWidgetCanvasPanel->GetFullName().c_str());
@@ -420,3 +420,11 @@ void CameraController::FixUIMenuRendering()
 	}
 }
 
+void CameraController::FixRadioMenuRendering()
+{
+	auto static Radio_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/Radio/Radio.Radio_C");
+	auto radio_main = Radio_c->get_first_object_matching(false);
+
+	SDK::URadio_C* mainWidget = (SDK::URadio_C*)radio_main;
+	mainWidget->ModelBg->SetVisibility(SDK::ESlateVisibility::Hidden);
+}

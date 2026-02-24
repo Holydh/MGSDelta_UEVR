@@ -5,7 +5,6 @@
 #include <codecvt>
 
 
-
 #define PLUGIN_LOG_ONCE(...) { \
     static bool _logged_ = false; \
     if (!_logged_) { \

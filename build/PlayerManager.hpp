@@ -1,4 +1,5 @@
 #pragma once
+#include "magic_enum/magic_enum.hpp"
 #include "uevr/API.hpp"
 #include "Utilities.hpp"
 #include "SDK/UMG_structs.hpp"
@@ -9,6 +10,7 @@
 #include "SDK/BP_Player_classes.hpp"
 #include "SDK/HeadMountedDisplay_classes.hpp"
 #include "SDK/BP_SnakeStatus_classes.hpp"
+
 
 class PlayerManager {
 public:
@@ -24,6 +26,9 @@ public:
 	bool PlayerLostControl();
 
 	SDK::EGsrGameStatus CurrentGameStatus = SDK::EGsrGameStatus::InGame;
+	SDK::EGsrUIMenuType CurrentMenuType = SDK::EGsrUIMenuType::None;
+	SDK::EGsrUIMenuType PreviousMenuType = SDK::EGsrUIMenuType::None;
+	bool IngameUI();
 
 	enum EPlayerAnimState
 	{

@@ -53,13 +53,14 @@ void MGSDeltaPlugin::on_initialize() {
 	hookManager.hook_bp_fn(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerKnifeReadyAction.ABP_PlayerKnifeReadyAction_C", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_PlayerKnife_OnEnteredState_post, true);
 	hookManager.hook_bp_fn(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerCqcAction.ABP_PlayerCqcAction_C", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_PlayerCqcAction_OnEnteredState_post, true);
 	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/BP_Player.BP_Player_C", L"OnChangeCamouflageApply", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_GsrPlayer_OnChangeCamouflageApply_post, true);
-	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/BP_Player.BP_Player_C", L"OnStartUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_GsrPlayer_OnStartUIMenu_post, true);
-	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/BP_Player.BP_Player_C", L"OnEndUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_GsrPlayer_OnEndUIMenu_post, true);
-	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Effect/BP_GsrPlayerDamageFilterController.BP_GsrPlayerDamageFilterController_C", L"OnStartUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_BP_GsrPlayerDamageFilterController_OnStartUIMenu_post, true);
-	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Effect/BP_GsrPlayerDamageFilterController.BP_GsrPlayerDamageFilterController_C", L"OnEndUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post, true);
+	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/BP_Player.BP_Player_C", L"OnStartUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_GsrPlayer_OnStartUIMenu_post, true);
+	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/BP_Player.BP_Player_C", L"OnEndUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_GsrPlayer_OnEndUIMenu_post, true);
+	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Effect/BP_GsrPlayerDamageFilterController.BP_GsrPlayerDamageFilterController_C", L"OnStartUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_BP_GsrPlayerDamageFilterController_OnStartUIMenu_post, true);
+	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Effect/BP_GsrPlayerDamageFilterController.BP_GsrPlayerDamageFilterController_C", L"OnEndUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post, true);
 	hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePlay", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePlay_post, true);
 	hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePause", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePlay_post, true);
 	hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"PlaySequenceFinished", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePlay_post, true);
+	//hookManager.hook_bp_fn(L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/sv_main.sv_main_C", L"OnSurvivalViewerChanged", (UEVR_UFunction_NativePreFn)HookManager::mod_sv_main_OnSurvivalViewerChanged_pre, NULL, false);
 
 	//AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerKnifeReadyAction_C.ABP_PlayerKnifeReadyAction_C
 	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetCameraRequestModelVisibility", (UEVR_UFunction_NativePostFn)HookManager::mod_ISetCameraRequestModelVisibility_post ,NULL, true);
@@ -374,16 +375,19 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	deltaTime = delta;
 	playerManager.FetchGameState();
 
-	if (cameraController.IsMenuOpen)
+	if (!playerManager.IngameUI())
 	{
 		playerManager.IsPlayerControlled = false;
 	}
 
-	if (cameraController.IsMenuOpen && !cameraController.WasMenuOpen)
+	if (!playerManager.IngameUI() && playerManager.PreviousMenuType == SDK::EGsrUIMenuType::None)
 	{
 		weaponManager.DetachHandFromWeapon();
 		weaponManager.DetachSecondHandFromWeapon();
-		cameraController.FixUIMenuRendering();
+		if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::SV)
+			cameraController.FixSurvivalViewerMenuRendering();
+		if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::Radio)
+			cameraController.FixRadioMenuRendering();
 	}
 
 	//test
@@ -496,10 +500,10 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.WasPeeping = playerManager.IsPeeping;
 	playerManager.WasCqcGrab = playerManager.IsCqcGrab;
 	playerManager.WasCarrying = playerManager.IsCarrying;
+	playerManager.PreviousMenuType = playerManager.CurrentMenuType;
 	weaponManager.PreviousWeaponID = weaponManager.CurrentWeaponID;
 	weaponManager.PreviousItemID = weaponManager.CurrentItemID;
 	Inputs::WasLeftGripInputPressed = Inputs::LeftGripInputPressed;
-	cameraController.WasMenuOpen = cameraController.IsMenuOpen;
 	cameraController.WasCutscenePlaying = cameraController.IsCutscenePlaying;
 	imGuiMenu.MouseMovedThisFrame = false;
 	//auto end = std::chrono::high_resolution_clock::now();
@@ -527,8 +531,8 @@ void MGSDeltaPlugin::on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle rend
 void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters, UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
-	UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
-	UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
+	//UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
+	//UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
 	//Logger::DebugPrint("camera position before: x : %f, y : %f, z : %f", pos->x, pos->y, pos->z);
 	//Logger::DebugPrint("camera rotation before: pitch : %f, yaw : %f, roll : %f", rot->pitch, rot->yaw, rot->roll);
 	if (playerManager.IsPlayerControlled)
@@ -544,19 +548,35 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 		//Logger::DebugPrint("%f", rot->yaw);
 	}
 
+
 	//sv_main
-	if (cameraController.IsMenuOpen)
+	if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::SV)
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
-		pos->x = 0.0f;
-		pos->y = 220.0f;
-		pos->z = 90.0f;
+		pos->y *= 0.4f;
 		rot->pitch = 0.0f;
 		rot->yaw = -90.0f;
 		rot->roll = 0.0f;
+		//	pos->x = 0.0f;
+		//pos->y = 220.0f;
+		//pos->z = 90.0f;
+		//rot->pitch = 0.0f;
+		//rot->yaw = -90.0f;
+		//rot->roll = 0.0f;
 	}
 
+	//if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::Radio)
+	//{
+	//	UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
+	//	UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
+	//	Logger::DebugPrint("camera position before: x : %f, y : %f, z : %f", pos->x, pos->y, pos->z);
+	//	Logger::DebugPrint("camera rotation before: pitch : %f, yaw : %f, roll : %f", rot->pitch, rot->yaw, rot->roll);
+	//	//pos->y *= 0.4f;
+	//	//rot->pitch = 0.0f;
+	//	//rot->yaw = -90.0f;
+	//	//rot->roll = 0.0f;
+	//}
 	
 	//Logger::DebugPrint("State Machine Name %s", playerManager.debugParamsTest.StateMachineName.ToString().c_str());
 	//Logger::DebugPrint("Next State Name %s", playerManager.debugParamsTest.NextStateName.ToString().c_str());

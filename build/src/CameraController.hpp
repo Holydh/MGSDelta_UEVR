@@ -8,6 +8,8 @@
 #include "SDK/Engine_parameters.hpp"
 #include "SDK/Engine_classes.hpp"
 #include "SDK/sv_main_classes.hpp"
+#include "SDK/Radio_classes.hpp"
+#include "SDK/CobraUI_structs.hpp"
 
 #include "PlayerManager.hpp"
 #include "SettingsManager.hpp"
@@ -61,14 +63,10 @@ public:
 
 	void ProcessRoomscaleStance();
 
-	void FixUIMenuRendering();
+	void FixSurvivalViewerMenuRendering();
+	void FixRadioMenuRendering();
 
 	//void SetNearClipPlane(float nearClip);
-
-	bool SmallUIOpen = false;
-	//Radio, inventory, etc.
-	bool IsMenuOpen = false;
-	bool WasMenuOpen = false;
 
 	bool IsCutscenePlaying = false;
 	bool WasCutscenePlaying = false;
