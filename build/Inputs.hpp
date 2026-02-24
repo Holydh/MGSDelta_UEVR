@@ -1,6 +1,7 @@
 #pragma once
 #include "Logger.hpp"
 #include "uevr/API.hpp"
+#include <Windows.h>
 
 
 class Inputs {
@@ -18,4 +19,6 @@ public:
 
 	
 	static bool SecondHandGripTriggeredBeforeDelay;
+
+	static bool IsKeyPressed(int vKey);
 };

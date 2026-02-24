@@ -75,6 +75,9 @@ public:
     static bool mod_GsrPlayer_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_BP_GsrPlayerDamageFilterController_OnStartUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_CutsceneObject_OnSequencePlay_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_CutsceneObject_OnSequencePause_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_CutsceneObject_PlaySequenceFinished_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     //static bool mod_CameraModifier_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     /*static bool mod_SetCameraRotation_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);*/
     /*static bool mod_ISetAimPosition_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);*/

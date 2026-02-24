@@ -7,6 +7,7 @@
 #include "SDK/Engine_structs.hpp"
 #include "SDK/Engine_parameters.hpp"
 #include "SDK/Engine_classes.hpp"
+#include "SDK/sv_main_classes.hpp"
 
 #include "PlayerManager.hpp"
 #include "SettingsManager.hpp"
@@ -25,6 +26,9 @@ public:
 	//virtual ~CameraController() = default;
 
 	void ToggleCameraWobblingController(bool enabled);
+
+	bool CutsceneStarts();
+	bool CutsceneStops();
 
 	double ActualYaw = 0.0f;
 	
@@ -57,6 +61,8 @@ public:
 
 	void ProcessRoomscaleStance();
 
+	void FixUIMenuRendering();
+
 	//void SetNearClipPlane(float nearClip);
 
 	bool SmallUIOpen = false;
@@ -64,5 +70,10 @@ public:
 	bool IsMenuOpen = false;
 	bool WasMenuOpen = false;
 
+	bool IsCutscenePlaying = false;
+	bool WasCutscenePlaying = false;
+
 	bool CardBoardEquipped = false;
+
+	SDK::UPanelSlot* UIMenuBackgroundPanelSlot = nullptr;
 };

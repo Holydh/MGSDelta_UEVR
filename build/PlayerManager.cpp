@@ -141,6 +141,16 @@ void PlayerManager::FetchGameState()
 	IsPlayerControlled = gsrGameStateSubsystem->CheckGameStatus(CurrentGameStatus);
 }
 
+bool PlayerManager::PlayerGotControl()
+{
+	return IsPlayerControlled && !WasPlayerControlled;
+}
+
+bool PlayerManager::PlayerLostControl()
+{
+	return !IsPlayerControlled && WasPlayerControlled;
+}
+
 void PlayerManager::UpdatePeepingAndCqcGrabState(float deltaTime)
 {
 	if (IsPeepingInternal)

@@ -251,6 +251,28 @@ bool HookManager::mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post(uevr::
 	return true;
 }
 
+bool HookManager::mod_CutsceneObject_OnSequencePlay_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+	s_cameraController->IsCutscenePlaying = true;
+	Logger::DebugPrint("Cutscene Play");
+	return true;
+}
+
+bool HookManager::mod_CutsceneObject_OnSequencePause_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+	s_cameraController->IsCutscenePlaying = false;
+	Logger::DebugPrint("Cutscene Pause");
+	return true;
+}
+
+bool HookManager::mod_CutsceneObject_PlaySequenceFinished_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+	s_cameraController->IsCutscenePlaying = false;
+	Logger::DebugPrint("Cutscene Pause");
+	return true;
+}
+
+
 //bool HookManager::mod_CameraModifier_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 //{
 //	//if (locals != nullptr)

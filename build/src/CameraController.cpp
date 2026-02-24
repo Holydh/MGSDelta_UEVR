@@ -12,55 +12,15 @@ void CameraController::ToggleCameraWobblingController(bool enabled) {
 	wobblingController->call_function(L"SetEnabled", &setEnabled);
 }
 
+bool CameraController::CutsceneStarts()
+{
+	return IsCutscenePlaying && !WasCutscenePlaying;
+}
 
-
-//void CameraController::SetCameraRotation()
-//{
-//	//Snake follows the POV camera cache rotation when walking forward
-//	auto cameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.PlayerCameraManager");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
-//	auto cameraManager = cameraManager_c->get_first_object_matching(false);
-//
-//	auto test = (reinterpret_cast<SDK::FCameraCacheEntry*>(uevr::API::get()->sdk()->uobject->get_property_data(cameraManager->to_handle(), L"CameraCachePrivate")));
-//	if (test != NULL)
-//		test->POV.Rotation.Yaw = ActualYaw;
-//
-//	//works to rotate camera :
-//	auto cameraController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
-//	auto cameraController = cameraController_c->get_first_object_matching(false);
-//	auto cameraActor = cameraController->get_property<uevr::API::UObject*>(L"m_cameraActor");
-//	//Logger::DebugPrint(cameraActor->get_full_name());
-//	//auto cameraComponent = cameraActor->get_property<uevr::API::UObject*>(L"RootComponent");
-//
-//	SDK::Params::Actor_K2_SetActorRelativeRotation params;
-//	params.NewRelativeRotation = { 0.0f,  ActualYaw, 0.0f };
-//	params.bSweep = false;
-//	params.bTeleport = false;
-//
-//	cameraActor->call_function(L"K2_SetActorRelativeRotation", &params);
-//	ActualYaw = params.NewRelativeRotation.Yaw;
-//
-//	UEVR_Vector3d forwardVector;
-//	CameraAttachementActor->call_function(L"GetActorForwardVector", &forwardVector);
-//	//Logger::DebugPrint("Forward Vector : %f, %f, %f", forwardVector.x, forwardVector.y, forwardVector.z);
-//
-//	glm::dvec3 position = { CameraPosition.x, CameraPosition.y, CameraPosition.z };
-//	glm::dvec3 forward = { forwardVector.x, forwardVector.y, forwardVector.z };
-//	CameraForwardVector = { (float)forward.x, (float)forward.y, (float)forward.z };
-//	forward *= 400.0f; // We need to move the camera 400 units back to prevent weapon mesh culling
-//	glm::dvec3 newPosition = position - forward;
-//	
-//	SDK::Params::Actor_K2_SetActorRelativeLocation params1;
-//	params1.NewRelativeLocation = {newPosition.x, newPosition.y, newPosition.z};
-//	params1.bSweep = false;
-//	params1.bTeleport = false;
-//
-//	cameraActor->call_function(L"K2_SetActorRelativeLocation", &params1);
-//	//CameraAttachementActor->call_function(L"K2_GetActorLocation", &newPosition);
-//	//Logger::DebugPrint("Camera Attachement Actor Position : %f, %f, %f", newPosition.x, newPosition.y, newPosition.z);
-//}
-
-
-
+bool CameraController::CutsceneStops()
+{
+	return !IsCutscenePlaying && WasCutscenePlaying;
+}
 
 bool CameraController::SpawnCameraAttachementActor()
 {
@@ -399,4 +359,64 @@ void CameraController::ProcessRoomscaleStance()
 //	Logger::DebugPrint("%f", sdkPlayerCamera->CameraComponent->OrthoNearClipPlane);
 //}
 
+void CameraController::FixUIMenuRendering()
+{
+	auto static sv_main_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/sv_main.sv_main_C");
+	auto sv_main = sv_main_c->get_first_object_matching(false);
+
+	SDK::Usv_main_C* mainWidget = (SDK::Usv_main_C*)sv_main;
+	mainWidget->ModelCaptureCanvas->SetVisibility(SDK::ESlateVisibility::Hidden);
+	mainWidget->menuBLIcon->SetVisibility(SDK::ESlateVisibility::Hidden);
+	mainWidget->Mask->SetVisibility(SDK::ESlateVisibility::Hidden);
+
+
+	auto rootWidgetCanvasPanel = (SDK::UPanelWidget*)mainWidget->WidgetTree->RootWidget;
+	Logger::DebugPrint(rootWidgetCanvasPanel->GetFullName().c_str());
+
+	// Loop through slots of the root panel
+	Logger::DebugPrint("Root widget slots:");
+	for (int i = 0; i < rootWidgetCanvasPanel->Slots.Num(); i++)
+	{
+		auto slot = rootWidgetCanvasPanel->Slots[i];
+		Logger::DebugPrint(slot->GetFullName().c_str());
+
+		// If you need to cast to CanvasPanelSlot specifically
+		auto canvasSlot = (SDK::UCanvasPanelSlot*)slot;
+
+		// Access the widget contained in this slot
+		auto containedWidget = canvasSlot->Content;
+		if (containedWidget) {
+			Logger::DebugPrint(("  Contains: " + std::string(containedWidget->GetFullName())).c_str());
+		}
+	}
+
+	// If you want to access a specific child panel's slots
+	// Find a specific child widget by name or index
+	if (rootWidgetCanvasPanel->Slots.Num() > 0) {
+		// Get the first slot's content (which might be another panel)
+		auto firstSlot = (SDK::UCanvasPanelSlot*)rootWidgetCanvasPanel->Slots[0];
+		auto firstChildWidget = firstSlot->Content;
+
+		// If it's a panel, you can access its slots
+		if (firstChildWidget && firstChildWidget->IsA(SDK::UPanelWidget::StaticClass())) {
+			auto childPanel = (SDK::UPanelWidget*)firstChildWidget;
+			SDK::UPanelSlot* targetSlot = nullptr;
+
+			for (int i = 0; i < childPanel->Slots.Num(); i++) {
+				auto slot = (SDK::UPanelSlot*)childPanel->Slots[i];
+				std::string slotName = slot->GetName(); // Get just the name without path
+
+				if (slotName == "CanvasPanelSlot_10_10") {
+					targetSlot = slot;
+					Logger::DebugPrint("Found target slot at index: %i", i);
+					break;
+				}
+			}
+
+			if (targetSlot) {
+				targetSlot->Content->SetVisibility(SDK::ESlateVisibility::Hidden);
+			}
+		}
+	}
+}
 

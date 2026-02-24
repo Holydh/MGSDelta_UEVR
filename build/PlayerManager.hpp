@@ -20,6 +20,9 @@ public:
     bool IsPlayerControlled = false;
     void FetchGameState();
 
+	bool PlayerGotControl();
+	bool PlayerLostControl();
+
 	SDK::EGsrGameStatus CurrentGameStatus = SDK::EGsrGameStatus::InGame;
 
 	enum EPlayerAnimState
