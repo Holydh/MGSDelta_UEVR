@@ -22,4 +22,4 @@ disableThermalVisionScanline=true
 enableCutoutScreenForCutscenes=false
 enable3DCutscenes=false
 enable3DRadio=false
-enable3DSurvivalView=true
+enable3DSurvivalView=false

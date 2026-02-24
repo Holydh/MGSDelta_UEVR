@@ -378,19 +378,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	if (!playerManager.IngameUI())
 	{
 		playerManager.IsPlayerControlled = false;
-	}
-
-	if (!playerManager.IngameUI() && playerManager.PreviousMenuType == SDK::EGsrUIMenuType::None)
-	{
-		weaponManager.DetachHandFromWeapon();
-		weaponManager.DetachSecondHandFromWeapon();
-		if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::SV)
-			cameraController.FixSurvivalViewerMenuRendering();
-		if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::Radio)
-			cameraController.FixRadioMenuRendering();
-	}
-
-	
+	}	
 
 	//test
 	//if (!cameraController.IsMenuOpen && cameraController.WasMenuOpen)
@@ -454,6 +442,9 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	}
 	else
 	{
+		weaponManager.DetachHandFromWeapon();
+		weaponManager.DetachSecondHandFromWeapon();
+
 		if (cameraController.CutsceneStarts())
 		{
 			API::VR::set_mod_value("VR_2DScreenMode", *settingsManager.EnableCutoutScreenForCutscenesPtr);
@@ -465,9 +456,15 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 			API::VR::set_mod_value("VR_WorldScale", 1.0f);
 		}
 		if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::Radio && playerManager.PreviousMenuType != SDK::EGsrUIMenuType::Radio)
+		{
+			cameraController.FixRadioMenuRendering();
 			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DRadioPtr ? 1.0f : 0.0f);
+		}
 		if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::SV && playerManager.PreviousMenuType != SDK::EGsrUIMenuType::SV)
+		{
+			cameraController.FixSurvivalViewerMenuRendering();
 			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DSurvivalViewPtr ? 1.0f : 0.0f);
+		}
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);

@@ -450,7 +450,7 @@ void ImGuiMenu::internalFrame()
 		if (ImGui::Checkbox("Enable Cutout Screen for cutscenes", settingsManager->EnableCutoutScreenForCutscenesPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
-			if (!playerManager->IsPlayerControlled)
+			if (cameraController->IsCutscenePlaying)
 			{
 				uevr::API::VR::set_mod_value("VR_2DScreenMode", *settingsManager->EnableCutoutScreenForCutscenesPtr);
 				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesPtr ? 1.0f : 0.0f);
@@ -462,7 +462,7 @@ void ImGuiMenu::internalFrame()
 		if (ImGui::Checkbox("Enable 3D in Cutout Screen for cutscenes", settingsManager->Enable3DCutscenesPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
-			if (!playerManager->IsPlayerControlled)
+			if (cameraController->IsCutscenePlaying)
 				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesPtr ? 1.0f : 0.0f);
 		}
 		if (ImGui::IsItemHovered())
@@ -474,7 +474,7 @@ void ImGuiMenu::internalFrame()
 		if (ImGui::Checkbox("Enable 3D in Radio window", settingsManager->Enable3DRadioPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
-			if (!playerManager->IsPlayerControlled)
+			if (playerManager->CurrentMenuType == SDK::EGsrUIMenuType::Radio)
 			{
 				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DRadioPtr ? 1.0f : 0.0f);
 			}
@@ -485,7 +485,7 @@ void ImGuiMenu::internalFrame()
 		if (ImGui::Checkbox("Enable 3D in Survival Menu", settingsManager->Enable3DSurvivalViewPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
-			if (!playerManager->IsPlayerControlled)
+			if (playerManager->CurrentMenuType == SDK::EGsrUIMenuType::SV)
 				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DSurvivalViewPtr ? 1.0f : 0.0f);
 		}
 		if (ImGui::IsItemHovered())
