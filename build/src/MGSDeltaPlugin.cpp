@@ -343,7 +343,8 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		if (!cameraController.SpawnCameraAttachementActor())
 			return;
 		cameraController.AttachCameraToAttachementActor();
-
+		API::VR::set_mod_value("VR_2DScreenMode", false);
+		API::VR::set_mod_value("VR_WorldScale", 1.0f);
 		uevr::API::VR::set_mod_value("VR_RoomscaleMovement", true);
 		//Utilities::DebugCigar0 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 		//Utilities::DebugCigar1 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
@@ -442,8 +443,11 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	}
 	else
 	{
-		weaponManager.DetachHandFromWeapon();
-		weaponManager.DetachSecondHandFromWeapon();
+		if (playerManager.WasPlayerControlled)
+		{
+			weaponManager.DetachHandFromWeapon();
+			weaponManager.DetachSecondHandFromWeapon();
+		}
 
 		if (cameraController.CutsceneStarts())
 		{

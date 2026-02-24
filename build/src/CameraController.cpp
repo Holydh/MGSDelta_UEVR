@@ -366,9 +366,10 @@ void CameraController::FixSurvivalViewerMenuRendering()
 
 	SDK::Usv_main_C* mainWidget = (SDK::Usv_main_C*)sv_main;
 	mainWidget->ModelCaptureCanvas->SetVisibility(SDK::ESlateVisibility::Hidden);
-	mainWidget->menuBLIcon->SetVisibility(SDK::ESlateVisibility::Hidden);
-	mainWidget->Mask->SetVisibility(SDK::ESlateVisibility::Hidden);
-	// Get menu type : mainWidget->GetSvStep();
+	//mainWidget->menuBLIcon->SetVisibility(SDK::ESlateVisibility::Visible);
+	//mainWidget->Mask->SetVisibility(SDK::ESlateVisibility::Hidden);
+	// 
+	// Get sub menu type : mainWidget->GetSvStep();
 
 	auto rootWidgetCanvasPanel = (SDK::UPanelWidget*)mainWidget->WidgetTree->RootWidget;
 	Logger::DebugPrint(rootWidgetCanvasPanel->GetFullName().c_str());
@@ -400,21 +401,20 @@ void CameraController::FixSurvivalViewerMenuRendering()
 		// If it's a panel, you can access its slots
 		if (firstChildWidget && firstChildWidget->IsA(SDK::UPanelWidget::StaticClass())) {
 			auto childPanel = (SDK::UPanelWidget*)firstChildWidget;
-			SDK::UPanelSlot* targetSlot = nullptr;
 
 			for (int i = 0; i < childPanel->Slots.Num(); i++) {
 				auto slot = (SDK::UPanelSlot*)childPanel->Slots[i];
 				std::string slotName = slot->GetName(); // Get just the name without path
 
 				if (slotName == "CanvasPanelSlot_10_10") {
-					targetSlot = slot;
+					slot->Content->SetVisibility(SDK::ESlateVisibility::Hidden);
 					Logger::DebugPrint("Found target slot at index: %i", i);
-					break;
 				}
-			}
-
-			if (targetSlot) {
-				targetSlot->Content->SetVisibility(SDK::ESlateVisibility::Hidden);
+				if (slotName == "CanvasPanelSlot_1_1")
+				{
+					slot->Content->SetVisibility(SDK::ESlateVisibility::Hidden);
+					Logger::DebugPrint("Found target slot at index: %i", i);
+				}
 			}
 		}
 	}
