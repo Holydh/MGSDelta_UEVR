@@ -390,6 +390,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 			cameraController.FixRadioMenuRendering();
 	}
 
+	
+
 	//test
 	//if (!cameraController.IsMenuOpen && cameraController.WasMenuOpen)
 	//{
@@ -454,29 +456,23 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	{
 		if (cameraController.CutsceneStarts())
 		{
-			API::VR::set_mod_value("VR_2DScreenMode", *settingsManager.EnableCutoutScreenForCutscenesAndMenusPtr);
-			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DCutscenesAndMenusPtr ? 1.0f : 0.0f);
+			API::VR::set_mod_value("VR_2DScreenMode", *settingsManager.EnableCutoutScreenForCutscenesPtr);
+			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DCutscenesPtr ? 1.0f : 0.0f);
 		}
 		if (cameraController.CutsceneStops())
 		{
 			API::VR::set_mod_value("VR_2DScreenMode", false);
 			API::VR::set_mod_value("VR_WorldScale", 1.0f);
 		}
+		if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::Radio && playerManager.PreviousMenuType != SDK::EGsrUIMenuType::Radio)
+			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DRadioPtr ? 1.0f : 0.0f);
+		if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::SV && playerManager.PreviousMenuType != SDK::EGsrUIMenuType::SV)
+			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DSurvivalViewPtr ? 1.0f : 0.0f);
 	}
 
 	cameraController.ProcessCameraResetTimer(delta);
 
-	//auto test1 = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Cobra.CobraPlayerCameraManager");
-	//auto test2 = test1->get_first_object_matching(false);
-	//SDK::ACobraPlayerCameraManager* cameraManager = (SDK::ACobraPlayerCameraManager*)test2;
-	////SDK::UGsrPlayerCameraController* playerCameraController = (SDK::UGsrPlayerCameraController*)test2;
-	////Logger::DebugPrint(playerCameraController->GetCameraActor()->GetFullName().c_str());
-	//cameraManager->ViewTarget
-	//auto test = playerCameraController->;
-	//auto rotation = playerCameraController->GetRotation();
-	//Logger::DebugPrint("camera position : x : %f, y : %f, z : %f", test.X, test.Y, test.Z);
-	//Logger::DebugPrint("camera rotation : pitch : %f, yaw : %f, roll : %f", rotation.Pitch, rotation.Yaw, rotation.Roll);
-	 
+
 	//Debug
 	//if (playerManager.IsPlayerControlled)
 	//{
@@ -516,8 +512,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 }
 
 void MGSDeltaPlugin::on_post_engine_tick(API::UGameEngine* engine, float delta) {
-	PLUGIN_LOG_ONCE("Post Engine Tick: %f", delta);
-	
+	PLUGIN_LOG_ONCE("Post Engine Tick: %f", delta);	 
 }
 
 void MGSDeltaPlugin::on_pre_slate_draw_window(UEVR_FSlateRHIRendererHandle renderer, UEVR_FViewportInfoHandle viewport_info) {
@@ -530,6 +525,7 @@ void MGSDeltaPlugin::on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle rend
 
 void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters, UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
+
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
 	//UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 	//UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
@@ -568,11 +564,26 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 
 	//if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::Radio)
 	//{
+	//	if (Inputs::IsKeyPressed(VK_UP))
+	//		z += 0.05f;
+	//	if (Inputs::IsKeyPressed(VK_DOWN))
+	//		z -= 0.05f;
+	//	if (Inputs::IsKeyPressed(VK_RIGHT))
+	//		x += 0.05f;
+	//	if (Inputs::IsKeyPressed(VK_LEFT))
+	//		x -= 0.05f;
+	//	if (Inputs::IsKeyPressed(VK_NUMPAD0))
+	//		y += 0.05f;
+	//	if (Inputs::IsKeyPressed(VK_NUMPAD1))
+	//		y -= 0.05f;
+
 	//	UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 	//	UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
-	//	Logger::DebugPrint("camera position before: x : %f, y : %f, z : %f", pos->x, pos->y, pos->z);
-	//	Logger::DebugPrint("camera rotation before: pitch : %f, yaw : %f, roll : %f", rot->pitch, rot->yaw, rot->roll);
-	//	//pos->y *= 0.4f;
+	//	Logger::DebugPrint("camera multiplier: x : %f, y : %f, z : %f", x, y, z);
+	//	//Logger::DebugPrint("camera rotation before: pitch : %f, yaw : %f, roll : %f", rot->pitch, rot->yaw, rot->roll);
+	//	pos->x *= 1.85f;
+	//	pos->y *= 2.3f;
+	//	pos->z *= 0.65f;
 	//	//rot->pitch = 0.0f;
 	//	//rot->yaw = -90.0f;
 	//	//rot->roll = 0.0f;
@@ -619,6 +630,11 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 		weaponManager.ApplyRecoil(deltaTime);
 		weaponManager.ProcessTwoHandsGrabWeaponLocationAndRotation();
 	}
+
+	auto test1 = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Cobra.CobraPlayerCameraManager");
+	auto test2 = test1->get_first_object_matching(false);
+	SDK::ACobraPlayerCameraManager* cameraManager = (SDK::ACobraPlayerCameraManager*)test2;
+	cameraManager->CameraCachePrivate.POV.FOV = 180.0f;
 
 	ranOnce = true;
 }

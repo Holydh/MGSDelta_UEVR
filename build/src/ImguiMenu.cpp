@@ -447,26 +447,50 @@ void ImGuiMenu::internalFrame()
 		ImGui::Separator();
 		ImGui::Text("--- Misc Settings ---");
 
-		if (ImGui::Checkbox("Enable 2D screen for cutscenes and menus", settingsManager->EnableCutoutScreenForCutscenesAndMenusPtr))
+		if (ImGui::Checkbox("Enable Cutout Screen for cutscenes", settingsManager->EnableCutoutScreenForCutscenesPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
 			if (!playerManager->IsPlayerControlled)
 			{
-				uevr::API::VR::set_mod_value("VR_2DScreenMode", *settingsManager->EnableCutoutScreenForCutscenesAndMenusPtr);
-				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesAndMenusPtr ? 1.0f : 0.0f);
+				uevr::API::VR::set_mod_value("VR_2DScreenMode", *settingsManager->EnableCutoutScreenForCutscenesPtr);
+				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesPtr ? 1.0f : 0.0f);
 			}
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Cutscenes warp issue workaround. Disable if you have black screen during cutscenes. Disable 3D cutscenes (setting below) if you have double vision");
 
-		if (ImGui::Checkbox("Enable 3D in 2D screen for cutscenes and menus", settingsManager->Enable3DCutscenesAndMenusPtr))
+		if (ImGui::Checkbox("Enable 3D in Cutout Screen for cutscenes", settingsManager->Enable3DCutscenesPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
 			if (!playerManager->IsPlayerControlled)
-				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesAndMenusPtr ? 1.0f : 0.0f);
+				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesPtr ? 1.0f : 0.0f);
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Can be incompatible with some HMDs and link software combo (eg. Q3 + VD). Disable it if you have black screen or double vision.");
+
+
+
+
+		if (ImGui::Checkbox("Enable 3D in Radio window", settingsManager->Enable3DRadioPtr))
+		{
+			settingsManager->SettingsModifiedThisFrame = true;
+			if (!playerManager->IsPlayerControlled)
+			{
+				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DRadioPtr ? 1.0f : 0.0f);
+			}
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Can make text more difficult to read, disabled by default");
+
+		if (ImGui::Checkbox("Enable 3D in Survival Menu", settingsManager->Enable3DSurvivalViewPtr))
+		{
+			settingsManager->SettingsModifiedThisFrame = true;
+			if (!playerManager->IsPlayerControlled)
+				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DSurvivalViewPtr ? 1.0f : 0.0f);
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Works perfectly, enabled by default");
+
 
 		ImGui::PopItemWidth();
 		/*	

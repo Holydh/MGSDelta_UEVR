@@ -64,8 +64,10 @@ public:
 
 	bool* DisableThermalVisionScanlinePtr;
 
-	bool* EnableCutoutScreenForCutscenesAndMenusPtr;
-	bool* Enable3DCutscenesAndMenusPtr;
+	bool* EnableCutoutScreenForCutscenesPtr;
+	bool* Enable3DCutscenesPtr;
+	bool* Enable3DRadioPtr;
+	bool* Enable3DSurvivalViewPtr;
 	
 private:
 	bool attachCameraToSnakeHead = false;
@@ -90,9 +92,10 @@ private:
 
 	bool disableThermalVisionScanline = true;
 
-	bool enableCutoutScreenForCutscenesAndMenus = true;
-	bool enable3DCutscenesAndMenus = false;
-
+	bool enableCutoutScreenForCutscenes = true;
+	bool enable3DCutscenes = false;
+	bool enable3DRadio = false;
+	bool enable3DSurvivalView = true;
 
 	std::string GetConfigFilePath(bool uevr);
 	std::string uevrSettingsFileName = "config.txt";

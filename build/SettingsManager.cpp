@@ -126,8 +126,10 @@ void SettingsManager::InitSettingsManager()
 
 	DisableThermalVisionScanlinePtr = &disableThermalVisionScanline;
 
-	EnableCutoutScreenForCutscenesAndMenusPtr = &enableCutoutScreenForCutscenesAndMenus;
-	Enable3DCutscenesAndMenusPtr = &enable3DCutscenesAndMenus;
+	EnableCutoutScreenForCutscenesPtr = &enableCutoutScreenForCutscenes;
+	Enable3DCutscenesPtr = &enable3DCutscenes;
+	Enable3DRadioPtr = &enable3DRadio;
+	Enable3DSurvivalViewPtr = &enable3DSurvivalView;
 }
 
 void SettingsManager::FetchUevrSettings(bool writeToPlugin)
@@ -171,8 +173,10 @@ void SettingsManager::FetchPluginSettings()
 
 	disableThermalVisionScanline = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "disableThermalVisionScanline", true);
 
-	enableCutoutScreenForCutscenesAndMenus = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableCutoutScreenForCutscenesAndMenus", true);
-	enable3DCutscenesAndMenus = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DCutscenesAndMenus", false);
+	enableCutoutScreenForCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableCutoutScreenForCutscenesAndMenus", true);
+	enable3DCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DCutscenesAndMenus", false);
+	enable3DRadio = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DRadio", false);
+	enable3DSurvivalView = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DSurvivalView", true);
 	if (debugMod) Logger::DebugPrint("Plugin Settings Updated");
 }
 
@@ -200,8 +204,10 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "disableThermalVisionScanline", disableThermalVisionScanline);
 
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableCutoutScreenForCutscenesAndMenus", enableCutoutScreenForCutscenesAndMenus);
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DCutscenesAndMenus", enable3DCutscenesAndMenus);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableCutoutScreenForCutscenesAndMenus", enableCutoutScreenForCutscenes);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DCutscenesAndMenus", enable3DCutscenes);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DRadio", enable3DRadio);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DSurvivalView", enable3DSurvivalView);
 }
 
 
@@ -239,8 +245,10 @@ void SettingsManager::GetOrCreateConfigFile()
 			"------ Items Settings ------\n"
 			"disableThermalVisionScanline=true\n"
 			"------ Misc Settings ------\n"
-			"enableCutoutScreenForCutscenesAndMenus=true\n"
-			"enable3DCutscenesAndMenus=false\n";
+			"enableCutoutScreenForCutscenes=true\n"
+			"enable3DCutscenes=false\n"
+			"enable3DRadio=false\n"
+			"enable3DSurvivalView=true\n";
 
 		HANDLE hCreateFile = CreateFileA(pluginConfigFilePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hCreateFile != INVALID_HANDLE_VALUE)
