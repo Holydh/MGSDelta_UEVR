@@ -167,18 +167,33 @@ void SettingsManager::FetchPluginSettings()
 
 	enableWeaponsScopes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableWeaponsScopes", true);
 	scopeResolution = SettingsManager::GetIntValueFromFile(pluginConfigFilePath, "scopeResolution", 1024);
+	SyncScopeSliderWithResolution();
+	
 	disableAllRecoil = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "disableAllRecoil", false);
 	enableTwoHandsPivot = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableTwoHandsPivot", true);
 	enableTwoHandsRealisticRecoil = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableTwoHandsRealisticRecoil", true);
 
 	disableThermalVisionScanline = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "disableThermalVisionScanline", true);
 
-	enableCutoutScreenForCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableCutoutScreenForCutscenesAndMenus", true);
-	enable3DCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DCutscenesAndMenus", false);
+	enableCutoutScreenForCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableCutoutScreenForCutscenes", true);
+	enable3DCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DCutscenes", false);
 	enable3DRadio = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DRadio", false);
 	enable3DSurvivalView = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DSurvivalView", true);
+
+
 	if (debugMod) Logger::DebugPrint("Plugin Settings Updated");
 }
+
+void SettingsManager::SyncScopeSliderWithResolution()
+{
+    if (ScopeResolutionSliderIndexPtr && ScopeResolutionPtr)
+    {
+        int resolution = *ScopeResolutionPtr;
+        int newIndex = resolution / 64; // Assuming step is 64
+        *ScopeResolutionSliderIndexPtr = newIndex;
+    }
+}
+
 
 void SettingsManager::WriteSettingsToPluginConfigFile()
 {
@@ -204,10 +219,12 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "disableThermalVisionScanline", disableThermalVisionScanline);
 
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableCutoutScreenForCutscenesAndMenus", enableCutoutScreenForCutscenes);
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DCutscenesAndMenus", enable3DCutscenes);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableCutoutScreenForCutscenes", enableCutoutScreenForCutscenes);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DCutscenes", enable3DCutscenes);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DRadio", enable3DRadio);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DSurvivalView", enable3DSurvivalView);
+
+	Logger::DebugPrint("Config change saved in MGSDelta_config.txt");
 }
 
 
@@ -237,7 +254,7 @@ void SettingsManager::GetOrCreateConfigFile()
 			"squatUnderThisValue=-0.4\n"
 			"crawlUnderThisValue=-0.8\n"
 			"------ Weapons Settings ------\n"
-			"sniperScopeEnabled=true\n"
+			"enableWeaponsScopes=true\n"
 			"scopeResolution=1024\n"
 			"disableAllRecoil=false\n"
 			"enableTwoHandsPivot=true\n"
@@ -520,7 +537,7 @@ void SettingsManager::SetIntValueToFile(const std::string& filePath, const std::
 				DWORD bytesWritten;
 				WriteFile(hWriteFile, newContents.c_str(), static_cast<DWORD>(newContents.size()), &bytesWritten, NULL);
 				CloseHandle(hWriteFile);
-				Logger::DebugPrint("Updated %s to %d", key.c_str(), value);
+				if (debugMod) Logger::DebugPrint("Updated %s to %d", key.c_str(), value);
 			}
 			else
 			{

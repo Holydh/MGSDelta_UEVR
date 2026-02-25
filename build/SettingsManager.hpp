@@ -117,5 +117,6 @@ private:
 
 	void FetchUevrSettings(bool writeToPlugin);
 	void FetchPluginSettings();
+	void SyncScopeSliderWithResolution();
 	void WriteChangedSettingsToPluginConfigFile();
 };

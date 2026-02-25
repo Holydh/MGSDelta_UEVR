@@ -395,13 +395,16 @@ void ImGuiMenu::internalFrame()
 			int newResolution = newIndex * step;
 
 			// Write resolution back to your real pointer
-			*settingsManager->ScopeResolutionPtr = newResolution;
-
-			settingsManager->SettingsModifiedThisFrame = true;
-			if (*settingsManager->EnableWeaponsScopesPtr)
+			if (newResolution != *settingsManager->ScopeResolutionPtr)
 			{
-				weaponManager->DestroyScope();
-				weaponManager->SpawnScope();
+				*settingsManager->ScopeResolutionPtr = newResolution;
+				settingsManager->SettingsModifiedThisFrame = true;
+
+				if (playerManager->IsPlayerControlled && *settingsManager->EnableWeaponsScopesPtr)
+				{
+					weaponManager->DestroyScope();
+					weaponManager->SpawnScope();
+				}
 			}
 		}
 		if (ImGui::IsItemHovered()) {
@@ -493,52 +496,6 @@ void ImGuiMenu::internalFrame()
 
 
 		ImGui::PopItemWidth();
-		/*	
-		std::wstring object_path;
-		static char obj_path[256]{};
-		ImGui::Text("Enter an object to spawn");
-		ImGui::SameLine();
-		if (ImGui::InputText("objectspawner", obj_path, sizeof(obj_path)))
-			object_path = widen(obj_path);
-
-		if (ImGui::Button("Spawn Object")) {
-			auto obj_res = API::get()->find_uobject<API::UObject>(object_path);
-			kismet_system_library->call_function(L"IsValid", obj_res);
-			auto spawned_component = API::get()->spawn_object(obj_res->get_class(), obj_res->get_outer());
-		}
-
-
-		static char lua_event_name[256]{};
-		ImGui::Text("Send Event to Lua");
-		ImGui::InputText("LuaEvent", lua_event_name, sizeof(lua_event_name));
-
-
-		static char lua_event_data[256]{};
-		ImGui::InputText("LuaData", lua_event_data, sizeof(lua_event_data));
-
-		if (ImGui::Button("Send Lua Event")) {
-			if (lua_event_name[0] != '\0') {
-				dispatch_lua_event(lua_event_name, lua_event_data);
-			}
-		}
-		static char input[256]{};
-		std::string mod_value = API::VR::get_mod_value<std::string>(input);
-		ImGui::Text("Mod value: %s", mod_value.c_str());
-
-		if (ImGui::Button("Save Config")) {
-			API::VR::save_config();
-		}
-
-		if (ImGui::Button("Reload Config")) {
-			API::VR::reload_config();
-		}
-
-		if (ImGui::Button("Toggle UObjectHook disabled")) {
-			const auto value = API::UObjectHook::is_disabled();
-
-			API::UObjectHook::set_disabled(!value);
-		}*/
-
 	}
 	ImGui::End();
 

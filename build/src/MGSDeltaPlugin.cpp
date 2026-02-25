@@ -43,8 +43,8 @@ void MGSDeltaPlugin::on_initialize() {
 	/*hookManager.hook_ISetSmoothedAimPosition_fn();*/
 	Utilities::InitHelperClasses();
 	weaponManager.InitWeaponManager();
-	settingsManager.InitSettingsManager();
 	settingsManager.GetOrCreateConfigFile();
+	settingsManager.InitSettingsManager();
 	settingsManager.LoadAllWeaponConfigs(uobjectHook_file);
 	playerManager.ConvertAllRequiredStringToFnames();
 	hookManager.Initialize();
