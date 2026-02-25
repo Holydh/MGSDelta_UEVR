@@ -71,8 +71,9 @@ bool SettingsManager::LoadWeaponConfigFromFile(const fs::path& path, WeaponConfi
     return true;
 }
 
-void SettingsManager::LoadAllWeaponConfigs(const std::filesystem::path& dir)
+void SettingsManager::LoadAllConfigs(const std::filesystem::path& dir)
 {
+	FetchPluginSettings();
     g_weaponConfigs.clear();
 
     if (!std::filesystem::exists(dir) || !std::filesystem::is_directory(dir))
@@ -102,7 +103,6 @@ void SettingsManager::InitSettingsManager()
 	Logger::DebugPrint("%s", uevrConfigFilePath.c_str());
 	Logger::DebugPrint("%s", pluginConfigFilePath.c_str());
 	//FetchUevrSettings(false);
-	FetchPluginSettings();
 
 	AttachCameraToSnakeHeadPtr = &attachCameraToSnakeHead;
 	CameraRotationSpeedPtr = &cameraRotationSpeed;

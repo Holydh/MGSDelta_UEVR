@@ -40,7 +40,7 @@ public:
 
 	static std::unordered_map<std::string, WeaponConfig> g_weaponConfigs;
 	bool LoadWeaponConfigFromFile(const fs::path& path, WeaponConfig& outCfg);
-	void LoadAllWeaponConfigs(const std::filesystem::path& baseDir);
+	void LoadAllConfigs(const std::filesystem::path& baseDir);
 
 	bool* AttachCameraToSnakeHeadPtr;
 	float* CameraRotationSpeedPtr;

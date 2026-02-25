@@ -43,9 +43,9 @@ void MGSDeltaPlugin::on_initialize() {
 	/*hookManager.hook_ISetSmoothedAimPosition_fn();*/
 	Utilities::InitHelperClasses();
 	weaponManager.InitWeaponManager();
-	settingsManager.GetOrCreateConfigFile();
 	settingsManager.InitSettingsManager();
-	settingsManager.LoadAllWeaponConfigs(uobjectHook_file);
+	settingsManager.GetOrCreateConfigFile();
+	settingsManager.LoadAllConfigs(uobjectHook_file);
 	playerManager.ConvertAllRequiredStringToFnames();
 	hookManager.Initialize();
 	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_OnEnteredState_post, true);
@@ -469,7 +469,13 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 			cameraController.FixSurvivalViewerMenuRendering();
 			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DSurvivalViewPtr ? 1.0f : 0.0f);
 		}
+
+		//if (cameraController.IsCutscenePlaying)
+		//{
+		//	
+		//}
 	}
+
 
 	cameraController.ProcessCameraResetTimer(delta);
 
@@ -508,26 +514,30 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	//Logger::DebugPrint("execution time : %lld micro seconds", duration_ms.count());
 	if (weaponManager.AttachHandNextFrame)
 		weaponManager.NextFrame = true;
-
+	cameraController.FixCutsceneRendering(0.33f);
 	ranOnce = false;
 }
 
 void MGSDeltaPlugin::on_post_engine_tick(API::UGameEngine* engine, float delta) {
-	PLUGIN_LOG_ONCE("Post Engine Tick: %f", delta);	 
+	PLUGIN_LOG_ONCE("Post Engine Tick: %f", delta);
+	cameraController.FixCutsceneRendering(0.33f);
+
 }
 
 void MGSDeltaPlugin::on_pre_slate_draw_window(UEVR_FSlateRHIRendererHandle renderer, UEVR_FViewportInfoHandle viewport_info) {
 	PLUGIN_LOG_ONCE("Pre Slate Draw Window");
+	cameraController.FixCutsceneRendering(0.33f);
 }
 
 void MGSDeltaPlugin::on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle renderer, UEVR_FViewportInfoHandle viewport_info) {
 	PLUGIN_LOG_ONCE("Post Slate Draw Window");
+	cameraController.FixCutsceneRendering(0.33f);
 }
 
 void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters, UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
-
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
+	cameraController.FixCutsceneRendering(0.33f);
 	//UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 	//UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
 	//Logger::DebugPrint("camera position before: x : %f, y : %f, z : %f", pos->x, pos->y, pos->z);
@@ -618,7 +628,7 @@ void MGSDeltaPlugin::on_pre_calculate_stereo_view_offset(UEVR_StereoRenderingDev
 	//}
 	//Logger::DebugPrint("on_pre rotation->yaw: %f", rotation->yaw);
 
-
+	cameraController.FixCutsceneRendering(0.33f);
 }
 
 void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters,
@@ -636,7 +646,7 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 	//auto test2 = test1->get_first_object_matching(false);
 	//SDK::ACobraPlayerCameraManager* cameraManager = (SDK::ACobraPlayerCameraManager*)test2;
 	//cameraManager->CameraCachePrivate.POV.FOV = 180.0f;
-
+		cameraController.FixCutsceneRendering(0.33f);
 	ranOnce = true;
 }
 
@@ -645,7 +655,6 @@ void MGSDeltaPlugin::on_pre_viewport_client_draw(UEVR_UGameViewportClientHandle 
 }
 
 void MGSDeltaPlugin::on_post_viewport_client_draw(UEVR_UGameViewportClientHandle viewport_client, UEVR_FViewportHandle viewport, UEVR_FCanvasHandle canvas) {
-	PLUGIN_LOG_ONCE("Post Viewport Client Draw");
 }
 
 void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, XINPUT_STATE* state)

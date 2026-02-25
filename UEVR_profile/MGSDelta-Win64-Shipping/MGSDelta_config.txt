@@ -8,7 +8,7 @@ smoothCameraRotation=false
 cameraYawLerp=5.000000
 smoothCameraPosition=true
 cameraPositionXYLerp=3.500000
-cameraPositionZLerp=10.000000
+cameraPositionZLerp=5.040000
 ------ Gameplay Settings ------
 enableRoomscaleProneAndCrouch=false
 squatUnderThisValue=-0.400000

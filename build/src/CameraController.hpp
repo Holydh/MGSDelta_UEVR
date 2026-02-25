@@ -10,6 +10,7 @@
 #include "SDK/sv_main_classes.hpp"
 #include "SDK/Radio_classes.hpp"
 #include "SDK/CobraUI_structs.hpp"
+#include "SDK/BP_FrameOffsetPreviewCinecamera_classes.hpp"
 
 #include "PlayerManager.hpp"
 #include "SettingsManager.hpp"
@@ -66,6 +67,8 @@ public:
 	void FixSurvivalViewerMenuRendering();
 	void FixRadioMenuRendering();
 
+	void FixCutsceneRendering(float delta);
+	int frames = 90;
 	//void SetNearClipPlane(float nearClip);
 
 	bool IsCutscenePlaying = false;
