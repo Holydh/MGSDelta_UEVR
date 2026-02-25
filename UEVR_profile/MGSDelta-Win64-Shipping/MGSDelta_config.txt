@@ -20,6 +20,6 @@ scopeResolution=1024
 disableThermalVisionScanline=true
 ------ Misc Settings ------
 enableCutoutScreenForCutscenes=false
-enable3DCutscenes=true
+enable3DCutscenes=false
 enable3DRadio=false
 enable3DSurvivalView=false

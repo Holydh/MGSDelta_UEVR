@@ -278,7 +278,7 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 
 void WeaponManager::ProcessTwoHandsGrabWeaponLocationAndRotation()
 {
-		if (twoHandedPivot && WeaponRoot) {
+	if (twoHandedPivot && WeaponRoot) {
 		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
 
 		auto rightCtrlPos = playerManager->RightController->K2_GetComponentLocation();
@@ -286,7 +286,7 @@ void WeaponManager::ProcessTwoHandsGrabWeaponLocationAndRotation()
 
 		auto sdkCurrentWeapon = (SDK::AActor*)CurrentWeapon;
 		auto weaponUpVector = sdkCurrentWeapon->GetActorUpVector();
-		
+
 		//Debug:
 		//if (ZoomInput > 0.8f)
 		//{
@@ -1092,8 +1092,11 @@ void WeaponManager::SwitchScopeState(bool enable)
 
 void WeaponManager::SpawnScope()
 {
-	spawnScope();
-	attachScopeToWeapon();
+	if (CurrentWeaponID == EGsrEquipId::WP_Dragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant || CurrentWeaponID == EGsrEquipId::WP_Rpg)
+	{
+		spawnScope();
+		attachScopeToWeapon();
+	}
 }
 
 void WeaponManager::DestroyScope()

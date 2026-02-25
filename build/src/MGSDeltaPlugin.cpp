@@ -626,16 +626,16 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 {
 	PLUGIN_LOG_ONCE("Post Calculate Stereo View Offset");
 	//we need to override uevr attachement controls so we're running this later
-	if (playerManager.IsPlayerControlled && playerManager.SecondHandAttachedToWeapon && !ranOnce)
+	if (playerManager.IsPlayerControlled && playerManager.SecondHandAttachedToWeapon && ranOnce)
 	{
 		weaponManager.ApplyRecoil(deltaTime);
 		weaponManager.ProcessTwoHandsGrabWeaponLocationAndRotation();
 	}
 
-	auto test1 = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Cobra.CobraPlayerCameraManager");
-	auto test2 = test1->get_first_object_matching(false);
-	SDK::ACobraPlayerCameraManager* cameraManager = (SDK::ACobraPlayerCameraManager*)test2;
-	cameraManager->CameraCachePrivate.POV.FOV = 180.0f;
+	//auto test1 = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Cobra.CobraPlayerCameraManager");
+	//auto test2 = test1->get_first_object_matching(false);
+	//SDK::ACobraPlayerCameraManager* cameraManager = (SDK::ACobraPlayerCameraManager*)test2;
+	//cameraManager->CameraCachePrivate.POV.FOV = 180.0f;
 
 	ranOnce = true;
 }
