@@ -429,54 +429,14 @@ void CameraController::FixRadioMenuRendering()
 	mainWidget->ModelBg->SetVisibility(SDK::ESlateVisibility::Hidden);
 }
 
-
-
-void CameraController::FixCutsceneRendering(float delta)
+void CameraController::Apply2DScreenOverCutsceneType()
 {
-	if (frames <= 0)
-	{
-		auto static gsr_player_camera_actor_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraActor");
-		auto cameraActor = (SDK::AGsrPlayerCameraActor*)gsr_player_camera_actor_c->get_first_object_matching(false);
+	uevr::API::VR::set_mod_value("VR_2DScreenMode", IsCutsceneUsingMediaPlayer() ? true : false);
+}
 
-		auto cameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Cobra.CobraPlayerCameraManager");
-		auto cameraManager = (SDK::ACobraPlayerCameraManager*)cameraManager_c->get_first_object_matching(false);
-		
-		if (cameraManager && playerManager->IsPlayerControlled)
-		{
-			float newFov = 90.0f;
-			SDK::FVector location{0.0f, 0.0f, 0.0f};
-			SDK::FRotator rotation{0.0f, 0.0f, 0.0f};
-			SDK::FVector* locationPtr = &location;
-			SDK::FRotator* rotationPtr = &rotation;
-			float* newFovPtr = &newFov;
-			for (int i = 0; i < cameraManager->ModifierList.Num(); i++)
-			{
-				cameraManager->ModifierList[i]->BlueprintModifyCamera(delta, SDK::FVector{}, SDK::FRotator{}, 90.0f, locationPtr, rotationPtr, newFovPtr);
-			}
-			/*Logger::DebugPrint("%ls", cameraManager->CurrentViewTarget.CStr());*/
-			//SDK::FString name = L"";
-			//cameraManager->SetViewTargetByActorName(name, 0.0f);
-
-			//if (cameraManager->ViewTarget.Target->IsA(SDK::ACineCameraActor::StaticClass()))
-			//{
-			/*	Logger::DebugPrint("Is A = true");*/
-				//auto cineCamera = (SDK::ACineCameraActor*)cameraManager->ViewTarget.Target;
-
-				//SDK::UGameplayStatics::GetViewProjectionMatrix();
-				//cineCamera->
-				//
-			/*}*/
-		}
-
-		frames = 90;
-	}
-	else
-		frames--;
-
-
-
-	//cameraManager->SetViewTargetByActorName(L"Normal", 0.0f);
-	//SDK::AGsrPlayerController* playerController = (SDK::AGsrPlayerController*)uevr::API::get()->get_player_controller(0);
-	//playerController->GetViewTarget();
-	//playerController->SetViewTargetWithBlend();
+bool CameraController::IsCutsceneUsingMediaPlayer()
+{
+	auto static mediaPlayer_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"BlueprintGeneratedClass /Game/Blueprints/MediaPlayer/BP_MediaPlayer.BP_MediaPlayer_C");
+	auto mediaPlayer = mediaPlayer_c->get_first_object_matching(false);
+	return mediaPlayer;
 }

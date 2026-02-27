@@ -260,7 +260,7 @@ bool HookManager::mod_CutsceneObject_OnSequencePlay_post(uevr::API::UFunction* f
 
 bool HookManager::mod_CutsceneObject_OnSequencePause_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	s_cameraController->IsCutscenePlaying = false;
+	//s_cameraController->IsCutscenePlaying = false;
 	Logger::DebugPrint("Cutscene Pause");
 	return true;
 }
@@ -268,7 +268,25 @@ bool HookManager::mod_CutsceneObject_OnSequencePause_post(uevr::API::UFunction* 
 bool HookManager::mod_CutsceneObject_PlaySequenceFinished_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
 	s_cameraController->IsCutscenePlaying = false;
-	Logger::DebugPrint("Cutscene Pause");
+	Logger::DebugPrint("Cutscene Finished");
+	return true;
+}
+
+bool HookManager::mod_CobraCutsceneCameraControlManager_PlayMediaPlayer_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+	s_cameraController->Is2DCutscenePlaying = true;
+	if (!s_cameraController->IsCutscenePlaying)
+		s_cameraController->Apply2DScreenOverCutsceneType();
+	Logger::DebugPrint("Checking cutscene type");
+	return true;
+}
+
+bool HookManager::mod_CobraCutsceneCameraControlManager_PauseMediaPlayer_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+	s_cameraController->Is2DCutscenePlaying = false;
+	if (!s_cameraController->IsCutscenePlaying)
+		s_cameraController->Apply2DScreenOverCutsceneType();
+	Logger::DebugPrint("Checking cutscene type");
 	return true;
 }
 

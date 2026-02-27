@@ -83,6 +83,9 @@ public:
     static bool mod_CutsceneObject_OnSequencePlay_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_CutsceneObject_OnSequencePause_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_CutsceneObject_PlaySequenceFinished_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+
+    static bool mod_CobraCutsceneCameraControlManager_PlayMediaPlayer_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_CobraCutsceneCameraControlManager_PauseMediaPlayer_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     
     //static bool mod_sv_main_OnSurvivalViewerChanged_pre(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
 

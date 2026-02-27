@@ -10,7 +10,7 @@ std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager, &weaponManager, &cameraController, &playerManager),
 inputs(),
 cameraController(&playerManager, &settingsManager), 
-weaponManager(/*&memoryManager, */&settingsManager, &playerManager, &cameraController),
+weaponManager(/*&memoryManager,*/ &settingsManager, &playerManager, &cameraController),
 hookManager(&weaponManager, &cameraController, &playerManager), 
 playerManager() {}; //Constructor
 MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
@@ -58,15 +58,18 @@ void MGSDeltaPlugin::on_initialize() {
 	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Effect/BP_GsrPlayerDamageFilterController.BP_GsrPlayerDamageFilterController_C", L"OnStartUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_BP_GsrPlayerDamageFilterController_OnStartUIMenu_post, true);
 	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Effect/BP_GsrPlayerDamageFilterController.BP_GsrPlayerDamageFilterController_C", L"OnEndUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post, true);
 	hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePlay", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePlay_post, true);
-	hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePause", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePlay_post, true);
-	hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"PlaySequenceFinished", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePlay_post, true);
+	hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePause", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePause_post, true);
+	hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"PlaySequenceFinished", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_PlaySequenceFinished_post, true);
 	//hookManager.hook_bp_fn(L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/sv_main.sv_main_C", L"OnSurvivalViewerChanged", (UEVR_UFunction_NativePreFn)HookManager::mod_sv_main_OnSurvivalViewerChanged_pre, NULL, false);
+	
+	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Blueprints/Cutscene/BP_CutsceneCameraControlManager.BP_CutsceneCameraControlManager_C", L"PlayMediaPlayer", NULL, (UEVR_UFunction_NativePreFn)HookManager::mod_CobraCutsceneCameraControlManager_PlayMediaPlayer_post, true);
+	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Blueprints/Cutscene/BP_CutsceneCameraControlManager.BP_CutsceneCameraControlManager_C", L"PauseMediaPlayer", NULL, (UEVR_UFunction_NativePreFn)HookManager::mod_CobraCutsceneCameraControlManager_PauseMediaPlayer_post, true);
 
 	//AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerKnifeReadyAction_C.ABP_PlayerKnifeReadyAction_C
 	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetCameraRequestModelVisibility", (UEVR_UFunction_NativePostFn)HookManager::mod_ISetCameraRequestModelVisibility_post ,NULL, true);
 
 	//weaponController.Initialize();
-	/*memoryManager.InitMemoryManager();*/
+	memoryManager.InitMemoryManager();
 	hookManager.HookFireFunction();
 	//hookManager.HookCameraModifyFunction();
 }
@@ -363,6 +366,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.DestroyCameraAttachementActor();
 		
 		API::get()->dispatch_lua_event("PlayerTookControl", "0");
+		memoryManager.ToggleFrameOffsetCutsceneFixMemoryInstructions(true);
 		weaponManager.Cleanup();
 		playerManager.Cleanup();
 		vr_enabled = enable;
@@ -451,14 +455,19 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 		if (cameraController.CutsceneStarts())
 		{
-			API::VR::set_mod_value("VR_2DScreenMode", *settingsManager.EnableCutoutScreenForCutscenesPtr);
-			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DCutscenesPtr ? 1.0f : 0.0f);
+			API::VR::set_mod_value("VR_2DScreenMode", *settingsManager.EnableCutoutScreenForCutscenesPtr && !cameraController.IsCutsceneUsingMediaPlayer());
+			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DCutscenesPtr && !cameraController.IsCutsceneUsingMediaPlayer() ? 1.0f : 0.0f);
+			memoryManager.ToggleFrameOffsetCutsceneFixMemoryInstructions(false);
 		}
 		if (cameraController.CutsceneStops())
 		{
 			API::VR::set_mod_value("VR_2DScreenMode", false);
 			API::VR::set_mod_value("VR_WorldScale", 1.0f);
+			memoryManager.ToggleFrameOffsetCutsceneFixMemoryInstructions(true);
+			if (cameraController.Is2DCutscenePlaying)
+				cameraController.Apply2DScreenOverCutsceneType();
 		}
+
 		if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::Radio && playerManager.PreviousMenuType != SDK::EGsrUIMenuType::Radio)
 		{
 			cameraController.FixRadioMenuRendering();
@@ -469,11 +478,6 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 			cameraController.FixSurvivalViewerMenuRendering();
 			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DSurvivalViewPtr ? 1.0f : 0.0f);
 		}
-
-		//if (cameraController.IsCutscenePlaying)
-		//{
-		//	
-		//}
 	}
 
 
@@ -508,36 +512,31 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	weaponManager.PreviousItemID = weaponManager.CurrentItemID;
 	Inputs::WasLeftGripInputPressed = Inputs::LeftGripInputPressed;
 	cameraController.WasCutscenePlaying = cameraController.IsCutscenePlaying;
+	cameraController.Was2DCutscenePlaying = cameraController.Is2DCutscenePlaying;
 	imGuiMenu.MouseMovedThisFrame = false;
 	//auto end = std::chrono::high_resolution_clock::now();
 	//auto duration_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 	//Logger::DebugPrint("execution time : %lld micro seconds", duration_ms.count());
 	if (weaponManager.AttachHandNextFrame)
 		weaponManager.NextFrame = true;
-	cameraController.FixCutsceneRendering(0.33f);
 	ranOnce = false;
 }
 
 void MGSDeltaPlugin::on_post_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Post Engine Tick: %f", delta);
-	cameraController.FixCutsceneRendering(0.33f);
-
 }
 
 void MGSDeltaPlugin::on_pre_slate_draw_window(UEVR_FSlateRHIRendererHandle renderer, UEVR_FViewportInfoHandle viewport_info) {
 	PLUGIN_LOG_ONCE("Pre Slate Draw Window");
-	cameraController.FixCutsceneRendering(0.33f);
 }
 
 void MGSDeltaPlugin::on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle renderer, UEVR_FViewportInfoHandle viewport_info) {
 	PLUGIN_LOG_ONCE("Post Slate Draw Window");
-	cameraController.FixCutsceneRendering(0.33f);
 }
 
 void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters, UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
-	cameraController.FixCutsceneRendering(0.33f);
 	//UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 	//UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
 	//Logger::DebugPrint("camera position before: x : %f, y : %f, z : %f", pos->x, pos->y, pos->z);
@@ -608,27 +607,6 @@ void MGSDeltaPlugin::on_pre_calculate_stereo_view_offset(UEVR_StereoRenderingDev
 	UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Pre Calculate Stereo View Offset");
-	
-	//auto rotationd = (UEVR_Rotatord*)rotation;
-
-	//// Decoupled pitch.
-	//if (!is_double) {
-	//    rotation->pitch = 0.0f;
-	//}
-	//else {
-	//    rotationd->pitch = 0.0;
-	//}
-	//if (cameraController.YawInput != 0.0)
-	//	cameraController.actualYaw += cameraController.YawInput * cameraController.YawSpeed;
-	///*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
-	//rotationd->yaw = cameraController.actualYaw;
-	//if (playerManager.isPlayerControlled)
-	//{
-	//	cameraController.SetCameraRotation(rotationd->yaw);
-	//}
-	//Logger::DebugPrint("on_pre rotation->yaw: %f", rotation->yaw);
-
-	cameraController.FixCutsceneRendering(0.33f);
 }
 
 void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters,
@@ -642,11 +620,6 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 		weaponManager.ProcessTwoHandsGrabWeaponLocationAndRotation();
 	}
 
-	//auto test1 = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Cobra.CobraPlayerCameraManager");
-	//auto test2 = test1->get_first_object_matching(false);
-	//SDK::ACobraPlayerCameraManager* cameraManager = (SDK::ACobraPlayerCameraManager*)test2;
-	//cameraManager->CameraCachePrivate.POV.FOV = 180.0f;
-		cameraController.FixCutsceneRendering(0.33f);
 	ranOnce = true;
 }
 

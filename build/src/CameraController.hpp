@@ -67,9 +67,13 @@ public:
 	void FixSurvivalViewerMenuRendering();
 	void FixRadioMenuRendering();
 
-	void FixCutsceneRendering(float delta);
-	int frames = 90;
+	void Apply2DScreenOverCutsceneType();
+
+	bool IsCutsceneUsingMediaPlayer();
 	//void SetNearClipPlane(float nearClip);
+
+	bool Is2DCutscenePlaying = false;
+	bool Was2DCutscenePlaying = false;
 
 	bool IsCutscenePlaying = false;
 	bool WasCutscenePlaying = false;
