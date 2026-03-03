@@ -12,16 +12,6 @@ void CameraController::ToggleCameraWobblingController(bool enabled) {
 	wobblingController->call_function(L"SetEnabled", &setEnabled);
 }
 
-bool CameraController::CutsceneStarts()
-{
-	return IsCutscenePlaying && !WasCutscenePlaying;
-}
-
-bool CameraController::CutsceneStops()
-{
-	return !IsCutscenePlaying && WasCutscenePlaying;
-}
-
 bool CameraController::SpawnCameraAttachementActor()
 {
 	CameraAttachementActor = Utilities::SpawnActor(UEVR_Vector3d{ LastCameraPosition.x, LastCameraPosition.y, LastCameraPosition.z }, nullptr);
@@ -429,14 +419,61 @@ void CameraController::FixRadioMenuRendering()
 	mainWidget->ModelBg->SetVisibility(SDK::ESlateVisibility::Hidden);
 }
 
-void CameraController::Apply2DScreenOverCutsceneType()
+void CameraController::CheckCutscenePlaying()
 {
-	uevr::API::VR::set_mod_value("VR_2DScreenMode", IsCutsceneUsingMediaPlayer() ? true : false);
+	auto static gameStateSubsystem_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrGameStateSubsystem");
+	auto gameStateSubsystem = gameStateSubsystem_c->get_first_object_matching(false);
+	bool cutscene = false;
+	bool movie = false;
+
+	if (gameStateSubsystem)
+	{
+		auto gameState = (SDK::UGsrGameStateSubsystem*)gameStateSubsystem;
+		cutscene = gameState->CheckGameStatus(SDK::EGsrGameStatus::Cutscene);
+		movie = gameState->CheckGameStatus(SDK::EGsrGameStatus::Movie);
+	}
+
+	if (cutscene || movie)
+	{
+		ActualCutsceneState = cutscene ? CutsceneState::Playing3D : CutsceneState::Playing2D;
+	}
+	else
+	{
+		ActualCutsceneState = CutsceneState::NotPlaying;
+	}
 }
 
-bool CameraController::IsCutsceneUsingMediaPlayer()
+bool CameraController::CutsceneStarts()
 {
-	auto static mediaPlayer_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"BlueprintGeneratedClass /Game/Blueprints/MediaPlayer/BP_MediaPlayer.BP_MediaPlayer_C");
-	auto mediaPlayer = mediaPlayer_c->get_first_object_matching(false);
-	return mediaPlayer;
+	return PreviousCutsceneState == CutsceneState::NotPlaying &&
+		(ActualCutsceneState == CutsceneState::Playing3D || ActualCutsceneState == CutsceneState::Playing2D);
+}
+
+bool CameraController::CutscenePlaying()
+{
+	return ActualCutsceneState == CutsceneState::Playing3D || ActualCutsceneState == CutsceneState::Playing2D;
+}
+
+bool CameraController::CutsceneStops()
+{
+	return ActualCutsceneState == CutsceneState::NotPlaying &&
+		(PreviousCutsceneState == CutsceneState::Playing3D || PreviousCutsceneState == CutsceneState::Playing2D);
+}
+
+void CameraController::ApplyCutsceneSettings()
+{
+	if (CutsceneStarts())
+	{
+		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)));
+		uevr::API::VR::set_mod_value("VR_2DScreenMode",
+			*settingsManager->EnableCutoutScreenForCutscenesPtr || ActualCutsceneState == CameraController::CutsceneState::Playing2D ?
+			true : false);
+		uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesPtr ? 1.0f : 0.0f);
+	}
+	if (CutsceneStops())
+	{
+		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)));
+		uevr::API::VR::set_mod_value("VR_2DScreenMode", false);
+		uevr::API::VR::set_mod_value("VR_WorldScale", 1.0f);
+	}
 }

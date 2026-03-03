@@ -208,6 +208,10 @@ void ImGuiMenu::checkMouseFocus(float delta)
 	//Logger::DebugPrint("mouseUseTimer : %f", mouseUseTimer);
 	auto io = ImGui::GetIO();
 
+	MouseHasFocus = false;
+	return;
+
+	//need rework :
 	if (ControllerInput)
 	{
 		MouseHasFocus = false;
@@ -450,26 +454,26 @@ void ImGuiMenu::internalFrame()
 		ImGui::Separator();
 		ImGui::Text("--- Misc Settings ---");
 
-		if (ImGui::Checkbox("Enable Cutout Screen for cutscenes", settingsManager->EnableCutoutScreenForCutscenesPtr))
+		if (ImGui::Checkbox("Enable Cut out Screen for cutscenes", settingsManager->EnableCutoutScreenForCutscenesPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
-			if (cameraController->IsCutscenePlaying)
+			if (cameraController->CutscenePlaying())
 			{
 				uevr::API::VR::set_mod_value("VR_2DScreenMode", *settingsManager->EnableCutoutScreenForCutscenesPtr);
 				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesPtr ? 1.0f : 0.0f);
 			}
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Cutscenes warp issue workaround. Disable if you have black screen during cutscenes. Disable 3D cutscenes (setting below) if you have double vision");
+			ImGui::SetTooltip("Can cause a black screen with SteamVR.");
 
-		if (ImGui::Checkbox("Enable 3D in Cutout Screen for cutscenes", settingsManager->Enable3DCutscenesPtr))
+		if (ImGui::Checkbox("Enable 3D in Cutscenes", settingsManager->Enable3DCutscenesPtr))
 		{
 			settingsManager->SettingsModifiedThisFrame = true;
-			if (cameraController->IsCutscenePlaying)
+			if (cameraController->CutscenePlaying())
 				uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesPtr ? 1.0f : 0.0f);
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Can be incompatible with some HMDs and link software combo (eg. Q3 + VD). Disable it if you have black screen or double vision.");
+			ImGui::SetTooltip("Some link softwares (SteamVR and VD) can have issues when both Cut Out screen and 3D cutscenes are enabled. Disable one or the other if you have back screen or double vision issues.");
 
 
 

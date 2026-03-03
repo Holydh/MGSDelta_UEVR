@@ -2,6 +2,7 @@
 #include "uevr/API.hpp"
 #include "Utilities.hpp"
 #include "Logger.hpp"
+#include "magic_enum/magic_enum.hpp"
 
 #include "SDK/Ics_parameters.hpp"
 #include "SDK/Engine_structs.hpp"
@@ -10,7 +11,6 @@
 #include "SDK/sv_main_classes.hpp"
 #include "SDK/Radio_classes.hpp"
 #include "SDK/CobraUI_structs.hpp"
-#include "SDK/BP_FrameOffsetPreviewCinecamera_classes.hpp"
 
 #include "PlayerManager.hpp"
 #include "SettingsManager.hpp"
@@ -29,9 +29,6 @@ public:
 	//virtual ~CameraController() = default;
 
 	void ToggleCameraWobblingController(bool enabled);
-
-	bool CutsceneStarts();
-	bool CutsceneStops();
 
 	double ActualYaw = 0.0f;
 	
@@ -67,16 +64,24 @@ public:
 	void FixSurvivalViewerMenuRendering();
 	void FixRadioMenuRendering();
 
-	void Apply2DScreenOverCutsceneType();
+	//void Apply2DScreenOverCutsceneType();
 
-	bool IsCutsceneUsingMediaPlayer();
+
+	enum CutsceneState
+	{
+		NotPlaying,
+		Playing3D,
+		Playing2D
+	};
+
+	CameraController::CutsceneState ActualCutsceneState;
+	CameraController::CutsceneState PreviousCutsceneState;
+	void CheckCutscenePlaying();
+	bool CutsceneStarts();
+	bool CutscenePlaying();
+	bool CutsceneStops();
+	void ApplyCutsceneSettings();
 	//void SetNearClipPlane(float nearClip);
-
-	bool Is2DCutscenePlaying = false;
-	bool Was2DCutscenePlaying = false;
-
-	bool IsCutscenePlaying = false;
-	bool WasCutscenePlaying = false;
 
 	bool CardBoardEquipped = false;
 

@@ -18,6 +18,7 @@ MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
 void MGSDeltaPlugin::on_detach(HMODULE hmod)
 {
 	Toggle6DOF(false);
+	memoryManager.ToggleFrameOffsetCutsceneFixMemoryInstructions(true);
 	API::VR::set_mod_value("VR_2DScreenMode", false);
 	API::VR::set_mod_value("VR_WorldScale", 1.0f);
 }
@@ -57,19 +58,21 @@ void MGSDeltaPlugin::on_initialize() {
 	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/BP_Player.BP_Player_C", L"OnEndUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_GsrPlayer_OnEndUIMenu_post, true);
 	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Effect/BP_GsrPlayerDamageFilterController.BP_GsrPlayerDamageFilterController_C", L"OnStartUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_BP_GsrPlayerDamageFilterController_OnStartUIMenu_post, true);
 	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Effect/BP_GsrPlayerDamageFilterController.BP_GsrPlayerDamageFilterController_C", L"OnEndUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post, true);
-	hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePlay", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePlay_post, true);
-	hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePause", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePause_post, true);
-	hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"PlaySequenceFinished", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_PlaySequenceFinished_post, true);
 	//hookManager.hook_bp_fn(L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/sv_main.sv_main_C", L"OnSurvivalViewerChanged", (UEVR_UFunction_NativePreFn)HookManager::mod_sv_main_OnSurvivalViewerChanged_pre, NULL, false);
-	
-	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Blueprints/Cutscene/BP_CutsceneCameraControlManager.BP_CutsceneCameraControlManager_C", L"PlayMediaPlayer", NULL, (UEVR_UFunction_NativePreFn)HookManager::mod_CobraCutsceneCameraControlManager_PlayMediaPlayer_post, true);
-	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Blueprints/Cutscene/BP_CutsceneCameraControlManager.BP_CutsceneCameraControlManager_C", L"PauseMediaPlayer", NULL, (UEVR_UFunction_NativePreFn)HookManager::mod_CobraCutsceneCameraControlManager_PauseMediaPlayer_post, true);
+
+
+	//hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePlay", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePlay_post, true);
+	//hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePause", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePause_post, true);
+	//hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"PlaySequenceFinished", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_PlaySequenceFinished_post, true);
+	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Blueprints/Cutscene/BP_CutsceneCameraControlManager.BP_CutsceneCameraControlManager_C", L"PlayMediaPlayer", NULL, (UEVR_UFunction_NativePreFn)HookManager::mod_CobraCutsceneCameraControlManager_PlayMediaPlayer_post, true);
+	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Blueprints/Cutscene/BP_CutsceneCameraControlManager.BP_CutsceneCameraControlManager_C", L"PauseMediaPlayer", NULL, (UEVR_UFunction_NativePreFn)HookManager::mod_CobraCutsceneCameraControlManager_PauseMediaPlayer_post, true);
 
 	//AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerKnifeReadyAction_C.ABP_PlayerKnifeReadyAction_C
 	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetCameraRequestModelVisibility", (UEVR_UFunction_NativePostFn)HookManager::mod_ISetCameraRequestModelVisibility_post ,NULL, true);
 
 	//weaponController.Initialize();
 	memoryManager.InitMemoryManager();
+	memoryManager.ToggleFrameOffsetCutsceneFixMemoryInstructions(false);
 	hookManager.HookFireFunction();
 	//hookManager.HookCameraModifyFunction();
 }
@@ -366,7 +369,6 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.DestroyCameraAttachementActor();
 		
 		API::get()->dispatch_lua_event("PlayerTookControl", "0");
-		memoryManager.ToggleFrameOffsetCutsceneFixMemoryInstructions(true);
 		weaponManager.Cleanup();
 		playerManager.Cleanup();
 		vr_enabled = enable;
@@ -447,26 +449,14 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	}
 	else
 	{
+		cameraController.CheckCutscenePlaying();
 		if (playerManager.WasPlayerControlled)
 		{
 			weaponManager.DetachHandFromWeapon();
 			weaponManager.DetachSecondHandFromWeapon();
 		}
 
-		if (cameraController.CutsceneStarts())
-		{
-			API::VR::set_mod_value("VR_2DScreenMode", *settingsManager.EnableCutoutScreenForCutscenesPtr && !cameraController.IsCutsceneUsingMediaPlayer());
-			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DCutscenesPtr && !cameraController.IsCutsceneUsingMediaPlayer() ? 1.0f : 0.0f);
-			memoryManager.ToggleFrameOffsetCutsceneFixMemoryInstructions(false);
-		}
-		if (cameraController.CutsceneStops())
-		{
-			API::VR::set_mod_value("VR_2DScreenMode", false);
-			API::VR::set_mod_value("VR_WorldScale", 1.0f);
-			memoryManager.ToggleFrameOffsetCutsceneFixMemoryInstructions(true);
-			if (cameraController.Is2DCutscenePlaying)
-				cameraController.Apply2DScreenOverCutsceneType();
-		}
+		cameraController.ApplyCutsceneSettings();
 
 		if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::Radio && playerManager.PreviousMenuType != SDK::EGsrUIMenuType::Radio)
 		{
@@ -510,9 +500,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.PreviousMenuType = playerManager.CurrentMenuType;
 	weaponManager.PreviousWeaponID = weaponManager.CurrentWeaponID;
 	weaponManager.PreviousItemID = weaponManager.CurrentItemID;
+	cameraController.PreviousCutsceneState = cameraController.ActualCutsceneState;
 	Inputs::WasLeftGripInputPressed = Inputs::LeftGripInputPressed;
-	cameraController.WasCutscenePlaying = cameraController.IsCutscenePlaying;
-	cameraController.Was2DCutscenePlaying = cameraController.Is2DCutscenePlaying;
 	imGuiMenu.MouseMovedThisFrame = false;
 	//auto end = std::chrono::high_resolution_clock::now();
 	//auto duration_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
