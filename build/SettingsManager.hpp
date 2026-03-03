@@ -64,7 +64,12 @@ public:
 
 	bool* DisableThermalVisionScanlinePtr;
 
-	bool* EnableCutoutScreenForCutscenesPtr;
+	bool* EnableImmersiveModePtr;
+	bool* SmoothCameraMovementsInImmersiveCutscenesPtr;
+	float* CutsceneCameraPositionLerpPtr;
+	float* CutsceneCameraRotationLerpPtr;
+	//bool* EnableCutoutScreenForCutscenesPtr;
+
 	bool* Enable3DCutscenesPtr;
 	bool* Enable3DRadioPtr;
 	bool* Enable3DSurvivalViewPtr;
@@ -92,7 +97,12 @@ private:
 
 	bool disableThermalVisionScanline = true;
 
-	bool enableCutoutScreenForCutscenes = true;
+	bool enableImmersiveMode = true;
+	bool smoothCameraMovementsInImmersiveCutscenes = true;
+	float cutsceneCameraPositionLerp = 5.0f;
+	float cutsceneCameraRotationLerp = 8.0f;
+	//bool enableCutoutScreenForCutscenes = true;
+
 	bool enable3DCutscenes = false;
 	bool enable3DRadio = false;
 	bool enable3DSurvivalView = true;

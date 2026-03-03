@@ -60,13 +60,14 @@ void MGSDeltaPlugin::on_initialize() {
 	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Effect/BP_GsrPlayerDamageFilterController.BP_GsrPlayerDamageFilterController_C", L"OnEndUIMenu", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_BP_GsrPlayerDamageFilterController_OnEndUIMenu_post, true);
 	//hookManager.hook_bp_fn(L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/sv_main.sv_main_C", L"OnSurvivalViewerChanged", (UEVR_UFunction_NativePreFn)HookManager::mod_sv_main_OnSurvivalViewerChanged_pre, NULL, false);
 
+	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Cinematics/Blueprints/BP_CobraLevelSequence.BP_CobraLevelSequence_C", L"OnCameraCut", NULL, (UEVR_UFunction_NativePreFn)HookManager::mod_CobraLevelSequence_OnCameraCut_post, true);
 
 	//hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePlay", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePlay_post, true);
 	//hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePause", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePause_post, true);
 	//hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"PlaySequenceFinished", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_PlaySequenceFinished_post, true);
 	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Blueprints/Cutscene/BP_CutsceneCameraControlManager.BP_CutsceneCameraControlManager_C", L"PlayMediaPlayer", NULL, (UEVR_UFunction_NativePreFn)HookManager::mod_CobraCutsceneCameraControlManager_PlayMediaPlayer_post, true);
 	//hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Blueprints/Cutscene/BP_CutsceneCameraControlManager.BP_CutsceneCameraControlManager_C", L"PauseMediaPlayer", NULL, (UEVR_UFunction_NativePreFn)HookManager::mod_CobraCutsceneCameraControlManager_PauseMediaPlayer_post, true);
-
+	
 	//AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerKnifeReadyAction_C.ABP_PlayerKnifeReadyAction_C
 	//hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerCameraInfoInterface", L"ISetCameraRequestModelVisibility", (UEVR_UFunction_NativePostFn)HookManager::mod_ISetCameraRequestModelVisibility_post ,NULL, true);
 
@@ -436,7 +437,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		playerManager.ProcessVRHandsVisibility();
 		
 		//Logger::DebugPrint("Before ProcessCamera");
-		cameraController.ProcessCamera(delta);
+
 
 		cameraController.ProcessRoomscaleStance();
 
@@ -470,7 +471,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		}
 	}
 
-
+	if (cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D || playerManager.IsPlayerControlled)
+		cameraController.ProcessCamera(delta);
 	cameraController.ProcessCameraResetTimer(delta);
 
 
@@ -526,23 +528,17 @@ void MGSDeltaPlugin::on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle rend
 void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters, UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
-	//UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
-	//UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
-	//Logger::DebugPrint("camera position before: x : %f, y : %f, z : %f", pos->x, pos->y, pos->z);
-	//Logger::DebugPrint("camera rotation before: pitch : %f, yaw : %f, roll : %f", rot->pitch, rot->yaw, rot->roll);
-	if (playerManager.IsPlayerControlled)
+	if (playerManager.IsPlayerControlled || cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D)
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
-		pos->x = cameraController.OriginalCameraPosition.x;
-		pos->y = cameraController.OriginalCameraPosition.y;
-		pos->z = cameraController.OriginalCameraPosition.z;
-		rot->pitch = cameraController.CameraRotation.pitch;
-		rot->yaw = cameraController.CameraRotation.yaw;
-		rot->roll = cameraController.CameraRotation.roll;
-		//Logger::DebugPrint("%f", rot->yaw);
+		pos->x = cameraController.NewCameraPosition.x;
+		pos->y = cameraController.NewCameraPosition.y;
+		pos->z = cameraController.NewCameraPosition.z;
+		rot->pitch = cameraController.NewCameraRotation.pitch;
+		rot->yaw = cameraController.NewCameraRotation.yaw;
+		rot->roll = cameraController.NewCameraRotation.roll;
 	}
-
 
 	//sv_main
 	if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::SV)

@@ -92,186 +92,296 @@ void CameraController::DetachCameraFromAttachementActor()
 
 void CameraController::ProcessCamera(float deltaTime)
 {
-	auto pawn = uevr::API::get()->get_local_pawn(0);
-	//UEVR_Vector3d floorPosition;
-	//pawn->call_function(L"GetFloorPosition", &floorPosition);
-	//Logger::DebugPrint("GetFloorPosition : %f, %f, %f", floorPosition.x, floorPosition.y, floorPosition.z);
-	UEVR_Vector3d pawnPosition;
-	pawn->call_function(L"K2_GetActorLocation", &pawnPosition);
-	//Logger::DebugPrint("Pawn Position : %f, %f, %f", pawnPosition.x, pawnPosition.y, pawnPosition.z);
-	auto grassVolumeCollisionHead = pawn->get_property<uevr::API::UObject*>(L"GrassVolumeCollisionHead");
-	
-	grassVolumeCollisionHead->call_function(L"K2_GetComponentLocation", &headColliderPosition);
-	//Logger::DebugPrint("headColliderPosition : %f, %f, %f", headColliderPosition.x, headColliderPosition.y, headColliderPosition.z);
-
-	glm::fvec3 tempPosition;
-	glm::fvec3 newPosition;
-	//Logger::DebugPrint("Current Player Stance : %i", playerManager.CurrentStance);
-	//Logger::DebugPrint("Player Is Peeping: %i", playerManager.IsPeeping);
-
 	// Cap deltaTime to prevent camera from yeeting into orbit when the game freezes or low fps.
 	deltaTime = glm::min(deltaTime, 0.05f);
-
-	// Reset camera position and rotation when player respawn or teleport
-	if (InstantCameraPositionNeeded)
-	{
-		LastCameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
-		//CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
-		OriginalCameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
-
-		auto pawn = uevr::API::get()->get_local_pawn(0);
-		UEVR_Rotatord pawnRotation;
-		pawn->call_function(L"K2_GetActorRotation", &pawnRotation);
-		ActualYaw = pawnRotation.yaw;
-		LastCameraRotation.yaw = ActualYaw;
-		CameraRotation.yaw = ActualYaw;
-		return;
-	}
-	//Logger::DebugPrint("Actual Yaw : %f", ActualYaw);
-	//Logger::DebugPrint("State Machine Name : %s ", playerManager->debugParamsTest.StateMachineName.ToString().c_str());
-	//Logger::DebugPrint("Next State Name : %s ", playerManager->debugParamsTest.NextStateName.ToString().c_str());
-	//Logger::DebugPrint("Prev State Name : %s ", playerManager->debugParamsTest.PrevStateName.ToString().c_str());
-	//CameraHeightOffset = headColliderPosition.z - pawnPosition.z;
-	//Logger::DebugPrint("stance : %i", playerManager->CurrentStance);
-	//Logger::DebugPrint("pawnPosition.z : %f", pawnPosition.z);
-
-	if (!*settingsManager->EnableRoomscaleProneAndCrouchPtr)
-	{
-		switch (playerManager->CurrentStance)
-		{
-		case SDK::EGsrPlayerStance::Stand:
-			CameraHeightOffset = 83.0f; //-85.0f
-			break;
-		case SDK::EGsrPlayerStance::Squat:
-			CameraHeightOffset = 6.7f;
-			break;
-		case SDK::EGsrPlayerStance::Crawl:
-			CameraHeightOffset = 10.0f;
-			break;
-		default:
-			break;
-		}
-		if (playerManager->IsChangingStance || playerManager->IsRolling || playerManager->IsHanging)
-		{
-			CameraHeightOffset = headColliderPosition.z - pawnPosition.z;
-		}
-	}
-	else
-	{
-		switch (playerManager->CurrentStance)
-		{
-		case SDK::EGsrPlayerStance::Stand:
-			CameraHeightOffset = 83.0f; //-85.0f
-			break;
-		case SDK::EGsrPlayerStance::Squat:
-			CameraHeightOffset = 83.0f ;
-			break;
-		case SDK::EGsrPlayerStance::Crawl:
-			// playerPosition.Z actualise one frame after change stance, we need to compensate for that or it results in a sudden camera jump
-			CameraHeightOffset = playerManager->PreviousStance == SDK::EGsrPlayerStance::Squat ? 83.0f : 83.0f + crawlOffset;
-			break;
-		default:
-			break;
-		}
-	}
-
-
-	
-	//if (playerManager->IsHanging)
-	//{
-	//	tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, headColliderPosition.z);
-	//	newPosition = glm::fvec3(
-	//		glm::mix(CameraPosition.x, (float)tempPosition.x, 0.25f),
-	//		glm::mix(CameraPosition.y, (float)tempPosition.y, 0.25f),
-	//		glm::mix(CameraPosition.z, (float)tempPosition.z, 0.05f));
-	//}
-
+	glm::fvec3 tempPosition;
+	glm::fvec3 newPosition;
+	glm::fvec3 newRotation;
 	float remappedLerpXYMultiplier = Utilities::Remap(*settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
 	float remappedLerpZMultiplier = Utilities::Remap(*settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
 
-	if (playerManager->IsPeepingInternal) // initial peep movement
+	if (ActualCutsceneState == CutsceneState::Playing3D)
 	{
-		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr ? 
-			glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) : 
-			glm::fvec3(headColliderPosition.x, headColliderPosition.y, pawnPosition.z + CameraHeightOffset);
-		// prevent camera yeeting into orbit on low fps
-		constexpr float speed = 3.0f;
-		float alpha = 1.0f - expf(-speed * deltaTime);
-		newPosition = *settingsManager->SmoothCameraPositionPtr ?
-			glm::mix(LastCameraPosition, tempPosition, alpha) :
-			tempPosition;
-	}
-	else if (playerManager->IsPeeping) // stops peeping
-	{
-		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr ? 
-			glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) : 
-			glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
-		// prevent camera yeeting into orbit on low fps
-		float speedXY = 4.5f * remappedLerpXYMultiplier;
-		float alphaXY = 1.0f - expf(-speedXY * deltaTime);
-		float speedZ = 2.25f * remappedLerpZMultiplier;
-		float alphaZ = 1.0f - expf(-speedZ * deltaTime);
-		newPosition = *settingsManager->SmoothCameraPositionPtr ? 
-			glm::fvec3(
-			glm::mix(LastCameraPosition.x, tempPosition.x, alphaXY),
-			glm::mix(LastCameraPosition.y, tempPosition.y, alphaXY),
-			glm::mix(LastCameraPosition.z, tempPosition.z, alphaZ)) :
-			tempPosition;
-	}
+		auto static cobraCutsceneCameraCtrlMngr_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent");
+		auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c->get_first_object_matching(false);
+		if (!cobraCutsceneCameraCtrlMngr)
+		{
+			Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");
+			return;
+		}
+		auto cc = (SDK::UCobraCutsceneCameraControlManagerComponent*)cobraCutsceneCameraCtrlMngr;
 
-	else
-	{
-		tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr || CardBoardEquipped || (playerManager->IsFirstPersonView && !*settingsManager->EnableRoomscaleProneAndCrouchPtr) ? 
-			glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
-			glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
+		auto static playerCameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Cobra.CobraPlayerCameraManager");
+		auto playerCameraManager = playerCameraManager_c->get_first_object_matching(false);
+		if (!playerCameraManager)
+		{
+			Logger::DebugPrint("PlayerCameraManager not found");
+			return;
+		}
+		auto pcm = (SDK::ACobraPlayerCameraManager*)playerCameraManager;
+		auto location = pcm->CameraCachePrivate.POV.Location;
+		glm::fvec3 originalCamLocation = { location.X, location.Y, location.Z };
+		auto rotation = pcm->CameraCachePrivate.POV.Rotation;
+		glm::fvec3 originalCamRotation = { rotation.Pitch, rotation.Yaw, rotation.Roll };
+
+		if (cc->bIsFpv)
+		{
+			InstantCameraPositionNeeded = true;
+			InstantCameraPositionTimer = 0.25f;
+		}
+
+		if (InstantCameraPositionNeeded)
+		{
+			
+			LastCameraPosition = originalCamLocation;
+			NewCameraPosition = { originalCamLocation.x, originalCamLocation.y, originalCamLocation.z };
+			LastCameraRotation = { rotation.Pitch, rotation.Yaw, rotation.Roll };
+			NewCameraRotation = LastCameraRotation;
+			return;
+		}
+
 		// prevent camera yeeting into orbit on low fps
 		float speedXY = 11.25f * remappedLerpXYMultiplier;
 		float alphaXY = 1.0f - expf(-speedXY * deltaTime);
-		float speedZ = (CardBoardEquipped ? 5.0f : 2.25f) * remappedLerpZMultiplier;
+		float speedZ = 2.25f * remappedLerpZMultiplier;
 		float alphaZ = 1.0f - expf(-speedZ * deltaTime);
-		newPosition = *settingsManager->SmoothCameraPositionPtr ? 
+		newPosition = *settingsManager->SmoothCameraPositionPtr ?
 			glm::fvec3(
-			glm::mix(LastCameraPosition.x, tempPosition.x, alphaXY),
-			glm::mix(LastCameraPosition.y, tempPosition.y, alphaXY),
-			glm::mix(LastCameraPosition.z, tempPosition.z, alphaZ)):
-			tempPosition;
+				glm::mix(LastCameraPosition.x, originalCamLocation.x, alphaXY),
+				glm::mix(LastCameraPosition.y, originalCamLocation.y, alphaXY),
+				glm::mix(LastCameraPosition.z, originalCamLocation.z, alphaZ)) :
+			originalCamLocation;
+
+		NewCameraPosition = { newPosition.x, newPosition.y, newPosition.z };
+		LastCameraPosition = newPosition;
+
+		float remappedRotationLerpMultiplier = Utilities::Remap(*settingsManager->CameraYawLerpPtr, 0.0f, 10.0f, 2.0f, 0.1f);
+		float speed = 10.25f * remappedRotationLerpMultiplier;
+		float alpha = 1.0f - expf(-speed * deltaTime);
+
+		if (*settingsManager->SmoothCameraRotationPtr)
+		{
+			// 1. Calculate Deltas
+			float deltaPitch = originalCamRotation.x - (float)LastCameraRotation.pitch;
+			float deltaYaw = originalCamRotation.y - (float)LastCameraRotation.yaw;
+			float deltaRoll = originalCamRotation.z - (float)LastCameraRotation.roll;
+
+			// 2. Normalize Deltas to [-180, 180] (The "Shortest Path" trick)
+			auto normalize = [](float delta) {
+				while (delta > 180.0f)  delta -= 360.0f;
+				while (delta < -180.0f) delta += 360.0f;
+				return delta;
+				};
+
+			deltaPitch = normalize(deltaPitch);
+			deltaYaw = normalize(deltaYaw);
+			deltaRoll = normalize(deltaRoll);
+
+			// --- CAMERA CUT DETECTION ---
+			// If the yaw jump is huge (e.g. > 100 degrees), snap instantly
+			if (std::abs(deltaYaw) > 45.0f) {
+				newRotation = originalCamRotation;
+			}
+			else {
+				// 3. Smoothly add the delta to the last known position
+				newRotation.x = (float)LastCameraRotation.pitch + (deltaPitch * alpha);
+				newRotation.y = (float)LastCameraRotation.yaw + (deltaYaw * alpha);
+				newRotation.z = (float)LastCameraRotation.roll + (deltaRoll * alpha);
+			}
+		}
+		else
+		{
+			newRotation = originalCamRotation;
+		}
+
+		// 4. Final Wrap-around (Keeping the values in 0-360 or -180/180 for the Engine)
+		auto wrapAngle = [](float angle) {
+			while (angle >= 360.0f) angle -= 360.0f;
+			while (angle < 0.0f)    angle += 360.0f;
+			return angle;
+			};
+
+		NewCameraRotation = { wrapAngle(newRotation.x), wrapAngle(newRotation.y), wrapAngle(newRotation.z) };
+		LastCameraRotation = NewCameraRotation;
 	}
-
-	//Logger::DebugPrint("%f", pawnPosition.z + CameraHeightOffset);
-	//Logger::DebugPrint("%f, %f", remappedLerpZMultiplier, 2.25f * remappedLerpZMultiplier * DeltaTime);
-	//Logger::DebugPrint("%f", DeltaTime);
-
-	//Logger::DebugPrint("Camera Height Offset : %f", cameraController.CameraHeightOffset);
-	LastCameraPosition = { newPosition.x, newPosition.y, newPosition.z };
-	OriginalCameraPosition.x = newPosition.x;
-	OriginalCameraPosition.y = newPosition.y;
-	OriginalCameraPosition.z = newPosition.z;
-
-	if (playerManager->CurrentMenuType == SDK::EGsrUIMenuType::None)
+	else
 	{
-		YawProcessed = YawInput * 3.0f * *settingsManager->CameraRotationSpeedPtr * deltaTime;
-		if (YawInput != 0.0)
-			ActualYaw += YawProcessed;
+		auto pawn = uevr::API::get()->get_local_pawn(0);
+		//UEVR_Vector3d floorPosition;
+		//pawn->call_function(L"GetFloorPosition", &floorPosition);
+		//Logger::DebugPrint("GetFloorPosition : %f, %f, %f", floorPosition.x, floorPosition.y, floorPosition.z);
+		UEVR_Vector3d pawnPosition;
+		pawn->call_function(L"K2_GetActorLocation", &pawnPosition);
+		//Logger::DebugPrint("Pawn Position : %f, %f, %f", pawnPosition.x, pawnPosition.y, pawnPosition.z);
+		auto grassVolumeCollisionHead = pawn->get_property<uevr::API::UObject*>(L"GrassVolumeCollisionHead");
+
+		grassVolumeCollisionHead->call_function(L"K2_GetComponentLocation", &headColliderPosition);
+		//Logger::DebugPrint("headColliderPosition : %f, %f, %f", headColliderPosition.x, headColliderPosition.y, headColliderPosition.z);
+
+
+		//Logger::DebugPrint("Current Player Stance : %i", playerManager.CurrentStance);
+		//Logger::DebugPrint("Player Is Peeping: %i", playerManager.IsPeeping);
+
+		// Reset camera position and rotation when player respawn or teleport
+		if (InstantCameraPositionNeeded)
+		{
+			LastCameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
+			//CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
+			NewCameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
+
+			auto pawn = uevr::API::get()->get_local_pawn(0);
+			UEVR_Rotatord pawnRotation;
+			pawn->call_function(L"K2_GetActorRotation", &pawnRotation);
+			ActualYaw = pawnRotation.yaw;
+			LastCameraRotation.yaw = ActualYaw;
+			NewCameraRotation.yaw = ActualYaw;
+			return;
+		}
+		//Logger::DebugPrint("Actual Yaw : %f", ActualYaw);
+		//Logger::DebugPrint("State Machine Name : %s ", playerManager->debugParamsTest.StateMachineName.ToString().c_str());
+		//Logger::DebugPrint("Next State Name : %s ", playerManager->debugParamsTest.NextStateName.ToString().c_str());
+		//Logger::DebugPrint("Prev State Name : %s ", playerManager->debugParamsTest.PrevStateName.ToString().c_str());
+		//CameraHeightOffset = headColliderPosition.z - pawnPosition.z;
+		//Logger::DebugPrint("stance : %i", playerManager->CurrentStance);
+		//Logger::DebugPrint("pawnPosition.z : %f", pawnPosition.z);
+
+		if (!*settingsManager->EnableRoomscaleProneAndCrouchPtr)
+		{
+			switch (playerManager->CurrentStance)
+			{
+			case SDK::EGsrPlayerStance::Stand:
+				CameraHeightOffset = 83.0f; //-85.0f
+				break;
+			case SDK::EGsrPlayerStance::Squat:
+				CameraHeightOffset = 6.7f;
+				break;
+			case SDK::EGsrPlayerStance::Crawl:
+				CameraHeightOffset = 10.0f;
+				break;
+			default:
+				break;
+			}
+			if (playerManager->IsChangingStance || playerManager->IsRolling || playerManager->IsHanging)
+			{
+				CameraHeightOffset = headColliderPosition.z - pawnPosition.z;
+			}
+		}
+		else
+		{
+			switch (playerManager->CurrentStance)
+			{
+			case SDK::EGsrPlayerStance::Stand:
+				CameraHeightOffset = 83.0f; //-85.0f
+				break;
+			case SDK::EGsrPlayerStance::Squat:
+				CameraHeightOffset = 83.0f;
+				break;
+			case SDK::EGsrPlayerStance::Crawl:
+				// playerPosition.Z actualise one frame after change stance, we need to compensate for that or it results in a sudden camera jump
+				CameraHeightOffset = playerManager->PreviousStance == SDK::EGsrPlayerStance::Squat ? 83.0f : 83.0f + crawlOffset;
+				break;
+			default:
+				break;
+			}
+		}
+
+
+
+		//if (playerManager->IsHanging)
+		//{
+		//	tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, headColliderPosition.z);
+		//	newPosition = glm::fvec3(
+		//		glm::mix(CameraPosition.x, (float)tempPosition.x, 0.25f),
+		//		glm::mix(CameraPosition.y, (float)tempPosition.y, 0.25f),
+		//		glm::mix(CameraPosition.z, (float)tempPosition.z, 0.05f));
+		//}
+
+
+
+		if (playerManager->IsPeepingInternal) // initial peep movement
+		{
+			tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr ?
+				glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
+				glm::fvec3(headColliderPosition.x, headColliderPosition.y, pawnPosition.z + CameraHeightOffset);
+			// prevent camera yeeting into orbit on low fps
+			constexpr float speed = 3.0f;
+			float alpha = 1.0f - expf(-speed * deltaTime);
+			newPosition = *settingsManager->SmoothCameraPositionPtr ?
+				glm::mix(LastCameraPosition, tempPosition, alpha) :
+				tempPosition;
+		}
+		else if (playerManager->IsPeeping) // stops peeping
+		{
+			tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr ?
+				glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
+				glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
+			// prevent camera yeeting into orbit on low fps
+			float speedXY = 4.5f * remappedLerpXYMultiplier;
+			float alphaXY = 1.0f - expf(-speedXY * deltaTime);
+			float speedZ = 2.25f * remappedLerpZMultiplier;
+			float alphaZ = 1.0f - expf(-speedZ * deltaTime);
+			newPosition = *settingsManager->SmoothCameraPositionPtr ?
+				glm::fvec3(
+					glm::mix(LastCameraPosition.x, tempPosition.x, alphaXY),
+					glm::mix(LastCameraPosition.y, tempPosition.y, alphaXY),
+					glm::mix(LastCameraPosition.z, tempPosition.z, alphaZ)) :
+				tempPosition;
+		}
+
+		else
+		{
+			tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr || CardBoardEquipped || (playerManager->IsFirstPersonView && !*settingsManager->EnableRoomscaleProneAndCrouchPtr) ?
+				glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
+				glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
+			// prevent camera yeeting into orbit on low fps
+			float speedXY = 11.25f * remappedLerpXYMultiplier;
+			float alphaXY = 1.0f - expf(-speedXY * deltaTime);
+			float speedZ = (CardBoardEquipped ? 5.0f : 2.25f) * remappedLerpZMultiplier;
+			float alphaZ = 1.0f - expf(-speedZ * deltaTime);
+			newPosition = *settingsManager->SmoothCameraPositionPtr ?
+				glm::fvec3(
+					glm::mix(LastCameraPosition.x, tempPosition.x, alphaXY),
+					glm::mix(LastCameraPosition.y, tempPosition.y, alphaXY),
+					glm::mix(LastCameraPosition.z, tempPosition.z, alphaZ)) :
+				tempPosition;
+		}
+
+		//Logger::DebugPrint("%f", pawnPosition.z + CameraHeightOffset);
+		//Logger::DebugPrint("%f, %f", remappedLerpZMultiplier, 2.25f * remappedLerpZMultiplier * DeltaTime);
+		//Logger::DebugPrint("%f", DeltaTime);
+
+		//Logger::DebugPrint("Camera Height Offset : %f", cameraController.CameraHeightOffset);
+		LastCameraPosition = newPosition;
+		NewCameraPosition.x = newPosition.x;
+		NewCameraPosition.y = newPosition.y;
+		NewCameraPosition.z = newPosition.z;
+
+		if (playerManager->CurrentMenuType == SDK::EGsrUIMenuType::None)
+		{
+			YawProcessed = YawInput * 3.0f * *settingsManager->CameraRotationSpeedPtr * deltaTime;
+			if (YawInput != 0.0)
+				ActualYaw += YawProcessed;
+		}
+
+		//if (ActualYaw >= 360.0f)
+		//	ActualYaw -= 360.0f;
+		//else if (ActualYaw < 0.0f)
+		//	ActualYaw += 360.0f;
+		/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
+
+		//The Imgui menu shows the smoothness "quantity", not the lerp factor. We need the inverse for the calculation. Makes more sense for users.
+		float remappedRotationLerpMultiplier = Utilities::Remap(*settingsManager->CameraYawLerpPtr, 0.0f, 10.0f, 2.0f, 0.1f);
+		// prevent camera yeeting into orbit on low fps
+		float speed = 10.25f * remappedRotationLerpMultiplier;
+		float alpha = 1.0f - expf(-speed * deltaTime);
+		NewCameraRotation.yaw = *settingsManager->SmoothCameraRotationPtr ?
+			glm::mix(LastCameraRotation.yaw, ActualYaw, alpha) :
+			ActualYaw;
+
+		LastCameraRotation = NewCameraRotation;
+		previousPawnPositionZ = pawnPosition.z;
+		/*SetCameraRotation();*/
 	}
-
-	//if (ActualYaw >= 360.0f)
-	//	ActualYaw -= 360.0f;
-	//else if (ActualYaw < 0.0f)
-	//	ActualYaw += 360.0f;
-	/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
-
-	//The Imgui menu shows the smoothness "quantity", not the lerp factor. We need the inverse for the calculation. Makes more sense for users.
-	float remappedRotationLerpMultiplier = Utilities::Remap(*settingsManager->CameraYawLerpPtr, 0.0f, 10.0f, 2.0f, 0.1f);
-	// prevent camera yeeting into orbit on low fps
-	float speed = 10.25f * remappedRotationLerpMultiplier;
-	float alpha = 1.0f - expf(-speed * deltaTime);
-	CameraRotation.yaw = *settingsManager->SmoothCameraRotationPtr ? 
-		glm::mix(LastCameraRotation.yaw, ActualYaw, alpha) :
-		ActualYaw;
-	
-	LastCameraRotation = CameraRotation;
-	previousPawnPositionZ = pawnPosition.z;
-	/*SetCameraRotation();*/
 }
 
 void CameraController::ProcessCameraResetTimer(float delta)
@@ -466,7 +576,7 @@ void CameraController::ApplyCutsceneSettings()
 	{
 		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)));
 		uevr::API::VR::set_mod_value("VR_2DScreenMode",
-			*settingsManager->EnableCutoutScreenForCutscenesPtr || ActualCutsceneState == CameraController::CutsceneState::Playing2D ?
+			/**settingsManager->EnableCutoutScreenForCutscenesPtr || */ActualCutsceneState == CameraController::CutsceneState::Playing2D ?
 			true : false);
 		uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesPtr ? 1.0f : 0.0f);
 	}

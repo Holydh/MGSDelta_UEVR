@@ -5,10 +5,10 @@ attachCameraToSnakeHead=false
 cameraRotationSpeed=25.000000
 cameraRotationDeadZone=0.000000
 smoothCameraRotation=false
-cameraYawLerp=5.000000
+cameraYawLerp=7.880000
 smoothCameraPosition=true
-cameraPositionXYLerp=3.500000
-cameraPositionZLerp=5.040000
+cameraPositionXYLerp=4.200000
+cameraPositionZLerp=4.800000
 ------ Gameplay Settings ------
 enableRoomscaleProneAndCrouch=false
 squatUnderThisValue=-0.400000

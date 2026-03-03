@@ -11,6 +11,7 @@
 #include "SDK/sv_main_classes.hpp"
 #include "SDK/Radio_classes.hpp"
 #include "SDK/CobraUI_structs.hpp"
+#include "SDK/CobraCutScene_classes.hpp"
 
 #include "PlayerManager.hpp"
 #include "SettingsManager.hpp"
@@ -39,8 +40,10 @@ public:
 	//void SetCameraPosition();
 	float CameraHeightOffset = 0.0f;
 	UEVR_Vector3d OriginalCameraPosition = { 0.0f, 0.0f, 0.0f };
+	UEVR_Vector3d NewCameraPosition = { 0.0f, 0.0f, 0.0f };
 	glm::fvec3 LastCameraPosition = { 0.0f, 0.0f, 0.0f };
-	UEVR_Rotatord CameraRotation = { 0.0f, 0.0f, 0.0f };
+	UEVR_Rotatord OriginalCameraRotation = { 0.0f, 0.0f, 0.0f };
+	UEVR_Rotatord NewCameraRotation = { 0.0f, 0.0f, 0.0f };
 	UEVR_Rotatord LastCameraRotation = { 0.0f, 0.0f, 0.0f };
 	SDK::FVector CameraForwardVector = { 1.0f, 0.0f, 0.0f };
 

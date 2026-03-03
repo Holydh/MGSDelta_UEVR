@@ -126,7 +126,12 @@ void SettingsManager::InitSettingsManager()
 
 	DisableThermalVisionScanlinePtr = &disableThermalVisionScanline;
 
-	EnableCutoutScreenForCutscenesPtr = &enableCutoutScreenForCutscenes;
+	EnableImmersiveModePtr = &enableImmersiveMode;
+	SmoothCameraMovementsInImmersiveCutscenesPtr = &smoothCameraMovementsInImmersiveCutscenes;
+	CutsceneCameraPositionLerpPtr = &cutsceneCameraPositionLerp;
+	CutsceneCameraRotationLerpPtr = &cutsceneCameraRotationLerp;
+	//EnableCutoutScreenForCutscenesPtr = &enableCutoutScreenForCutscenes;
+
 	Enable3DCutscenesPtr = &enable3DCutscenes;
 	Enable3DRadioPtr = &enable3DRadio;
 	Enable3DSurvivalViewPtr = &enable3DSurvivalView;
@@ -175,7 +180,12 @@ void SettingsManager::FetchPluginSettings()
 
 	disableThermalVisionScanline = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "disableThermalVisionScanline", true);
 
-	enableCutoutScreenForCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableCutoutScreenForCutscenes", true);
+	enableImmersiveMode = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableImmersiveMode", true);
+	smoothCameraMovementsInImmersiveCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraMovementsInImmersiveCutscenes", true);
+	cutsceneCameraPositionLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cutsceneCameraPositionLerp", 5.0f);
+	cutsceneCameraRotationLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cutsceneCameraRotationLerp", 8.0f);
+	//enableCutoutScreenForCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableCutoutScreenForCutscenes", true);
+	
 	enable3DCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DCutscenes", false);
 	enable3DRadio = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DRadio", false);
 	enable3DSurvivalView = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DSurvivalView", true);
@@ -218,8 +228,13 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableTwoHandsRealisticRecoil", enableTwoHandsRealisticRecoil);
 
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "disableThermalVisionScanline", disableThermalVisionScanline);
-
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableCutoutScreenForCutscenes", enableCutoutScreenForCutscenes);
+	
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableImmersiveMode", enableImmersiveMode);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraMovementsInImmersiveCutscenes", smoothCameraMovementsInImmersiveCutscenes);
+	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cutsceneCameraPositionLerp", cutsceneCameraPositionLerp);
+	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cutsceneCameraRotationLerp", cutsceneCameraRotationLerp);
+	//SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableCutoutScreenForCutscenes", enableCutoutScreenForCutscenes);
+	
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DCutscenes", enable3DCutscenes);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DRadio", enable3DRadio);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DSurvivalView", enable3DSurvivalView);
@@ -261,8 +276,11 @@ void SettingsManager::GetOrCreateConfigFile()
 			"enableTwoHandsRealisticRecoil=true\n"
 			"------ Items Settings ------\n"
 			"disableThermalVisionScanline=true\n"
-			"------ Misc Settings ------\n"
-			"enableCutoutScreenForCutscenes=true\n"
+			"------ Cutscenes Settings ------\n"
+			"enableImmersiveMode=true\n"
+			"smoothCameraMovementsInImmersiveCutscenes=true"
+			//"enableCutoutScreenForCutscenes=true\n"
+			"------ Rendering Settings ------\n"
 			"enable3DCutscenes=false\n"
 			"enable3DRadio=false\n"
 			"enable3DSurvivalView=true\n";
