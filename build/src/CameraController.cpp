@@ -574,6 +574,8 @@ void CameraController::ApplyCutsceneSettings()
 {
 	if (CutsceneStarts())
 	{
+		if (ActualCutsceneState == CameraController::CutsceneState::Playing3D)
+			SpawnCustom2DScreen();
 		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)));
 		uevr::API::VR::set_mod_value("VR_2DScreenMode",
 			/**settingsManager->EnableCutoutScreenForCutscenesPtr || */ActualCutsceneState == CameraController::CutsceneState::Playing2D ?
@@ -587,3 +589,152 @@ void CameraController::ApplyCutsceneSettings()
 		uevr::API::VR::set_mod_value("VR_WorldScale", 1.0f);
 	}
 }
+
+void CameraController::SpawnCustom2DScreen()
+{
+	UEVR_Vector3d uevrVector = { 0.0f, 0.0f, 0.0f };
+	auto uevrActor = Utilities::SpawnActor(uevrVector, nullptr);
+	auto actor = (SDK::AActor*)uevrActor;
+	if (!actor)
+	{
+		return;
+	}
+
+    // 1. Find the mesh asset already loaded in memory
+    static SDK::UStaticMesh* staticMesh = nullptr;
+	auto meshUEVR = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Engine/BasicShapes/Plane.Plane");
+	auto sdkMesh = (SDK::UObject*)meshUEVR;
+    if (sdkMesh->IsA(SDK::UStaticMesh::StaticClass()))
+    {
+		staticMesh = (SDK::UStaticMesh*)meshUEVR;
+
+        if (!staticMesh)
+        {
+            Logger::DebugPrint("Failed to find static mesh");
+            return;
+		}
+		Logger::DebugPrint("Found static mesh %s : ", staticMesh->GetFullName().c_str());
+	}
+	else
+	{
+		Logger::DebugPrint("Asset found is not a StaticMesh or SkeletalMesh");
+		return;
+	}
+
+	auto material = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Material /Engine/EngineDebugMaterials/DebugMeshMaterial.DebugMeshMaterial");
+	if (!material)
+	{
+		Logger::DebugPrint("Failed to find material for 2D screen");
+		return;
+	}
+
+	auto sdkMaterial = (SDK::UMaterial*)material;
+	sdkMaterial->TwoSided = true;
+	sdkMaterial->bDisableDepthTest = true;
+	sdkMaterial->BlendMode = SDK::EBlendMode::BLEND_Translucent;
+	////uMaterial->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
+	//sdkMaterial->ShadingModel = SDK::EMaterialShadingModel::MSM_Unlit;
+	////Material /Engine/EngineMaterials/DefaultMaterial.DefaultMaterial
+
+	//auto textureUEVR = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Texture2D /CobraUI/Material/HUD/T_GoggleVignette.T_GoggleVignette");
+	//auto texture = (SDK::UTexture2D*)textureUEVR;
+
+	if (staticMesh)
+	{
+		// create 5 planes for the box
+		for (int i = 0; i < 1; i++)
+		{
+			auto* staticMeshComponent = static_cast<SDK::UStaticMeshComponent*>(actor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(),
+				false, // bManualAttachment
+				SDK::FTransform{}, // RelativeTransform
+				false // bDeferConstruction
+			));
+
+			if (!staticMeshComponent)
+			{
+				Logger::DebugPrint("Failed to create UStaticMeshComponent");
+				return;
+			}
+			Logger::DebugPrint("Created StaticMeshComponent: %s", staticMeshComponent->GetFullName().c_str());
+			// 3. Assign the mesh asset to our new component instance
+			staticMeshComponent->SetStaticMesh(staticMesh);
+			Logger::DebugPrint("Assigned mesh to StaticMeshComponent");
+
+			// 4. Attach the new component to the Actor's root component
+			staticMeshComponent->K2_AttachToComponent(
+				actor->K2_GetRootComponent(),                      // Parent
+				SDK::FName(),                                      // SocketName (none)
+				SDK::EAttachmentRule::KeepRelative,             // Use the relative location we just set
+				SDK::EAttachmentRule::KeepRelative,             // Use the relative rotation we just set
+				SDK::EAttachmentRule::KeepRelative,             // Use the relative scale we just set
+				false                                            // bWeldSimulatedBodies
+			);
+			Logger::DebugPrint("Attached StaticMeshComponent to Actor's root component");
+
+			// 6. Register the component to make it "live" and renderable in the world
+			staticMeshComponent->Activate(true);
+			Logger::DebugPrint("Activated StaticMeshComponent");
+
+			// Optional: Disable collision if it's just for visuals
+			staticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
+
+			staticMeshComponent->Activate(true);
+			staticMeshComponent->SetVisibility(true, false);
+			staticMeshComponent->SetHiddenInGame(false, false);
+			staticMeshComponent->SetWorldScale3D({ 1, 1, 1 });
+			staticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
+			staticMeshComponent->SetRenderCustomDepth(true);
+
+			staticMeshComponent->TranslucencySortPriority = 10000;
+			staticMeshComponent->SetTranslucencySortDistanceOffset(10000);
+
+			auto dynamicMaterial = staticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, sdkMaterial);
+			//Logger::DebugPrint("scopeDynamicMaterial created %s", scopeDynamicMaterial->GetFullName().c_str());
+			//Applying the render texture to the material :
+			//dynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"LinearColor"), texture);
+			dynamicMaterial->SetVectorParameterValue(
+				SDK::UKismetStringLibrary::Conv_StringToName(L"Color"),
+				SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 9999.0f }
+			);
+
+			switch (i)
+			{
+			case 0: // top
+				staticMeshComponent->K2_SetRelativeLocation({ 90.0f, 0.0f, -10.0f }, false, nullptr, true);
+				staticMeshComponent->K2_SetRelativeRotation({ 20.0f, 0.0f, 0.0f }, false, nullptr, true);
+				break;
+			case 1: // right
+				break;
+			}
+		}
+	}
+
+	Custom2DScreen = actor;
+
+	auto static cameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"BlueprintGeneratedClass /Game/Blueprints/Camera/BP_PlayerCameraManager.BP_PlayerCameraManager_C");
+	auto cameraManagerActor = (SDK::AActor*)cameraManager_c->get_first_object_matching(false);
+
+	Custom2DScreen->K2_AttachToActor(cameraManagerActor, 		
+				SDK::FName(),                                      // SocketName (none)
+				SDK::EAttachmentRule::KeepRelative,             // Use the relative location we just set
+				SDK::EAttachmentRule::KeepRelative,             // Use the relative rotation we just set
+				SDK::EAttachmentRule::KeepRelative,             // Use the relative scale we just set
+				false                                            // bWeldSimulatedBodies
+			);
+	Logger::DebugPrint("custom box parent : %ls", actor->GetParentActor()->GetFullName().c_str());
+}
+
+//void CameraController::ProcessCustom2DScreenPositionAndRotation()
+//{
+//	//grab uevr position and rotation from callback and apply to the custom 2D screen
+//	// need to delete the logic that attach the planes to the camera manager.
+//}
+
+void CameraController::DestroyCustom2DScreen()
+{
+	if (Custom2DScreen)
+	{
+		Custom2DScreen->K2_DestroyActor();
+	}
+}
+

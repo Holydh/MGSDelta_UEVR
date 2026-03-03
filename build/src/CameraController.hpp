@@ -84,6 +84,11 @@ public:
 	bool CutscenePlaying();
 	bool CutsceneStops();
 	void ApplyCutsceneSettings();
+
+	void SpawnCustom2DScreen();
+	void ProcessCustom2DScreenPositionAndRotation(UEVR_Vector3d location, UEVR_Rotatord rotation);
+	void DestroyCustom2DScreen();
+	SDK::AActor* Custom2DScreen;
 	//void SetNearClipPlane(float nearClip);
 
 	bool CardBoardEquipped = false;

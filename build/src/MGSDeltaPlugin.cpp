@@ -370,9 +370,15 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.DestroyCameraAttachementActor();
 		
 		API::get()->dispatch_lua_event("PlayerTookControl", "0");
+
+		vr_enabled = enable;
+	}
+
+	if (!enable)
+	{
+		cameraController.DestroyCustom2DScreen();
 		weaponManager.Cleanup();
 		playerManager.Cleanup();
-		vr_enabled = enable;
 	}
 	//Logger::DebugPrint("%i", API::VR::get_mod_value<bool>("VR_2DScreenMode"));
 }
@@ -428,8 +434,10 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		/*Logger::DebugPrint("Before ApplyAimDataToMemory");*/
 		//weaponController.ApplyAimDataToMemory();
 		//Logger::DebugPrint("Before SetAimDirection");
-		weaponManager.SetAimDirection();
-	/*	Logger::DebugPrint("Before GetCurrentPlayerStance");*/
+		
+		//weaponManager.SetAimDirection();
+	
+		/*	Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
 		//Logger::DebugPrint("Before UpdatePeepingState");
 		playerManager.UpdatePeepingAndCqcGrabState(delta);
