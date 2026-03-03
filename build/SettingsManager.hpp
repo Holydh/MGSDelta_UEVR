@@ -103,7 +103,7 @@ private:
 	float cutsceneCameraRotationLerp = 8.0f;
 	//bool enableCutoutScreenForCutscenes = true;
 
-	bool enable3DCutscenes = false;
+	bool enable3DCutscenes = true;
 	bool enable3DRadio = false;
 	bool enable3DSurvivalView = true;
 

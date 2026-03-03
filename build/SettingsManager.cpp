@@ -186,7 +186,7 @@ void SettingsManager::FetchPluginSettings()
 	cutsceneCameraRotationLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cutsceneCameraRotationLerp", 8.0f);
 	//enableCutoutScreenForCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableCutoutScreenForCutscenes", true);
 	
-	enable3DCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DCutscenes", false);
+	enable3DCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DCutscenes", true);
 	enable3DRadio = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DRadio", false);
 	enable3DSurvivalView = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DSurvivalView", true);
 
@@ -284,7 +284,7 @@ void SettingsManager::GetOrCreateConfigFile()
 			"smoothCameraMovementsInImmersiveCutscenes=true"
 			//"enableCutoutScreenForCutscenes=true\n"
 			"------ Rendering Settings ------\n"
-			"enable3DCutscenes=false\n"
+			"enable3DCutscenes=true\n"
 			"enable3DRadio=false\n"
 			"enable3DSurvivalView=true\n";
 

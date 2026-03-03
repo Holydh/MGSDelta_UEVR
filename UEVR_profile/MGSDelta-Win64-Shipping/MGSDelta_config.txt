@@ -3,23 +3,30 @@
 ------ Camera Settings ------
 attachCameraToSnakeHead=false
 cameraRotationSpeed=25.000000
-cameraRotationDeadZone=0.000000
+cameraRotationDeadZone=0.200000
 smoothCameraRotation=false
-cameraYawLerp=7.880000
+cameraYawLerp=5.000000
 smoothCameraPosition=true
-cameraPositionXYLerp=4.200000
-cameraPositionZLerp=4.800000
+cameraPositionXYLerp=3.500000
+cameraPositionZLerp=5.000000
 ------ Gameplay Settings ------
 enableRoomscaleProneAndCrouch=false
 squatUnderThisValue=-0.400000
-crawlUnderThisValue=0.000000
+crawlUnderThisValue=-0.800000
 ------ Weapons Settings ------
 enableWeaponsScopes=true
 scopeResolution=1024
+disableAllRecoil=false
+enableTwoHandsPivot=true
+enableTwoHandsRealisticRecoil=true
 ------ Items Settings ------
 disableThermalVisionScanline=true
------- Misc Settings ------
-enableCutoutScreenForCutscenes=false
+------ Cutscenes Settings ------
+enableImmersiveMode=true
+smoothCameraMovementsInImmersiveCutscenes=true
+cutsceneCameraPositionLerp=5.000000
+cutsceneCameraRotationLerp=8.000000
+smoothCameraMovementsInImmersiveCutscenes=true------ Rendering Settings ------
 enable3DCutscenes=true
 enable3DRadio=false
 enable3DSurvivalView=true
