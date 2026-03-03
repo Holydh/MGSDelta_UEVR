@@ -208,7 +208,8 @@ void ImGuiMenu::checkMouseFocus(float delta)
 	//Logger::DebugPrint("mouseUseTimer : %f", mouseUseTimer);
 	auto io = ImGui::GetIO();
 
-	MouseHasFocus = false;
+
+	MouseHasFocus = uevr::API::get()->param()->vr->is_hmd_active() ? false : true;
 	return;
 
 	//need rework :
