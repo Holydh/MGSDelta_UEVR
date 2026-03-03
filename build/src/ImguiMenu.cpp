@@ -486,7 +486,27 @@ void ImGuiMenu::internalFrame()
 				settingsManager->SettingsModifiedThisFrame = true;
 			}
 			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Cutscenes camera movements can be intense. Can cause severe motion sickness.");
+			{
+				ImGui::BeginTooltip();
+				ImGui::Text("Cutscenes camera movements can be intense. Enabling this can cause motion sickness.");
+				ImGui::Text("Black bars will spawn for a comfortable experience if disabled.");
+				ImGui::EndTooltip();
+			}
+
+			ImGui::BeginDisabled(*settingsManager->EnableImmersiveModePtr);
+			{
+				ImGui::Indent();
+				if (ImGui::SliderFloat("Black Bars Size", settingsManager->BlackBarsSizePtr, 0.0f, 10.0f))
+					settingsManager->SettingsModifiedThisFrame = true;
+				if (ImGui::IsItemHovered()) {
+					ImGui::BeginTooltip();
+					ImGui::Text("Enlarge or reduce the black bars.");
+					ImGui::Text("Default value (1.0) is how the cutscenes are intended to be seen in flatscreen");
+					ImGui::EndTooltip();
+				}
+				ImGui::Unindent();
+			}
+			ImGui::EndDisabled();
 
 			ImGui::BeginDisabled(!*settingsManager->EnableImmersiveModePtr);
 			{
@@ -501,10 +521,20 @@ void ImGuiMenu::internalFrame()
 					//ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f); // Make sliders a bit shorter
 					if (ImGui::SliderFloat("Position Smoothness", settingsManager->CutsceneCameraPositionLerpPtr, 0.0f, 10.0f))
 						settingsManager->SettingsModifiedThisFrame = true;
-
-					//ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+					if (ImGui::IsItemHovered()) {
+						ImGui::BeginTooltip();
+						ImGui::Text("Higher values = smoother but slower movement");
+						ImGui::Text("Lower values = snappier but less smooth");
+						ImGui::EndTooltip();
+					}
 					if (ImGui::SliderFloat("Rotation Smoothness", settingsManager->CutsceneCameraRotationLerpPtr, 0.0f, 10.0f))
 						settingsManager->SettingsModifiedThisFrame = true;
+					if (ImGui::IsItemHovered()) {
+						ImGui::BeginTooltip();
+						ImGui::Text("Higher values = smoother but slower movement");
+						ImGui::Text("Lower values = snappier but less smooth");
+						ImGui::EndTooltip();
+					}
 					ImGui::Unindent();
 				}
 				ImGui::Unindent();

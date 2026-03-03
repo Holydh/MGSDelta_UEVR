@@ -127,6 +127,7 @@ void SettingsManager::InitSettingsManager()
 	DisableThermalVisionScanlinePtr = &disableThermalVisionScanline;
 
 	EnableImmersiveModePtr = &enableImmersiveMode;
+	BlackBarsSizePtr = &blackBarsSize;
 	SmoothCameraMovementsInImmersiveCutscenesPtr = &smoothCameraMovementsInImmersiveCutscenes;
 	CutsceneCameraPositionLerpPtr = &cutsceneCameraPositionLerp;
 	CutsceneCameraRotationLerpPtr = &cutsceneCameraRotationLerp;
@@ -180,7 +181,8 @@ void SettingsManager::FetchPluginSettings()
 
 	disableThermalVisionScanline = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "disableThermalVisionScanline", true);
 
-	enableImmersiveMode = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableImmersiveMode", true);
+	enableImmersiveMode = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableImmersiveMode", false);
+	blackBarsSize = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "blackBarsSize", 1.0f);
 	smoothCameraMovementsInImmersiveCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraMovementsInImmersiveCutscenes", true);
 	cutsceneCameraPositionLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cutsceneCameraPositionLerp", 5.0f);
 	cutsceneCameraRotationLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cutsceneCameraRotationLerp", 8.0f);
@@ -230,6 +232,7 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "disableThermalVisionScanline", disableThermalVisionScanline);
 	
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableImmersiveMode", enableImmersiveMode);
+	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "blackBarsSize", blackBarsSize);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraMovementsInImmersiveCutscenes", smoothCameraMovementsInImmersiveCutscenes);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cutsceneCameraPositionLerp", cutsceneCameraPositionLerp);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cutsceneCameraRotationLerp", cutsceneCameraRotationLerp);
@@ -277,7 +280,8 @@ void SettingsManager::GetOrCreateConfigFile()
 			"------ Items Settings ------\n"
 			"disableThermalVisionScanline=true\n"
 			"------ Cutscenes Settings ------\n"
-			"enableImmersiveMode=true\n"
+			"enableImmersiveMode=false\n"
+			"blackBarsSize=1.0\n"
 			"smoothCameraMovementsInImmersiveCutscenes=true\n"
 			"cutsceneCameraPositionLerp=5.0\n"
 			"cutsceneCameraRotationLerp=8.0\n"

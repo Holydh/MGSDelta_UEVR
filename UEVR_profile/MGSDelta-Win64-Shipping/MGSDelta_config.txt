@@ -22,7 +22,7 @@ enableTwoHandsRealisticRecoil=true
 ------ Items Settings ------
 disableThermalVisionScanline=true
 ------ Cutscenes Settings ------
-enableImmersiveMode=true
+enableImmersiveMode=false
 smoothCameraMovementsInImmersiveCutscenes=true
 cutsceneCameraPositionLerp=5.000000
 cutsceneCameraRotationLerp=8.000000

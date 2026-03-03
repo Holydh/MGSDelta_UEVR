@@ -65,6 +65,7 @@ public:
 	bool* DisableThermalVisionScanlinePtr;
 
 	bool* EnableImmersiveModePtr;
+	float* BlackBarsSizePtr;
 	bool* SmoothCameraMovementsInImmersiveCutscenesPtr;
 	float* CutsceneCameraPositionLerpPtr;
 	float* CutsceneCameraRotationLerpPtr;
@@ -97,7 +98,8 @@ private:
 
 	bool disableThermalVisionScanline = true;
 
-	bool enableImmersiveMode = true;
+	bool enableImmersiveMode = false;
+	float blackBarsSize = 1.0f;
 	bool smoothCameraMovementsInImmersiveCutscenes = true;
 	float cutsceneCameraPositionLerp = 5.0f;
 	float cutsceneCameraRotationLerp = 8.0f;
