@@ -45,10 +45,15 @@ private:
     float mouseUseTime = 1.0f;
     float mouseUseTimer = 1.0f;
 
+    float imguiSize = 1.2f;
+	bool imguiSettingsInitialized = false;
+
 public:
     ImGuiMenu(SettingsManager* sm, WeaponManager* wm, CameraController* cm, PlayerManager* pm) : settingsManager(sm), weaponManager(wm), cameraController(cm), playerManager(pm) {};
 
-	void RenderImGuiFrame();
+    void InitializeImGuiSettings();
+
+    void RenderImGuiFrame();
     void RenderImGuiVRFrameDX11(ID3D11DeviceContext* context, ID3D11Texture2D* texture, ID3D11RenderTargetView* rtv);
     void RenderImGuiVRFrameDX12(ID3D12GraphicsCommandList* command_list, ID3D12Resource* rt, D3D12_CPU_DESCRIPTOR_HANDLE* rtv);
 

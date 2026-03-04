@@ -495,7 +495,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	//}
 
 	imGuiMenu.ProcessImGui(delta);
-			
+
 	playerManager.WasSecondHandAttachedToWeapon = playerManager.SecondHandAttachedToWeapon;
 	playerManager.WasPlayerControlled = playerManager.IsPlayerControlled;
 	playerManager.WasPeepingInternal = playerManager.IsPeepingInternal;

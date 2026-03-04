@@ -1,5 +1,12 @@
 #include "ImGuiMenu.hpp"
 
+void ImGuiMenu::InitializeImGuiSettings()
+{
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.ScaleAllSizes(imguiSize); // Scale padding, spacing, borders, etc.
+	ImGui::GetIO().FontGlobalScale = imguiSize; // Also scale fonts
+}
+
 void ImGuiMenu::RenderImGuiFrame()
 {
 	std::scoped_lock _{ m_imgui_mutex };
@@ -89,7 +96,9 @@ void ImGuiMenu::RenderImGuiVRFrameDX12(ID3D12GraphicsCommandList* command_list, 
 void ImGuiMenu::ProcessImGui(float deltaTime)
 {
 	if (!m_initialized || !uevr::API::get()->param()->functions->is_drawing_ui())
+	{
 		return;
+	}
 
 	std::scoped_lock _{ m_imgui_mutex };
 	//ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
@@ -270,23 +279,25 @@ void ImGuiMenu::internalFrame()
 	auto kismet_text_library = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.KismetTextLibrary")->get_class_default_object();
 	auto statics = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.GameplayStatics")->get_class_default_object();
 	
-	if (ImGui::Begin("MGS Delta VR Plugin")) {
-		if (ImGui::CollapsingHeader("Camera Settings"))
-		{
+	if (!imguiSettingsInitialized)
+	{
+		ImGuiStyle& style = ImGui::GetStyle();
+		style.ScaleAllSizes(imguiSize); // Scale padding, spacing, borders, etc.
+		ImGui::GetIO().FontGlobalScale = imguiSize;
+		imguiSettingsInitialized = true;
+	}
 
+	if (ImGui::Begin("MGS Delta VR Plugin Settings")) {
+		float available = ImGui::GetContentRegionAvail().x;
+		ImGui::PushItemWidth(available * 0.4f);
+		if (ImGui::CollapsingHeader("Camera"))
+		{
 			/*	ImGui::Text("Decoupled pitch: %i", API::VR::is_decoupled_pitch_enabled());
 
 				if (ImGui::Button("Toggle decoupled pitch")) {
 					API::VR::set_decoupled_pitch_enabled(!API::VR::is_decoupled_pitch_enabled());
 				}*/
-
-			if (ImGui::Checkbox("Attach camera to snake head", settingsManager->AttachCameraToSnakeHeadPtr))
-				settingsManager->SettingsModifiedThisFrame = true;
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Not recommended for comfort");
-
-			float available = ImGui::GetContentRegionAvail().x;
-			//ImGui::PushItemWidth(available * 0.5f);
+			ImGui::SeparatorText("Rotation");
 
 			if (ImGui::SliderFloat("Rotation speed", settingsManager->CameraRotationSpeedPtr, 0.1f, 50.0f))
 				settingsManager->SettingsModifiedThisFrame = true;
@@ -297,6 +308,9 @@ void ImGuiMenu::internalFrame()
 				settingsManager->SettingsModifiedThisFrame = true;
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Thumbstick input below this threshold will be ignored");
+
+			ImGui::Dummy(ImVec2(0.0f, 10.0f));
+			ImGui::SeparatorText("Movement smoothing");
 
 			if (ImGui::Checkbox("Smooth camera rotation", settingsManager->SmoothCameraRotationPtr))
 				settingsManager->SettingsModifiedThisFrame = true;
@@ -340,12 +354,23 @@ void ImGuiMenu::internalFrame()
 					ImGui::EndTooltip();
 				}
 				ImGui::Unindent();
+
+				ImGui::Dummy(ImVec2(0.0f, 10.0f));
+				ImGui::SeparatorText("Misc.");
+
+				if (ImGui::Checkbox("Attach camera to snake head", settingsManager->AttachCameraToSnakeHeadPtr))
+					settingsManager->SettingsModifiedThisFrame = true;
+				if (ImGui::IsItemHovered())
+					ImGui::SetTooltip("Not recommended for comfort");
+
+				ImGui::Dummy(ImVec2(0.0f, 10.0f));
 			}
 			ImGui::EndDisabled();
 		}
 		
-		if (ImGui::CollapsingHeader("Gameplay Settings"))
+		if (ImGui::CollapsingHeader("Gameplay"))
 		{
+			ImGui::SeparatorText("RoomScale");
 			if (ImGui::Checkbox("Enable RoomScale Prone And Crouch", settingsManager->EnableRoomscaleProneAndCrouchPtr))
 				settingsManager->SettingsModifiedThisFrame = true;
 			if (ImGui::IsItemHovered()) {
@@ -377,10 +402,9 @@ void ImGuiMenu::internalFrame()
 				ImGui::Unindent();
 			}
 			ImGui::EndDisabled();
-		}
 
-		if (ImGui::CollapsingHeader("Weapons Settings"))
-		{
+			ImGui::Dummy(ImVec2(0.0f, 10.0f));
+			ImGui::SeparatorText("Weapons");
 			if (ImGui::Checkbox("Enable VR scopes", settingsManager->EnableWeaponsScopesPtr))
 			{
 				settingsManager->SettingsModifiedThisFrame = true;
@@ -467,10 +491,9 @@ void ImGuiMenu::internalFrame()
 			}
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Weapon recoil will be stronger when gripped with single hand. Lighter when gripped with both hands.");
-		}
 
-		if (ImGui::CollapsingHeader("Items Settings"))
-		{
+			ImGui::Dummy(ImVec2(0.0f, 10.0f));
+			ImGui::SeparatorText("Items");
 			if (ImGui::Checkbox("Disable thermal goggles scanline effect", settingsManager->DisableThermalVisionScanlinePtr))
 			{
 				settingsManager->SettingsModifiedThisFrame = true;
@@ -478,11 +501,17 @@ void ImGuiMenu::internalFrame()
 			}
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Removes the aggressive scanline effect from the thermal vision");
+			ImGui::Dummy(ImVec2(0.0f, 10.0f));
 		}
 
-		if (ImGui::CollapsingHeader("Cutscenes Settings"))
+		if (ImGui::CollapsingHeader("Rendering Settings"))
 		{
+			ImGui::SeparatorText("Cutscenes");
 			if (ImGui::Checkbox("Enable Immersive mode for cutscenes", settingsManager->EnableImmersiveModePtr)) {
+				if (*settingsManager->EnableImmersiveModePtr)
+					cameraController->DestroyCustom2DScreen();
+				else
+					cameraController->SpawnCustom2DScreen();
 				settingsManager->SettingsModifiedThisFrame = true;
 			}
 			if (ImGui::IsItemHovered())
@@ -496,9 +525,10 @@ void ImGuiMenu::internalFrame()
 			ImGui::BeginDisabled(*settingsManager->EnableImmersiveModePtr);
 			{
 				ImGui::Indent();
-				if (ImGui::SliderFloat("Black Bars Size", settingsManager->BlackBarsSizePtr, 0.0f, 10.0f))
+				if (ImGui::SliderFloat("Black Bars Size", settingsManager->BlackBarsSizePtr, 1.0f, 10.0f))
 				{
-					cameraController->ResizeBlackBars();
+					if (cameraController->CutscenePlaying())
+						cameraController->ResizeBlackBars();
 					settingsManager->SettingsModifiedThisFrame = true;
 				}
 					
@@ -545,21 +575,10 @@ void ImGuiMenu::internalFrame()
 				ImGui::EndDisabled();
 			}
 			ImGui::EndDisabled();
-		}
-		//if (ImGui::Checkbox("Enable Cut out Screen for cutscenes", settingsManager->EnableCutoutScreenForCutscenesPtr))
-		//{
-		//	settingsManager->SettingsModifiedThisFrame = true;
-		//	if (cameraController->CutscenePlaying())
-		//	{
-		//		uevr::API::VR::set_mod_value("VR_2DScreenMode", *settingsManager->EnableCutoutScreenForCutscenesPtr);
-		//		uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesPtr ? 1.0f : 0.0f);
-		//	}
-		//}
-		//if (ImGui::IsItemHovered())
-		//	ImGui::SetTooltip("Can cause a black screen with SteamVR.");
 
-		if (ImGui::CollapsingHeader("3D Rendering Settings"))
-		{
+			ImGui::Dummy(ImVec2(0.0f, 10.0f));
+			ImGui::SeparatorText("3D Rendering");
+
 			if (ImGui::Checkbox("Enable 3D in Cutscenes", settingsManager->Enable3DCutscenesPtr))
 			{
 				settingsManager->SettingsModifiedThisFrame = true;
@@ -590,7 +609,7 @@ void ImGuiMenu::internalFrame()
 				ImGui::SetTooltip("Works perfectly, enabled by default");
 		}
 
-		//ImGui::PopItemWidth();
+		ImGui::PopItemWidth();
 	}
 	ImGui::End();
 

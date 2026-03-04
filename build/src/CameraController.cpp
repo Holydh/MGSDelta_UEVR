@@ -595,6 +595,9 @@ void CameraController::ApplyCutsceneSettings()
 
 void CameraController::SpawnCustom2DScreen()
 {
+	if (!CutscenePlaying())
+		return;
+
 	UEVR_Vector3d uevrVector = { 0.0f, 0.0f, 0.0f };
 	auto uevrActor = Utilities::SpawnActor(uevrVector, nullptr);
 	auto actor = (SDK::AActor*)uevrActor;
@@ -721,6 +724,9 @@ void CameraController::SpawnCustom2DScreen()
 
 void CameraController::ResizeBlackBars()
 {
+	if (Custom2DScreen == nullptr)
+		return;
+
 	Logger::DebugPrint(Custom2DScreen->K2_GetRootComponent()->GetFullName().c_str());
 	float verticalGap = 25.0f * *settingsManager->BlackBarsSizePtr;
 	float horizontalGap = verticalGap * (16.0f / 9.0f);
@@ -731,15 +737,15 @@ void CameraController::ResizeBlackBars()
 		switch (i)
 		{
 		case 0: // top
-			staticMeshComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, 25.0f }, false, nullptr, true);
+			staticMeshComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, verticalGap }, false, nullptr, true);
 			staticMeshComponent->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
 			break;
 		case 1: // down
-			staticMeshComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, -25.0f }, false, nullptr, true);
+			staticMeshComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, verticalGap }, false, nullptr, true);
 			staticMeshComponent->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
 			break;
 		case 2: // back
-			staticMeshComponent->K2_SetRelativeLocation({ -25.0f, 0.0f, 0.0f }, false, nullptr, true);
+			staticMeshComponent->K2_SetRelativeLocation({ -horizontalGap, 0.0f, 0.0f }, false, nullptr, true);
 			staticMeshComponent->K2_SetRelativeRotation({ 90.0f, 0.0f, 0.0f }, false, nullptr, true);
 			break;
 		case 3: // left
@@ -751,6 +757,8 @@ void CameraController::ResizeBlackBars()
 			staticMeshComponent->K2_SetRelativeRotation({ 0.0f, 0.0f, 90.0f }, false, nullptr, true);
 			break;
 		}
+		SDK::FVector newScale = { *settingsManager->BlackBarsSizePtr, *settingsManager->BlackBarsSizePtr, *settingsManager->BlackBarsSizePtr };
+		staticMeshComponent->SetRelativeScale3D(newScale);
 	}
 }
 
@@ -765,6 +773,7 @@ void CameraController::DestroyCustom2DScreen()
 	if (Custom2DScreen)
 	{
 		Custom2DScreen->K2_DestroyActor();
+		Custom2DScreen = nullptr;
 	}
 }
 
