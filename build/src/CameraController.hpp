@@ -47,7 +47,7 @@ public:
 	UEVR_Rotatord LastCameraRotation = { 0.0f, 0.0f, 0.0f };
 	SDK::FVector CameraForwardVector = { 1.0f, 0.0f, 0.0f };
 
-	static uevr::API::UObject* CameraAttachementActor;
+	uevr::API::UObject* CameraAttachementActor;
 	bool SpawnCameraAttachementActor();
 	void DestroyCameraAttachementActor();
 	void AttachCameraToAttachementActor();

@@ -1,7 +1,5 @@
 #include "CameraController.hpp"
 
-uevr::API::UObject* CameraController::CameraAttachementActor = nullptr;
-
 void CameraController::ToggleCameraWobblingController(bool enabled) {
 	//static auto pawn = uevr::API::get()->get_local_pawn(0);
 	//Logger::DebugPrint("Camera Recoil : " + enabled);
@@ -145,7 +143,7 @@ void CameraController::ProcessCamera(float deltaTime)
 		float alphaXY = 1.0f - expf(-speedXY * deltaTime);
 		float speedZ = 2.25f * remappedLerpZMultiplier;
 		float alphaZ = 1.0f - expf(-speedZ * deltaTime);
-		newPosition = *settingsManager->SmoothCameraPositionPtr ?
+		newPosition = *settingsManager->SmoothCameraMovementsInImmersiveCutscenesPtr ?
 			glm::fvec3(
 				glm::mix(LastCameraPosition.x, originalCamLocation.x, alphaXY),
 				glm::mix(LastCameraPosition.y, originalCamLocation.y, alphaXY),
@@ -159,7 +157,7 @@ void CameraController::ProcessCamera(float deltaTime)
 		float speed = 10.25f * remappedRotationLerpMultiplier;
 		float alpha = 1.0f - expf(-speed * deltaTime);
 
-		if (*settingsManager->SmoothCameraRotationPtr)
+		if (*settingsManager->SmoothCameraMovementsInImmersiveCutscenesPtr)
 		{
 			// 1. Calculate Deltas
 			float deltaPitch = originalCamRotation.x - (float)LastCameraRotation.pitch;
@@ -579,23 +577,43 @@ void CameraController::ApplyCutsceneSettings()
 			SpawnCustom2DScreen();
 		}
 		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)));
-		uevr::API::VR::set_mod_value("VR_2DScreenMode",
-			/**settingsManager->EnableCutoutScreenForCutscenesPtr || */ActualCutsceneState == CameraController::CutsceneState::Playing2D ?
-			true : false);
+		uevr::API::VR::set_mod_value("VR_2DScreenMode", ActualCutsceneState == CameraController::CutsceneState::Playing2D ?	true : false);
 		uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesPtr ? 1.0f : 0.0f);
+		uevr::API::VR::set_mod_value("VR_DecoupledPitch", *settingsManager->EnableImmersiveModePtr);
 	}
 	if (CutsceneStops())
 	{
 		DestroyCustom2DScreen();
 		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)));
+		uevr::API::VR::set_mod_value("VR_DecoupledPitch", true);
 		uevr::API::VR::set_mod_value("VR_2DScreenMode", false);
 		uevr::API::VR::set_mod_value("VR_WorldScale", 1.0f);
+	}
+
+	if (CutscenePlaying())
+	{
+		auto static cobraCutsceneCameraCtrlMngr_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent");
+		auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c->get_first_object_matching(false);
+		if (!cobraCutsceneCameraCtrlMngr)
+		{
+			Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");
+			return;
+		}
+		auto cc = (SDK::UCobraCutsceneCameraControlManagerComponent*)cobraCutsceneCameraCtrlMngr;
+
+		if (!*settingsManager->EnableImmersiveModePtr)
+		{
+			if (cc->bIsFpv)
+				DestroyCustom2DScreen();
+			else
+				SpawnCustom2DScreen();
+		}
 	}
 }
 
 void CameraController::SpawnCustom2DScreen()
 {
-	if (!CutscenePlaying())
+	if (!CutscenePlaying() || Custom2DScreen != nullptr)
 		return;
 
 	UEVR_Vector3d uevrVector = { 0.0f, 0.0f, 0.0f };
@@ -626,20 +644,30 @@ void CameraController::SpawnCustom2DScreen()
 		Logger::DebugPrint("Asset found is not a StaticMesh or SkeletalMesh");
 		return;
 	}
+	//Material /Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial
 
-	auto material = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Material /Engine/EngineDebugMaterials/DebugMeshMaterial.DebugMeshMaterial");
-	if (!material)
+	auto hideMat = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Material /Engine/EngineDebugMaterials/DebugMeshMaterial.DebugMeshMaterial");
+	if (!hideMat)
 	{
 		Logger::DebugPrint("Failed to find material for 2D screen");
 		return;
 	}
 
-	auto sdkMaterial = (SDK::UMaterial*)material;
-	sdkMaterial->TwoSided = true;
-	sdkMaterial->bDisableDepthTest = true;
-	sdkMaterial->BlendMode = SDK::EBlendMode::BLEND_Translucent;
-	////uMaterial->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
-	//sdkMaterial->ShadingModel = SDK::EMaterialShadingModel::MSM_Unlit;
+	auto sdkHideMat = (SDK::UMaterial*)hideMat;
+
+	auto translucentMat = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Material /Engine/EngineDebugMaterials/DebugMeshMaterial.DebugMeshMaterial");
+	if (!translucentMat)
+	{
+		Logger::DebugPrint("Failed to find material for 2D screen");
+		return;
+	}
+
+	auto sdkMat = (SDK::UMaterial*)translucentMat;
+	sdkMat->TwoSided = true;
+	sdkMat->bDisableDepthTest = true;
+	sdkMat->BlendMode = SDK::EBlendMode::BLEND_Translucent;
+	sdkMat->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
+	sdkMat->ShadingModel = SDK::EMaterialShadingModel::MSM_Unlit;
 	////Material /Engine/EngineMaterials/DefaultMaterial.DefaultMaterial
 
 	//auto textureUEVR = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Texture2D /CobraUI/Material/HUD/T_GoggleVignette.T_GoggleVignette");
@@ -694,14 +722,31 @@ void CameraController::SpawnCustom2DScreen()
 			staticMeshComponent->TranslucencySortPriority = 10000;
 			staticMeshComponent->SetTranslucencySortDistanceOffset(10000);
 
-			auto dynamicMaterial = staticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, sdkMaterial);
-			//Logger::DebugPrint("scopeDynamicMaterial created %s", scopeDynamicMaterial->GetFullName().c_str());
-			//Applying the render texture to the material :
-			//dynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"LinearColor"), texture);
-			dynamicMaterial->SetVectorParameterValue(
-				SDK::UKismetStringLibrary::Conv_StringToName(L"Color"),
-				SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 9999.0f }
-			);
+			if (i < 5)
+			{
+				auto dynamicMaterial = staticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, sdkMat);
+				dynamicMaterial->SetVectorParameterValue(
+					SDK::UKismetStringLibrary::Conv_StringToName(L"Color"),
+					SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 9999.0f }
+				);
+			}
+			//					dynamicMaterial->SetVectorParameterValue(
+			//		SDK::UKismetStringLibrary::Conv_StringToName(L"TintColorAndOpacity"),
+			//		SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 99999.0f }
+			//	);
+			//	dynamicMaterial->SetVectorParameterValue(
+			//		SDK::UKismetStringLibrary::Conv_StringToName(L"BackColor"),
+			//		SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 99999.0f }
+			//	);
+			//	dynamicMaterial->SetScalarParameterValue(
+			//		SDK::UKismetStringLibrary::Conv_StringToName(L"OpacityFromTexture"),
+			//		9999.0f
+			//	);
+			//	dynamicMaterial->SetTextureParameterValue(
+			//		SDK::UKismetStringLibrary::Conv_StringToName(L"SlateUI"),
+			//		texture
+			//	);
+			//}
 		}
 	}
 
@@ -727,39 +772,53 @@ void CameraController::ResizeBlackBars()
 	if (Custom2DScreen == nullptr)
 		return;
 
-	Logger::DebugPrint(Custom2DScreen->K2_GetRootComponent()->GetFullName().c_str());
-	float verticalGap = 25.0f * *settingsManager->BlackBarsSizePtr;
-	float horizontalGap = verticalGap * (16.0f / 9.0f);
-	auto children = Custom2DScreen->K2_GetRootComponent()->AttachChildren;
-	for (int i = 0; i < children.Num(); i++)
-	{
-		auto staticMeshComponent = (SDK::UStaticMeshComponent*)children[i];
-		switch (i)
-		{
-		case 0: // top
-			staticMeshComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, verticalGap }, false, nullptr, true);
-			staticMeshComponent->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
-			break;
-		case 1: // down
-			staticMeshComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, verticalGap }, false, nullptr, true);
-			staticMeshComponent->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
-			break;
-		case 2: // back
-			staticMeshComponent->K2_SetRelativeLocation({ -horizontalGap, 0.0f, 0.0f }, false, nullptr, true);
-			staticMeshComponent->K2_SetRelativeRotation({ 90.0f, 0.0f, 0.0f }, false, nullptr, true);
-			break;
-		case 3: // left
-			staticMeshComponent->K2_SetRelativeLocation({ 0.0f, -horizontalGap, 0.0f }, false, nullptr, true);
-			staticMeshComponent->K2_SetRelativeRotation({ 0.0f, 0.0f, 90.0f }, false, nullptr, true);
-			break;
-		case 4: // right
-			staticMeshComponent->K2_SetRelativeLocation({ 0.0f, horizontalGap, 0.0f }, false, nullptr, true);
-			staticMeshComponent->K2_SetRelativeRotation({ 0.0f, 0.0f, 90.0f }, false, nullptr, true);
-			break;
-		}
-		SDK::FVector newScale = { *settingsManager->BlackBarsSizePtr, *settingsManager->BlackBarsSizePtr, *settingsManager->BlackBarsSizePtr };
-		staticMeshComponent->SetRelativeScale3D(newScale);
-	}
+	// Dimensions (Half-extents)
+    float H = 250.0f; 
+    float W = H * (16.0f / 9.0f);
+    float D = 2000.0f; // How "deep" the cinema box is
+    
+    float planeUnit = 100.0f;
+	auto root = Custom2DScreen->K2_GetRootComponent();
+	root->K2_SetRelativeLocation({*settingsManager->BlackBarsSizePtr * 100.0f -1000.0f , 0.0f, 0.0f }, false, nullptr, true);
+
+    auto children = root->AttachChildren;
+    for (int i = 0; i < children.Num(); i++)
+    {
+        auto smc = (SDK::UStaticMeshComponent*)children[i];
+        switch (i)
+        {
+            case 0: // TOP (Ceiling)
+                smc->K2_SetRelativeLocation({ 0.0f, 0.0f, H }, false, nullptr, true);
+                smc->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
+                smc->SetWorldScale3D({ D/planeUnit, (W*2)/planeUnit, 1.0f });
+                break;
+
+            case 1: // BOTTOM (Floor)
+                smc->K2_SetRelativeLocation({ 0.0f, 0.0f, -H }, false, nullptr, true);
+                smc->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
+                smc->SetWorldScale3D({ D/planeUnit, (W*2)/planeUnit, 1.0f });
+                break;
+
+            case 2: // BACK (The wall behind the screen)
+                // Move it back by the full depth D
+                smc->K2_SetRelativeLocation({ -D*0.5f, 0.0f, 0.0f }, false, nullptr, true);
+                smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 0.0f }, false, nullptr, true);
+                smc->SetWorldScale3D({ (H*2)/planeUnit, (W*2)/planeUnit, 1.0f });
+                break;
+
+            case 3: // LEFT (Side wall)
+                smc->K2_SetRelativeLocation({ 0.0f, -W, 0.0f }, false, nullptr, true);
+                smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
+                smc->SetWorldScale3D({ (H*2)/planeUnit, D/planeUnit, 1.0f });
+                break;
+
+            case 4: // RIGHT (Side wall)
+                smc->K2_SetRelativeLocation({ 0.0f, W, 0.0f }, false, nullptr, true);
+                smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
+                smc->SetWorldScale3D({ (H*2)/planeUnit, D/planeUnit, 1.0f });
+                break;
+        }
+    }
 }
 
 //void CameraController::ProcessCustom2DScreenPositionAndRotation()

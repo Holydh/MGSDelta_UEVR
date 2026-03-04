@@ -509,9 +509,15 @@ void ImGuiMenu::internalFrame()
 			ImGui::SeparatorText("Cutscenes");
 			if (ImGui::Checkbox("Enable Immersive mode for cutscenes", settingsManager->EnableImmersiveModePtr)) {
 				if (*settingsManager->EnableImmersiveModePtr)
+				{
+					cameraController->InstantCameraPositionNeeded = true;
+					cameraController->InstantCameraPositionTimer = 0.25f;
 					cameraController->DestroyCustom2DScreen();
+				}
+
 				else
 					cameraController->SpawnCustom2DScreen();
+				uevr::API::VR::set_mod_value("VR_DecoupledPitch", *settingsManager->EnableImmersiveModePtr);
 				settingsManager->SettingsModifiedThisFrame = true;
 			}
 			if (ImGui::IsItemHovered())
@@ -525,7 +531,7 @@ void ImGuiMenu::internalFrame()
 			ImGui::BeginDisabled(*settingsManager->EnableImmersiveModePtr);
 			{
 				ImGui::Indent();
-				if (ImGui::SliderFloat("Black Bars Size", settingsManager->BlackBarsSizePtr, 1.0f, 10.0f))
+				if (ImGui::SliderFloat("Black Bars Size", settingsManager->BlackBarsSizePtr, 1.0f, 10.0f, "%.1f"))
 				{
 					if (cameraController->CutscenePlaying())
 						cameraController->ResizeBlackBars();

@@ -1038,20 +1038,20 @@ void WeaponManager::SetAimDirection()
 	//Will be used to control the grenades throw direction
 	//This controls only the aim when the camera controller is disabled. When cc enabled, it controls the camera rotation but the inputs are conflicting.
 	auto cameraController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
-	auto cameraController = cameraController_c->get_first_object_matching(false);
+	auto gsrCameraController = cameraController_c->get_first_object_matching(false);
 
 	//Logger::DebugPrint(root_component->get_full_name());
-	if (cameraController == nullptr || !CameraController::CameraAttachementActor)
+	if (gsrCameraController == nullptr || !cameraController->CameraAttachementActor)
 	{
 		Logger::DebugPrint("SetAimDirection : No CameraController or no CameraAttachementActor found");
 		return;
 	}
 
-	auto sdkActor = (SDK::AActor*)CameraController::CameraAttachementActor;
+	auto sdkActor = (SDK::AActor*)cameraController->CameraAttachementActor;
 	SDK::FRotator params;
 	params = sdkActor->K2_GetActorRotation();
 	//Logger::DebugPrint("pitch : %f, yaw : %f, roll : %f", params.Pitch, params.Yaw, params.Roll);
-	cameraController->call_function(L"SetCameraRotation", &params);
+	gsrCameraController->call_function(L"SetCameraRotation", &params);
 	
 
 	//auto root_component = CurrentWeapon->get_property<uevr::API::UObject*>(L"m_cameraActor");

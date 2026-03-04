@@ -368,17 +368,11 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		playerManager.ToggleReticleVisibility(true);
 		cameraController.DetachCameraFromAttachementActor();
 		cameraController.DestroyCameraAttachementActor();
-		
 		API::get()->dispatch_lua_event("PlayerTookControl", "0");
-
-		vr_enabled = enable;
-	}
-
-	if (!enable)
-	{
 		cameraController.DestroyCustom2DScreen();
-		weaponManager.Cleanup();
-		playerManager.Cleanup();
+		//weaponManager.Cleanup();
+		//playerManager.Cleanup();
+		vr_enabled = enable;
 	}
 	//Logger::DebugPrint("%i", API::VR::get_mod_value<bool>("VR_2DScreenMode"));
 }
@@ -435,7 +429,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		//weaponController.ApplyAimDataToMemory();
 		//Logger::DebugPrint("Before SetAimDirection");
 		
-		//weaponManager.SetAimDirection();
+		weaponManager.SetAimDirection();
 	
 		/*	Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
@@ -458,6 +452,9 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	}
 	else
 	{
+		weaponManager.RemoveUobjectHookFromHand(WeaponManager::Hand::Right);
+		weaponManager.RemoveUobjectHookFromHand(WeaponManager::Hand::Left);
+
 		cameraController.CheckCutscenePlaying();
 		if (playerManager.WasPlayerControlled)
 		{
