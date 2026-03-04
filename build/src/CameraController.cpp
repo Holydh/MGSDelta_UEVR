@@ -100,7 +100,7 @@ void CameraController::ProcessCamera(float deltaTime)
 	float remappedLerpXYMultiplier = Utilities::Remap(*settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
 	float remappedLerpZMultiplier = Utilities::Remap(*settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
 
-	if (ActualCutsceneState == CutsceneState::Playing3D)
+	if (ActualCutsceneState == CutsceneState::Playing3D && *settingsManager->EnableImmersiveModePtr)
 	{
 		auto static cobraCutsceneCameraCtrlMngr_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent");
 		auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c->get_first_object_matching(false);
@@ -574,8 +574,10 @@ void CameraController::ApplyCutsceneSettings()
 {
 	if (CutsceneStarts())
 	{
-		if (ActualCutsceneState == CameraController::CutsceneState::Playing3D)
+		if (ActualCutsceneState == CameraController::CutsceneState::Playing3D && !*settingsManager->EnableImmersiveModePtr)
+		{
 			SpawnCustom2DScreen();
+		}
 		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)));
 		uevr::API::VR::set_mod_value("VR_2DScreenMode",
 			/**settingsManager->EnableCutoutScreenForCutscenesPtr || */ActualCutsceneState == CameraController::CutsceneState::Playing2D ?
@@ -584,6 +586,7 @@ void CameraController::ApplyCutsceneSettings()
 	}
 	if (CutsceneStops())
 	{
+		DestroyCustom2DScreen();
 		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)));
 		uevr::API::VR::set_mod_value("VR_2DScreenMode", false);
 		uevr::API::VR::set_mod_value("VR_WorldScale", 1.0f);
@@ -642,7 +645,7 @@ void CameraController::SpawnCustom2DScreen()
 	if (staticMesh)
 	{
 		// create 5 planes for the box
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < 5; i++)
 		{
 			auto* staticMeshComponent = static_cast<SDK::UStaticMeshComponent*>(actor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(),
 				false, // bManualAttachment
@@ -696,20 +699,12 @@ void CameraController::SpawnCustom2DScreen()
 				SDK::UKismetStringLibrary::Conv_StringToName(L"Color"),
 				SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 9999.0f }
 			);
-
-			switch (i)
-			{
-			case 0: // top
-				staticMeshComponent->K2_SetRelativeLocation({ 90.0f, 0.0f, -10.0f }, false, nullptr, true);
-				staticMeshComponent->K2_SetRelativeRotation({ 20.0f, 0.0f, 0.0f }, false, nullptr, true);
-				break;
-			case 1: // right
-				break;
-			}
 		}
 	}
 
 	Custom2DScreen = actor;
+
+	ResizeBlackBars();
 
 	auto static cameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"BlueprintGeneratedClass /Game/Blueprints/Camera/BP_PlayerCameraManager.BP_PlayerCameraManager_C");
 	auto cameraManagerActor = (SDK::AActor*)cameraManager_c->get_first_object_matching(false);
@@ -722,6 +717,41 @@ void CameraController::SpawnCustom2DScreen()
 				false                                            // bWeldSimulatedBodies
 			);
 	Logger::DebugPrint("custom box parent : %ls", actor->GetParentActor()->GetFullName().c_str());
+}
+
+void CameraController::ResizeBlackBars()
+{
+	Logger::DebugPrint(Custom2DScreen->K2_GetRootComponent()->GetFullName().c_str());
+	float verticalGap = 25.0f * *settingsManager->BlackBarsSizePtr;
+	float horizontalGap = verticalGap * (16.0f / 9.0f);
+	auto children = Custom2DScreen->K2_GetRootComponent()->AttachChildren;
+	for (int i = 0; i < children.Num(); i++)
+	{
+		auto staticMeshComponent = (SDK::UStaticMeshComponent*)children[i];
+		switch (i)
+		{
+		case 0: // top
+			staticMeshComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, 25.0f }, false, nullptr, true);
+			staticMeshComponent->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
+			break;
+		case 1: // down
+			staticMeshComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, -25.0f }, false, nullptr, true);
+			staticMeshComponent->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
+			break;
+		case 2: // back
+			staticMeshComponent->K2_SetRelativeLocation({ -25.0f, 0.0f, 0.0f }, false, nullptr, true);
+			staticMeshComponent->K2_SetRelativeRotation({ 90.0f, 0.0f, 0.0f }, false, nullptr, true);
+			break;
+		case 3: // left
+			staticMeshComponent->K2_SetRelativeLocation({ 0.0f, -horizontalGap, 0.0f }, false, nullptr, true);
+			staticMeshComponent->K2_SetRelativeRotation({ 0.0f, 0.0f, 90.0f }, false, nullptr, true);
+			break;
+		case 4: // right
+			staticMeshComponent->K2_SetRelativeLocation({ 0.0f, horizontalGap, 0.0f }, false, nullptr, true);
+			staticMeshComponent->K2_SetRelativeRotation({ 0.0f, 0.0f, 90.0f }, false, nullptr, true);
+			break;
+		}
+	}
 }
 
 //void CameraController::ProcessCustom2DScreenPositionAndRotation()

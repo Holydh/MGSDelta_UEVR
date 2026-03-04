@@ -23,6 +23,7 @@ enableTwoHandsRealisticRecoil=true
 disableThermalVisionScanline=true
 ------ Cutscenes Settings ------
 enableImmersiveMode=false
+blackBarsSize=1.971000
 smoothCameraMovementsInImmersiveCutscenes=true
 cutsceneCameraPositionLerp=5.000000
 cutsceneCameraRotationLerp=8.000000

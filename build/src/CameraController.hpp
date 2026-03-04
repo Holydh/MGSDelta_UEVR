@@ -77,8 +77,8 @@ public:
 		Playing2D
 	};
 
-	CameraController::CutsceneState ActualCutsceneState;
-	CameraController::CutsceneState PreviousCutsceneState;
+	CameraController::CutsceneState ActualCutsceneState = NotPlaying;
+	CameraController::CutsceneState PreviousCutsceneState = NotPlaying;
 	void CheckCutscenePlaying();
 	bool CutsceneStarts();
 	bool CutscenePlaying();
@@ -86,7 +86,7 @@ public:
 	void ApplyCutsceneSettings();
 
 	void SpawnCustom2DScreen();
-	void ProcessCustom2DScreenPositionAndRotation(UEVR_Vector3d location, UEVR_Rotatord rotation);
+	void ResizeBlackBars();
 	void DestroyCustom2DScreen();
 	SDK::AActor* Custom2DScreen;
 	//void SetNearClipPlane(float nearClip);

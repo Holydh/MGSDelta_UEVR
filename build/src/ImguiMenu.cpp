@@ -497,7 +497,11 @@ void ImGuiMenu::internalFrame()
 			{
 				ImGui::Indent();
 				if (ImGui::SliderFloat("Black Bars Size", settingsManager->BlackBarsSizePtr, 0.0f, 10.0f))
+				{
+					cameraController->ResizeBlackBars();
 					settingsManager->SettingsModifiedThisFrame = true;
+				}
+					
 				if (ImGui::IsItemHovered()) {
 					ImGui::BeginTooltip();
 					ImGui::Text("Enlarge or reduce the black bars.");

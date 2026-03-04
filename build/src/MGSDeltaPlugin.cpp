@@ -479,7 +479,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		}
 	}
 
-	if (cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D || playerManager.IsPlayerControlled)
+	if (playerManager.IsPlayerControlled || (cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D && *settingsManager.EnableImmersiveModePtr))
 		cameraController.ProcessCamera(delta);
 	cameraController.ProcessCameraResetTimer(delta);
 
@@ -536,7 +536,8 @@ void MGSDeltaPlugin::on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle rend
 void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters, UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
-	if (playerManager.IsPlayerControlled || cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D)
+	if (playerManager.IsPlayerControlled || 
+		(cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D && *settingsManager.EnableImmersiveModePtr))
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
