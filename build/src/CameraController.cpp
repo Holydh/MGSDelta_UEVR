@@ -5,6 +5,8 @@ void CameraController::ToggleCameraWobblingController(bool enabled) {
 	//Logger::DebugPrint("Camera Recoil : " + enabled);
 	auto static wobblingController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrWobblingController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
 	auto wobblingController = wobblingController_c->get_first_object_matching(false);
+	if (!wobblingController)
+		return;
 	//Logger::DebugPrint(wobblingController->get_full_name());
 	bool setEnabled = enabled ? true : false;
 	wobblingController->call_function(L"SetEnabled", &setEnabled);
@@ -644,16 +646,6 @@ void CameraController::SpawnCustom2DScreen()
 		Logger::DebugPrint("Asset found is not a StaticMesh or SkeletalMesh");
 		return;
 	}
-	//Material /Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial
-
-	auto hideMat = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Material /Engine/EngineDebugMaterials/DebugMeshMaterial.DebugMeshMaterial");
-	if (!hideMat)
-	{
-		Logger::DebugPrint("Failed to find material for 2D screen");
-		return;
-	}
-
-	auto sdkHideMat = (SDK::UMaterial*)hideMat;
 
 	auto translucentMat = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Material /Engine/EngineDebugMaterials/DebugMeshMaterial.DebugMeshMaterial");
 	if (!translucentMat)
@@ -666,7 +658,7 @@ void CameraController::SpawnCustom2DScreen()
 	sdkMat->TwoSided = true;
 	sdkMat->bDisableDepthTest = true;
 	sdkMat->BlendMode = SDK::EBlendMode::BLEND_Translucent;
-	sdkMat->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
+	//sdkMat->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
 	sdkMat->ShadingModel = SDK::EMaterialShadingModel::MSM_Unlit;
 	////Material /Engine/EngineMaterials/DefaultMaterial.DefaultMaterial
 
@@ -711,25 +703,23 @@ void CameraController::SpawnCustom2DScreen()
 
 			// Optional: Disable collision if it's just for visuals
 			staticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
-
 			staticMeshComponent->Activate(true);
 			staticMeshComponent->SetVisibility(true, false);
 			staticMeshComponent->SetHiddenInGame(false, false);
 			staticMeshComponent->SetWorldScale3D({ 1, 1, 1 });
 			staticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
+
 			staticMeshComponent->SetRenderCustomDepth(true);
 
-			staticMeshComponent->TranslucencySortPriority = 10000;
-			staticMeshComponent->SetTranslucencySortDistanceOffset(10000);
+			staticMeshComponent->TranslucencySortPriority = 1000;
+			staticMeshComponent->SetTranslucencySortDistanceOffset(1000);
 
-			if (i < 5)
-			{
-				auto dynamicMaterial = staticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, sdkMat);
-				dynamicMaterial->SetVectorParameterValue(
-					SDK::UKismetStringLibrary::Conv_StringToName(L"Color"),
-					SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 9999.0f }
-				);
-			}
+			auto dynamicMaterial = staticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, sdkMat);
+			dynamicMaterial->SetVectorParameterValue(
+				SDK::UKismetStringLibrary::Conv_StringToName(L"Color"),
+				SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 9999.0f }
+			);
+
 			//					dynamicMaterial->SetVectorParameterValue(
 			//		SDK::UKismetStringLibrary::Conv_StringToName(L"TintColorAndOpacity"),
 			//		SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 99999.0f }
@@ -789,7 +779,7 @@ void CameraController::ResizeBlackBars()
         {
             case 0: // TOP (Ceiling)
                 smc->K2_SetRelativeLocation({ 0.0f, 0.0f, H }, false, nullptr, true);
-                smc->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
+                smc->K2_SetRelativeRotation({ 180.0f, 0.0f, 0.0f }, false, nullptr, true);
                 smc->SetWorldScale3D({ D/planeUnit, (W*2)/planeUnit, 1.0f });
                 break;
 
@@ -799,26 +789,56 @@ void CameraController::ResizeBlackBars()
                 smc->SetWorldScale3D({ D/planeUnit, (W*2)/planeUnit, 1.0f });
                 break;
 
-            case 2: // BACK (The wall behind the screen)
-                // Move it back by the full depth D
-                smc->K2_SetRelativeLocation({ -D*0.5f, 0.0f, 0.0f }, false, nullptr, true);
-                smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 0.0f }, false, nullptr, true);
-                smc->SetWorldScale3D({ (H*2)/planeUnit, (W*2)/planeUnit, 1.0f });
-                break;
+			case 2: // BACK (The wall behind the screen)
+				// Move it back by the full depth D
+				smc->K2_SetRelativeLocation({ -D * 0.5f, 0.0f, 0.0f }, false, nullptr, true);
+				smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 0.0f }, false, nullptr, true);
+				smc->SetWorldScale3D({ (H * 2) / planeUnit, (W * 2) / planeUnit, 1.0f });
+				break;
 
-            case 3: // LEFT (Side wall)
-                smc->K2_SetRelativeLocation({ 0.0f, -W, 0.0f }, false, nullptr, true);
-                smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
-                smc->SetWorldScale3D({ (H*2)/planeUnit, D/planeUnit, 1.0f });
-                break;
+			case 3: // LEFT (Side wall)
+				smc->K2_SetRelativeLocation({ 0.0f, -W, 0.0f }, false, nullptr, true);
+				smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
+				smc->SetWorldScale3D({ (H * 2) / planeUnit, D / planeUnit, 1.0f });
+				break;
 
-            case 4: // RIGHT (Side wall)
-                smc->K2_SetRelativeLocation({ 0.0f, W, 0.0f }, false, nullptr, true);
-                smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
-                smc->SetWorldScale3D({ (H*2)/planeUnit, D/planeUnit, 1.0f });
-                break;
-        }
-    }
+			case 4: // RIGHT (Side wall)
+				smc->K2_SetRelativeLocation({ 0.0f, W, 0.0f }, false, nullptr, true);
+				smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
+				smc->SetWorldScale3D({ (H * 2) / planeUnit, D / planeUnit, 1.0f });
+				break;
+			//case 5: // TOP (Ceiling)
+			//	smc->K2_SetRelativeLocation({ 0.0f, 0.0f, H }, false, nullptr, true);
+			//	smc->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
+			//	smc->SetWorldScale3D({ D / planeUnit, (W * 2) / planeUnit, 1.0f });
+			//	break;
+
+			//case 6: // BOTTOM (Floor)
+			//	smc->K2_SetRelativeLocation({ 0.0f, 0.0f, -H }, false, nullptr, true);
+			//	smc->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
+			//	smc->SetWorldScale3D({ D / planeUnit, (W * 2) / planeUnit, 1.0f });
+			//	break;
+
+			//case 7: // BACK (The wall behind the screen)
+			//	// Move it back by the full depth D
+			//	smc->K2_SetRelativeLocation({ -D * 0.5f, 0.0f, 0.0f }, false, nullptr, true);
+			//	smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 0.0f }, false, nullptr, true);
+			//	smc->SetWorldScale3D({ (H * 2) / planeUnit, (W * 2) / planeUnit, 1.0f });
+			//	break;
+
+			//case 8: // LEFT (Side wall)
+			//	smc->K2_SetRelativeLocation({ 0.0f, -W, 0.0f }, false, nullptr, true);
+			//	smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
+			//	smc->SetWorldScale3D({ (H * 2) / planeUnit, D / planeUnit, 1.0f });
+			//	break;
+
+			//case 9: // RIGHT (Side wall)
+			//	smc->K2_SetRelativeLocation({ 0.0f, W, 0.0f }, false, nullptr, true);
+			//	smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
+			//	smc->SetWorldScale3D({ (H * 2) / planeUnit, D / planeUnit, 1.0f });
+			//	break;
+		}
+	}
 }
 
 //void CameraController::ProcessCustom2DScreenPositionAndRotation()

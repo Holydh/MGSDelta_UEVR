@@ -88,7 +88,7 @@ public:
 	void SpawnCustom2DScreen();
 	void ResizeBlackBars();
 	void DestroyCustom2DScreen();
-	SDK::AActor* Custom2DScreen;
+	SDK::AActor* Custom2DScreen = nullptr;
 	//void SetNearClipPlane(float nearClip);
 
 	bool CardBoardEquipped = false;

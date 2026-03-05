@@ -26,6 +26,8 @@ void PlayerManager::ConvertAllRequiredStringToFnames()
 void PlayerManager::ToggleMeshesVisibility(bool visible)
 {
 	auto pawn = uevr::API::get()->get_local_pawn(0);
+	if (!pawn)
+		return;
 	auto headSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Head");
 	auto hairSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hair");
 	auto handsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hand");
