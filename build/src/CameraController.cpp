@@ -256,21 +256,6 @@ void CameraController::ProcessCamera(float deltaTime)
 		grassVolumeCollisionHead->call_function(L"K2_GetComponentLocation", &headColliderPosition);
 		//Logger::DebugPrint("headColliderPosition : %f, %f, %f", headColliderPosition.x, headColliderPosition.y, headColliderPosition.z);
 
-		auto bodySkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Body");
-		auto sdkMesh = (SDK::USkeletalMeshComponent*)bodySkeletalMesh;
-		auto boneTsf = sdkMesh->GetBoneTransform(SDK::UKismetStringLibrary::Conv_StringToName(L"Root"), SDK::ERelativeTransformSpace::RTS_World);
-		Logger::DebugPrint("boneTsf : %f, %f, %f", boneTsf.Translation.X, boneTsf.Translation.Y, boneTsf.Translation.Z);
-
-		//for (int i = 0; i < 20; i++)
-		//{
-		//	auto boneName = sdkMesh->GetBoneName(i);
-		//	Logger::DebugPrint("boneName : %ls", SDK::UKismetStringLibrary::Conv_NameToString(boneName).CStr());
-		//}
-
-			//Logger::DebugPrint("pawnPosition : %f, %f, %f", pawnPosition.x, pawnPosition.y, pawnPosition.z);
-			//Logger::DebugPrint("CameraHeightOffset : %f", CameraHeightOffset);
-
-
 		// Reset camera position and rotation when player respawn or teleport
 		if (InstantCameraPositionNeeded)
 		{
