@@ -107,7 +107,7 @@ void CalculateForwardOffset(SDK::FVector location, SDK::FRotator rotation, float
 	// tan(fov/2) ratio relative to a baseline FOV (e.g. 90°)
 	float baseFOV = 68.0f;
 	float zoomFactor = tan(glm::radians(baseFOV * 0.5f)) / tan(glm::radians(fov * 0.5f));
-	forwardOffset = (zoomFactor - 1.0f) * 120.0f; // 100.0f = scale, tune this
+	forwardOffset = (zoomFactor - 1.0f) * 100.0f; // 100.0f = scale, tune this
 }
 
 void CameraController::ProcessCamera(float deltaTime)

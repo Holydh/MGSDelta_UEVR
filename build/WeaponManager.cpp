@@ -250,7 +250,14 @@ void WeaponManager::ToggleDummyCQCKnifeMeshVisibility(bool enable)
 			ToggleDummyCQCKnifeMeshVisibility(true);
 		return;
 	}
-		
+	
+	if (!SDK::UKismetSystemLibrary::IsValid(DummyCqcKnifeMesh))
+	{
+		DummyCqcKnifeMesh = nullptr;
+		return;
+	}
+
+
 	SDK::USkeletalMeshComponent* sdkLeftWeaponMesh = (SDK::USkeletalMeshComponent*)LeftHandWeaponRoot;
 	DummyCqcKnifeMesh->SetOnlyOwnerSee(!enable);
 	sdkLeftWeaponMesh->SetOnlyOwnerSee(enable);
@@ -834,9 +841,9 @@ void WeaponManager::AttachMainHandToWeapon()
 
 bool WeaponManager::DetachHandFromWeapon()
 {
-	Logger::DebugPrint("Detach Main Hand from weapon");
 	if (playerManager->RightHandMesh && playerManager->MainHandAttachedToWeapon)
 	{
+		Logger::DebugPrint("Detach Main Hand from weapon");
 		playerManager->RightHandMesh->DetachFromParent(true, false);
 		playerManager->RightHandMesh->K2_AttachToComponent(
 			playerManager->RightController,
@@ -892,9 +899,9 @@ void WeaponManager::AttachSecondHandToWeapon()
 
 bool WeaponManager::DetachSecondHandFromWeapon()
 {
-	Logger::DebugPrint("Detach Second Hand from weapon");
 	if (playerManager->LeftHandMesh && playerManager->SecondHandAttachedToWeapon)
 	{
+		Logger::DebugPrint("Detach Second Hand from weapon");
 		playerManager->LeftHandMesh->DetachFromParent(true, false);
 		playerManager->LeftHandMesh->K2_AttachToComponent(
 			playerManager->LeftController,
