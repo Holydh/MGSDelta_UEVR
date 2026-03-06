@@ -80,10 +80,14 @@ void WeaponManager::ProcessItem()
 			ApplyHandMaterialToVRHands();
 		}
 
-
+		if (CurrentItemID == SDK::EGsrItemId::IT_Scope && PreviousItemID != SDK::EGsrItemId::IT_Scope)
+		{
+			uevr::API::VR::set_decoupled_pitch_enabled(false);
+		}
 		if (CurrentItemID != SDK::EGsrItemId::IT_Scope && PreviousItemID == SDK::EGsrItemId::IT_Scope)
 		{
 			uevr::API::get()->dispatch_lua_event("HideHands", "0");
+			uevr::API::VR::set_decoupled_pitch_enabled(true);
 		}
 
 		if (CurrentItemID == SDK::EGsrItemId::IT_CBoxA || CurrentItemID == SDK::EGsrItemId::IT_CBoxB || CurrentItemID == SDK::EGsrItemId::IT_CBoxC || CurrentItemID == SDK::EGsrItemId::IT_CBoxD)
@@ -100,7 +104,8 @@ void WeaponManager::ProcessItem()
 	if (CurrentItemID == SDK::EGsrItemId::IT_Scope)
 	{
 		uevr::API::get()->dispatch_lua_event("HideHands", "1");
-		uevr::API::UObjectHook::remove_all_motion_controller_states();
+		uevr::API::UObjectHook::remove_motion_controller_state(LeftHandWeaponRoot);
+		uevr::API::UObjectHook::remove_motion_controller_state(WeaponRoot);
 	}
 }
 
@@ -1069,6 +1074,8 @@ void WeaponManager::FetchWeaponMeshAimData()
 
 void WeaponManager::SetAimDirection()
 {
+	if (CurrentItemID == SDK::EGsrItemId::IT_Scope)
+		return;
 	//Will be used to control the grenades throw direction
 	//This controls only the aim when the camera controller is disabled. When cc enabled, it controls the camera rotation but the inputs are conflicting.
 	auto cameraController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");

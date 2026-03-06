@@ -417,7 +417,10 @@ void CameraController::ProcessCamera(float deltaTime)
 			// if fpv is enabled, we need to push the camera forward based on the FOV to prevent it from being too zoomed out
 			float forwardOffset = 0.0f;
 			glm::fvec3 forward{};
-			CalculateForwardOffset({newPosition.x, newPosition.y, newPosition.z}, { NewCameraRotation.pitch,NewCameraRotation.yaw,NewCameraRotation.roll }, actualFOV, forwardOffset, forward);
+			auto sdkActor = (SDK::AActor*)CameraAttachementActor;
+			SDK::FRotator hmdRotation;
+			hmdRotation = sdkActor->K2_GetActorRotation();
+			CalculateForwardOffset({newPosition.x, newPosition.y, newPosition.z}, { hmdRotation.Pitch, hmdRotation.Yaw, hmdRotation.Roll }, actualFOV, forwardOffset, forward);
 			// if fpv is enabled, we need to push the camera forward based on the FOV to prevent it from being too zoomed out
 			NewCameraPosition = {
 				ueLocation.X + forward.x * forwardOffset,
