@@ -57,6 +57,7 @@ public:
 	//bool CameraAttachementActorPositionSafeguard();
 
 	void ProcessCamera(float deltaTime);
+	SDK::EGsrItemId CurrentItemID = SDK::EGsrItemId::IT_None;
 	float InstantCameraPositionTimer = 0.25f;
 	bool InstantCameraPositionNeeded = false;
 	void ProcessCameraResetTimer(float delta);

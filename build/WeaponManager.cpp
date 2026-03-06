@@ -45,6 +45,7 @@ void WeaponManager::ProcessItem()
 	if (CurrentItemID != newItemID)
 	{
 		CurrentItemID = newItemID;
+		cameraController->CurrentItemID = CurrentItemID;
 		Logger::DebugPrint("Item changed. New Item ID : %d", CurrentItemID);
 
 		CurrentItem = ItemController->m_currentItem;
@@ -79,6 +80,12 @@ void WeaponManager::ProcessItem()
 			ApplyHandMaterialToVRHands();
 		}
 
+
+		if (CurrentItemID != SDK::EGsrItemId::IT_Scope && PreviousItemID == SDK::EGsrItemId::IT_Scope)
+		{
+			uevr::API::get()->dispatch_lua_event("HideHands", "0");
+		}
+
 		if (CurrentItemID == SDK::EGsrItemId::IT_CBoxA || CurrentItemID == SDK::EGsrItemId::IT_CBoxB || CurrentItemID == SDK::EGsrItemId::IT_CBoxC || CurrentItemID == SDK::EGsrItemId::IT_CBoxD)
 		{
 			cameraController->CardBoardEquipped = true;
@@ -89,6 +96,11 @@ void WeaponManager::ProcessItem()
 			cameraController->CardBoardEquipped = false;
 			uevr::API::VR::set_mod_value("VR_RoomscaleMovement", true);
 		}
+	}
+	if (CurrentItemID == SDK::EGsrItemId::IT_Scope)
+	{
+		uevr::API::get()->dispatch_lua_event("HideHands", "1");
+		uevr::API::UObjectHook::remove_all_motion_controller_states();
 	}
 }
 

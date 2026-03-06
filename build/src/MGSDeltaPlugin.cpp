@@ -370,17 +370,46 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.DestroyCameraAttachementActor();
 		API::get()->dispatch_lua_event("PlayerTookControl", "0");
 		cameraController.DestroyCustom2DScreen();
-		//weaponManager.Cleanup();
-		//playerManager.Cleanup();
+
 		vr_enabled = enable;
 	}
 	//Logger::DebugPrint("%i", API::VR::get_mod_value<bool>("VR_2DScreenMode"));
+}
+
+void MGSDeltaPlugin::CheckLevelChange()
+{
+	static auto gameEngine = API::get()->get_engine();
+	if (gameEngine == nullptr)
+		return;
+	static auto sdkGameEngine = (SDK::UGameEngine*)gameEngine;
+	auto world = sdkGameEngine->GameViewport->World;
+	if (currentWorld != world)
+	{
+		currentWorld = world;
+		levelChanged = true;
+	}
+	auto level = currentWorld->PersistentLevel;
+	if (currentLevel != level)
+	{
+		currentLevel = level;
+		levelChanged = true;
+		Logger::DebugPrint("Level changed : Fetching new data");
+	}
 }
 
 void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
 	//auto start = std::chrono::high_resolution_clock::now();
 	deltaTime = delta;
+	CheckLevelChange();
+
+	if (levelChanged)
+	{
+		levelChanged = false;
+		weaponManager.Cleanup();
+		playerManager.Cleanup();
+	}
+
 	playerManager.FetchGameState();
 
 	if (!playerManager.IngameUI())
@@ -452,8 +481,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	}
 	else
 	{
-		weaponManager.RemoveUobjectHookFromHand(WeaponManager::Hand::Right);
-		weaponManager.RemoveUobjectHookFromHand(WeaponManager::Hand::Left);
+		uevr::API::UObjectHook::remove_all_motion_controller_states();
 
 		cameraController.CheckCutscenePlaying();
 		if (playerManager.WasPlayerControlled)
@@ -476,7 +504,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		}
 	}
 
-	if (playerManager.IsPlayerControlled || (cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D && *settingsManager.EnableImmersiveModePtr))
+	if (playerManager.IsPlayerControlled || cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D)
 		cameraController.ProcessCamera(delta);
 	cameraController.ProcessCameraResetTimer(delta);
 
@@ -533,8 +561,17 @@ void MGSDeltaPlugin::on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle rend
 void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters, UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
+		auto static cobraCutsceneCameraCtrlMngr_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent");
+	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c->get_first_object_matching(false);
+	if (!cobraCutsceneCameraCtrlMngr)
+	{
+		Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");
+		return;
+	}
+	auto cc = (SDK::UCobraCutsceneCameraControlManagerComponent*)cobraCutsceneCameraCtrlMngr;
+
 	if (playerManager.IsPlayerControlled || 
-		(cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D && *settingsManager.EnableImmersiveModePtr))
+		(cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D && (*settingsManager.EnableImmersiveModePtr || cc->bIsFpv)))
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;

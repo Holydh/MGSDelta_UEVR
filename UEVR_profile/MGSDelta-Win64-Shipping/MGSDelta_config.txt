@@ -1,7 +1,7 @@
 # MGSDelta Plugin Configuration File
 # This file is auto-generated. It saves the mgs plugin menu settings you set ingame.
 ------ Camera Settings ------
-attachCameraToSnakeHead=false
+attachCameraToSnakeHead=true
 cameraRotationSpeed=25.000000
 cameraRotationDeadZone=0.200000
 smoothCameraRotation=false
@@ -23,7 +23,7 @@ enableTwoHandsRealisticRecoil=true
 disableThermalVisionScanline=true
 ------ Cutscenes Settings ------
 enableImmersiveMode=false
-blackBarsSize=5.000000
+blackBarsSize=6.000000
 smoothCameraMovementsInImmersiveCutscenes=true
 cutsceneCameraPositionLerp=5.393000
 cutsceneCameraRotationLerp=7.016000

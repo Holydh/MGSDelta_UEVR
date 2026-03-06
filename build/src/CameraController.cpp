@@ -90,6 +90,26 @@ void CameraController::DetachCameraFromAttachementActor()
 //	}
 //}
 
+void CalculateForwardOffset(SDK::FVector location, SDK::FRotator rotation, float fov, float &forwardOffset, glm::fvec3 &forward)
+{
+	// Convert rotation to radians
+	float pitchRad = glm::radians(rotation.Pitch);
+	float yawRad = glm::radians(rotation.Yaw);
+
+	// Calculate forward vector from pitch/yaw
+	forward = {
+		cos(pitchRad) * cos(yawRad),
+		cos(pitchRad) * sin(yawRad),
+		sin(pitchRad)
+	};
+
+	// Compute forward offset: smaller FOV = more zoom = push forward
+	// tan(fov/2) ratio relative to a baseline FOV (e.g. 90°)
+	float baseFOV = 68.0f;
+	float zoomFactor = tan(glm::radians(baseFOV * 0.5f)) / tan(glm::radians(fov * 0.5f));
+	forwardOffset = (zoomFactor - 1.0f) * 120.0f; // 100.0f = scale, tune this
+}
+
 void CameraController::ProcessCamera(float deltaTime)
 {
 	// Cap deltaTime to prevent camera from yeeting into orbit when the game freezes or low fps.
@@ -100,34 +120,45 @@ void CameraController::ProcessCamera(float deltaTime)
 	float remappedLerpXYMultiplier = Utilities::Remap(*settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
 	float remappedLerpZMultiplier = Utilities::Remap(*settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
 
-	if (ActualCutsceneState == CutsceneState::Playing3D && *settingsManager->EnableImmersiveModePtr)
+	auto static cobraCutsceneCameraCtrlMngr_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent");
+	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c->get_first_object_matching(false);
+	if (!cobraCutsceneCameraCtrlMngr)
 	{
-		auto static cobraCutsceneCameraCtrlMngr_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent");
-		auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c->get_first_object_matching(false);
-		if (!cobraCutsceneCameraCtrlMngr)
-		{
-			Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");
-			return;
-		}
-		auto cc = (SDK::UCobraCutsceneCameraControlManagerComponent*)cobraCutsceneCameraCtrlMngr;
+		Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");
+		return;
+	}
+	auto cc = (SDK::UCobraCutsceneCameraControlManagerComponent*)cobraCutsceneCameraCtrlMngr;
 
-		auto static playerCameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Cobra.CobraPlayerCameraManager");
-		auto playerCameraManager = playerCameraManager_c->get_first_object_matching(false);
-		if (!playerCameraManager)
-		{
-			Logger::DebugPrint("PlayerCameraManager not found");
-			return;
-		}
-		auto pcm = (SDK::ACobraPlayerCameraManager*)playerCameraManager;
-		auto location = pcm->CameraCachePrivate.POV.Location;
-		glm::fvec3 originalCamLocation = { location.X, location.Y, location.Z };
-		auto rotation = pcm->CameraCachePrivate.POV.Rotation;
-		glm::fvec3 originalCamRotation = { rotation.Pitch, rotation.Yaw, rotation.Roll };
+	auto static playerCameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Cobra.CobraPlayerCameraManager");
+	auto playerCameraManager = playerCameraManager_c->get_first_object_matching(false);
+	if (!playerCameraManager)
+	{
+		Logger::DebugPrint("PlayerCameraManager not found");
+		return;
+	}
+	auto pcm = (SDK::ACobraPlayerCameraManager*)playerCameraManager;
+	auto ueLocation = pcm->CameraCachePrivate.POV.Location;
+	auto ueRotation = pcm->CameraCachePrivate.POV.Rotation;
+	glm::fvec3 originalCamLocation = { ueLocation.X, ueLocation.Y, ueLocation.Z };
+	glm::fvec3 originalCamRotation = { ueRotation.Pitch, ueRotation.Yaw, ueRotation.Roll };
 
+	float actualFOV = pcm->CameraCachePrivate.POV.FOV;
+
+	if (ActualCutsceneState == CutsceneState::Playing3D)
+	{
 		if (cc->bIsFpv)
 		{
 			InstantCameraPositionNeeded = true;
 			InstantCameraPositionTimer = 0.25f;
+			float forwardOffset = 0.0f;
+			glm::fvec3 forward{};
+			CalculateForwardOffset(ueLocation, ueRotation, actualFOV, forwardOffset, forward);
+			// if fpv is enabled, we need to push the camera forward based on the FOV to prevent it from being too zoomed out
+			originalCamLocation = {
+				ueLocation.X + forward.x * forwardOffset,
+				ueLocation.Y + forward.y * forwardOffset,
+				ueLocation.Z + forward.z * forwardOffset
+			};
 		}
 
 		if (InstantCameraPositionNeeded)
@@ -135,74 +166,81 @@ void CameraController::ProcessCamera(float deltaTime)
 			
 			LastCameraPosition = originalCamLocation;
 			NewCameraPosition = { originalCamLocation.x, originalCamLocation.y, originalCamLocation.z };
-			LastCameraRotation = { rotation.Pitch, rotation.Yaw, rotation.Roll };
+			LastCameraRotation = { ueRotation.Pitch, ueRotation.Yaw, ueRotation.Roll };
 			NewCameraRotation = LastCameraRotation;
 			return;
 		}
 
-		// prevent camera yeeting into orbit on low fps
-		float speedXY = 11.25f * remappedLerpXYMultiplier;
-		float alphaXY = 1.0f - expf(-speedXY * deltaTime);
-		float speedZ = 2.25f * remappedLerpZMultiplier;
-		float alphaZ = 1.0f - expf(-speedZ * deltaTime);
-		newPosition = *settingsManager->SmoothCameraMovementsInImmersiveCutscenesPtr ?
-			glm::fvec3(
-				glm::mix(LastCameraPosition.x, originalCamLocation.x, alphaXY),
-				glm::mix(LastCameraPosition.y, originalCamLocation.y, alphaXY),
-				glm::mix(LastCameraPosition.z, originalCamLocation.z, alphaZ)) :
-			originalCamLocation;
-
-		NewCameraPosition = { newPosition.x, newPosition.y, newPosition.z };
-		LastCameraPosition = newPosition;
-
-		float remappedRotationLerpMultiplier = Utilities::Remap(*settingsManager->CameraYawLerpPtr, 0.0f, 10.0f, 2.0f, 0.1f);
-		float speed = 10.25f * remappedRotationLerpMultiplier;
-		float alpha = 1.0f - expf(-speed * deltaTime);
-
-		if (*settingsManager->SmoothCameraMovementsInImmersiveCutscenesPtr)
+		if (*settingsManager->EnableImmersiveModePtr)
 		{
-			// 1. Calculate Deltas
-			float deltaPitch = originalCamRotation.x - (float)LastCameraRotation.pitch;
-			float deltaYaw = originalCamRotation.y - (float)LastCameraRotation.yaw;
-			float deltaRoll = originalCamRotation.z - (float)LastCameraRotation.roll;
+			if (*settingsManager->SmoothCameraMovementsInImmersiveCutscenesPtr)
+			{
+				// prevent camera yeeting into orbit on low fps
+				float speedXY = 11.25f * remappedLerpXYMultiplier;
+				float alphaXY = 1.0f - expf(-speedXY * deltaTime);
+				float speedZ = 2.25f * remappedLerpZMultiplier;
+				float alphaZ = 1.0f - expf(-speedZ * deltaTime);
+				newPosition = *settingsManager->SmoothCameraMovementsInImmersiveCutscenesPtr ?
+					glm::fvec3(
+						glm::mix(LastCameraPosition.x, originalCamLocation.x, alphaXY),
+						glm::mix(LastCameraPosition.y, originalCamLocation.y, alphaXY),
+						glm::mix(LastCameraPosition.z, originalCamLocation.z, alphaZ)) :
+					originalCamLocation;
 
-			// 2. Normalize Deltas to [-180, 180] (The "Shortest Path" trick)
-			auto normalize = [](float delta) {
-				while (delta > 180.0f)  delta -= 360.0f;
-				while (delta < -180.0f) delta += 360.0f;
-				return delta;
-				};
+				NewCameraPosition = { newPosition.x, newPosition.y, newPosition.z };
+				LastCameraPosition = newPosition;
 
-			deltaPitch = normalize(deltaPitch);
-			deltaYaw = normalize(deltaYaw);
-			deltaRoll = normalize(deltaRoll);
+				float remappedRotationLerpMultiplier = Utilities::Remap(*settingsManager->CameraYawLerpPtr, 0.0f, 10.0f, 2.0f, 0.1f);
+				float speed = 10.25f * remappedRotationLerpMultiplier;
+				float alpha = 1.0f - expf(-speed * deltaTime);
 
-			// --- CAMERA CUT DETECTION ---
-			// If the yaw jump is huge (e.g. > 100 degrees), snap instantly
-			if (std::abs(deltaYaw) > 45.0f) {
-				newRotation = originalCamRotation;
+
+				// 1. Calculate Deltas
+				float deltaPitch = originalCamRotation.x - (float)LastCameraRotation.pitch;
+				float deltaYaw = originalCamRotation.y - (float)LastCameraRotation.yaw;
+				float deltaRoll = originalCamRotation.z - (float)LastCameraRotation.roll;
+
+				// 2. Normalize Deltas to [-180, 180] (The "Shortest Path" trick)
+				auto normalize = [](float delta) {
+					while (delta > 180.0f)  delta -= 360.0f;
+					while (delta < -180.0f) delta += 360.0f;
+					return delta;
+					};
+
+				deltaPitch = normalize(deltaPitch);
+				deltaYaw = normalize(deltaYaw);
+				deltaRoll = normalize(deltaRoll);
+
+				// --- CAMERA CUT DETECTION ---
+				// If the yaw jump is huge (e.g. > 100 degrees), snap instantly
+				if (std::abs(deltaYaw) > 45.0f) {
+					newRotation = originalCamRotation;
+				}
+				else {
+					// 3. Smoothly add the delta to the last known position
+					newRotation.x = (float)LastCameraRotation.pitch + (deltaPitch * alpha);
+					newRotation.y = (float)LastCameraRotation.yaw + (deltaYaw * alpha);
+					newRotation.z = (float)LastCameraRotation.roll + (deltaRoll * alpha);
+				}
+
+				// 4. Final Wrap-around (Keeping the values in 0-360 or -180/180 for the Engine)
+				auto wrapAngle = [](float angle) {
+					while (angle >= 360.0f) angle -= 360.0f;
+					while (angle < 0.0f)    angle += 360.0f;
+					return angle;
+					};
+
+				NewCameraRotation = { wrapAngle(newRotation.x), wrapAngle(newRotation.y), wrapAngle(newRotation.z) };
+				LastCameraRotation = NewCameraRotation;
 			}
-			else {
-				// 3. Smoothly add the delta to the last known position
-				newRotation.x = (float)LastCameraRotation.pitch + (deltaPitch * alpha);
-				newRotation.y = (float)LastCameraRotation.yaw + (deltaYaw * alpha);
-				newRotation.z = (float)LastCameraRotation.roll + (deltaRoll * alpha);
+			else
+			{
+				LastCameraPosition = originalCamLocation;
+				NewCameraPosition = { originalCamLocation.x, originalCamLocation.y, originalCamLocation.z };
+				NewCameraRotation = { ueRotation.Pitch, ueRotation.Yaw, ueRotation.Roll };
+				LastCameraRotation = NewCameraRotation;
 			}
 		}
-		else
-		{
-			newRotation = originalCamRotation;
-		}
-
-		// 4. Final Wrap-around (Keeping the values in 0-360 or -180/180 for the Engine)
-		auto wrapAngle = [](float angle) {
-			while (angle >= 360.0f) angle -= 360.0f;
-			while (angle < 0.0f)    angle += 360.0f;
-			return angle;
-			};
-
-		NewCameraRotation = { wrapAngle(newRotation.x), wrapAngle(newRotation.y), wrapAngle(newRotation.z) };
-		LastCameraRotation = NewCameraRotation;
 	}
 	else
 	{
@@ -218,9 +256,20 @@ void CameraController::ProcessCamera(float deltaTime)
 		grassVolumeCollisionHead->call_function(L"K2_GetComponentLocation", &headColliderPosition);
 		//Logger::DebugPrint("headColliderPosition : %f, %f, %f", headColliderPosition.x, headColliderPosition.y, headColliderPosition.z);
 
+		auto bodySkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Body");
+		auto sdkMesh = (SDK::USkeletalMeshComponent*)bodySkeletalMesh;
+		auto boneTsf = sdkMesh->GetBoneTransform(SDK::UKismetStringLibrary::Conv_StringToName(L"Root"), SDK::ERelativeTransformSpace::RTS_World);
+		Logger::DebugPrint("boneTsf : %f, %f, %f", boneTsf.Translation.X, boneTsf.Translation.Y, boneTsf.Translation.Z);
 
-		//Logger::DebugPrint("Current Player Stance : %i", playerManager.CurrentStance);
-		//Logger::DebugPrint("Player Is Peeping: %i", playerManager.IsPeeping);
+		//for (int i = 0; i < 20; i++)
+		//{
+		//	auto boneName = sdkMesh->GetBoneName(i);
+		//	Logger::DebugPrint("boneName : %ls", SDK::UKismetStringLibrary::Conv_NameToString(boneName).CStr());
+		//}
+
+			//Logger::DebugPrint("pawnPosition : %f, %f, %f", pawnPosition.x, pawnPosition.y, pawnPosition.z);
+			//Logger::DebugPrint("CameraHeightOffset : %f", CameraHeightOffset);
+
 
 		// Reset camera position and rotation when player respawn or teleport
 		if (InstantCameraPositionNeeded)
@@ -377,6 +426,21 @@ void CameraController::ProcessCamera(float deltaTime)
 		NewCameraRotation.yaw = *settingsManager->SmoothCameraRotationPtr ?
 			glm::mix(LastCameraRotation.yaw, ActualYaw, alpha) :
 			ActualYaw;
+
+		if (CurrentItemID == SDK::EGsrItemId::IT_Scope)
+		{
+			// if fpv is enabled, we need to push the camera forward based on the FOV to prevent it from being too zoomed out
+			float forwardOffset = 0.0f;
+			glm::fvec3 forward{};
+			CalculateForwardOffset({newPosition.x, newPosition.y, newPosition.z}, { NewCameraRotation.pitch,NewCameraRotation.yaw,NewCameraRotation.roll }, actualFOV, forwardOffset, forward);
+			// if fpv is enabled, we need to push the camera forward based on the FOV to prevent it from being too zoomed out
+			NewCameraPosition = {
+				ueLocation.X + forward.x * forwardOffset,
+				ueLocation.Y + forward.y * forwardOffset,
+				ueLocation.Z + forward.z * forwardOffset
+			};
+			LastCameraPosition = { NewCameraPosition.x, NewCameraPosition.y, NewCameraPosition.z };
+		}
 
 		LastCameraRotation = NewCameraRotation;
 		previousPawnPositionZ = pawnPosition.z;
@@ -574,6 +638,7 @@ void CameraController::ApplyCutsceneSettings()
 {
 	if (CutsceneStarts())
 	{
+		uevr::API::VR::recenter_view();
 		if (ActualCutsceneState == CameraController::CutsceneState::Playing3D && !*settingsManager->EnableImmersiveModePtr)
 		{
 			SpawnCustom2DScreen();
