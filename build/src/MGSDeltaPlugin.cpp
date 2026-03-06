@@ -449,7 +449,6 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		weaponManager.ProcessItem();
 		/*Logger::DebugPrint("Before ProcessWeapon");*/
 		weaponManager.ProcessWeapon(delta);
-		
 		//Logger::DebugPrint("Before FetchWeaponMeshAimData");
 
 		weaponManager.FetchWeaponMeshAimData();
@@ -503,6 +502,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DSurvivalViewPtr ? 1.0f : 0.0f);
 		}
 	}
+
+	weaponManager.ToggleDummyCQCKnifeMeshVisibility();
 
 	if (playerManager.IsPlayerControlled || cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D)
 		cameraController.ProcessCamera(delta);

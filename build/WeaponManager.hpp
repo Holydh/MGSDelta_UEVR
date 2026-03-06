@@ -383,7 +383,7 @@ public:
 	//void Initialize();
 	void FetchEquipController();
 	void SpawnDummyCqcKnifeMesh();
-	void ToggleDummyCQCKnifeMeshVisibility(bool enable);
+	void ToggleDummyCQCKnifeMeshVisibility();
 	void RemoveUobjectHookFromHand(Hand handSide);
 	void ProcessWeapon(float delta);
 	void FetchWeaponMeshAimData();

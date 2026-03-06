@@ -238,29 +238,55 @@ void WeaponManager::SpawnDummyCqcKnifeMesh()
 	//DummyCqcKnifeMeshActor->SetActorHiddenInGame(true);
 }
 
-void WeaponManager::ToggleDummyCQCKnifeMeshVisibility(bool enable)
+void WeaponManager::ToggleDummyCQCKnifeMeshVisibility()
 {
 	if (!LeftHandWeaponRoot)
 		return;
 
-	if (!DummyCqcKnifeMeshActor || !DummyCqcKnifeMesh)
+	SDK::USkeletalMeshComponent* sdkLeftWeaponMesh = (SDK::USkeletalMeshComponent*)LeftHandWeaponRoot;
+	if (playerManager->IsPlayerControlled && holdCQCKnifeInLeftHand && playerManager->SecondHandAttachedToWeapon)
 	{
-		SpawnDummyCqcKnifeMesh();
-		if (holdCQCKnifeInLeftHand && playerManager->SecondHandAttachedToWeapon && !playerManager->WasSecondHandAttachedToWeapon)
-			ToggleDummyCQCKnifeMeshVisibility(true);
-		return;
+		if (!playerManager->LeftHandMesh)
+			return;
+		if (!SDK::UKismetSystemLibrary::IsValid(DummyCqcKnifeMesh) || !DummyCqcKnifeMesh)
+		{
+			DummyCqcKnifeMesh = nullptr;
+			if (SDK::UKismetSystemLibrary::IsValid(DummyCqcKnifeMeshActor))
+			{
+				DummyCqcKnifeMeshActor->K2_DestroyActor();
+				DummyCqcKnifeMeshActor = nullptr;
+			}
+
+			SpawnDummyCqcKnifeMesh();
+		}
+
+
+		if (DummyCqcKnifeMesh->bOnlyOwnerSee == true)
+		{
+			sdkLeftWeaponMesh->SetOnlyOwnerSee(true);
+			DummyCqcKnifeMesh->SetOnlyOwnerSee(false);
+		}
 	}
-	
-	if (!SDK::UKismetSystemLibrary::IsValid(DummyCqcKnifeMesh))
+	if (!playerManager->IsPlayerControlled)
 	{
 		DummyCqcKnifeMesh = nullptr;
+		if (SDK::UKismetSystemLibrary::IsValid(DummyCqcKnifeMeshActor))
+		{
+			DummyCqcKnifeMeshActor->K2_DestroyActor();
+			DummyCqcKnifeMeshActor = nullptr;
+		}
 		return;
 	}
 
 
-	SDK::USkeletalMeshComponent* sdkLeftWeaponMesh = (SDK::USkeletalMeshComponent*)LeftHandWeaponRoot;
-	DummyCqcKnifeMesh->SetOnlyOwnerSee(!enable);
-	sdkLeftWeaponMesh->SetOnlyOwnerSee(enable);
+	if (holdCQCKnifeInLeftHand && !playerManager->SecondHandAttachedToWeapon)
+	{
+		if (SDK::UKismetSystemLibrary::IsValid(DummyCqcKnifeMesh) && DummyCqcKnifeMesh->bOnlyOwnerSee == false)
+		{
+			sdkLeftWeaponMesh->SetOnlyOwnerSee(false);
+			DummyCqcKnifeMesh->SetOnlyOwnerSee(true);
+		}
+	}
 }
 
 void WeaponManager::ProcessTwoHandsGrabWeapon()
@@ -288,11 +314,6 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 	//Logger::DebugPrint("Right Hand Pos : x=%f, y=%f, z=%f", rightHandPos.X, rightHandPos.Y, rightHandPos.Z);
 	if (!*settingsManager->EnableTwoHandsPivotPtr)
 		return;
-
-	if (holdCQCKnifeInLeftHand && playerManager->SecondHandAttachedToWeapon && !playerManager->WasSecondHandAttachedToWeapon)
-		ToggleDummyCQCKnifeMeshVisibility(true);
-	if (!playerManager->SecondHandAttachedToWeapon && playerManager->WasSecondHandAttachedToWeapon)
-		ToggleDummyCQCKnifeMeshVisibility(false);
 }
 
 void WeaponManager::ProcessTwoHandsGrabWeaponLocationAndRotation()
@@ -422,8 +443,6 @@ void WeaponManager::ProcessWeapon(float delta)
 	{
 		if (PreviousWeaponID == EGsrEquipId::WP_Dragnov || PreviousWeaponID == EGsrEquipId::WP_MosinNagant || PreviousWeaponID == EGsrEquipId::WP_Rpg)
 			ReceiverMesh->SetVisibility(false, false);
-
-		ToggleDummyCQCKnifeMeshVisibility(false);
 
 		ReceiverMesh = nullptr;
 		WeaponRoot = nullptr;
@@ -691,10 +710,6 @@ void WeaponManager::ProcessWeapon(float delta)
 			}
 		}
 
-		if (LeftHandWeaponRoot && CurrentWeaponID != WP_Tnt)
-		{
-			SpawnDummyCqcKnifeMesh();
-		}
 		//Logger::DebugPrint(LeftHandWeaponRoot->get_full_name());
 
 		//SocketName = "BaseBody_LeftHand_MTPA"
