@@ -56,6 +56,8 @@ public:
 	bool CameraAttachementActorAvailable = false;
 	//bool CameraAttachementActorPositionSafeguard();
 
+	void CalculateForwardOffset(SDK::FVector location, SDK::FRotator rotation, float fov, float& forwardOffset, glm::fvec3& forward);
+
 	void ProcessCamera(float deltaTime);
 	SDK::EGsrItemId CurrentItemID = SDK::EGsrItemId::IT_None;
 	float InstantCameraPositionTimer = 0.25f;

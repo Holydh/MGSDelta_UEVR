@@ -90,7 +90,7 @@ void CameraController::DetachCameraFromAttachementActor()
 //	}
 //}
 
-void CalculateForwardOffset(SDK::FVector location, SDK::FRotator rotation, float fov, float &forwardOffset, glm::fvec3 &forward)
+void CameraController::CalculateForwardOffset(SDK::FVector location, SDK::FRotator rotation, float fov, float &forwardOffset, glm::fvec3 &forward)
 {
 	// Convert rotation to radians
 	float pitchRad = glm::radians(rotation.Pitch);
@@ -107,7 +107,8 @@ void CalculateForwardOffset(SDK::FVector location, SDK::FRotator rotation, float
 	// tan(fov/2) ratio relative to a baseline FOV (e.g. 90°)
 	float baseFOV = 68.0f;
 	float zoomFactor = tan(glm::radians(baseFOV * 0.5f)) / tan(glm::radians(fov * 0.5f));
-	forwardOffset = (zoomFactor - 1.0f) * 60.0f; // 100.0f = scale, tune this
+	float scale = ActualCutsceneState == CutsceneState::Playing3D ? 60.0f : 120.0f;
+	forwardOffset = (zoomFactor - 1.0f) * scale; // 100.0f = scale, tune this
 }
 
 void CameraController::ProcessCamera(float deltaTime)
