@@ -190,6 +190,19 @@ bool HookManager::mod_CobraLevelSequence_OnCameraCut_post(uevr::API::UFunction* 
 	return true;
 }
 
+bool HookManager::mod_PlayerController_OnDisablePlayerControl_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+	if (locals != nullptr)
+	{
+		auto true_locals = (char*)locals - 0x30;
+		SDK::Params::GsrPlayerController_OnDisablePlayerControl* params = (SDK::Params::GsrPlayerController_OnDisablePlayerControl*)true_locals;
+		s_playerManager->IsPlayerControlForceDisabled = params->IsDisable;
+			//Logger::DebugPrint("locals: 0x%p", true_locals);
+	}
+	//Logger::DebugPrint("Player lost control : %i", s_playerManager->IsPlayerControlForceDisabled);
+	return true;
+}
+
 bool HookManager::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native)
 {
 	Logger::DebugPrint("Entering hook_bp_fn");

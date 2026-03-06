@@ -20,6 +20,9 @@ public:
 
 	bool WasPlayerControlled = false;
     bool IsPlayerControlled = false;
+	bool IsPlayerControlForceDisabled = false;
+	bool WasPlayerControlForceDisabled = false;
+	bool PlayerControlOverride = false;
     void FetchGameState();
 
 	bool PlayerGotControl();

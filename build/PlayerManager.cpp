@@ -141,8 +141,21 @@ void PlayerManager::FetchGameState()
 	auto gsrGameStateSubsystem_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrGameStateSubsystem");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
 	auto gsrGameStateSubsystem = (SDK::UGsrGameStateSubsystem*)gsrGameStateSubsystem_c->get_first_object_matching(false);
 	IsPlayerControlled = gsrGameStateSubsystem->CheckGameStatus(CurrentGameStatus);
+	CurrentMenuType = gsrGameStateSubsystem->GetUIMenuType();	
 
-	CurrentMenuType = gsrGameStateSubsystem->GetUIMenuType();
+	if ((!IsPlayerControlForceDisabled && WasPlayerControlForceDisabled) || PlayerLostControl())
+		PlayerControlOverride = false;
+
+	if (IsPlayerControlForceDisabled && !WasPlayerControlForceDisabled)
+		PlayerControlOverride = true;
+
+	if (PlayerControlOverride)
+		IsPlayerControlled = false;
+
+	if (!IngameUI())
+	{
+		IsPlayerControlled = false;
+	}	
 	//Logger::DebugPrint("IsInRadioCall: %d, IsInSurvivalViewer: %d, IsInPauseMenu: %d", isInRadioCall, isInSurvivalViewer, isInPauseMenu);
 }
 

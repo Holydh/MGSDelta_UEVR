@@ -61,6 +61,7 @@ void MGSDeltaPlugin::on_initialize() {
 	//hookManager.hook_bp_fn(L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/sv_main.sv_main_C", L"OnSurvivalViewerChanged", (UEVR_UFunction_NativePreFn)HookManager::mod_sv_main_OnSurvivalViewerChanged_pre, NULL, false);
 
 	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Cinematics/Blueprints/BP_CobraLevelSequence.BP_CobraLevelSequence_C", L"OnCameraCut", NULL, (UEVR_UFunction_NativePreFn)HookManager::mod_CobraLevelSequence_OnCameraCut_post, true);
+	hookManager.hook_bp_fn(L"Class /Script/Gsr.GsrPlayerController", L"OnDisablePlayerControl", NULL, (UEVR_UFunction_NativePreFn)HookManager::mod_PlayerController_OnDisablePlayerControl_post, true);
 
 	//hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePlay", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePlay_post, true);
 	//hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePause", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePause_post, true);
@@ -412,11 +413,6 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 	playerManager.FetchGameState();
 
-	if (!playerManager.IngameUI())
-	{
-		playerManager.IsPlayerControlled = false;
-	}	
-
 	//test
 	//if (!cameraController.IsMenuOpen && cameraController.WasMenuOpen)
 	//{
@@ -523,6 +519,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 	playerManager.WasSecondHandAttachedToWeapon = playerManager.SecondHandAttachedToWeapon;
 	playerManager.WasPlayerControlled = playerManager.IsPlayerControlled;
+	playerManager.WasPlayerControlForceDisabled = playerManager.IsPlayerControlForceDisabled;
 	playerManager.WasPeepingInternal = playerManager.IsPeepingInternal;
 	playerManager.PreviousStance = playerManager.CurrentStance;
 	playerManager.WasFirstPersonView = playerManager.IsFirstPersonView;
