@@ -398,7 +398,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	if (AttachHandNextFrame && NextFrame && !playerManager->MeleeAttackRunning)
 	{
-		Logger::DebugPrint("Attaching main hand rn");
+		Logger::DebugPrint("Check main hand need attach");
 		AttachMainHandToWeapon();
 		AttachSecondHandNextFrame = true;
 		SendHandStateToLua();
@@ -828,6 +828,11 @@ void WeaponManager::ProcessWeapon(float delta)
 
 void WeaponManager::AttachMainHandToWeapon()
 {
+	if (!mainHandShouldAttachToWeapon)
+	{
+		AttachHandNextFrame = false;
+		return;
+	}
 	//return;
 	if (!playerManager->RightHandMesh)
 	{
