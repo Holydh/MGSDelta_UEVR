@@ -559,11 +559,11 @@ void CameraController::FixSurvivalViewerMenuRendering()
 				auto slot = (SDK::UPanelSlot*)childPanel->Slots[i];
 				std::string slotName = slot->GetName(); // Get just the name without path
 
-				if (slotName == "CanvasPanelSlot_10_10") {
+				if (slotName == "CanvasPanelSlot_10") {
 					slot->Content->SetVisibility(SDK::ESlateVisibility::Hidden);
 					Logger::DebugPrint("Found target slot at index: %i", i);
 				}
-				if (slotName == "CanvasPanelSlot_1_1")
+				if (slotName == "CanvasPanelSlot_1")
 				{
 					slot->Content->SetVisibility(SDK::ESlateVisibility::Hidden);
 					Logger::DebugPrint("Found target slot at index: %i", i);
