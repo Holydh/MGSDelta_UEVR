@@ -31,7 +31,6 @@ private:
     bool m_was_rendering_desktop;
 
     
-    ImVec2 LastMousePosition = {-1.0f, -1.0f};
     std::string_view Framework_UI_Distance = "UI_Framework_Distance";
     std::string_view Framework_UI_Size = "UI_Framework_Size";
     
@@ -63,4 +62,5 @@ public:
     bool MouseMovedThisFrame = false;
     bool MouseHasFocus = false;
     bool ControllerInput = true;
+    ImVec2 LastMousePosition = {-1.0f, -1.0f};
 };

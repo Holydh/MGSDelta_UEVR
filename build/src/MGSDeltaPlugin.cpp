@@ -136,6 +136,18 @@ void MGSDeltaPlugin::on_custom_event(const char* event_name, const char* event_d
 			weaponManager.ApplyHandMaterialToVRHands();
 		}
 	}
+	if (strcmp(event_name, "MouseX") == 0)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		imGuiMenu.LastMousePosition.x = std::stof(event_data);
+		//Logger::DebugPrint("MouseX: %f", io.MousePos.x);
+	}
+	if (strcmp(event_name, "MouseY") == 0)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		imGuiMenu.LastMousePosition.y = std::stof(event_data);
+		//Logger::DebugPrint("MouseY: %f", io.MousePos.y);
+	}
 }
 
 void MGSDeltaPlugin::dispatch_lua_event(const char* event_name, const char* event_data) {

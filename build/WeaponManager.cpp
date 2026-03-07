@@ -394,7 +394,6 @@ void WeaponManager::ProcessWeapon(float delta)
 	if (AttachSecondHandNextFrame && !playerManager->MeleeAttackRunning)
 	{
 		AttachSecondHandToWeapon();
-		AttachSecondHandNextFrame = false;
 	}
 
 	if (AttachHandNextFrame && NextFrame && !playerManager->MeleeAttackRunning)
@@ -403,7 +402,6 @@ void WeaponManager::ProcessWeapon(float delta)
 		AttachMainHandToWeapon();
 		AttachSecondHandNextFrame = true;
 		SendHandStateToLua();
-		AttachHandNextFrame = false;
 		NextFrame = false;
 	}
 
@@ -554,8 +552,8 @@ void WeaponManager::ProcessWeapon(float delta)
 			return;
 		}
 
-		
-		AttachHandNextFrame = true;	
+		if (mainHandShouldAttachToWeapon)
+			AttachHandNextFrame = true;	
 	}
 
 	if (CurrentWeaponID == EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
@@ -831,11 +829,14 @@ void WeaponManager::ProcessWeapon(float delta)
 void WeaponManager::AttachMainHandToWeapon()
 {
 	//return;
-	if (!playerManager->RightHandMesh) return;
+	if (!playerManager->RightHandMesh)
+	{
+		playerManager->FetchMotionControllers();
+		return;
+	}
 
 	if (!playerManager->MainHandAttachedToWeapon && mainHandShouldAttachToWeapon)
 	{
-
 		Logger::DebugPrint("attach Main Hand to weapon");
 		playerManager->RightHandMesh->DetachFromParent(true, false);
 		playerManager->RightHandMesh->K2_AttachToComponent(
@@ -856,6 +857,7 @@ void WeaponManager::AttachMainHandToWeapon()
 		//playerManager->RightHandMesh->K2_AddRelativeRotation(HandRotationOffset, false, &outHit, false);
 		playerManager->RightHandMesh->SetVisibility(true, true);
 		playerManager->LeftHandMesh->SetVisibility(true, true);
+		AttachHandNextFrame = false;
 	}
 }
 
@@ -886,7 +888,11 @@ bool WeaponManager::DetachHandFromWeapon()
 
 void WeaponManager::AttachSecondHandToWeapon()
 {
-	if (!playerManager->LeftHandMesh) return;
+	if (!playerManager->LeftHandMesh)
+	{
+		playerManager->FetchMotionControllers();
+		return;
+	}
 
 	if (secondHandShouldAttachToWeapon && !canBeTwoHanded)
 	{
@@ -914,6 +920,7 @@ void WeaponManager::AttachSecondHandToWeapon()
 		playerManager->LeftHandMesh->SetVisibility(true, true);
 		uevr::API::get()->dispatch_lua_event("TwoHandsHandling", "1");
 		playerManager->SecondHandAttachedToWeapon = true;
+		AttachSecondHandNextFrame = false;
 	}
 }
 
@@ -1196,6 +1203,8 @@ void WeaponManager::ApplyRecoil(float delta)
 	float recoilPositionRecoverySpeed = 10.0f;
 	float recoilRotationRecoverySpeed = 8.0f;
 
+	bool twoHandsRecoil = playerManager->SecondHandAttachedToWeapon || !*settingsManager->EnableTwoHandsRealisticRecoilPtr;
+
 	switch (CurrentWeaponID)
 	{
 	case WP_Mk22:
@@ -1248,8 +1257,8 @@ void WeaponManager::ApplyRecoil(float delta)
 		break;
 
 	case WP_Ithaca:
-		positionRecoilForce = { 1.0f, -30.0f, 8.0f };
-		rotationRecoilForceEuler = { 0.0f, 0.0f, playerManager->SecondHandAttachedToWeapon || !*settingsManager->EnableTwoHandsRealisticRecoilPtr ? -6.0f : -30.0f };
+		positionRecoilForce = { 1.0f, twoHandsRecoil ? -30.0f : -20.0f, 8.0f };
+		rotationRecoilForceEuler = { 0.0f, 0.0f, twoHandsRecoil ? -6.0f : -20.0f };
 		recoilPositionRecoverySpeed = 5.0f;
 		recoilRotationRecoverySpeed = 4.0f;
 		break;
@@ -1282,8 +1291,8 @@ void WeaponManager::ApplyRecoil(float delta)
 	{
 		if (!playerManager->SecondHandAttachedToWeapon && *settingsManager->EnableTwoHandsRealisticRecoilPtr)
 		{
-			positionRecoilForce *= 1.5f;
-			rotationRecoilForceEuler *= 1.5f;
+			positionRecoilForce *= 2.0f;
+			rotationRecoilForceEuler *= 2.0f;
 		}
 
 		CurrentRelativeWeaponPosition += positionRecoilForce;

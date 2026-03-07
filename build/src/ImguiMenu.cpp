@@ -124,90 +124,92 @@ void ImGuiMenu::handleVRcursor()
     auto hmdIndex = vr->get_hmd_index();
     ImGuiIO& io = ImGui::GetIO();
 	io.MouseDrawCursor = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
-	/*Logger::DebugPrint("Mouse has focus : %i", MouseHasFocus);*/
-	if (MouseHasFocus)
-		return;
+	auto test = io.MousePos;
+	///*Logger::DebugPrint("Mouse has focus : %i", MouseHasFocus);*/
+	//if (MouseHasFocus)
+	//	return;
 
-    // Retrieve controller and HMD transforms
-    UEVR_Matrix4x4f controllerPoseMatrix;
-    UEVR_Matrix4x4f hmdPoseMatrix;
-    vr->get_grip_transform(rightControllerIndex, &controllerPoseMatrix);
-    vr->get_transform(hmdIndex, &hmdPoseMatrix);
-    
-    // Convert to GLM matrices
-    glm::mat4 controllerMatrix = glm::make_mat4(&controllerPoseMatrix.m[0][0]);
-    glm::mat4 hmdMatrix = glm::make_mat4(&hmdPoseMatrix.m[0][0]);
-    
-    // Extract controller position and calculate pointing direction
-    glm::vec3 controllerPosition = glm::vec3(controllerMatrix[3]);
-    glm::vec3 controllerForward = -glm::vec3(controllerMatrix[1]);
-    glm::vec3 controllerUp = -glm::vec3(controllerMatrix[2]);
-    glm::vec3 controllerDirection = glm::normalize(controllerForward * 0.5f + controllerUp * 0.3f);
-    
-    // Get VR play space origin and rotation
-    UEVR_Vector3f standingOriginRaw;
-    UEVR_Quaternionf rotationOffsetRaw;
-    vr->get_standing_origin(&standingOriginRaw);
-    vr->get_rotation_offset(&rotationOffsetRaw);
-    
-    glm::vec3 playSpaceOrigin(standingOriginRaw.x, standingOriginRaw.y, standingOriginRaw.z);
-    glm::quat playSpaceRotation(rotationOffsetRaw.w, rotationOffsetRaw.x, 
-                                rotationOffsetRaw.y, rotationOffsetRaw.z);
-    
-    // Calculate UI plane orientation
-    glm::vec3 uiRightAxis = playSpaceRotation * glm::vec3(1, 0, 0);
-    glm::vec3 uiUpAxis = playSpaceRotation * glm::vec3(0, 1, 0);
-    glm::vec3 uiNormalAxis = playSpaceRotation * glm::vec3(0, 0, -1);
-    
-    // Position UI plane at configured distance from origin
-    float uiDistance = uevr::API::VR::get_mod_value<float>(Framework_UI_Distance);
-    glm::vec3 uiPlaneCenter = playSpaceOrigin + uiNormalAxis * uiDistance;
-    
-    // Perform ray-plane intersection
-    float rayDotNormal = glm::dot(uiNormalAxis, controllerDirection);
-    
-    if (fabs(rayDotNormal) > 1e-6f)  // If ray not parallel to plane
-    {
-        float intersectionDistance = glm::dot(uiPlaneCenter - controllerPosition, uiNormalAxis) / rayDotNormal;
-        
-        if (intersectionDistance > 0.0f)  // Intersection in front of controller
-        {
-            // Calculate intersection point
-            glm::vec3 intersectionPoint = controllerPosition + controllerDirection * intersectionDistance;
-            
-            // Project intersection to UI plane local coordinates
-            glm::vec3 localOffset = intersectionPoint - uiPlaneCenter;
-            float localX = glm::dot(localOffset, uiRightAxis);
-            float localY = glm::dot(localOffset, uiUpAxis);
-            
-            // Normalize by UI size and apply cursor speed scaling
-            float uiSize = uevr::API::VR::get_mod_value<float>(Framework_UI_Size);
-            float normalizedX = (localX / uiSize) * 0.565f;
-            float normalizedY = localY / uiSize;
-            
-            // Convert to ImGui screen coordinates
-            ImVec2 targetMousePosition(
-                (normalizedX + 0.5f) * io.DisplaySize.x,
-                (0.5f - normalizedY) * io.DisplaySize.y
-            );
-            
-            // Initialize last position if needed
-            if (LastMousePosition.x < 0.0f)
-            {
-                LastMousePosition = targetMousePosition;
-            }
-            
-            // Apply smoothing to cursor movement
-            const float smoothingFactor = 0.2f;
-            LastMousePosition.x = glm::mix(LastMousePosition.x, targetMousePosition.x, smoothingFactor);
-            LastMousePosition.y = glm::mix(LastMousePosition.y, targetMousePosition.y, smoothingFactor);
-            
-            // Update ImGui input state
+ //   // Retrieve controller and HMD transforms
+ //   UEVR_Matrix4x4f controllerPoseMatrix;
+ //   UEVR_Matrix4x4f hmdPoseMatrix;
+ //   vr->get_grip_transform(rightControllerIndex, &controllerPoseMatrix);
+ //   vr->get_transform(hmdIndex, &hmdPoseMatrix);
+ //   
+ //   // Convert to GLM matrices
+ //   glm::mat4 controllerMatrix = glm::make_mat4(&controllerPoseMatrix.m[0][0]);
+ //   glm::mat4 hmdMatrix = glm::make_mat4(&hmdPoseMatrix.m[0][0]);
+ //   
+ //   // Extract controller position and calculate pointing direction
+ //   glm::vec3 controllerPosition = glm::vec3(controllerMatrix[3]);
+ //   glm::vec3 controllerForward = -glm::vec3(controllerMatrix[1]);
+ //   glm::vec3 controllerUp = -glm::vec3(controllerMatrix[2]);
+ //   glm::vec3 controllerDirection = glm::normalize(controllerForward * 0.5f + controllerUp * 0.3f);
+ //   
+ //   // Get VR play space origin and rotation
+ //   UEVR_Vector3f standingOriginRaw;
+ //   UEVR_Quaternionf rotationOffsetRaw;
+ //   vr->get_standing_origin(&standingOriginRaw);
+ //   vr->get_rotation_offset(&rotationOffsetRaw);
+ //   
+ //   glm::vec3 playSpaceOrigin(standingOriginRaw.x, standingOriginRaw.y, standingOriginRaw.z);
+ //   glm::quat playSpaceRotation(rotationOffsetRaw.w, rotationOffsetRaw.x, 
+ //                               rotationOffsetRaw.y, rotationOffsetRaw.z);
+ //   
+ //   // Calculate UI plane orientation
+ //   glm::vec3 uiRightAxis = playSpaceRotation * glm::vec3(1, 0, 0);
+ //   glm::vec3 uiUpAxis = playSpaceRotation * glm::vec3(0, 1, 0);
+ //   glm::vec3 uiNormalAxis = playSpaceRotation * glm::vec3(0, 0, -1);
+ //   
+ //   // Position UI plane at configured distance from origin
+ //   float uiDistance = uevr::API::VR::get_mod_value<float>(Framework_UI_Distance);
+ //   glm::vec3 uiPlaneCenter = playSpaceOrigin + uiNormalAxis * uiDistance;
+ //   
+ //   // Perform ray-plane intersection
+ //   float rayDotNormal = glm::dot(uiNormalAxis, controllerDirection);
+ //   
+ //   if (fabs(rayDotNormal) > 1e-6f)  // If ray not parallel to plane
+ //   {
+ //       float intersectionDistance = glm::dot(uiPlaneCenter - controllerPosition, uiNormalAxis) / rayDotNormal;
+ //       
+ //       if (intersectionDistance > 0.0f)  // Intersection in front of controller
+ //       {
+ //           // Calculate intersection point
+ //           glm::vec3 intersectionPoint = controllerPosition + controllerDirection * intersectionDistance;
+ //           
+ //           // Project intersection to UI plane local coordinates
+ //           glm::vec3 localOffset = intersectionPoint - uiPlaneCenter;
+ //           float localX = glm::dot(localOffset, uiRightAxis);
+ //           float localY = glm::dot(localOffset, uiUpAxis);
+ //           
+ //           // Normalize by UI size and apply cursor speed scaling
+ //           float uiSize = uevr::API::VR::get_mod_value<float>(Framework_UI_Size);
+ //           float normalizedX = (localX / uiSize) * 0.565f;
+ //           float normalizedY = localY / uiSize;
+ //           
+ //           // Convert to ImGui screen coordinates
+ //           ImVec2 targetMousePosition(
+ //               (normalizedX + 0.5f) * io.DisplaySize.x,
+ //               (0.5f - normalizedY) * io.DisplaySize.y
+ //           );
+ //           
+ //           // Initialize last position if needed
+ //           if (LastMousePosition.x < 0.0f)
+ //           {
+ //               LastMousePosition = targetMousePosition;
+ //           }
+ //           
+ //           // Apply smoothing to cursor movement
+ //           const float smoothingFactor = 0.2f;
+ //           LastMousePosition.x = glm::mix(LastMousePosition.x, targetMousePosition.x, smoothingFactor);
+ //           LastMousePosition.y = glm::mix(LastMousePosition.y, targetMousePosition.y, smoothingFactor);
+ //           
+ //           // Update ImGui input state
             io.MousePos = LastMousePosition;
 			ControllerInput = Inputs::IsActionActive(false, "/actions/default/in/AButtonRight");
+			//io.AddMouseButtonEvent(0, io.MouseClicked);
 			io.AddMouseButtonEvent(0, ControllerInput);
-        }
-    }
+    //    }
+    //}
 }
 
 void ImGuiMenu::checkMouseFocus(float delta)
