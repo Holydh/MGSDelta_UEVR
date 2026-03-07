@@ -285,7 +285,7 @@ void SettingsManager::GetOrCreateConfigFile()
 			"smoothCameraMovementsInImmersiveCutscenes=true\n"
 			"cutsceneCameraPositionLerp=5.0\n"
 			"cutsceneCameraRotationLerp=8.0\n"
-			"smoothCameraMovementsInImmersiveCutscenes=true"
+			"smoothCameraMovementsInImmersiveCutscenes=true\n"
 			//"enableCutoutScreenForCutscenes=true\n"
 			"------ Rendering Settings ------\n"
 			"enable3DCutscenes=true\n"
