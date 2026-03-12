@@ -25,9 +25,10 @@ disableThermalVisionScanline=true
 enableImmersiveMode=false
 blackBarsSize=5.000000
 smoothCameraMovementsInImmersiveCutscenes=true
-cutsceneCameraPositionLerp=5.393000
-cutsceneCameraRotationLerp=7.016000
-smoothCameraMovementsInImmersiveCutscenes=true------ Rendering Settings ------
+cutsceneCameraPositionLerp=6.000000
+cutsceneCameraRotationLerp=7.000000
+smoothCameraMovementsInImmersiveCutscenes=true
+------ Rendering Settings ------
 enable3DCutscenes=true
 enable3DRadio=false
 enable3DSurvivalView=true
