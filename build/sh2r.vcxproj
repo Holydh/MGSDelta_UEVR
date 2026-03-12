@@ -87,7 +87,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\shared;C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\src;C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\;C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\include;C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\kananlib-src\include;C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\bddisasm-src\inc;C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\build\_deps\spdlog-src\include;C:\Users\Dam\Dev\Cpp\UEVR_BaseCPPproject\MGSDelta_UEVR\dependencies\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\build\src;..\build\;..\build\_deps\kananlib-src\include;..\build\_deps\bddisasm-src\inc;..\build\_deps\spdlog-src\include;..\dependencies\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>%(AdditionalOptions) /bigobj</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
