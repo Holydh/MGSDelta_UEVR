@@ -1,48 +1,25 @@
-# Prerequisites
-*.d
+# Build output (fully generated: delete it any time and reconfigure)
+/build/
+/build-*/
+/out/
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
+# IDE state
+.vs/
+.vscode/
+CMakeUserPresets.json
+
+# TEMPORARY: local Dumper-7 SDK dump (never committed, being removed)
+/sdk/
+
+# Compiled binaries
 *.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
 *.lib
-
-# Executables
+*.exp
+*.ilk
+*.pdb
+*.dll
 *.exe
-*.out
-*.app
 
-build/mgsdelta.dir/*
-build/glm_static.dir/*
-build/Release/*
-build/.vscode/*
-build/out/*
-build/.vs/*
-build/Debug/*
-build/src/SDK/*
-build/src/NameCollisions.inl
-build/src/PropertyFixup.hpp
-build/src/SDK.hpp
-build/src/UnrealContainers.hpp
-build/src/UtfN.hpp
-build/src/Assertions.inl
-
-
-dependencies/steelsdk/*
+# UEVR profile: built plugin and runtime files
+UEVR_profile/MGSDelta-Win64-Shipping/plugins/
 UEVR_profile/MGSDelta-Win64-Shipping/log.txt
-/build/_deps
