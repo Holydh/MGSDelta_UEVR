@@ -1,10 +1,11 @@
 #pragma once
 // Engine and game enums used by the plugin.
-// Values copied from a Dumper-7 dump of the game; engine enums are fixed by the Unreal
-// Engine version, game (Gsr/MGS3) enums could in theory change with a game update.
+// Values copied from a Dumper-7 dump of the game (and verified against it at the time).
+// Engine enums are fixed by the Unreal Engine version; game (Gsr/MGS3) enums could in
+// theory be renumbered by a game update.
 #include <cstdint>
 
-namespace ue::enums_impl {
+namespace ue {
 
 // from MGS3_structs.hpp
 enum class EAimingStatus : uint8_t
@@ -292,61 +293,4 @@ enum class EWidgetBlendMode : uint8_t
     EWidgetBlendMode_MAX = 3,
 };
 
-} // namespace ue::enums_impl
-
-#if MGSDELTA_HAS_SDK
-// TEMPORARY while the Dumper-7 SDK is still used: alias the SDK's own enum types so
-// ported and not-yet-ported code exchange the same types. EnumsCheck.cpp verifies the
-// copies above match the SDK values exactly.
-#include "SDK/Engine_structs.hpp"
-#include "SDK/Gsr_structs.hpp"
-#include "SDK/MGS3_structs.hpp"
-#include "SDK/UMG_structs.hpp"
-namespace ue {
-using ::SDK::EAimingStatus;
-using ::SDK::EAttachLocation;
-using ::SDK::EAttachmentRule;
-using ::SDK::EBlendMode;
-using ::SDK::ECollisionEnabled;
-using ::SDK::EComponentMobility;
-using ::SDK::EGsrGameStatus;
-using ::SDK::EGsrItemId;
-using ::SDK::EGsrPlayerCameraControllerCameraMode;
-using ::SDK::EGsrPlayerStance;
-using ::SDK::EGsrUIMenuType;
-using ::SDK::EMaterialDomain;
-using ::SDK::EMaterialShadingModel;
-using ::SDK::ERelativeTransformSpace;
-using ::SDK::ESceneCapturePrimitiveRenderMode;
-using ::SDK::ESceneCaptureSource;
-using ::SDK::ESlateVisibility;
-using ::SDK::ESpawnActorCollisionHandlingMethod;
-using ::SDK::ESpawnActorScaleMethod;
-using ::SDK::ETextureRenderTargetFormat;
-using ::SDK::EWidgetBlendMode;
-}
-#else
-namespace ue {
-using enums_impl::EAimingStatus;
-using enums_impl::EAttachLocation;
-using enums_impl::EAttachmentRule;
-using enums_impl::EBlendMode;
-using enums_impl::ECollisionEnabled;
-using enums_impl::EComponentMobility;
-using enums_impl::EGsrGameStatus;
-using enums_impl::EGsrItemId;
-using enums_impl::EGsrPlayerCameraControllerCameraMode;
-using enums_impl::EGsrPlayerStance;
-using enums_impl::EGsrUIMenuType;
-using enums_impl::EMaterialDomain;
-using enums_impl::EMaterialShadingModel;
-using enums_impl::ERelativeTransformSpace;
-using enums_impl::ESceneCapturePrimitiveRenderMode;
-using enums_impl::ESceneCaptureSource;
-using enums_impl::ESlateVisibility;
-using enums_impl::ESpawnActorCollisionHandlingMethod;
-using enums_impl::ESpawnActorScaleMethod;
-using enums_impl::ETextureRenderTargetFormat;
-using enums_impl::EWidgetBlendMode;
-}
-#endif
+} // namespace ue

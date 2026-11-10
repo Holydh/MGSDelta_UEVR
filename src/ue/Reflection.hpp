@@ -14,6 +14,7 @@
 //   auto rot   = ue::call_static<FRotator>(ue::lib::KismetMath, L"MakeRotFromX", forward);
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -24,6 +25,8 @@
 #include "ue/Enums.hpp"
 
 namespace ue {
+
+class StructRef;
 
 using UObject = uevr::API::UObject;
 using UClass = uevr::API::UClass;
@@ -55,6 +58,9 @@ private:
     const wchar_t* m_full_name;
     mutable UClass* m_cached{ nullptr };
 };
+
+// GameEngine->GameViewport->World
+UObject* get_world();
 
 // Null-safe UObject::is_a
 inline bool is_a(const UObject* obj, UClass* cls) { return obj != nullptr && cls != nullptr && obj->is_a(cls); }
@@ -90,6 +96,7 @@ template <> struct is_value_struct<FLinearColor> : std::true_type {};
 template <> struct is_value_struct<FHitResult> : std::true_type {};
 template <> struct is_value_struct<FName> : std::true_type {};
 template <> struct is_value_struct<FStringArg> : std::true_type {};
+template <> struct is_value_struct<StructRef> : std::true_type {};
 
 template <typename T> struct is_tarray : std::false_type {};
 template <typename T> struct is_tarray<TArray<T>> : std::true_type {};
@@ -99,7 +106,7 @@ template <typename T>
 inline constexpr bool is_value_type_v = std::is_arithmetic_v<T> || std::is_enum_v<T> ||
                                         is_value_struct<T>::value || is_tarray<T>::value;
 
-// Pointer to a non-value type = UObject pointer (UEVR API types, or SDK types during the transition)
+// Pointer to a non-value type = UObject pointer (uevr::API::UObject and subclasses)
 template <typename T>
 inline constexpr bool is_object_ptr_v = std::is_pointer_v<T> && !is_value_type_v<std::remove_cv_t<std::remove_pointer_t<T>>>;
 
@@ -120,6 +127,8 @@ constexpr TypeDesc type_desc() {
     else if constexpr (std::is_same_v<U, double>) return { { L"DoubleProperty" }, nullptr, "double" };
     else if constexpr (std::is_same_v<U, FName>) return { { L"NameProperty" }, nullptr, "FName" };
     else if constexpr (std::is_same_v<U, FStringArg>) return { { L"StrProperty" }, nullptr, "FString" };
+    // In-place struct (StructRef): any StructProperty here, its exact type is checked at call time
+    else if constexpr (std::is_same_v<U, StructRef>) return { { L"StructProperty" }, nullptr, "struct" };
     else if constexpr (std::is_same_v<U, FVector>) return { { L"StructProperty" }, L"Vector", "FVector" };
     else if constexpr (std::is_same_v<U, FVector2D>) return { { L"StructProperty" }, L"Vector2D", "FVector2D" };
     else if constexpr (std::is_same_v<U, FRotator>) return { { L"StructProperty" }, L"Rotator", "FRotator" };
@@ -163,7 +172,8 @@ struct FunctionInfo {
     mutable std::vector<const void*> rejected_signatures;
 };
 
-const FunctionInfo* find_function(const UStruct* owner, std::wstring_view name);
+// log_missing = false for functions that are allowed not to exist (see ue::try_call)
+const FunctionInfo* find_function(const UStruct* owner, std::wstring_view name, bool log_missing = true);
 
 // Signature check, memoized per (function, C++ signature)
 bool check_signature(const FunctionInfo& fn, const UStruct* owner, const void* signature_tag,
@@ -189,6 +199,19 @@ private:
 void write_bool(const PropertyInfo& p, void* base, bool value);
 bool read_bool(const PropertyInfo& p, const void* base);
 
+int32_t struct_size(const UStruct* type);
+// A StructRef argument must be an instance of the parameter's own struct type (logged once if not)
+bool struct_arg_matches(const PropertyInfo& p, const UStruct* arg_type, const FunctionInfo& fn);
+
+template <typename T>
+bool arg_runtime_ok(const PropertyInfo& p, const T& value, const FunctionInfo& fn) {
+    if constexpr (std::is_same_v<std::remove_cvref_t<T>, StructRef>) {
+        return static_cast<bool>(value) && struct_arg_matches(p, value.type(), fn);
+    } else {
+        return true;
+    }
+}
+
 template <typename T>
 void write_arg(const PropertyInfo& p, uint8_t* buffer, const T& value) {
     using U = std::remove_cvref_t<T>;
@@ -204,6 +227,8 @@ void write_arg(const PropertyInfo& p, uint8_t* buffer, const T& value) {
         }
     } else if constexpr (std::is_same_v<U, bool>) {
         write_bool(p, buffer, value);
+    } else if constexpr (std::is_same_v<U, StructRef>) {
+        std::memcpy(dst, value.data(), (size_t)struct_size(value.type())); // bitwise, like the SDK did
     } else if constexpr (is_object_ptr_v<U>) {
         *reinterpret_cast<void**>(dst) = (void*)value;
     } else {
@@ -238,15 +263,28 @@ R default_value() {
 }
 
 template <typename R, typename... Args>
+R invoke_resolved(UObject* target, const UStruct* owner, const FunctionInfo& fn_info, const Args&... args);
+
+template <typename R, typename... Args>
 R invoke(UObject* target, const UStruct* owner, std::wstring_view fn_name, const Args&... args) {
     if (target == nullptr || owner == nullptr) return detail::default_value<R>();
     const FunctionInfo* fn = find_function(owner, fn_name);
     if (fn == nullptr) return detail::default_value<R>();
+    return invoke_resolved<R>(target, owner, *fn, args...);
+}
+
+template <typename R, typename... Args>
+R invoke_resolved(UObject* target, const UStruct* owner, const FunctionInfo& fn_info, const Args&... args) {
+    const FunctionInfo* fn = &fn_info;
 
     static constexpr const TypeDesc* arg_types[] = { arg_type_desc<Args>()..., nullptr };
     const TypeDesc* return_type = nullptr;
     if constexpr (!std::is_void_v<R>) return_type = &type_desc_v<R>;
     if (!check_signature(*fn, owner, &signature_tag<R, Args...>::tag, arg_types, sizeof...(Args), return_type)) return detail::default_value<R>();
+    {
+        size_t k = 0;
+        if (!(arg_runtime_ok(*fn->params[k++], args, *fn) && ... && true)) return detail::default_value<R>();
+    }
 
     ParamBuffer buffer{ fn->params_size, fn->alignment };
     size_t i = 0;
@@ -336,20 +374,43 @@ public:
     void* data() const { return m_data; }
     const UStruct* type() const { return m_type; }
 
+    // Not for bool members: they may be bitfields, use get/set
     template <typename T>
     T* member(std::wstring_view name) const {
-        static_assert(!std::is_same_v<T, bool>, "bool struct members may be bitfields: not supported yet");
+        static_assert(!std::is_same_v<T, bool>, "use get<bool>/set for bool members (may be bitfields)");
         return detail::member_ptr<T>(m_data, m_type, name);
     }
     template <typename T>
     T get(std::wstring_view name, T fallback = T{}) const {
         static_assert(!detail::is_tarray<T>::value, "use member<TArray<T>> (a TArray copy would free the game's array)");
-        const T* ptr = member<T>(name);
-        return ptr != nullptr ? *ptr : fallback;
+        if constexpr (std::is_same_v<T, bool>) {
+            const auto* p = bool_member(name);
+            return p != nullptr ? detail::read_bool(*p, m_data) : fallback;
+        } else {
+            const T* ptr = member<T>(name);
+            return ptr != nullptr ? *ptr : fallback;
+        }
+    }
+    template <typename T>
+    bool set(std::wstring_view name, const T& value) const {
+        static_assert(!detail::is_tarray<T>::value, "use member<TArray<T>> to modify arrays in place");
+        if constexpr (std::is_same_v<T, bool>) {
+            const auto* p = bool_member(name);
+            if (p == nullptr) return false;
+            detail::write_bool(*p, m_data, value);
+            return true;
+        } else {
+            T* ptr = member<T>(name);
+            if (ptr == nullptr) return false;
+            *ptr = value;
+            return true;
+        }
     }
     StructRef sub(std::wstring_view name) const; // nested struct member
 
 private:
+    const detail::PropertyInfo* bool_member(std::wstring_view name) const;
+
     void* m_data{};
     const UStruct* m_type{};
 };
@@ -381,11 +442,39 @@ R call(UObject* obj, std::wstring_view fn_name, const Args&... args) {
     return detail::invoke<R>(obj, obj->get_class(), fn_name, args...);
 }
 
+// Same as call, for functions that may legitimately not exist on the object's class
+// (e.g. GetMuzzleTransform on whatever weapon is equipped): a missing function is not
+// logged. Signature mismatches still are.
+template <typename R = void, typename... Args>
+R try_call(UObject* obj, std::wstring_view fn_name, const Args&... args) {
+    if (obj == nullptr) return detail::default_value<R>();
+    const auto* fn = detail::find_function(obj->get_class(), fn_name, false);
+    if (fn == nullptr) return detail::default_value<R>();
+    return detail::invoke_resolved<R>(obj, obj->get_class(), *fn, args...);
+}
+
 // Static function (e.g. Kismet libraries), called on the class default object
 template <typename R = void, typename... Args>
 R call_static(UClass* cls, std::wstring_view fn_name, const Args&... args) {
     UObject* cdo = default_object(cls);
     return detail::invoke<R>(cdo, cls, fn_name, args...);
+}
+
+// ---------------------------------------------------------------------------
+// Convenience
+// ---------------------------------------------------------------------------
+
+// UKismetSystemLibrary::IsValid, null-safe
+inline bool is_valid(const UObject* obj) {
+    return obj != nullptr && call_static<bool>(lib::KismetSystem, L"IsValid", obj);
+}
+
+// Copy of an object array property (e.g. AttachChildren): safe to iterate while the
+// engine modifies the array, e.g. when destroying components inside the loop.
+inline std::vector<UObject*> array_snapshot(const UObject* obj, std::wstring_view name) {
+    const auto* array = get_ptr<TArray<UObject*>>(obj, name);
+    if (array == nullptr || array->empty()) return {};
+    return { array->begin(), array->end() };
 }
 
 } // namespace ue

@@ -10,35 +10,7 @@
 #define GLM_FORCE_INLINE
 #include "magic_enum/magic_enum.hpp"
 
-#include "SDK/CoreUObject_structs.hpp"
-#include "SDK/Engine_parameters.hpp"
-#include "SDK/Engine_Classes.hpp"
-#include "SDK/Gsr_parameters.hpp"
-#include "SDK/UMG_classes.hpp"
-#include "SDK/CobraUI_classes.hpp"
-#include "SDK/SightDragnovWidget_classes.hpp"
-#include "SDK/SightMosinWidget_classes.hpp"
-#include "SDK/SightRPG7Widget_classes.hpp"
-
-#include "SDK/BP_IT_NightVision_classes.hpp"
-#include "SDK/BP_IT_Thermal_classes.hpp"
-#include "SDK/BP_PlayerCameraManager_classes.hpp"
-#include "SDK/BP_ThermalPostProcess_classes.hpp"
-// TEMPORARY until WeaponManager is ported: SDK headers it used to get through
-// PlayerManager.hpp and CameraController.hpp (both ported)
-#include "SDK/UMG_structs.hpp"
-#include "SDK/Gsr_structs.hpp"
-#include "SDK/Gsr_classes.hpp"
-#include "SDK/Ics_parameters.hpp"
-#include "SDK/BP_Player_classes.hpp"
-#include "SDK/HeadMountedDisplay_classes.hpp"
-#include "SDK/BP_SnakeStatus_classes.hpp"
-#include "SDK/Engine_structs.hpp"
-#include "SDK/sv_main_classes.hpp"
-#include "SDK/Radio_classes.hpp"
-#include "SDK/CobraUI_structs.hpp"
-#include "SDK/CobraCutScene_classes.hpp"
-//#include "SDK/BP_IT_Cigar_classes.hpp"
+#include "ue/Reflection.hpp"
 
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
@@ -51,18 +23,18 @@ private:
 	PlayerManager* const playerManager;
 	CameraController* const cameraController;
 
-	SDK::ABP_PlayerCameraManager_C* playerCameraManager = nullptr;
+	uevr::API::UObject* playerCameraManager = nullptr; // BP_PlayerCameraManager_C
 
 	float randomRange(float min, float max);
 	void spawnScope();
-	void getRenderTarget(SDK::UWorld* world);
+	void getRenderTarget(uevr::API::UObject* world);
 	void spawnScopeStaticMeshComponent();
 	void spawnSceneCaptureComponent();
 	void spawnScopeWidget();
 	void attachScopeToWeapon();
 
-	SDK::FName tntSocketFname;
-	SDK::FName cqcKnifeSocketFname;
+	ue::FName tntSocketFname;
+	ue::FName cqcKnifeSocketFname;
 
 	
 
@@ -76,30 +48,30 @@ public:
 	bool IsShooting = false;
 	uevr::API::UObject* EquipController = nullptr;
 	uevr::API::UObject* CurrentWeapon = nullptr;
-	SDK::USceneComponent* WeaponAttachParent = nullptr;
+	uevr::API::UObject* WeaponAttachParent = nullptr; // USceneComponent
 	uevr::API::UObject* WeaponRoot = nullptr;
 	uevr::API::UObject* LeftHandWeaponRoot = nullptr;
-	SDK::USkeletalMeshComponent* ReceiverMesh = nullptr;
+	uevr::API::UObject* ReceiverMesh = nullptr; // USkeletalMeshComponent
 
-	SDK::UGsrItemController* ItemController = nullptr;
-	SDK::UObject* CurrentItem = nullptr;
-	SDK::EGsrItemId CurrentItemID = SDK::EGsrItemId::IT_None;
-	SDK::EGsrItemId PreviousItemID = SDK::EGsrItemId::IT_None;
+	uevr::API::UObject* ItemController = nullptr; // UGsrItemController
+	uevr::API::UObject* CurrentItem = nullptr; // UObject
+	ue::EGsrItemId CurrentItemID = ue::EGsrItemId::IT_None;
+	ue::EGsrItemId PreviousItemID = ue::EGsrItemId::IT_None;
 
 	float ZoomInput = 0.0f;
-	SDK::AActor* ScopeActor = nullptr;
-	SDK::UUserWidget* SourceDragnovScopeWidget = nullptr;
-	SDK::UWidgetComponent* DragnovScopeWidget = nullptr;
-	SDK::UUserWidget* SourceMosinScopeWidget = nullptr;
-	SDK::UWidgetComponent* MosinScopeWidget = nullptr;
-	SDK::UUserWidget* SourceRpgScopeWidget = nullptr;
-	SDK::UWidgetComponent* RpgScopeWidget = nullptr;
+	uevr::API::UObject* ScopeActor = nullptr; // AActor
+	uevr::API::UObject* SourceDragnovScopeWidget = nullptr; // UUserWidget
+	uevr::API::UObject* DragnovScopeWidget = nullptr; // UWidgetComponent
+	uevr::API::UObject* SourceMosinScopeWidget = nullptr; // UUserWidget
+	uevr::API::UObject* MosinScopeWidget = nullptr; // UWidgetComponent
+	uevr::API::UObject* SourceRpgScopeWidget = nullptr; // UUserWidget
+	uevr::API::UObject* RpgScopeWidget = nullptr; // UWidgetComponent
 
-	SDK::UStaticMeshComponent* ScopeStaticMeshComponent = nullptr;
-	SDK::USceneCaptureComponent2D* SceneCaptureComponent = nullptr;
-	SDK::UStaticMeshComponent* SceneCaptureUStaticMeshComponent = nullptr;
+	uevr::API::UObject* ScopeStaticMeshComponent = nullptr; // UStaticMeshComponent
+	uevr::API::UObject* SceneCaptureComponent = nullptr; // USceneCaptureComponent2D
+	uevr::API::UObject* SceneCaptureUStaticMeshComponent = nullptr; // UStaticMeshComponent
 
-	SDK::UTextureRenderTarget2D* ScopeRenderTarget = nullptr;
+	uevr::API::UObject* ScopeRenderTarget = nullptr; // UTextureRenderTarget2D
 
 
 	glm::fquat DefaultUevrHookWeaponRotation{};
@@ -109,17 +81,17 @@ public:
 	glm::fvec3 CurrentRelativeWeaponPosition {0.0f, 0.0f, 0.0f};
 	glm::fvec3 DefaultRelativeWeaponPosition {0.0f, 0.0f, 0.0f};
 	glm::fquat DefaultRelativeWeaponRotation { 1.0f, 0.0f, 0.0f, 0.0f };
-	SDK::FRotator RightHandRotationOffset{};
-	SDK::FVector LeftHandLocationOffset{};
-	SDK::FRotator LeftHandRotationOffset{};
+	ue::FRotator RightHandRotationOffset{};
+	ue::FVector LeftHandLocationOffset{};
+	ue::FRotator LeftHandRotationOffset{};
 	float LeftHandWeaponGrabOffset = 0.0f;
 
 	glm::dvec3 FirePosition{};
 	glm::dvec3 AimPosition{};
-	SDK::FRotator CurrentWeaponWorldRotation{};
+	ue::FRotator CurrentWeaponWorldRotation{};
 
-	SDK::AActor* DummyCqcKnifeMeshActor = nullptr;
-	SDK::USkeletalMeshComponent* DummyCqcKnifeMesh = nullptr;
+	uevr::API::UObject* DummyCqcKnifeMeshActor = nullptr; // AActor
+	uevr::API::UObject* DummyCqcKnifeMesh = nullptr; // USkeletalMeshComponent
 
 	bool mainHandShouldAttachToWeapon = false;
 	bool secondHandShouldAttachToWeapon = false;
@@ -390,9 +362,9 @@ public:
 	void FetchWeaponOffsets(EGsrEquipId currentWeapon,
 		glm::fvec3& outPos,
 		glm::fquat& outRot,
-		SDK::FRotator& outRightHandRotationOffset,
-		SDK::FVector& outLeftHandLocationOffset,
-		SDK::FRotator& outLeftHandRotationOffset);
+		ue::FRotator& outRightHandRotationOffset,
+		ue::FVector& outLeftHandLocationOffset,
+		ue::FRotator& outLeftHandRotationOffset);
 
 	//void Initialize();
 	void FetchEquipController();

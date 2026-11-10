@@ -156,6 +156,18 @@ StructRef StructRef::sub(std::wstring_view name) const {
     return struct_at(m_data, m_type, name);
 }
 
+const detail::PropertyInfo* StructRef::bool_member(std::wstring_view name) const {
+    if (m_data == nullptr || m_type == nullptr) return nullptr;
+    const auto* p = detail::find_property(m_type, name);
+    if (p == nullptr || !detail::check_type(*p, detail::type_desc_v<bool>, m_type)) return nullptr;
+    return p;
+}
+
+UObject* get_world() {
+    auto* engine = uevr::API::get()->get_engine();
+    return get<UObject*>(get<UObject*>(engine, L"GameViewport"), L"World");
+}
+
 StructRef get_struct(const UObject* obj, std::wstring_view name) {
     return obj != nullptr ? struct_at((void*)obj, obj->get_class(), name) : StructRef{};
 }
@@ -213,7 +225,7 @@ bool check_type(const PropertyInfo& info, const TypeDesc& desc, const UStruct* o
     return false;
 }
 
-const FunctionInfo* find_function(const UStruct* owner, std::wstring_view name) {
+const FunctionInfo* find_function(const UStruct* owner, std::wstring_view name, bool log_missing) {
     if (owner == nullptr) return nullptr;
     std::scoped_lock lock{ g_mutex };
     auto& cache = cache_for(owner);
@@ -242,7 +254,7 @@ const FunctionInfo* find_function(const UStruct* owner, std::wstring_view name) 
             if (prop->is_return_param()) info->return_value = param;
             else info->params.push_back(param);
         }
-    } else {
+    } else if (log_missing) {
         log_error_once("Function %ls not found in %s", std::wstring{ name }.c_str(), struct_name(owner).c_str());
     }
     auto* result = info.get();
@@ -299,6 +311,17 @@ ParamBuffer::ParamBuffer(int32_t size, int32_t alignment) {
 
 ParamBuffer::~ParamBuffer() {
     if (m_heap != nullptr) _aligned_free(m_heap);
+}
+
+int32_t struct_size(const UStruct* type) {
+    return type != nullptr ? reinterpret_cast<const UScriptStruct*>(type)->get_struct_size() : 0;
+}
+
+bool struct_arg_matches(const PropertyInfo& p, const UStruct* arg_type, const FunctionInfo& fn) {
+    if (p.struct_type == arg_type) return true;
+    log_error_once("Function %s parameter %ls expects struct %ls, the plugin passes %s",
+                   narrow(fn.name).c_str(), p.name.c_str(), p.struct_name.c_str(), struct_name(arg_type).c_str());
+    return false;
 }
 
 void write_bool(const PropertyInfo& p, void* base, bool value) {

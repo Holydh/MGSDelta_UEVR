@@ -4,13 +4,6 @@
 #include "Utilities.hpp"
 #include "ue/Reflection.hpp"
 
-// TEMPORARY: the hand components below keep their SDK pointer types until WeaponManager
-// (their main user) is ported. Forward declarations only, no SDK include needed here.
-namespace SDK {
-	class UMotionControllerComponent;
-	class UPoseableMeshComponent;
-}
-
 
 class PlayerManager {
 public:
@@ -79,10 +72,10 @@ public:
 	ue::EGsrPlayerCameraControllerCameraMode PreviousCameraMode = ue::EGsrPlayerCameraControllerCameraMode::Around;
 	ue::EAimingStatus CurrentAimingStatus = ue::EAimingStatus::Aiming_None;
 
-	SDK::UMotionControllerComponent* LeftController = nullptr;
-	SDK::UPoseableMeshComponent* LeftHandMesh = nullptr;
-	SDK::UMotionControllerComponent* RightController = nullptr;
-	SDK::UPoseableMeshComponent* RightHandMesh = nullptr;
+	uevr::API::UObject* LeftController = nullptr;  // MotionControllerComponent
+	uevr::API::UObject* LeftHandMesh = nullptr;    // PoseableMeshComponent
+	uevr::API::UObject* RightController = nullptr; // MotionControllerComponent
+	uevr::API::UObject* RightHandMesh = nullptr;   // PoseableMeshComponent
 
 	void FetchMotionControllers();
 	bool MainHandAttachedToWeapon = false;

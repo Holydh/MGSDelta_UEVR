@@ -1,68 +1,100 @@
 #include "WeaponManager.hpp"
 
+namespace {
+constinit ue::ClassRef SkeletalMeshComponent_c{ L"Class /Script/Engine.SkeletalMeshComponent" };
+constinit ue::ClassRef StaticMeshComponent_c{ L"Class /Script/Engine.StaticMeshComponent" };
+constinit ue::ClassRef SceneCaptureComponent2D_c{ L"Class /Script/Engine.SceneCaptureComponent2D" };
+constinit ue::ClassRef WidgetComponent_c{ L"Class /Script/UMG.WidgetComponent" };
+constinit ue::ClassRef Image_c{ L"Class /Script/UMG.Image" };
+constinit ue::ClassRef GsrGun_c{ L"Class /Script/Gsr.GsrGun" };
+constinit ue::ClassRef PlayerCameraManagerBP_c{ L"BlueprintGeneratedClass /Game/Blueprints/Camera/BP_PlayerCameraManager.BP_PlayerCameraManager_C" };
+constinit ue::ClassRef GsrPlayerCameraController_c{ L"Class /Script/Gsr.GsrPlayerCameraController" };
+constinit ue::ClassRef CSightDragnovWidget_c{ L"Class /Script/CobraUI.CSightDragnovWidget" };
+constinit ue::ClassRef CSightMosinWidget_c{ L"Class /Script/CobraUI.CSightMosinWidget" };
+constinit ue::ClassRef CSightRpg7Widget_c{ L"Class /Script/CobraUI.CSightRpg7Widget" };
+
+ue::UObject* firstObjectOf(ue::ClassRef& cls)
+{
+	return cls.get() ? cls.get()->get_first_object_matching(false) : nullptr;
+}
+
+void hideWidget(ue::UObject* widget)
+{
+	ue::call(widget, L"SetVisibility", ue::ESlateVisibility::Hidden);
+}
+
+// Image->Brush.TintColor.SpecifiedColor = tint, then Image->SetBrush(Brush)
+void setImageTint(ue::UObject* image, const ue::FLinearColor& tint)
+{
+	auto brush = ue::get_struct(image, L"Brush");
+	if (!brush)
+		return;
+	brush.sub(L"TintColor").set(L"SpecifiedColor", tint);
+	ue::call(image, L"SetBrush", brush);
+}
+}
+
 void WeaponManager::InitWeaponManager()
 {
-	tntSocketFname = SDK::UKismetStringLibrary::Conv_StringToName(L"TntTriggerSocket_LeftHand");
-	cqcKnifeSocketFname = SDK::UKismetStringLibrary::Conv_StringToName(L"BaseBody_LeftHand_MTPA");
+	tntSocketFname = ue::FName(L"TntTriggerSocket_LeftHand");
+	cqcKnifeSocketFname = ue::FName(L"BaseBody_LeftHand_MTPA");
 	DummyCqcKnifeMeshActor = nullptr;
 }
 
 void WeaponManager::ApplyHandMaterialToVRHands()
 {
-	auto pawn = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
-	auto handMaterial = pawn->SkeletalMesh_Hand->GetMaterials();
-	auto previousMaterialCount = playerManager->LeftHandMesh->GetNumMaterials();
+	auto pawn = uevr::API::get()->get_local_pawn(0);
+	auto pawnHandMesh = ue::get<ue::UObject*>(pawn, L"SkeletalMesh_Hand");
+	if (!pawnHandMesh || !playerManager->LeftHandMesh || !playerManager->RightHandMesh)
+		return;
+	auto handMaterial = ue::call<ue::TArray<ue::UObject*>>(pawnHandMesh, L"GetMaterials");
+	auto previousMaterialCount = ue::call<int32_t>(playerManager->LeftHandMesh, L"GetNumMaterials");
 	// Cleanup additional override material slots
-	for (int i = handMaterial.Num(); i < handMaterial.Num(); i++)
+	for (int i = handMaterial.count; i < handMaterial.count; i++)
 	{
-		playerManager->LeftHandMesh->SetMaterial(i, nullptr);
-		playerManager->RightHandMesh->SetMaterial(i, nullptr);
+		ue::call(playerManager->LeftHandMesh, L"SetMaterial", i, nullptr);
+		ue::call(playerManager->RightHandMesh, L"SetMaterial", i, nullptr);
 	}
 
-	for (int i = 0; i < handMaterial.Num(); i++)
+	for (int i = 0; i < handMaterial.count; i++)
 	{
-		playerManager->LeftHandMesh->SetMaterial(i, handMaterial[i]);
-		playerManager->RightHandMesh->SetMaterial(i, handMaterial[i]);
+		ue::call(playerManager->LeftHandMesh, L"SetMaterial", i, handMaterial.data[i]);
+		ue::call(playerManager->RightHandMesh, L"SetMaterial", i, handMaterial.data[i]);
 	}
-	auto handOverlayMaterial = pawn->SkeletalMesh_Hand->GetOverlayMaterial();
-	playerManager->RightHandMesh->SetOverlayMaterial(handOverlayMaterial);
-	playerManager->LeftHandMesh->SetOverlayMaterial(handOverlayMaterial);
+	auto handOverlayMaterial = ue::call<ue::UObject*>(pawnHandMesh, L"GetOverlayMaterial");
+	ue::call(playerManager->RightHandMesh, L"SetOverlayMaterial", handOverlayMaterial);
+	ue::call(playerManager->LeftHandMesh, L"SetOverlayMaterial", handOverlayMaterial);
 }
 
 void WeaponManager::ProcessItem()
 {
-	struct ParameterItemID {
-		SDK::EGsrItemId ReturnValue;
-	}params;
 	if (ItemController == NULL)
 	{
-		CurrentItemID = SDK::EGsrItemId::IT_None;
+		CurrentItemID = ue::EGsrItemId::IT_None;
 		Logger::DebugPrint("No equipController found");
 		return;
 	}
 
-	auto newItemID = ItemController->GetItemId();
+	auto newItemID = ue::call<ue::EGsrItemId>(ItemController, L"GetItemId");
 	if (CurrentItemID != newItemID)
 	{
 		CurrentItemID = newItemID;
 		cameraController->CurrentItemID = CurrentItemID;
 		Logger::DebugPrint("Item changed. New Item ID : %d", CurrentItemID);
 
-		CurrentItem = ItemController->m_currentItem;
-		Logger::DebugPrint(CurrentItem->GetFullName().c_str());
+		CurrentItem = ue::get<ue::UObject*>(ItemController, L"m_currentItem");
+		if (CurrentItem)
+			Logger::DebugPrint(CurrentItem->get_full_name());
 
-		if (CurrentItemID == SDK::EGsrItemId::IT_NightVision)
+		if (CurrentItemID == ue::EGsrItemId::IT_NightVision)
 		{
-			auto item = (SDK::ABP_IT_NightVision_C*)CurrentItem;
-			item->SKM_nvgo_dmo_hd->SetOnlyOwnerSee(true);
+			ue::call(ue::get<ue::UObject*>(CurrentItem, L"SKM_nvgo_dmo_hd"), L"SetOnlyOwnerSee", true);
 
 		}
-		if (CurrentItemID == SDK::EGsrItemId::IT_Thermal)
+		if (CurrentItemID == ue::EGsrItemId::IT_Thermal)
 		{
-			auto item = (SDK::ABP_IT_Thermal_C*)CurrentItem;
-			item->SKM_thgo_dmo_hd->SetOnlyOwnerSee(true);
-			auto static cameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"BlueprintGeneratedClass /Game/Blueprints/Camera/BP_PlayerCameraManager.BP_PlayerCameraManager_C");
-			playerCameraManager = (SDK::ABP_PlayerCameraManager_C*)cameraManager_c->get_first_object_matching(false);
+			ue::call(ue::get<ue::UObject*>(CurrentItem, L"SKM_thgo_dmo_hd"), L"SetOnlyOwnerSee", true);
+			playerCameraManager = firstObjectOf(PlayerCameraManagerBP_c);
 			if (playerCameraManager == nullptr)
 			{
 				Logger::DebugPrint("No player camera manager found");
@@ -71,26 +103,26 @@ void WeaponManager::ProcessItem()
 			ToggleThermalVisionScanlineNextFrame = true;
 		}
 
-		if (CurrentItemID == SDK::EGsrItemId::IT_Stealth && PreviousItemID != SDK::EGsrItemId::IT_Stealth)
+		if (CurrentItemID == ue::EGsrItemId::IT_Stealth && PreviousItemID != ue::EGsrItemId::IT_Stealth)
 		{
 			ApplyHandMaterialToVRHands();
 		}
-		if (CurrentItemID != SDK::EGsrItemId::IT_Stealth && PreviousItemID == SDK::EGsrItemId::IT_Stealth)
+		if (CurrentItemID != ue::EGsrItemId::IT_Stealth && PreviousItemID == ue::EGsrItemId::IT_Stealth)
 		{
 			ApplyHandMaterialToVRHands();
 		}
 
-		if (CurrentItemID == SDK::EGsrItemId::IT_Scope && PreviousItemID != SDK::EGsrItemId::IT_Scope)
+		if (CurrentItemID == ue::EGsrItemId::IT_Scope && PreviousItemID != ue::EGsrItemId::IT_Scope)
 		{
 			uevr::API::VR::set_decoupled_pitch_enabled(false);
 		}
-		if (CurrentItemID != SDK::EGsrItemId::IT_Scope && PreviousItemID == SDK::EGsrItemId::IT_Scope)
+		if (CurrentItemID != ue::EGsrItemId::IT_Scope && PreviousItemID == ue::EGsrItemId::IT_Scope)
 		{
 			uevr::API::get()->dispatch_lua_event("HideHands", "0");
 			uevr::API::VR::set_decoupled_pitch_enabled(true);
 		}
 
-		if (CurrentItemID == SDK::EGsrItemId::IT_CBoxA || CurrentItemID == SDK::EGsrItemId::IT_CBoxB || CurrentItemID == SDK::EGsrItemId::IT_CBoxC || CurrentItemID == SDK::EGsrItemId::IT_CBoxD)
+		if (CurrentItemID == ue::EGsrItemId::IT_CBoxA || CurrentItemID == ue::EGsrItemId::IT_CBoxB || CurrentItemID == ue::EGsrItemId::IT_CBoxC || CurrentItemID == ue::EGsrItemId::IT_CBoxD)
 		{
 			cameraController->CardBoardEquipped = true;
 			uevr::API::VR::set_mod_value("VR_RoomscaleMovement", false);
@@ -101,7 +133,7 @@ void WeaponManager::ProcessItem()
 			uevr::API::VR::set_mod_value("VR_RoomscaleMovement", true);
 		}
 	}
-	if (CurrentItemID == SDK::EGsrItemId::IT_Scope)
+	if (CurrentItemID == ue::EGsrItemId::IT_Scope)
 	{
 		uevr::API::get()->dispatch_lua_event("HideHands", "1");
 		uevr::API::UObjectHook::remove_motion_controller_state(LeftHandWeaponRoot);
@@ -165,7 +197,7 @@ inline const char* WeaponManager::WeaponIdToKey(EGsrEquipId id)
 	}
 }
 
-void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot, SDK::FRotator& outRightHandRotationOffset, SDK::FVector& outLeftHandLocationOffset, SDK::FRotator& outLeftHandRotationOffset)
+void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot, ue::FRotator& outRightHandRotationOffset, ue::FVector& outLeftHandLocationOffset, ue::FRotator& outLeftHandRotationOffset)
 {
 	const char* key = WeaponIdToKey(currentWeapon);
 	if (!key)
@@ -193,11 +225,7 @@ void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& ou
 void WeaponManager::FetchEquipController()
 {
 	auto pawn = uevr::API::get()->get_local_pawn(0);
-	struct ParameterEquipController {
-		uevr::API::UObject* ReturnValue;
-	}params;
-	pawn->call_function(L"GetEquipControllerBP", &params);
-	EquipController = params.ReturnValue;
+	EquipController = ue::call<ue::UObject*>(pawn, L"GetEquipControllerBP");
 	//Logger::DebugPrint("Fetch : ");
 	//Logger::DebugPrint(EquipController->get_full_name());
 	if (EquipController == NULL)
@@ -205,11 +233,7 @@ void WeaponManager::FetchEquipController()
 		Logger::DebugPrint("No equipController found");
 	}
 
-	struct ParameterItemController {
-		uevr::API::UObject* ReturnValue;
-	}params1;
-	pawn->call_function(L"GetItemControllerBP", &params1);
-	ItemController = (SDK::UGsrItemController*)params1.ReturnValue;
+	ItemController = ue::call<ue::UObject*>(pawn, L"GetItemControllerBP");
 	//Logger::DebugPrint("Fetch : ");
 	//Logger::DebugPrint(EquipController->get_full_name());
 	if (ItemController == NULL)
@@ -223,20 +247,21 @@ void WeaponManager::SpawnDummyCqcKnifeMesh()
 	if (!LeftHandWeaponRoot || DummyCqcKnifeMeshActor)
 		return;
 
-	SDK::USceneComponent* sdkLeftWeaponRoot = (SDK::USceneComponent*)LeftHandWeaponRoot;
-
 	if (DummyCqcKnifeMeshActor == nullptr && playerManager->LeftHandMesh)
 	{
-		constexpr SDK::FVector cqcKnifeRelativeLocation = { 1.248f, -2.072f, -4.754f };
-		constexpr SDK::FRotator cqcKnifeRelativeRotation = { 7.228f, -169.534f, 58.205f};
+		constexpr ue::FVector cqcKnifeRelativeLocation = { 1.248f, -2.072f, -4.754f };
+		constexpr ue::FRotator cqcKnifeRelativeRotation = { 7.228f, -169.534f, 58.205f};
 
 		uevr::API::UObject* meshComponent = nullptr;
-		DummyCqcKnifeMeshActor = (SDK::AActor*)Utilities::SpawnMesh(sdkLeftWeaponRoot->GetRelativeTransform(), L"SkeletalMesh /Game/Gsr/Weapon/cqck/Mesh/SM_Cqck.SM_Cqck", meshComponent); //L"SkeletalMesh /Game/Gsr/Weapon/cqck/Mesh/SM_Cqck.SM_Cqck"
-		DummyCqcKnifeMeshActor->K2_AttachRootComponentTo(playerManager->LeftHandMesh, SDK::UKismetStringLibrary::Conv_StringToName(L"None"), SDK::EAttachLocation::SnapToTarget, false);
-		DummyCqcKnifeMeshActor->K2_SetActorRelativeLocation(cqcKnifeRelativeLocation, false, nullptr, true);
-		DummyCqcKnifeMeshActor->K2_SetActorRelativeRotation(cqcKnifeRelativeRotation, false, nullptr, true);
-		DummyCqcKnifeMesh = (SDK::USkeletalMeshComponent*)meshComponent;
-		DummyCqcKnifeMesh->SetOnlyOwnerSee(true);
+		const auto leftWeaponRootTransform = ue::call<ue::FTransform>(LeftHandWeaponRoot, L"GetRelativeTransform");
+		DummyCqcKnifeMeshActor = Utilities::SpawnMesh(leftWeaponRootTransform, L"SkeletalMesh /Game/Gsr/Weapon/cqck/Mesh/SM_Cqck.SM_Cqck", meshComponent); //L"SkeletalMesh /Game/Gsr/Weapon/cqck/Mesh/SM_Cqck.SM_Cqck"
+		if (!DummyCqcKnifeMeshActor)
+			return;
+		ue::call(DummyCqcKnifeMeshActor, L"K2_AttachRootComponentTo", playerManager->LeftHandMesh, ue::FName(L"None"), ue::EAttachLocation::SnapToTarget, false);
+		ue::call(DummyCqcKnifeMeshActor, L"K2_SetActorRelativeLocation", cqcKnifeRelativeLocation, false, nullptr, true);
+		ue::call(DummyCqcKnifeMeshActor, L"K2_SetActorRelativeRotation", cqcKnifeRelativeRotation, false, nullptr, true);
+		DummyCqcKnifeMesh = meshComponent;
+		ue::call(DummyCqcKnifeMesh, L"SetOnlyOwnerSee", true);
 		//SDK::USkeletalMeshComponent* cqcKnifeMesh = (SDK::USkeletalMeshComponent*)DummyCqcKnifeMeshActor;
 		//cqcKnifeMesh->K2_SetRelativeLocationAndRotation(cqcKnifeRelativeLocation, cqcKnifeRelativeRotation, false, nullptr, true);
 	}
@@ -248,17 +273,17 @@ void WeaponManager::ToggleDummyCQCKnifeMeshVisibility()
 	if (!LeftHandWeaponRoot)
 		return;
 
-	SDK::USkeletalMeshComponent* sdkLeftWeaponMesh = (SDK::USkeletalMeshComponent*)LeftHandWeaponRoot;
+	auto leftWeaponMesh = LeftHandWeaponRoot;
 	if (playerManager->IsPlayerControlled && holdCQCKnifeInLeftHand && playerManager->SecondHandAttachedToWeapon)
 	{
 		if (!playerManager->LeftHandMesh)
 			return;
-		if (!SDK::UKismetSystemLibrary::IsValid(DummyCqcKnifeMesh) || !DummyCqcKnifeMesh)
+		if (!ue::is_valid(DummyCqcKnifeMesh) || !DummyCqcKnifeMesh)
 		{
 			DummyCqcKnifeMesh = nullptr;
-			if (SDK::UKismetSystemLibrary::IsValid(DummyCqcKnifeMeshActor))
+			if (ue::is_valid(DummyCqcKnifeMeshActor))
 			{
-				DummyCqcKnifeMeshActor->K2_DestroyActor();
+				ue::call(DummyCqcKnifeMeshActor, L"K2_DestroyActor");
 				DummyCqcKnifeMeshActor = nullptr;
 			}
 
@@ -266,18 +291,18 @@ void WeaponManager::ToggleDummyCQCKnifeMeshVisibility()
 		}
 
 
-		if (DummyCqcKnifeMesh->bOnlyOwnerSee == true)
+		if (ue::get<bool>(DummyCqcKnifeMesh, L"bOnlyOwnerSee") == true)
 		{
-			sdkLeftWeaponMesh->SetOnlyOwnerSee(true);
-			DummyCqcKnifeMesh->SetOnlyOwnerSee(false);
+			ue::call(leftWeaponMesh, L"SetOnlyOwnerSee", true);
+			ue::call(DummyCqcKnifeMesh, L"SetOnlyOwnerSee", false);
 		}
 	}
 	if (!playerManager->IsPlayerControlled)
 	{
 		DummyCqcKnifeMesh = nullptr;
-		if (SDK::UKismetSystemLibrary::IsValid(DummyCqcKnifeMeshActor))
+		if (ue::is_valid(DummyCqcKnifeMeshActor))
 		{
-			DummyCqcKnifeMeshActor->K2_DestroyActor();
+			ue::call(DummyCqcKnifeMeshActor, L"K2_DestroyActor");
 			DummyCqcKnifeMeshActor = nullptr;
 		}
 		return;
@@ -286,10 +311,10 @@ void WeaponManager::ToggleDummyCQCKnifeMeshVisibility()
 
 	if (holdCQCKnifeInLeftHand && !playerManager->SecondHandAttachedToWeapon)
 	{
-		if (SDK::UKismetSystemLibrary::IsValid(DummyCqcKnifeMesh) && DummyCqcKnifeMesh->bOnlyOwnerSee == false)
+		if (ue::is_valid(DummyCqcKnifeMesh) && ue::get<bool>(DummyCqcKnifeMesh, L"bOnlyOwnerSee") == false)
 		{
-			sdkLeftWeaponMesh->SetOnlyOwnerSee(false);
-			DummyCqcKnifeMesh->SetOnlyOwnerSee(true);
+			ue::call(leftWeaponMesh, L"SetOnlyOwnerSee", false);
+			ue::call(DummyCqcKnifeMesh, L"SetOnlyOwnerSee", true);
 		}
 	}
 }
@@ -324,13 +349,10 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 void WeaponManager::ProcessTwoHandsGrabWeaponLocationAndRotation()
 {
 	if (twoHandedPivot && WeaponRoot) {
-		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
+		auto rightCtrlPos = ue::call<ue::FVector>(playerManager->RightController, L"K2_GetComponentLocation");
+		auto leftCtrlPos = ue::call<ue::FVector>(playerManager->LeftController, L"K2_GetComponentLocation");
 
-		auto rightCtrlPos = playerManager->RightController->K2_GetComponentLocation();
-		auto leftCtrlPos = playerManager->LeftController->K2_GetComponentLocation();
-
-		auto sdkCurrentWeapon = (SDK::AActor*)CurrentWeapon;
-		auto weaponUpVector = sdkCurrentWeapon->GetActorUpVector();
+		auto weaponUpVector = ue::call<ue::FVector>(CurrentWeapon, L"GetActorUpVector");
 
 		//Debug:
 		//if (ZoomInput > 0.8f)
@@ -341,23 +363,23 @@ void WeaponManager::ProcessTwoHandsGrabWeaponLocationAndRotation()
 		//{
 		//	LeftHandWeaponGrabOffset -= 0.01f; // Example: Subtract 5 cm when the B button is pressed
 		//}
-		SDK::FVector adjustedLeftPos = leftCtrlPos + (weaponUpVector * LeftHandWeaponGrabOffset);
+		ue::FVector adjustedLeftPos = leftCtrlPos + (weaponUpVector * LeftHandWeaponGrabOffset);
 
-		SDK::FVector directionVec = adjustedLeftPos - rightCtrlPos;
+		ue::FVector directionVec = adjustedLeftPos - rightCtrlPos;
 		directionVec.Normalize();
 
-		SDK::FRotator targetRot = SDK::UKismetMathLibrary::MakeRotFromXZ(directionVec, weaponUpVector);
+		ue::FRotator targetRot = ue::call_static<ue::FRotator>(ue::lib::KismetMath, L"MakeRotFromXZ", directionVec, weaponUpVector);
 
-		SDK::FRotator fixUp(0.f, -90.f, 0.f);
-		targetRot = SDK::UKismetMathLibrary::ComposeRotators(fixUp, targetRot);
+		const ue::FRotator fixUp(0.f, -90.f, 0.f);
+		targetRot = ue::call_static<ue::FRotator>(ue::lib::KismetMath, L"ComposeRotators", fixUp, targetRot);
 
-		SDK::FVector localOffset(DefaultUevrHookWeaponPosition.z, DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y);
-		SDK::FVector rotatedOffset = SDK::UKismetMathLibrary::GreaterGreater_VectorRotator(localOffset, targetRot);
+		const ue::FVector localOffset(DefaultUevrHookWeaponPosition.z, DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y);
+		ue::FVector rotatedOffset = ue::call_static<ue::FVector>(ue::lib::KismetMath, L"GreaterGreater_VectorRotator", localOffset, targetRot);
 
-		SDK::FVector finalRootPos = rightCtrlPos - rotatedOffset;
+		ue::FVector finalRootPos = rightCtrlPos - rotatedOffset;
 
-		SDK::FHitResult outHit;
-		sdkWeaponRoot->K2_SetWorldLocationAndRotation(finalRootPos, targetRot, false, &outHit, false);
+		ue::FHitResult outHit;
+		ue::call(WeaponRoot, L"K2_SetWorldLocationAndRotation", finalRootPos, targetRot, false, &outHit, false);
 
 		// Debug:
 		//Utilities::DebugCigar0->K2_SetActorLocationAndRotation(rightCtrlPos, playerManager->RightController->K2_GetComponentRotation(), false, &outHit, true);
@@ -368,22 +390,20 @@ void WeaponManager::ProcessTwoHandsGrabWeaponLocationAndRotation()
 
 void WeaponManager::RemoveUobjectHookFromHand(Hand handSide)
 {
-	SDK::FHitResult outHit;
+	ue::FHitResult outHit;
 	if (handSide == Left)
 	{
 		if (LeftHandWeaponRoot)
 		{
 			uevr::API::UObjectHook::remove_motion_controller_state(LeftHandWeaponRoot);
-			SDK::USceneComponent* sdkLeftWeaponRoot = (SDK::USceneComponent*)LeftHandWeaponRoot;
-			sdkLeftWeaponRoot->K2_SetRelativeLocationAndRotation({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, -90.0f }, false, &outHit, true);
+			ue::call(LeftHandWeaponRoot, L"K2_SetRelativeLocationAndRotation", ue::FVector{ 0.0f, 0.0f, 0.0f }, ue::FRotator{ 0.0f, 0.0f, -90.0f }, false, &outHit, true);
 		}
 	}
 	else
 	{
 		if (WeaponRoot)
 		{
-			SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
-			sdkWeaponRoot->K2_SetRelativeLocationAndRotation({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, false, &outHit, true);
+			ue::call(WeaponRoot, L"K2_SetRelativeLocationAndRotation", ue::FVector{ 0.0f, 0.0f, 0.0f }, ue::FRotator{ 0.0f, 0.0f, 0.0f }, false, &outHit, true);
 			uevr::API::UObjectHook::remove_motion_controller_state(WeaponRoot);
 		}
 	}
@@ -412,9 +432,6 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	//Get weapon ID
 	//Logger::DebugPrint(wobblingController->get_full_name());
-	struct ParameterWeaponID {
-		EGsrEquipId ReturnValue;
-	}params;
 	if (EquipController == NULL)
 	{
 		CurrentWeaponID = WP_None;
@@ -422,30 +439,27 @@ void WeaponManager::ProcessWeapon(float delta)
 		return;
 	}
 
-	EquipController->call_function(L"GetCurrentWeaponId", &params);
+	auto weaponId = ue::call<EGsrEquipId>(EquipController, L"GetCurrentWeaponId");
 
-	if (params.ReturnValue >= 31)
+	if (weaponId >= 31)
 	{
-		params.ReturnValue = EGsrEquipId::WP_MAX_PLAYER_WEAPONS;
+		weaponId = EGsrEquipId::WP_MAX_PLAYER_WEAPONS;
 	}
 
-	if (CurrentWeaponID != params.ReturnValue)
+	if (CurrentWeaponID != weaponId)
 	{
-		CurrentWeaponID = params.ReturnValue;
+		CurrentWeaponID = weaponId;
 		Logger::DebugPrint("Weapon changed. New Weapon ID : %d", CurrentWeaponID);
 	}
 	
 
 
-	struct ParameterCurrentWeapon {
-		uevr::API::UObject* ReturnValue;
-	}params1;
-	EquipController->call_function(L"GetCurrentWeapon", &params1);
+	auto currentWeapon = ue::call<ue::UObject*>(EquipController, L"GetCurrentWeapon");
 
-	if (CurrentWeapon != params1.ReturnValue)
+	if (CurrentWeapon != currentWeapon)
 	{
 		if (PreviousWeaponID == EGsrEquipId::WP_Dragnov || PreviousWeaponID == EGsrEquipId::WP_MosinNagant || PreviousWeaponID == EGsrEquipId::WP_Rpg)
-			ReceiverMesh->SetVisibility(false, false);
+			ue::call(ReceiverMesh, L"SetVisibility", false, false);
 
 		ReceiverMesh = nullptr;
 		WeaponRoot = nullptr;
@@ -464,11 +478,12 @@ void WeaponManager::ProcessWeapon(float delta)
 
 		SwitchScopeState(false);
 
-		CurrentWeapon = params1.ReturnValue;
+		CurrentWeapon = currentWeapon;
 		Logger::DebugPrint("Updating Current weapon ptr");
-		Logger::DebugPrint(CurrentWeapon->get_full_name());	
+		if (CurrentWeapon)
+			Logger::DebugPrint(CurrentWeapon->get_full_name());
 
-		WeaponRoot = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootComponent");
+		WeaponRoot = ue::get<ue::UObject*>(CurrentWeapon, L"RootComponent");
 		if (WeaponRoot == nullptr)
 		{
 			Logger::DebugPrint("No weapon root found. Return");
@@ -506,14 +521,12 @@ void WeaponManager::ProcessWeapon(float delta)
 
 
 
-		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
-		auto childrenArray = sdkWeaponRoot->AttachChildren;
-		for (int i = 0; i < childrenArray.Num(); i++)
+		auto childrenArray = ue::array_snapshot(WeaponRoot, L"AttachChildren");
+		for (auto child : childrenArray)
 		{
-			SDK::USceneComponent* child = childrenArray[i];
 			if (!child) continue;
-			if (child->IsA(SDK::USkeletalMeshComponent::StaticClass())) {
-				ReceiverMesh = (SDK::USkeletalMeshComponent*)child;
+			if (ue::is_a(child, SkeletalMeshComponent_c)) {
+				ReceiverMesh = child;
 				//Logger::DebugPrint(child->GetFullName().c_str());
 			}
 		}
@@ -529,13 +542,12 @@ void WeaponManager::ProcessWeapon(float delta)
 					Logger::DebugPrint("no Receiver mesh found");
 					return;
 				}
-				for (int i = 0; i < childrenArray.Num(); i++)
+				for (auto child : childrenArray)
 				{
-					SDK::USceneComponent* child = childrenArray[i];
 					if (!child) continue;
 					//Destroy any previous cylinder mesh if still attached
-					if (child->IsA(SDK::UStaticMeshComponent::StaticClass())) {
-						child->K2_DestroyComponent(child);
+					if (ue::is_a(child, StaticMeshComponent_c)) {
+						ue::call(child, L"K2_DestroyComponent", child);
 						ScopeStaticMeshComponent = nullptr;
 					}
 				}
@@ -547,8 +559,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 		if (CurrentWeaponID == EGsrEquipId::WP_CigarPistol)
 		{
-			auto staticMesh = (SDK::UStaticMeshComponent*)WeaponRoot;
-			staticMesh->SetRelativeScale3D({ 1.5f, 1.5f, 1.5f });
+			ue::call(WeaponRoot, L"SetRelativeScale3D", ue::FVector{ 1.5f, 1.5f, 1.5f });
 			return;
 		}
 
@@ -559,20 +570,15 @@ void WeaponManager::ProcessWeapon(float delta)
 	if (CurrentWeaponID == EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
 	{
 		//Food floating animation
-		auto sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
-
-		auto children = sdkWeaponRoot->AttachChildren;
-		SDK::UStaticMeshComponent* foodMesh = nullptr;
-		for (int i = 0; i < children.Num(); i++)
+		ue::UObject* foodMesh = nullptr;
+		for (auto child : ue::array_snapshot(WeaponRoot, L"AttachChildren"))
 		{
-			SDK::USceneComponent* child = children[i];
 			if (!child) continue;
-			if (child->IsA(SDK::UStaticMeshComponent::StaticClass())) {
-				SDK::UStaticMeshComponent* staticMesh = (SDK::UStaticMeshComponent*)child;
-				std::string meshName = staticMesh->GetName();
-				if (meshName.find("ThrowableStaticMesh") != std::string::npos)
+			if (ue::is_a(child, StaticMeshComponent_c)) {
+				const std::wstring meshName = child->get_fname()->to_string();
+				if (meshName.find(L"ThrowableStaticMesh") != std::wstring::npos)
 				{
-					foodMesh = staticMesh;
+					foodMesh = child;
 					break;
 				}
 			}
@@ -584,25 +590,25 @@ void WeaponManager::ProcessWeapon(float delta)
 			return;
 		}
 
-		SDK::FHitResult hitResult;
+		ue::FHitResult hitResult;
 
 		if (!Inputs::LeftGripInputPressed && Inputs::WasLeftGripInputPressed)
 		{
 			// Re-sync to current world rotation
-			auto loc = foodMesh->K2_GetComponentLocation();
+			auto loc = ue::call<ue::FVector>(foodMesh, L"K2_GetComponentLocation");
 			FoodIdleStart = glm::vec3(loc.X, loc.Y, loc.Z);
 			FoodIdlePosition = FoodIdleStart;
 
-			auto rotQuat = foodMesh->K2_GetComponentToWorld().Rotation;
-			auto rot = foodMesh->K2_GetComponentRotation();
+			auto rotQuat = ue::call<ue::FTransform>(foodMesh, L"K2_GetComponentToWorld").Rotation;
+			auto rot = ue::call<ue::FRotator>(foodMesh, L"K2_GetComponentRotation");
 			FoodCurrentLocalRotation = {(float)rotQuat.W, (float)rotQuat.X, (float)rotQuat.Y, (float)rotQuat.Z};
 			ActualFoodRotation = rot.Yaw;
 		}
 
 		if (Inputs::LeftGripInputPressed && !Inputs::WasLeftGripInputPressed)
 		{
-			auto foodT = foodMesh->K2_GetComponentToWorld();
-			auto handT = playerManager->LeftHandMesh->K2_GetComponentToWorld();
+			auto foodT = ue::call<ue::FTransform>(foodMesh, L"K2_GetComponentToWorld");
+			auto handT = ue::call<ue::FTransform>(playerManager->LeftHandMesh, L"K2_GetComponentToWorld");
 
 			glm::quat foodRot(foodT.Rotation.W, foodT.Rotation.X, foodT.Rotation.Y, foodT.Rotation.Z);
 			glm::quat handRot(handT.Rotation.W, handT.Rotation.X, handT.Rotation.Y, handT.Rotation.Z);
@@ -646,7 +652,7 @@ void WeaponManager::ProcessWeapon(float delta)
 			FoodCurrentLocalRotation = glm::slerp(FoodCurrentLocalRotation, qTarget, delta * 2.0f);
 
 			// Target idle pos
-			auto weaponRootPos = sdkWeaponRoot->K2_GetComponentLocation();
+			auto weaponRootPos = ue::call<ue::FVector>(WeaponRoot, L"K2_GetComponentLocation");
 			glm::vec3 targetPos(
 				weaponRootPos.X,
 				weaponRootPos.Y,
@@ -654,25 +660,25 @@ void WeaponManager::ProcessWeapon(float delta)
 			);
 
 
-			auto test = foodMesh->K2_GetComponentLocation();
+			auto test = ue::call<ue::FVector>(foodMesh, L"K2_GetComponentLocation");
 			FoodIdlePosition = glm::mix({test.X, test.Y, test.Z}, targetPos, delta * 8.0f);
 
 			//Logger::DebugPrint("FoodCurrentWorldPosition : x=%f, y=%f, z=%f", FoodCurrentWorldPosition.X, FoodCurrentWorldPosition.Y, FoodCurrentWorldPosition.Z);
 			//Logger::DebugPrint("Weapon root pos : x=%f, y=%f, z=%f", weaponRootPos.X, weaponRootPos.Y, weaponRootPos.Z);
 			// apply
-			SDK::FTransform finalTsf = {};
+			ue::FTransform finalTsf = {};
 			finalTsf.Rotation = {FoodCurrentLocalRotation.x, FoodCurrentLocalRotation.y, FoodCurrentLocalRotation.z, FoodCurrentLocalRotation.w};
 			finalTsf.Translation = {FoodIdlePosition.x, FoodIdlePosition.y, FoodIdlePosition.z};
-			finalTsf.Scale3D = foodMesh->K2_GetComponentScale();
+			finalTsf.Scale3D = ue::call<ue::FVector>(foodMesh, L"K2_GetComponentScale");
 
 			
 
-			foodMesh->K2_SetWorldTransform(finalTsf, false, &hitResult, false);
+			ue::call(foodMesh, L"K2_SetWorldTransform", finalTsf, false, &hitResult, false);
 		}
 		else
 		{
 			// Follow left hand position 
-			auto handT = playerManager->LeftHandMesh->K2_GetComponentToWorld();
+			auto handT = ue::call<ue::FTransform>(playerManager->LeftHandMesh, L"K2_GetComponentToWorld");
 
 			glm::quat handRot(handT.Rotation.W, handT.Rotation.X, handT.Rotation.Y, handT.Rotation.Z);
 			glm::vec3 handPos(handT.Translation.X, handT.Translation.Y, handT.Translation.Z);
@@ -681,12 +687,12 @@ void WeaponManager::ProcessWeapon(float delta)
 			glm::quat newFoodRot = handRot * FoodGrabRelativeRotation;
 			glm::vec3 newFoodPos = handPos + (handRot * FoodGrabRelativePosition);
 
-			SDK::FTransform out;
+			ue::FTransform out;
 			out.Rotation = { newFoodRot.x, newFoodRot.y, newFoodRot.z, newFoodRot.w };
 			out.Translation = { newFoodPos.x, newFoodPos.y, newFoodPos.z };
-			out.Scale3D = foodMesh->K2_GetComponentScale();
+			out.Scale3D = ue::call<ue::FVector>(foodMesh, L"K2_GetComponentScale");
 
-			foodMesh->K2_SetWorldTransform(out, false, &hitResult, false);
+			ue::call(foodMesh, L"K2_SetWorldTransform", out, false, &hitResult, false);
 		}
 
 		return;
@@ -697,18 +703,15 @@ void WeaponManager::ProcessWeapon(float delta)
 	{
 		auto leftHandSocketFname = CurrentWeaponID == EGsrEquipId::WP_Tnt ? tntSocketFname : cqcKnifeSocketFname;
 
-		SDK::USceneComponent* sdkWeaponRoot = (SDK::USceneComponent*)WeaponRoot;
-		auto parent = sdkWeaponRoot->GetAttachParent();
-		auto childrenArray = parent->AttachChildren;
+		auto parent = ue::call<ue::UObject*>(WeaponRoot, L"GetAttachParent");
 
-		for (int i = 0; i < childrenArray.Num(); i++)
+		for (auto child : ue::array_snapshot(parent, L"AttachChildren"))
 		{
-			SDK::USceneComponent* child = childrenArray[i];
 			if (!child) continue;
-			if (child->IsA(SDK::USkeletalMeshComponent::StaticClass())) {
-				if (child->GetAttachSocketName() == leftHandSocketFname)
+			if (ue::is_a(child, SkeletalMeshComponent_c)) {
+				if (ue::call<ue::FName>(child, L"GetAttachSocketName") == leftHandSocketFname)
 				{
-					LeftHandWeaponRoot = (uevr::API::UObject*)child;
+					LeftHandWeaponRoot = child;
 				}
 			}
 		}
@@ -743,17 +746,16 @@ void WeaponManager::ProcessWeapon(float delta)
 	//Toggle weapon visibility in FPS view;
 	if (ReceiverMesh)
 	{
-		bool isReceiverMeshVisible = ReceiverMesh->IsVisible();
-		static auto const gsrGunClass = (uevr::API::UClass*)SDK::AGsrGun::StaticClass();
-		if (CurrentWeapon->is_a(gsrGunClass) && !isReceiverMeshVisible && !playerManager->IsCarrying)
+		bool isReceiverMeshVisible = ue::call<bool>(ReceiverMesh, L"IsVisible");
+		if (ue::is_a(CurrentWeapon, GsrGun_c) && !isReceiverMeshVisible && !playerManager->IsCarrying)
 		{
-			ReceiverMesh->SetVisibility(true, false);
-			auto sdkGun = (SDK::AGsrGun*)CurrentWeapon;
+			ue::call(ReceiverMesh, L"SetVisibility", true, false);
 			//Logger::DebugPrint("IsAttachedSuppressor : %i", sdkGun->IsAttachedSuppressor());
-			bool isAttachedSuppressor = sdkGun->IsAttachedSuppressor();
-			if (sdkGun->GunPartsController->m_suppressorMesh)
+			bool isAttachedSuppressor = ue::call<bool>(CurrentWeapon, L"IsAttachedSuppressor");
+			auto suppressorMesh = ue::get<ue::UObject*>(ue::get<ue::UObject*>(CurrentWeapon, L"GunPartsController"), L"m_suppressorMesh");
+			if (suppressorMesh)
 			{
-				sdkGun->GunPartsController->m_suppressorMesh->SetVisibility(isAttachedSuppressor, true);
+				ue::call(suppressorMesh, L"SetVisibility", isAttachedSuppressor, true);
 			}
 
 			// Set cqc knife visibility. DOESN'T WORK. Something is overwritting it each frame.
@@ -775,47 +777,43 @@ void WeaponManager::ProcessWeapon(float delta)
 
 		if (CurrentWeaponID == EGsrEquipId::WP_Dragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant || CurrentWeaponID == EGsrEquipId::WP_Rpg)
 		{
-			if (!ReceiverMesh->IsVisible())
-				ReceiverMesh->SetVisibility(true, true);
+			if (!ue::call<bool>(ReceiverMesh, L"IsVisible"))
+				ue::call(ReceiverMesh, L"SetVisibility", true, true);
 
 			SwitchScopeState(playerManager->IsAiming);
 
 
-			auto pawn = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
-			auto scopeMagnification = pawn->GetScopeMagnification();
+			auto pawn = uevr::API::get()->get_local_pawn(0);
+			auto scopeMagnification = ue::call<float>(pawn, L"GetScopeMagnification");
 			//Logger::DebugPrint("scope magnification : %f", scopeMagnification);
 			float scopeFov = scopeMagnification == 3.0f ? 10.0f : 3.0f;
 			scopeFov = CurrentWeaponID == EGsrEquipId::WP_Rpg ? 16.0f : scopeFov;
-			SceneCaptureComponent->FOVAngle = scopeFov;
+			ue::set(SceneCaptureComponent, L"FOVAngle", scopeFov);
 			//Toggle zoom :
 			if (ZoomInput > 0.0f && scopeMagnification == 3.0f)
 			{
 				if (CurrentWeaponID == EGsrEquipId::WP_Dragnov)
 				{
-					auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
-					widget->SightZoomIn();
-					widget->SetCamZoomToggle();
+					ue::call(SourceDragnovScopeWidget, L"SightZoomIn");
+					ue::call(SourceDragnovScopeWidget, L"SetCamZoomToggle");
 				}
 				if (CurrentWeaponID == EGsrEquipId::WP_MosinNagant)
 				{
-					auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
-					widget->SightZoomIn();
-					widget->SetCamZoomToggle();
+					ue::call(SourceMosinScopeWidget, L"SightZoomIn");
+					ue::call(SourceMosinScopeWidget, L"SetCamZoomToggle");
 				}
 			}
 			if (ZoomInput < 0.0f && scopeMagnification == 10.0f)
 			{
 				if (CurrentWeaponID == EGsrEquipId::WP_Dragnov)
 				{
-					auto widget = (SDK::USightDragnovWidget_C*)SourceDragnovScopeWidget;
-					widget->SightZoomOut();
-					widget->SetCamZoomToggle();
+					ue::call(SourceDragnovScopeWidget, L"SightZoomOut");
+					ue::call(SourceDragnovScopeWidget, L"SetCamZoomToggle");
 				}
 				if (CurrentWeaponID == EGsrEquipId::WP_MosinNagant)
 				{
-					auto widget = (SDK::USightMosinWidget_C*)SourceMosinScopeWidget;
-					widget->SightZoomOut();
-					widget->SetCamZoomToggle();
+					ue::call(SourceMosinScopeWidget, L"SightZoomOut");
+					ue::call(SourceMosinScopeWidget, L"SetCamZoomToggle");
 				}
 			}
 		}
@@ -843,25 +841,25 @@ void WeaponManager::AttachMainHandToWeapon()
 	if (!playerManager->MainHandAttachedToWeapon && mainHandShouldAttachToWeapon)
 	{
 		Logger::DebugPrint("attach Main Hand to weapon");
-		playerManager->RightHandMesh->DetachFromParent(true, false);
-		playerManager->RightHandMesh->K2_AttachToComponent(
-			(SDK::USceneComponent*)ReceiverMesh == nullptr ? (SDK::USceneComponent*)WeaponRoot : (SDK::USceneComponent*)ReceiverMesh,
-			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
-			SDK::EAttachmentRule::KeepRelative,
-			SDK::EAttachmentRule::KeepRelative,
-			SDK::EAttachmentRule::KeepRelative,
+		ue::call(playerManager->RightHandMesh, L"DetachFromParent", true, false);
+		ue::call(playerManager->RightHandMesh, L"K2_AttachToComponent",
+			ReceiverMesh == nullptr ? WeaponRoot : ReceiverMesh,
+			ue::FName(L"None"),
+			ue::EAttachmentRule::KeepRelative,
+			ue::EAttachmentRule::KeepRelative,
+			ue::EAttachmentRule::KeepRelative,
 			false
 		);
 
-		SDK::FVector rightHandLocation = {-DefaultUevrHookWeaponPosition.z, DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y };
-		SDK::FHitResult outHit;
-		playerManager->RightHandMesh->K2_SetRelativeLocationAndRotation(rightHandLocation, RightHandRotationOffset, false, &outHit, true);
+		ue::FVector rightHandLocation = {-DefaultUevrHookWeaponPosition.z, DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y };
+		ue::FHitResult outHit;
+		ue::call(playerManager->RightHandMesh, L"K2_SetRelativeLocationAndRotation", rightHandLocation, RightHandRotationOffset, false, &outHit, true);
 		playerManager->MainHandAttachedToWeapon = true;
 
 		//playerManager->RightHandMesh->K2_AddRelativeLocation(HandLocationOffest, false, &outHit, false);
 		//playerManager->RightHandMesh->K2_AddRelativeRotation(HandRotationOffset, false, &outHit, false);
-		playerManager->RightHandMesh->SetVisibility(true, true);
-		playerManager->LeftHandMesh->SetVisibility(true, true);
+		ue::call(playerManager->RightHandMesh, L"SetVisibility", true, true);
+		ue::call(playerManager->LeftHandMesh, L"SetVisibility", true, true);
 		AttachHandNextFrame = false;
 	}
 }
@@ -871,21 +869,21 @@ bool WeaponManager::DetachHandFromWeapon()
 	if (playerManager->RightHandMesh && playerManager->MainHandAttachedToWeapon)
 	{
 		Logger::DebugPrint("Detach Main Hand from weapon");
-		playerManager->RightHandMesh->DetachFromParent(true, false);
-		playerManager->RightHandMesh->K2_AttachToComponent(
+		ue::call(playerManager->RightHandMesh, L"DetachFromParent", true, false);
+		ue::call(playerManager->RightHandMesh, L"K2_AttachToComponent",
 			playerManager->RightController,
-			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
-			SDK::EAttachmentRule::KeepWorld,
-			SDK::EAttachmentRule::KeepWorld,
-			SDK::EAttachmentRule::KeepRelative,
+			ue::FName(L"None"),
+			ue::EAttachmentRule::KeepWorld,
+			ue::EAttachmentRule::KeepWorld,
+			ue::EAttachmentRule::KeepRelative,
 			true
 		);
-		SDK::FHitResult outHit;
-		playerManager->RightHandMesh->K2_SetRelativeLocation({ 0.0f,0.0f,0.0f }, false, &outHit, false);
-		playerManager->RightHandMesh->K2_SetRelativeRotation({ 0.0f,-90.0f,0.0f }, false, &outHit, false);
+		ue::FHitResult outHit;
+		ue::call(playerManager->RightHandMesh, L"K2_SetRelativeLocation", ue::FVector{ 0.0f,0.0f,0.0f }, false, &outHit, false);
+		ue::call(playerManager->RightHandMesh, L"K2_SetRelativeRotation", ue::FRotator{ 0.0f,-90.0f,0.0f }, false, &outHit, false);
 		playerManager->MainHandAttachedToWeapon = false;
-		playerManager->RightHandMesh->SetVisibility(true, true);
-		playerManager->LeftHandMesh->SetVisibility(true, true);
+		ue::call(playerManager->RightHandMesh, L"SetVisibility", true, true);
+		ue::call(playerManager->LeftHandMesh, L"SetVisibility", true, true);
 		return true;
 	}
 	return false;
@@ -909,20 +907,20 @@ void WeaponManager::AttachSecondHandToWeapon()
 	if (!playerManager->SecondHandAttachedToWeapon && secondHandShouldAttachToWeapon)
 	{
 		Logger::DebugPrint("attach Second Hand to weapon");
-		playerManager->LeftHandMesh->DetachFromParent(true, false);
-		playerManager->LeftHandMesh->K2_AttachToComponent(
-			(SDK::USceneComponent*)ReceiverMesh,
-			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
-			SDK::EAttachmentRule::KeepRelative,
-			SDK::EAttachmentRule::KeepRelative,
-			SDK::EAttachmentRule::KeepRelative,
+		ue::call(playerManager->LeftHandMesh, L"DetachFromParent", true, false);
+		ue::call(playerManager->LeftHandMesh, L"K2_AttachToComponent",
+			ReceiverMesh,
+			ue::FName(L"None"),
+			ue::EAttachmentRule::KeepRelative,
+			ue::EAttachmentRule::KeepRelative,
+			ue::EAttachmentRule::KeepRelative,
 			false
 		);
-		SDK::FHitResult outHit;
-		playerManager->LeftHandMesh->K2_SetRelativeLocation(LeftHandLocationOffset, false, &outHit, false);
-		playerManager->LeftHandMesh->K2_SetRelativeRotation(LeftHandRotationOffset, false, &outHit, false);
-		playerManager->RightHandMesh->SetVisibility(true, true);
-		playerManager->LeftHandMesh->SetVisibility(true, true);
+		ue::FHitResult outHit;
+		ue::call(playerManager->LeftHandMesh, L"K2_SetRelativeLocation", LeftHandLocationOffset, false, &outHit, false);
+		ue::call(playerManager->LeftHandMesh, L"K2_SetRelativeRotation", LeftHandRotationOffset, false, &outHit, false);
+		ue::call(playerManager->RightHandMesh, L"SetVisibility", true, true);
+		ue::call(playerManager->LeftHandMesh, L"SetVisibility", true, true);
 		uevr::API::get()->dispatch_lua_event("TwoHandsHandling", "1");
 		playerManager->SecondHandAttachedToWeapon = true;
 		AttachSecondHandNextFrame = false;
@@ -934,21 +932,21 @@ bool WeaponManager::DetachSecondHandFromWeapon()
 	if (playerManager->LeftHandMesh && playerManager->SecondHandAttachedToWeapon)
 	{
 		Logger::DebugPrint("Detach Second Hand from weapon");
-		playerManager->LeftHandMesh->DetachFromParent(true, false);
-		playerManager->LeftHandMesh->K2_AttachToComponent(
+		ue::call(playerManager->LeftHandMesh, L"DetachFromParent", true, false);
+		ue::call(playerManager->LeftHandMesh, L"K2_AttachToComponent",
 			playerManager->LeftController,
-			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
-			SDK::EAttachmentRule::KeepWorld,
-			SDK::EAttachmentRule::KeepWorld,
-			SDK::EAttachmentRule::KeepRelative,
+			ue::FName(L"None"),
+			ue::EAttachmentRule::KeepWorld,
+			ue::EAttachmentRule::KeepWorld,
+			ue::EAttachmentRule::KeepRelative,
 			true
 		);
-		SDK::FHitResult outHit;
-		playerManager->LeftHandMesh->K2_SetRelativeLocation({ 0.0f,0.0f,0.0f }, false, &outHit, false);
-		playerManager->LeftHandMesh->K2_SetRelativeRotation({ 0.0f,-90.0f,0.0f }, false, &outHit, false);
+		ue::FHitResult outHit;
+		ue::call(playerManager->LeftHandMesh, L"K2_SetRelativeLocation", ue::FVector{ 0.0f,0.0f,0.0f }, false, &outHit, false);
+		ue::call(playerManager->LeftHandMesh, L"K2_SetRelativeRotation", ue::FRotator{ 0.0f,-90.0f,0.0f }, false, &outHit, false);
 		playerManager->SecondHandAttachedToWeapon = false;
-		playerManager->RightHandMesh->SetVisibility(true, true);
-		playerManager->LeftHandMesh->SetVisibility(true, true);
+		ue::call(playerManager->RightHandMesh, L"SetVisibility", true, true);
+		ue::call(playerManager->LeftHandMesh, L"SetVisibility", true, true);
 		uevr::API::get()->dispatch_lua_event("TwoHandsHandling", "0");
 		return true;
 	}
@@ -965,42 +963,25 @@ void WeaponManager::FetchWeaponMeshAimData()
 		Logger::DebugPrint("No CurrentWeapon found");
 		return;
 	}
-	auto root_component = CurrentWeapon->get_property<uevr::API::UObject*>(L"RootComponent");
+	auto root_component = ue::get<ue::UObject*>(CurrentWeapon, L"RootComponent");
 	//Logger::DebugPrint(root_component->get_full_name());
 	if (root_component != nullptr)
 	{
-		SDK::FVector forward_params;
-		CurrentWeapon->call_function(L"GetActorForwardVector", &forward_params);
+		ue::FVector forward_params = ue::call<ue::FVector>(CurrentWeapon, L"GetActorForwardVector");
 		//Logger::DebugPrint("ForwardVector.x : %f, ForwardVector.y : %f, ForwardVector.z : %f", forward_params.x, forward_params.y, forward_params.z);
 		
-		SDK::Params::GsrGun_GetMuzzleTransform muzzle_transform;
-		muzzle_transform.TransformSpace = SDK::ERelativeTransformSpace::RTS_World;
-		CurrentWeapon->call_function(L"GetMuzzleTransform", &muzzle_transform);
+		// Only guns have a muzzle: for other weapons (knife, food...) this returns a zero transform
+		const auto muzzleTransform = ue::try_call<ue::FTransform>(CurrentWeapon, L"GetMuzzleTransform", ue::ERelativeTransformSpace::RTS_World);
 		//Logger::DebugPrint("FirePosition.x : %f, FirePosition.y : %f, FirePosition.z : %f", muzzle_transform.ReturnValue.Translation.X, muzzle_transform.ReturnValue.Translation.Y, muzzle_transform.ReturnValue.Translation.Z);
-		auto actor = (SDK::AActor*)CurrentWeapon;
-		auto rotation = actor->K2_GetActorRotation();
 		//Logger::DebugPrint("rotation.Pitch : %f, rotation.Roll : %f, rotation.Yaw : %f", rotation.Pitch, rotation.Roll, rotation.Yaw);
 
-		FirePosition = { muzzle_transform.ReturnValue.Translation.X, muzzle_transform.ReturnValue.Translation.Y, muzzle_transform.ReturnValue.Translation.Z };
+		FirePosition = { muzzleTransform.Translation.X, muzzleTransform.Translation.Y, muzzleTransform.Translation.Z };
 		float scaler = 8192.0;
-		SDK::Params::KismetMathLibrary_RotateAngleAxis rotate_params;
-		rotate_params.InVect = forward_params;
-		rotate_params.AngleDeg = 90.0f;
-		CurrentWeapon->call_function(L"GetActorUpVector", &rotate_params.Axis);
-		Utilities::KismetMathLibrary->call_function(L"RotateAngleAxis", &rotate_params);
-		forward_params = { rotate_params.ReturnValue.X, rotate_params.ReturnValue.Y, rotate_params.ReturnValue.Z };
+		const auto upVector = ue::call<ue::FVector>(CurrentWeapon, L"GetActorUpVector");
+		forward_params = ue::call_static<ue::FVector>(ue::lib::KismetMath, L"RotateAngleAxis", forward_params, 90.0f, upVector);
 
 		// Now, convert the final forward vector into a rotator.
-        SDK::FRotator world_rotator;
-        
-        // This is a struct to pass the vector as a parameter to the function.
-        SDK::Params::KismetMathLibrary_MakeRotFromX makeRotFromX_params;
-        makeRotFromX_params.X = forward_params;
-
-        // Call the Kismet Math Library function to perform the conversion.
-        Utilities::KismetMathLibrary->call_function(L"MakeRotFromX", &makeRotFromX_params);
-		
-		CurrentWeaponWorldRotation = makeRotFromX_params.ReturnValue;
+		CurrentWeaponWorldRotation = ue::call_static<ue::FRotator>(ue::lib::KismetMath, L"MakeRotFromX", forward_params);
 		//Logger::DebugPrint("CurrentWeaponWorldRotation.x : %f, CurrentWeaponWorldRotation.y : %f, CurrentWeaponWorldRotation.z : %f", 
 		//	CurrentWeaponWorldRotation.Pitch, CurrentWeaponWorldRotation.Yaw, CurrentWeaponWorldRotation.Roll);
 
@@ -1086,12 +1067,11 @@ void WeaponManager::FetchWeaponMeshAimData()
 
 void WeaponManager::SetAimDirection()
 {
-	if (CurrentItemID == SDK::EGsrItemId::IT_Scope)
+	if (CurrentItemID == ue::EGsrItemId::IT_Scope)
 		return;
 	//Will be used to control the grenades throw direction
 	//This controls only the aim when the camera controller is disabled. When cc enabled, it controls the camera rotation but the inputs are conflicting.
-	auto cameraController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
-	auto gsrCameraController = cameraController_c->get_first_object_matching(false);
+	auto gsrCameraController = firstObjectOf(GsrPlayerCameraController_c);
 
 	//Logger::DebugPrint(root_component->get_full_name());
 	if (gsrCameraController == nullptr || !cameraController->CameraAttachementActor)
@@ -1100,11 +1080,11 @@ void WeaponManager::SetAimDirection()
 		return;
 	}
 
-	auto sdkActor = (SDK::AActor*)cameraController->CameraAttachementActor;
-	SDK::FRotator params;
-	params = sdkActor->K2_GetActorRotation();
-	//Logger::DebugPrint("pitch : %f, yaw : %f, roll : %f", params.Pitch, params.Yaw, params.Roll);
-	gsrCameraController->call_function(L"SetCameraRotation", &params);
+	const auto hmdRotation = ue::call<ue::FRotator>(cameraController->CameraAttachementActor, L"K2_GetActorRotation");
+	//Logger::DebugPrint("pitch : %f, yaw : %f, roll : %f", hmdRotation.Pitch, hmdRotation.Yaw, hmdRotation.Roll);
+	// SetCameraRotation(EndRotation, InterpTime). The SDK-era call only passed the rotation,
+	// so InterpTime was read from undefined memory. 0 = apply the rotation immediately.
+	ue::call(gsrCameraController, L"SetCameraRotation", hmdRotation, 0.0f);
 	
 
 	//auto root_component = CurrentWeapon->get_property<uevr::API::UObject*>(L"m_cameraActor");
@@ -1119,26 +1099,27 @@ void WeaponManager::SetAimDirection()
 
 void WeaponManager::SwitchScopeState(bool enable)
 {
-	if (SceneCaptureComponent) SceneCaptureComponent->SetVisibility(enable, false);
-	if (SceneCaptureUStaticMeshComponent) SceneCaptureUStaticMeshComponent->SetVisibility(enable, false);
-	if (ScopeStaticMeshComponent) ScopeStaticMeshComponent->SetVisibility(enable, false);
+	if (SceneCaptureComponent) ue::call(SceneCaptureComponent, L"SetVisibility", enable, false);
+	if (SceneCaptureUStaticMeshComponent) ue::call(SceneCaptureUStaticMeshComponent, L"SetVisibility", enable, false);
+	if (ScopeStaticMeshComponent) ue::call(ScopeStaticMeshComponent, L"SetVisibility", enable, false);
 
+	const auto visibility = enable ? ue::ESlateVisibility::Visible : ue::ESlateVisibility::Hidden;
 	switch (CurrentWeaponID)
 	{
 		case EGsrEquipId::WP_Dragnov:
-			if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
-			if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
-			if (SourceRpgScopeWidget) SourceRpgScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
+			if (SourceDragnovScopeWidget) ue::call(SourceDragnovScopeWidget, L"SetVisibility", visibility);
+			if (SourceMosinScopeWidget) hideWidget(SourceMosinScopeWidget);
+			if (SourceRpgScopeWidget) hideWidget(SourceRpgScopeWidget);
 		break;
 		case EGsrEquipId::WP_MosinNagant:
-			if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
-			if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
-			if (SourceRpgScopeWidget) SourceRpgScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
+			if (SourceMosinScopeWidget) ue::call(SourceMosinScopeWidget, L"SetVisibility", visibility);
+			if (SourceDragnovScopeWidget) hideWidget(SourceDragnovScopeWidget);
+			if (SourceRpgScopeWidget) hideWidget(SourceRpgScopeWidget);
 			break;
 		case EGsrEquipId::WP_Rpg :
-			if (SourceRpgScopeWidget) SourceRpgScopeWidget->SetVisibility(enable ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden);
-			if (SourceDragnovScopeWidget) SourceDragnovScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
-			if (SourceMosinScopeWidget) SourceMosinScopeWidget->SetVisibility(SDK::ESlateVisibility::Hidden);
+			if (SourceRpgScopeWidget) ue::call(SourceRpgScopeWidget, L"SetVisibility", visibility);
+			if (SourceDragnovScopeWidget) hideWidget(SourceDragnovScopeWidget);
+			if (SourceMosinScopeWidget) hideWidget(SourceMosinScopeWidget);
 			break;
 	}
 }
@@ -1154,12 +1135,12 @@ void WeaponManager::SpawnScope()
 
 void WeaponManager::DestroyScope()
 {
-	if (ScopeStaticMeshComponent) ScopeStaticMeshComponent->K2_DestroyComponent(ScopeStaticMeshComponent);
-	if (SceneCaptureComponent) SceneCaptureComponent->K2_DestroyComponent(SceneCaptureComponent);
-	if (SceneCaptureUStaticMeshComponent) SceneCaptureUStaticMeshComponent->K2_DestroyComponent(SceneCaptureUStaticMeshComponent);
-	if (DragnovScopeWidget) DragnovScopeWidget->K2_DestroyComponent(DragnovScopeWidget);
-	if (MosinScopeWidget) MosinScopeWidget->K2_DestroyComponent(DragnovScopeWidget);
-	if (ScopeActor) ScopeActor->K2_DestroyActor();
+	if (ScopeStaticMeshComponent) ue::call(ScopeStaticMeshComponent, L"K2_DestroyComponent", ScopeStaticMeshComponent);
+	if (SceneCaptureComponent) ue::call(SceneCaptureComponent, L"K2_DestroyComponent", SceneCaptureComponent);
+	if (SceneCaptureUStaticMeshComponent) ue::call(SceneCaptureUStaticMeshComponent, L"K2_DestroyComponent", SceneCaptureUStaticMeshComponent);
+	if (DragnovScopeWidget) ue::call(DragnovScopeWidget, L"K2_DestroyComponent", DragnovScopeWidget);
+	if (MosinScopeWidget) ue::call(MosinScopeWidget, L"K2_DestroyComponent", DragnovScopeWidget);
+	if (ScopeActor) ue::call(ScopeActor, L"K2_DestroyActor");
 	ScopeStaticMeshComponent = nullptr;
 	SceneCaptureComponent = nullptr;
 	SceneCaptureUStaticMeshComponent = nullptr;
@@ -1176,7 +1157,7 @@ void WeaponManager::Cleanup()
 	DetachHandFromWeapon();
 	DetachSecondHandFromWeapon();
 	DestroyScope();
-	if (DummyCqcKnifeMeshActor) DummyCqcKnifeMeshActor->K2_DestroyActor();
+	if (DummyCqcKnifeMeshActor) ue::call(DummyCqcKnifeMeshActor, L"K2_DestroyActor");
 	DummyCqcKnifeMeshActor = nullptr;
 	DummyCqcKnifeMesh = nullptr;
 	LeftHandWeaponRoot = nullptr;
@@ -1189,12 +1170,13 @@ void WeaponManager::ToggleThermalVisionScanline()
 		Logger::DebugPrint("No player camera manager found");
 		return;
 	}
-	if (playerCameraManager->ThermalPostProcessActor == nullptr)
+	auto thermalPostProcessActor = ue::get<ue::UObject*>(playerCameraManager, L"ThermalPostProcessActor");
+	if (thermalPostProcessActor == nullptr)
 	{
 		return;
 	}
 	Logger::DebugPrint("Toggle Thermal Vision Scanline");
-	playerCameraManager->ThermalPostProcessActor->Scanline->SetVisibility(!*settingsManager->DisableThermalVisionScanlinePtr, true);
+	ue::call(ue::get<ue::UObject*>(thermalPostProcessActor, L"Scanline"), L"SetVisibility", !*settingsManager->DisableThermalVisionScanlinePtr, true);
 	ToggleThermalVisionScanlineNextFrame = false;
 }
 
@@ -1290,7 +1272,7 @@ void WeaponManager::ApplyRecoil(float delta)
 	}
 
 	auto motionState = uevr::API::UObjectHook::get_motion_controller_state(WeaponRoot);
-	SDK::FHitResult outHit;
+	ue::FHitResult outHit;
 	//Logger::DebugPrint("%d", IsShooting);
 	if (IsShooting)
 	{
@@ -1303,8 +1285,8 @@ void WeaponManager::ApplyRecoil(float delta)
 		CurrentRelativeWeaponPosition += positionRecoilForce;
 		CurrentRelativeWeaponRotationEuler += rotationRecoilForceEuler;
 		CurrentRelativeWeaponRotation = glm::fquat(glm::radians(CurrentRelativeWeaponRotationEuler));
-		ReceiverMesh->K2_SetRelativeLocation({ CurrentRelativeWeaponPosition.x, CurrentRelativeWeaponPosition.y, CurrentRelativeWeaponPosition.z }, false, &outHit, false);
-		ReceiverMesh->K2_SetRelativeRotation({ CurrentRelativeWeaponRotationEuler.x, CurrentRelativeWeaponRotationEuler.y, CurrentRelativeWeaponRotationEuler.z }, false, &outHit, false);
+		ue::call(ReceiverMesh, L"K2_SetRelativeLocation", ue::FVector{ CurrentRelativeWeaponPosition.x, CurrentRelativeWeaponPosition.y, CurrentRelativeWeaponPosition.z }, false, &outHit, false);
+		ue::call(ReceiverMesh, L"K2_SetRelativeRotation", ue::FRotator{ CurrentRelativeWeaponRotationEuler.x, CurrentRelativeWeaponRotationEuler.y, CurrentRelativeWeaponRotationEuler.z }, false, &outHit, false);
 		IsShooting = false;
 	}
 	else
@@ -1318,8 +1300,8 @@ void WeaponManager::ApplyRecoil(float delta)
 		CurrentRelativeWeaponPosition = glm::mix(CurrentRelativeWeaponPosition, DefaultRelativeWeaponPosition, delta * recoilPositionRecoverySpeed);
 		CurrentRelativeWeaponRotation = glm::slerp(CurrentRelativeWeaponRotation, DefaultRelativeWeaponRotation, delta * recoilRotationRecoverySpeed);
 		CurrentRelativeWeaponRotationEuler = glm::degrees(glm::eulerAngles(CurrentRelativeWeaponRotation));
-		ReceiverMesh->K2_SetRelativeLocation({ CurrentRelativeWeaponPosition.x, CurrentRelativeWeaponPosition.y, CurrentRelativeWeaponPosition.z }, false, &outHit, false);
-		ReceiverMesh->K2_SetRelativeRotation({ CurrentRelativeWeaponRotationEuler.x, CurrentRelativeWeaponRotationEuler.y, CurrentRelativeWeaponRotationEuler.z }, false, &outHit, false);
+		ue::call(ReceiverMesh, L"K2_SetRelativeLocation", ue::FVector{ CurrentRelativeWeaponPosition.x, CurrentRelativeWeaponPosition.y, CurrentRelativeWeaponPosition.z }, false, &outHit, false);
+		ue::call(ReceiverMesh, L"K2_SetRelativeRotation", ue::FRotator{ CurrentRelativeWeaponRotationEuler.x, CurrentRelativeWeaponRotationEuler.y, CurrentRelativeWeaponRotationEuler.z }, false, &outHit, false);
 	}
 }
 
@@ -1329,8 +1311,7 @@ float WeaponManager::randomRange(float min, float max) {
 
 void WeaponManager::spawnScope()
 {
-	SDK::UWorld* world = SDK::UWorld::GetWorld();
-	SDK::USceneComponent* sdkCurrentWeapon = (SDK::USceneComponent*)WeaponRoot;
+	auto world = ue::get_world();
 
 	getRenderTarget(world);
 
@@ -1338,14 +1319,13 @@ void WeaponManager::spawnScope()
 	{
 		Logger::DebugPrint("Failed to get render target, destroying Scope actor");
 		if (ScopeActor)
-			ScopeActor->K2_DestroyActor();
+			ue::call(ScopeActor, L"K2_DestroyActor");
 		ScopeStaticMeshComponent = nullptr;
 		SceneCaptureComponent = nullptr;
 		SceneCaptureUStaticMeshComponent = nullptr;
 		return;
 	}
 
-	SDK::FVector weaponPosition = sdkCurrentWeapon->K2_GetComponentLocation();
 	if (!ScopeActor)
 	{
 		ScopeStaticMeshComponent = nullptr;
@@ -1354,7 +1334,7 @@ void WeaponManager::spawnScope()
 		DragnovScopeWidget = nullptr;
 		MosinScopeWidget = nullptr;
 		RpgScopeWidget = nullptr;
-		ScopeActor = (SDK::AActor*)Utilities::SpawnActor(UEVR_Vector3d{0.0f, 0.0f, 0.0f}, (uevr::API::UObject*)ReceiverMesh->GetOwner());
+		ScopeActor = Utilities::SpawnActor(UEVR_Vector3d{0.0f, 0.0f, 0.0f}, ue::call<ue::UObject*>(ReceiverMesh, L"GetOwner"));
 		//Logger::DebugPrint("Scope Actor : %s", ScopeActor->GetFullName().c_str());
 	}
 	//Logger::DebugPrint("spawnScopeStaticMeshComponent()");
@@ -1367,14 +1347,18 @@ void WeaponManager::spawnScope()
 	spawnScopeWidget();
 }
 
-void WeaponManager::getRenderTarget(SDK::UWorld* world)
+void WeaponManager::getRenderTarget(uevr::API::UObject* world)
 {
-	SDK::FLinearColor linearColor{};
-	Logger::DebugPrint(ScopeRenderTarget->GetFullName().c_str());
+	ue::FLinearColor linearColor{};
+	if (ScopeRenderTarget)
+		Logger::DebugPrint(ScopeRenderTarget->get_full_name());
 	if (!ScopeRenderTarget)
 	{
-		ScopeRenderTarget = SDK::UKismetRenderingLibrary::CreateRenderTarget2D(world, *settingsManager->ScopeResolutionPtr, *settingsManager->ScopeResolutionPtr, SDK::ETextureRenderTargetFormat::RTF_RGBA16f, linearColor, false, false);
-		Logger::DebugPrint("Render target created : %s", ScopeRenderTarget->GetFullName().c_str());
+		ScopeRenderTarget = ue::call_static<ue::UObject*>(ue::lib::KismetRendering, L"CreateRenderTarget2D",
+			world, *settingsManager->ScopeResolutionPtr, *settingsManager->ScopeResolutionPtr,
+			ue::ETextureRenderTargetFormat::RTF_RGBA16f, linearColor, false, false);
+		if (ScopeRenderTarget)
+			Logger::DebugPrint(L"Render target created : " + ScopeRenderTarget->get_full_name());
 	}
 	//else
 	//	Logger::DebugPrint("Render target already exists");
@@ -1382,47 +1366,44 @@ void WeaponManager::getRenderTarget(SDK::UWorld* world)
 
 void WeaponManager::spawnScopeStaticMeshComponent()
 {
-	SDK::FTransform transform{};
-	auto scopeStaticMeshComponent = (SDK::UStaticMeshComponent*)ScopeActor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), false, transform, false);
+	auto scopeStaticMeshComponent = ue::call<ue::UObject*>(ScopeActor, L"AddComponentByClass", StaticMeshComponent_c.get(), false, ue::FTransform{}, false);
 	if (!scopeStaticMeshComponent/* || !scopeWidgetStaticMeshComponent*/)
 	{
 		Logger::DebugPrint("Failed to spawn scope mesh");
 		return;
 	}
-	
-	auto scopeDiskMaterialUObject = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Material /Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial");
 
-	if (!scopeDiskMaterialUObject)
+	auto uDiskMaterial = ue::find_object(L"Material /Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial");
+
+	if (!uDiskMaterial)
 	{
 		Logger::DebugPrint("Failed to find scopeDiskMaterialUObject");
 		return;
 	}
 
-	auto uDiskMaterial = (SDK::UMaterial*)scopeDiskMaterialUObject;
-	uDiskMaterial->TwoSided = false;
-	uDiskMaterial->BlendMode = SDK::EBlendMode::BLEND_Opaque;
-	uDiskMaterial->bDisableDepthTest = true;
+	ue::set(uDiskMaterial, L"TwoSided", false);
+	ue::set(uDiskMaterial, L"BlendMode", ue::EBlendMode::BLEND_Opaque);
+	ue::set(uDiskMaterial, L"bDisableDepthTest", true);
 	//uMaterial->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
-	uDiskMaterial->ShadingModel = SDK::EMaterialShadingModel::MSM_DefaultLit;
+	ue::set(uDiskMaterial, L"ShadingModel", ue::EMaterialShadingModel::MSM_DefaultLit);
 
 
-	auto cylinderMesh = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Game/Art/VFX/Game_HD_VFX/Fire/Fire/TheFury_Fire/Mesh/SM_VFX_Disk20edge.SM_VFX_Disk20edge");
-	
+	auto cylinderMesh = ue::find_object(L"StaticMesh /Game/Art/VFX/Game_HD_VFX/Fire/Fire/TheFury_Fire/Mesh/SM_VFX_Disk20edge.SM_VFX_Disk20edge");
+
 	if (!cylinderMesh)
 	{
 		Logger::DebugPrint("Can't find cylinder mesh");
 		return;
 	}
 	//Logger::DebugPrint("cylinder mesh found");
-	scopeStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cylinderMesh);
-	scopeStaticMeshComponent->SetVisibility(false, false);
-	scopeStaticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
-	scopeStaticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
+	ue::call(scopeStaticMeshComponent, L"SetStaticMesh", cylinderMesh);
+	ue::call(scopeStaticMeshComponent, L"SetVisibility", false, false);
+	ue::call(scopeStaticMeshComponent, L"SetCollisionEnabled", ue::ECollisionEnabled::NoCollision);
+	ue::call(scopeStaticMeshComponent, L"SetMobility", ue::EComponentMobility::Movable);
 
-	auto scopeDynamicMaterial = scopeStaticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, uDiskMaterial);
-	//Logger::DebugPrint("scopeDynamicMaterial created %s", scopeDynamicMaterial->GetFullName().c_str());
+	auto scopeDynamicMaterial = ue::call<ue::UObject*>(scopeStaticMeshComponent, L"CreateAndSetMaterialInstanceDynamicFromMaterial", 0, uDiskMaterial);
 	//Applying the render texture to the material :
-	scopeDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"LinearColor"), ScopeRenderTarget);
+	ue::call(scopeDynamicMaterial, L"SetTextureParameterValue", ue::FName(L"LinearColor"), ScopeRenderTarget);
 	//SDK::FLinearColor color = {};
 	//color.R = color.G = color.B = color.A = 2.0f;
 	//scopeDynamicMaterial->SetVectorParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"Color"), color);
@@ -1434,136 +1415,115 @@ void WeaponManager::spawnScopeStaticMeshComponent()
 
 void WeaponManager::spawnSceneCaptureComponent()
 {
-	SDK::FTransform transform{};
-	SceneCaptureUStaticMeshComponent = (SDK::UStaticMeshComponent*)ScopeActor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(), false, transform, false);
-	SceneCaptureComponent = (SDK::USceneCaptureComponent2D*)ScopeActor->AddComponentByClass(SDK::USceneCaptureComponent2D::StaticClass(), false, transform, false);
+	SceneCaptureUStaticMeshComponent = ue::call<ue::UObject*>(ScopeActor, L"AddComponentByClass", StaticMeshComponent_c.get(), false, ue::FTransform{}, false);
+	SceneCaptureComponent = ue::call<ue::UObject*>(ScopeActor, L"AddComponentByClass", SceneCaptureComponent2D_c.get(), false, ue::FTransform{}, false);
 
 	if (!SceneCaptureUStaticMeshComponent || !SceneCaptureComponent)
 	{
 		Logger::DebugPrint("failed to spawn scene capture mesh and component");
 		return;
 	}
-	SceneCaptureComponent->TextureTarget = ScopeRenderTarget;
-	SceneCaptureComponent->bCaptureOnMovement = false;
-	SceneCaptureComponent->bCaptureEveryFrame = true;
-	SceneCaptureComponent->bUseRayTracingIfEnabled = false;
+	ue::set(SceneCaptureComponent, L"TextureTarget", ScopeRenderTarget);
+	ue::set(SceneCaptureComponent, L"bCaptureOnMovement", false);
+	ue::set(SceneCaptureComponent, L"bCaptureEveryFrame", true);
+	ue::set(SceneCaptureComponent, L"bUseRayTracingIfEnabled", false);
 	//SceneCaptureComponent->PrimitiveRenderMode = SDK::ESceneCapturePrimitiveRenderMode::PRM_LegacySceneCapture;
 	//SceneCaptureComponent->CaptureSource = SDK::ESceneCaptureSource::SCS_SceneColorHDR;
-	SceneCaptureComponent->bAlwaysPersistRenderingState = true;
-	SceneCaptureComponent->PostProcessSettings.bOverride_MotionBlurAmount = true;
-	SceneCaptureComponent->PostProcessSettings.MotionBlurAmount = 0.0; //Disable motion blur
-	SceneCaptureComponent->PostProcessSettings.bOverride_ScreenSpaceReflectionIntensity = true;
-	SceneCaptureComponent->PostProcessSettings.ScreenSpaceReflectionIntensity = 0.0; //Disable screen space reflections
-	SceneCaptureComponent->PostProcessSettings.bOverride_AmbientOcclusionIntensity = true;
-	SceneCaptureComponent->PostProcessSettings.AmbientOcclusionIntensity = 0.0; //Disable ambient occlusion
-	SceneCaptureComponent->PostProcessSettings.bOverride_BloomIntensity = true;
-	SceneCaptureComponent->PostProcessSettings.BloomIntensity = 0.0;
-	SceneCaptureComponent->PostProcessSettings.bOverride_LensFlareIntensity = true;
-	SceneCaptureComponent->PostProcessSettings.LensFlareIntensity = 0.0; //Disable lens flares
-	SceneCaptureComponent->PostProcessSettings.bOverride_VignetteIntensity = true;
-	SceneCaptureComponent->PostProcessSettings.VignetteIntensity = 0.0;//Disable vignette
-	SceneCaptureComponent->SetVisibility(false, false);
-	SceneCaptureComponent->SetMobility(SDK::EComponentMobility::Movable);
+	ue::set(SceneCaptureComponent, L"bAlwaysPersistRenderingState", true);
+	const auto postProcess = ue::get_struct(SceneCaptureComponent, L"PostProcessSettings");
+	postProcess.set(L"bOverride_MotionBlurAmount", true);
+	postProcess.set(L"MotionBlurAmount", 0.0f); //Disable motion blur
+	postProcess.set(L"bOverride_ScreenSpaceReflectionIntensity", true);
+	postProcess.set(L"ScreenSpaceReflectionIntensity", 0.0f); //Disable screen space reflections
+	postProcess.set(L"bOverride_AmbientOcclusionIntensity", true);
+	postProcess.set(L"AmbientOcclusionIntensity", 0.0f); //Disable ambient occlusion
+	postProcess.set(L"bOverride_BloomIntensity", true);
+	postProcess.set(L"BloomIntensity", 0.0f);
+	postProcess.set(L"bOverride_LensFlareIntensity", true);
+	postProcess.set(L"LensFlareIntensity", 0.0f); //Disable lens flares
+	postProcess.set(L"bOverride_VignetteIntensity", true);
+	postProcess.set(L"VignetteIntensity", 0.0f);//Disable vignette
+	ue::call(SceneCaptureComponent, L"SetVisibility", false, false);
+	ue::call(SceneCaptureComponent, L"SetMobility", ue::EComponentMobility::Movable);
 
-	SceneCaptureUStaticMeshComponent->SetVisibility(false, false);
-	SceneCaptureUStaticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
+	ue::call(SceneCaptureUStaticMeshComponent, L"SetVisibility", false, false);
+	ue::call(SceneCaptureUStaticMeshComponent, L"SetMobility", ue::EComponentMobility::Movable);
 
 	//auto cigarMesh = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Game/Art/Environment/HD_GameplayAssets/Mesh/ciga_cigar_dmo_hd.ciga_cigar_dmo_hd");
 	//SceneCaptureUStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cigarMesh);
 }
 
-void ProcessAllChildWidgets(SDK::UWidget* ParentWidget, SDK::FLinearColor NewTint)
+void ProcessAllChildWidgets(ue::UObject* ParentWidget, const ue::FLinearColor& NewTint)
 {
 	if (!ParentWidget) return;
 
 	// Process this widget if it's an image
-	if (strstr(ParentWidget->GetFullName().c_str(), "Image"))
+	if (ParentWidget->get_full_name().find(L"Image") != std::wstring::npos && ue::is_a(ParentWidget, Image_c))
 	{
-		SDK::UImage* ImageWidget = (SDK::UImage*)ParentWidget;
-		//Logger::DebugPrint("Found image: %s", ParentWidget->GetFullName().c_str());
-		//ImageWidget->SetColorAndOpacity(NewTint);
-		//auto oriColor = ImageWidget->ColorAndOpacity;
-		//ImageWidget->SetColorAndOpacity(NewTint);
-
-		SDK::FSlateBrush Brush = ImageWidget->Brush;
-		auto color = Brush.TintColor.SpecifiedColor;
-		//Logger::DebugPrint("Color A : %f, R : %f, G : %f, B : %f ", color.A, color.R, color.G, color.B);
-		Brush.TintColor.SpecifiedColor = NewTint;
-		ImageWidget->SetBrush(Brush);
+		//Logger::DebugPrint(L"Found image: " + ParentWidget->get_full_name());
+		setImageTint(ParentWidget, NewTint);
 	}
-	
-	// Recurse into children
-	SDK::UPanelWidget* Panel = (SDK::UPanelWidget*)ParentWidget;
-	if (Panel)
+
+	// Recurse into children (only panels have some)
+	int ChildCount = ue::try_call<int32_t>(ParentWidget, L"GetChildrenCount");
+	//Logger::DebugPrint("Panel has %i children", ChildCount);
+
+	for (int i = 0; i < ChildCount; i++)
 	{
-		int ChildCount = Panel->GetChildrenCount();
-		//Logger::DebugPrint("Panel has %i children", ChildCount);
-		
-		for (int i = 0; i < ChildCount; i++)
+		auto Child = ue::call<ue::UObject*>(ParentWidget, L"GetChildAt", i);
+		if (Child)
 		{
-			SDK::UWidget* Child = Panel->GetChildAt(i);
-			if (Child)
-			{
-				ProcessAllChildWidgets(Child, NewTint);
-			}
+			ProcessAllChildWidgets(Child, NewTint);
 		}
 	}
 }
 
-void SetAllImageTints(SDK::UUserWidget* rootWidget, SDK::FLinearColor newTint)
+void SetAllImageTints(ue::UObject* rootWidget, const ue::FLinearColor& newTint)
 {
 	if (!rootWidget) return;
-	
-	SDK::UPanelWidget* rootPanelWidget = (SDK::UPanelWidget*)rootWidget;
-	if (rootPanelWidget)
-	{
-		ProcessAllChildWidgets(rootPanelWidget, newTint);
-	}
+	ProcessAllChildWidgets(rootWidget, newTint);
 }
 
 
 void WeaponManager::spawnScopeWidget()
 {
 	//Fetch existing widget :
-	uevr::API::UClass* scopeWidgetClass = nullptr;
-	SDK::UUserWidget* sourceWidget = nullptr;;
+	ue::UObject* sourceWidget = nullptr;
 	//if (!DragnovScopeWidget || !MosinScopeWidget || !RpgScopeWidget)
 	switch (CurrentWeaponID)
 	{
 	case EGsrEquipId::WP_Dragnov:
+	{
 		if (DragnovScopeWidget) return;
-		scopeWidgetClass = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraUI.CSightDragnovWidget");
-		sourceWidget = (SDK::UUserWidget*)scopeWidgetClass->get_objects_matching()[1]; //check
+		const auto widgets = CSightDragnovWidget_c.get() ? CSightDragnovWidget_c.get()->get_objects_matching() : std::vector<ue::UObject*>{};
+		sourceWidget = widgets.size() > 1 ? widgets[1] : nullptr; //check
 		break;
-
+	}
 	case EGsrEquipId::WP_MosinNagant:
 		if (MosinScopeWidget) return;
-		scopeWidgetClass = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraUI.CSightMosinWidget");
-		sourceWidget = (SDK::UUserWidget*)scopeWidgetClass->get_first_object_matching(false); //check if false works here and below
+		sourceWidget = firstObjectOf(CSightMosinWidget_c); //check if false works here and below
 		break;
 
 	case EGsrEquipId::WP_Rpg:
 		if (RpgScopeWidget) return;
-		scopeWidgetClass = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraUI.CSightRpg7Widget");
-		sourceWidget = (SDK::UUserWidget*)scopeWidgetClass->get_first_object_matching(false);
+		sourceWidget = firstObjectOf(CSightRpg7Widget_c);
 		break;
 	}
 
 
-	
-	SDK::FVector2D drawSize = {2100.0f, 2100.0f}; //The original size of the widget found ingame
+
+	const ue::FVector2D drawSize = {2100.0f, 2100.0f}; //The original size of the widget found ingame
 
 	if (!sourceWidget)
 	{
 		Logger::DebugPrint("Failed to find the existing widget");
 		return;
 	}
-	//Logger::DebugPrint(sourceWidget->GetFullName().c_str());
+	//Logger::DebugPrint(sourceWidget->get_full_name());
 	//Logger::DebugPrint("Widget Desired Size x : %f, y : %f", drawSize.X, drawSize.Y);
-	
-	SDK::FTransform transform{};
-	auto widgetComponent = (SDK::UWidgetComponent*)ScopeActor->AddComponentByClass(SDK::UWidgetComponent::StaticClass(), false, transform, false);
-	
+
+	auto widgetComponent = ue::call<ue::UObject*>(ScopeActor, L"AddComponentByClass", WidgetComponent_c.get(), false, ue::FTransform{}, false);
+
 	if (widgetComponent == nullptr)
 	{
 		Logger::DebugPrint("Failed to create actor for widget creation");
@@ -1571,81 +1531,55 @@ void WeaponManager::spawnScopeWidget()
 	}
 
 	//Logger::DebugPrint("Remove From Viewport");
-	sourceWidget->RemoveFromViewport();
-	widgetComponent->SetWidget(sourceWidget);
-	widgetComponent->SetTwoSided(false);
-	widgetComponent->SetDrawSize(drawSize);
-	widgetComponent->BlendMode = SDK::EWidgetBlendMode::Transparent;
-	//Logger::DebugPrint("Blend mode : %i", (int)widgetComponent->BlendMode);
+	ue::call(sourceWidget, L"RemoveFromViewport");
+	ue::call(widgetComponent, L"SetWidget", sourceWidget);
+	ue::call(widgetComponent, L"SetTwoSided", false);
+	ue::call(widgetComponent, L"SetDrawSize", drawSize);
+	ue::set(widgetComponent, L"BlendMode", ue::EWidgetBlendMode::Transparent);
 	//sourceWidget->RenderOpacity = 0.0f;
 	//sourceWidget->ColorAndOpacity.A = 0.0f;
 	//sourceWidget->ForegroundColor.SpecifiedColor.A = 0.0f;
 
-	//SDK::FLinearColor color = { 0.4f, 0.6f, 0.6f, 0.6f };
-	//widgetComponent->MaterialInstance->SetVectorParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"TintColorAndOpacity"), color);
-	//widgetComponent->MaterialInstance->SetScalarParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"OpacityFromTexture"), 0.75f);
-	//widgetComponent->MaterialInstance->BasePropertyOverrides.bOverride_BlendMode = true;
-	//widgetComponent->MaterialInstance->BasePropertyOverrides.BlendMode = SDK::EBlendMode::BLEND_Translucent;
-	//widgetComponent->MaterialInstance->SetVectorParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"BackColor"), color);
-
-	
 	//Set arrows to white for better visibility
-	SDK::FLinearColor color = { 1.0f, 1.0f, 1.0f, 1.0f }; 
-	SDK::UCanvasPanel* arrowGroup = nullptr;
+	const ue::FLinearColor color = { 1.0f, 1.0f, 1.0f, 1.0f };
+	ue::UObject* arrowGroup = ue::get<ue::UObject*>(sourceWidget, L"ArrowGroup");
+
+	// Every sight widget has these three boxes
+	hideWidget(ue::get<ue::UObject*>(sourceWidget, L"BoxBg"));
+	hideWidget(ue::get<ue::UObject*>(sourceWidget, L"RightBox"));
+	hideWidget(ue::get<ue::UObject*>(sourceWidget, L"LeftBox"));
 
 	switch (CurrentWeaponID)
 	{
 	case EGsrEquipId::WP_Dragnov:
 	{
-		auto uSightDragnovWidget_C = (SDK::USightDragnovWidget_C*)sourceWidget;
-		arrowGroup = uSightDragnovWidget_C->ArrowGroup;
-		uSightDragnovWidget_C->BoxBg->SetVisibility(SDK::ESlateVisibility::Hidden);
-		uSightDragnovWidget_C->RightBox->SetVisibility(SDK::ESlateVisibility::Hidden);
-		uSightDragnovWidget_C->LeftBox->SetVisibility(SDK::ESlateVisibility::Hidden);
-
 		SourceDragnovScopeWidget = sourceWidget;
 		DragnovScopeWidget = widgetComponent;
-		//Logger::DebugPrint(DragnovScopeWidget->GetFullName().c_str());
 		break;
 	}
 	case EGsrEquipId::WP_MosinNagant:
 	{
-		auto uSightMosinWidget_C = (SDK::USightMosinWidget_C*)sourceWidget;
-		arrowGroup = (SDK::UCanvasPanel*)uSightMosinWidget_C->ArrowGroup;
-
-		uSightMosinWidget_C->BoxBg->SetVisibility(SDK::ESlateVisibility::Hidden);
-		uSightMosinWidget_C->RightBox->SetVisibility(SDK::ESlateVisibility::Hidden);
-		uSightMosinWidget_C->LeftBox->SetVisibility(SDK::ESlateVisibility::Hidden);
-
-		SDK::FLinearColor mosinColor = { 1.0f, 1.0f, 1.0f, 0.0f };
-		auto root = (SDK::UCanvasPanel*)uSightMosinWidget_C->WidgetTree->RootWidget;
-		auto ImageWidget = (SDK::UImage*)root->GetChildAt(0);
-		Logger::DebugPrint(ImageWidget->GetFullName().c_str());
-		SDK::FSlateBrush Brush = ImageWidget->Brush;
-		auto color = Brush.TintColor.SpecifiedColor;
-		Brush.TintColor.SpecifiedColor = mosinColor;
-		ImageWidget->SetBrush(Brush);
+		const ue::FLinearColor mosinColor = { 1.0f, 1.0f, 1.0f, 0.0f };
+		auto root = ue::get<ue::UObject*>(ue::get<ue::UObject*>(sourceWidget, L"WidgetTree"), L"RootWidget");
+		auto ImageWidget = ue::call<ue::UObject*>(root, L"GetChildAt", 0);
+		if (ImageWidget)
+		{
+			Logger::DebugPrint(ImageWidget->get_full_name());
+			setImageTint(ImageWidget, mosinColor);
+		}
 		SourceMosinScopeWidget = sourceWidget;
 		MosinScopeWidget = widgetComponent;
-		//Logger::DebugPrint(MosinScopeWidget->GetFullName().c_str());
 		break;
 	}
 	case EGsrEquipId::WP_Rpg:
 	{
-		auto uSightRpg7Widget_C = (SDK::USightRPG7Widget_C*)sourceWidget;
-		arrowGroup = uSightRpg7Widget_C->ArrowGroup;
-		uSightRpg7Widget_C->BoxBg->SetVisibility(SDK::ESlateVisibility::Hidden);
-		uSightRpg7Widget_C->RightBox->SetVisibility(SDK::ESlateVisibility::Hidden);
-		uSightRpg7Widget_C->LeftBox->SetVisibility(SDK::ESlateVisibility::Hidden);
-
 		SourceRpgScopeWidget = sourceWidget;
 		RpgScopeWidget = widgetComponent;
-		//Logger::DebugPrint(DragnovScopeWidget->GetFullName().c_str());
 		break;
 	}
 	}
 
-	SetAllImageTints((SDK::UUserWidget*)arrowGroup, color);
+	SetAllImageTints(arrowGroup, color);
 
 
 	//ScopeWidget = (SDK::UWidgetComponent*)uObject;
@@ -1657,116 +1591,100 @@ void WeaponManager::attachScopeToWeapon()
 	if (!SceneCaptureComponent){	Logger::DebugPrint("attachScopeToWeapon() : SceneCaptureComponent not found"); return; }
 	if (!SceneCaptureUStaticMeshComponent){	Logger::DebugPrint("attachScopeToWeapon() : SceneCaptureComponentMesh not found"); return; }
 	if (!ScopeStaticMeshComponent){	Logger::DebugPrint("attachScopeToWeapon() : ScopeCylinderComponent not found"); return; }
-	//if (!ReceiverMesh){	Logger::DebugPrint("attachScopeToWeapon() : ReceiverMesh not found"); return; }
 
 	Logger::DebugPrint("Attaching scope to weapon");
-	SceneCaptureUStaticMeshComponent->K2_AttachToComponent(
+	ue::call(SceneCaptureUStaticMeshComponent, L"K2_AttachToComponent",
 		ReceiverMesh,
-		SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_MUZZLE_FLASH"),
-		SDK::EAttachmentRule::SnapToTarget,
-		SDK::EAttachmentRule::SnapToTarget,
-		SDK::EAttachmentRule::KeepRelative,
+		ue::FName(L"CNP_MUZZLE_FLASH"),
+		ue::EAttachmentRule::SnapToTarget,
+		ue::EAttachmentRule::SnapToTarget,
+		ue::EAttachmentRule::KeepRelative,
 		true
 	);
 
-	SceneCaptureComponent->K2_AttachToComponent(
+	ue::call(SceneCaptureComponent, L"K2_AttachToComponent",
 		SceneCaptureUStaticMeshComponent,
-		SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
-		SDK::EAttachmentRule::SnapToTarget,
-		SDK::EAttachmentRule::SnapToTarget,
-		SDK::EAttachmentRule::KeepRelative,
+		ue::FName(L"None"),
+		ue::EAttachmentRule::SnapToTarget,
+		ue::EAttachmentRule::SnapToTarget,
+		ue::EAttachmentRule::KeepRelative,
 		true
 	);
 
-	ScopeStaticMeshComponent->K2_AttachToComponent(		
+	ue::call(ScopeStaticMeshComponent, L"K2_AttachToComponent",
 		ReceiverMesh,
-		SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_REAR_SIGHT"),
-		SDK::EAttachmentRule::SnapToTarget,
-		SDK::EAttachmentRule::SnapToTarget,
-		SDK::EAttachmentRule::KeepRelative,
+		ue::FName(L"CNP_REAR_SIGHT"),
+		ue::EAttachmentRule::SnapToTarget,
+		ue::EAttachmentRule::SnapToTarget,
+		ue::EAttachmentRule::KeepRelative,
 		true
 	);
 
-	//ScopeWidgetStaticMeshComponent->K2_AttachToComponent(
-	//	ReceiverMesh,
-	//	SDK::UKismetStringLibrary::Conv_StringToName(L"CNP_REAR_SIGHT"),
-	//	SDK::EAttachmentRule::SnapToTarget,
-	//	SDK::EAttachmentRule::SnapToTarget,
-	//	SDK::EAttachmentRule::KeepRelative,
-	//	true
-	//);
+	ue::FHitResult hitResult;
+	ue::call(SceneCaptureComponent, L"SetVisibility", true, true);
+	ue::call(SceneCaptureComponent, L"SetMobility", ue::EComponentMobility::Movable);
+	ue::call(SceneCaptureComponent, L"Activate", true);
+	ue::call(SceneCaptureComponent, L"K2_SetRelativeRotation", ue::FRotator{0.0f, 90.0f, 0.0f}, false, &hitResult, true);
 
-	SDK::FHitResult hitResult;
-	SceneCaptureComponent->SetVisibility(true, true);
-	SceneCaptureComponent->SetMobility(SDK::EComponentMobility::Movable);
-	SceneCaptureComponent->Activate(true);
-	SceneCaptureComponent->K2_SetRelativeRotation({0.0f, 90.0f, 0.0f}, false, &hitResult, true);
-
+	// Scope widget component, its socket offsets and scales per weapon
+	bool isScopedWeapon = true;
+	ue::UObject* scopeWidget = nullptr;
+	ue::FVector captureMeshLocation{};
+	ue::FVector scopeMeshLocation{};
+	double scopeMeshScale = 1.0;
+	ue::FVector widgetLocation{};
+	double widgetScale = 1.0;
 	switch (CurrentWeaponID)
 	{
 	case EGsrEquipId::WP_Dragnov:
-		DragnovScopeWidget->K2_AttachToComponent(
-			ScopeStaticMeshComponent,
-			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
-			SDK::EAttachmentRule::SnapToTarget,
-			SDK::EAttachmentRule::SnapToTarget,
-			SDK::EAttachmentRule::KeepRelative,
-			true
-		);
-		SceneCaptureUStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.0f }, false, &hitResult, true);
-		ScopeStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, -30.9, 0.0f }, false, &hitResult, true);
-		ScopeStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
-		ScopeStaticMeshComponent->SetRelativeScale3D({ 0.15f, 0.15f, 0.15f });
-		DragnovScopeWidget->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.05f }, false, &hitResult, true);
-		DragnovScopeWidget->K2_SetRelativeRotation({ 90.0f, 0.0f, -90.0f }, false, &hitResult, true);
-		DragnovScopeWidget->SetRelativeScale3D({ 0.025f, 0.025f, 0.025f });
+		scopeWidget = DragnovScopeWidget;
+		captureMeshLocation = { 0.0f, 0.0f, 0.0f };
+		scopeMeshLocation = { 0.0f, -30.9, 0.0f };
+		scopeMeshScale = 0.15f;
+		widgetLocation = { 0.0f, 0.0f, 0.05f };
+		widgetScale = 0.025f;
 		break;
 	case EGsrEquipId::WP_MosinNagant:
-		MosinScopeWidget->K2_AttachToComponent(
-			ScopeStaticMeshComponent,
-			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
-			SDK::EAttachmentRule::SnapToTarget,
-			SDK::EAttachmentRule::SnapToTarget,
-			SDK::EAttachmentRule::KeepRelative,
-			true
-		);
-		SceneCaptureUStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.0f }, false, &hitResult, true);
-		ScopeStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, -18.5f, 0.0f }, false, &hitResult, true);
-		ScopeStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
-		ScopeStaticMeshComponent->SetRelativeScale3D({ 0.12f, 0.12f, 0.12f });
-		MosinScopeWidget->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.05f }, false, &hitResult, true);
-		MosinScopeWidget->K2_SetRelativeRotation({ 90.0f, 0.0f, -90.0f }, false, &hitResult, true);
-		MosinScopeWidget->SetRelativeScale3D({ 0.023f, 0.023f, 0.023f });
+		scopeWidget = MosinScopeWidget;
+		captureMeshLocation = { 0.0f, 0.0f, 0.0f };
+		scopeMeshLocation = { 0.0f, -18.5f, 0.0f };
+		scopeMeshScale = 0.12f;
+		widgetLocation = { 0.0f, 0.0f, 0.05f };
+		widgetScale = 0.023f;
 		break;
 	case EGsrEquipId::WP_Rpg:
-		RpgScopeWidget->K2_AttachToComponent(
-			ScopeStaticMeshComponent,
-			SDK::UKismetStringLibrary::Conv_StringToName(L"None"),
-			SDK::EAttachmentRule::SnapToTarget,
-			SDK::EAttachmentRule::SnapToTarget,
-			SDK::EAttachmentRule::KeepRelative,
-			true
-		);
-		SceneCaptureUStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, 26.0f, 0.0f }, false, &hitResult, true);
-		ScopeStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, 1.33f, 0.0f }, false, &hitResult, true);
-		ScopeStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
-		ScopeStaticMeshComponent->SetRelativeScale3D({ 0.185f, 0.185f, 0.185f });
-		RpgScopeWidget->K2_SetRelativeLocation({ 0.0f, 0.0f, 0.1f }, false, &hitResult, true);
-		RpgScopeWidget->K2_SetRelativeRotation({ 90.0f, 0.0f, -90.0f }, false, &hitResult, true);
-		RpgScopeWidget->SetRelativeScale3D({ 0.012f, 0.012f, 0.012f });
+		scopeWidget = RpgScopeWidget;
+		captureMeshLocation = { 0.0f, 26.0f, 0.0f };
+		scopeMeshLocation = { 0.0f, 1.33f, 0.0f };
+		scopeMeshScale = 0.185f;
+		widgetLocation = { 0.0f, 0.0f, 0.1f };
+		widgetScale = 0.012f;
+		break;
+	default:
+		isScopedWeapon = false;
 		break;
 	}
 
-	ScopeStaticMeshComponent->SetVisibility(false, false);
+	if (isScopedWeapon)
+	{
+		ue::call(scopeWidget, L"K2_AttachToComponent",
+			ScopeStaticMeshComponent,
+			ue::FName(L"None"),
+			ue::EAttachmentRule::SnapToTarget,
+			ue::EAttachmentRule::SnapToTarget,
+			ue::EAttachmentRule::KeepRelative,
+			true
+		);
+		ue::call(SceneCaptureUStaticMeshComponent, L"K2_SetRelativeLocation", captureMeshLocation, false, &hitResult, true);
+		ue::call(ScopeStaticMeshComponent, L"K2_SetRelativeLocation", scopeMeshLocation, false, &hitResult, true);
+		ue::call(ScopeStaticMeshComponent, L"K2_SetRelativeRotation", ue::FRotator{ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
+		ue::call(ScopeStaticMeshComponent, L"SetRelativeScale3D", ue::FVector{ scopeMeshScale, scopeMeshScale, scopeMeshScale });
+		ue::call(scopeWidget, L"K2_SetRelativeLocation", widgetLocation, false, &hitResult, true);
+		ue::call(scopeWidget, L"K2_SetRelativeRotation", ue::FRotator{ 90.0f, 0.0f, -90.0f }, false, &hitResult, true);
+		ue::call(scopeWidget, L"SetRelativeScale3D", ue::FVector{ widgetScale, widgetScale, widgetScale });
+	}
 
-	//ScopeWidgetStaticMeshComponent->K2_SetRelativeLocation({ 0.0f, -26.0f, 0.0f }, false, &hitResult, true);
-	//ScopeWidgetStaticMeshComponent->K2_SetRelativeRotation({ 180.0f, 0.0f, -90.0f }, false, &hitResult, true);
-	////ScopeWidgetStaticMeshComponent->SetRelativeScale3D({0.15f, 0.15f, 0.15f});
-	//ScopeWidgetStaticMeshComponent->SetRelativeScale3D({2.0f, 2.0f, 2.0f});
-	//ScopeWidgetStaticMeshComponent->SetVisibility(false, false);
-
-
-	//ScopeWidget->SetRelativeScale3D({0.02f, 0.02f, 0.02f});
+	ue::call(ScopeStaticMeshComponent, L"SetVisibility", false, false);
 }
 
 

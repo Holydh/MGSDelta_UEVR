@@ -1,33 +1,14 @@
 #pragma once
 // Engine value types with the memory layout of Unreal Engine 5 (double precision).
 // These layouts are fixed by the engine version, not by the game, so game updates don't
-// affect them. Default construction zero-fills, like the Dumper-7 SDK types they replace.
+// affect them. Default construction zero-fills.
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <string>
 #include <string_view>
 
 #include "uevr/API.hpp"
-
-#if MGSDELTA_HAS_SDK
-// TEMPORARY while the Dumper-7 SDK is still used: implicit conversions so ported and
-// not-yet-ported code can exchange values. Layouts are identical (checked by static_assert).
-#include "SDK/Basic.hpp"
-#include "SDK/CoreUObject_structs.hpp"
-#include "SDK/Engine_structs.hpp"
-#define UE_SDK_INTEROP(Type)                                                              \
-    Type(const ::SDK::Type& other) {                                                      \
-        static_assert(sizeof(Type) == sizeof(::SDK::Type), #Type " layout mismatch");     \
-        std::memcpy(static_cast<void*>(this), &other, sizeof(Type));                      \
-    }                                                                                     \
-    operator ::SDK::Type() const {                                                        \
-        ::SDK::Type result{};                                                             \
-        std::memcpy(static_cast<void*>(&result), this, sizeof(Type));                     \
-        return result;                                                                    \
-    }
-#else
-#define UE_SDK_INTEROP(Type)
-#endif
 
 namespace ue {
 
@@ -36,7 +17,6 @@ struct FVector {
 
     constexpr FVector() = default;
     constexpr FVector(double x, double y, double z) : X(x), Y(y), Z(z) {}
-    UE_SDK_INTEROP(FVector)
 
     constexpr FVector operator+(const FVector& o) const { return { X + o.X, Y + o.Y, Z + o.Z }; }
     constexpr FVector operator-(const FVector& o) const { return { X - o.X, Y - o.Y, Z - o.Z }; }
@@ -46,7 +26,16 @@ struct FVector {
     constexpr FVector& operator+=(const FVector& o) { X += o.X; Y += o.Y; Z += o.Z; return *this; }
     constexpr FVector& operator-=(const FVector& o) { X -= o.X; Y -= o.Y; Z -= o.Z; return *this; }
     constexpr FVector& operator*=(double s) { X *= s; Y *= s; Z *= s; return *this; }
+    constexpr FVector& operator/=(double s) { X /= s; Y /= s; Z /= s; return *this; }
     constexpr bool operator==(const FVector&) const = default;
+
+    double Size() const { return std::sqrt(X * X + Y * Y + Z * Z); }
+    // Like the SDK's FVector::Normalize, but leaves a zero vector unchanged instead of producing NaN
+    FVector& Normalize() {
+        const double size = Size();
+        if (size > 0.0) *this /= size;
+        return *this;
+    }
 };
 static_assert(sizeof(FVector) == 0x18);
 
@@ -55,7 +44,6 @@ struct FVector2D {
 
     constexpr FVector2D() = default;
     constexpr FVector2D(double x, double y) : X(x), Y(y) {}
-    UE_SDK_INTEROP(FVector2D)
 
     constexpr bool operator==(const FVector2D&) const = default;
 };
@@ -66,7 +54,6 @@ struct FRotator {
 
     constexpr FRotator() = default;
     constexpr FRotator(double pitch, double yaw, double roll) : Pitch(pitch), Yaw(yaw), Roll(roll) {}
-    UE_SDK_INTEROP(FRotator)
 
     constexpr FRotator operator+(const FRotator& o) const { return { Pitch + o.Pitch, Yaw + o.Yaw, Roll + o.Roll }; }
     constexpr FRotator operator-(const FRotator& o) const { return { Pitch - o.Pitch, Yaw - o.Yaw, Roll - o.Roll }; }
@@ -79,7 +66,6 @@ struct alignas(16) FQuat {
 
     constexpr FQuat() = default;
     constexpr FQuat(double x, double y, double z, double w) : X(x), Y(y), Z(z), W(w) {}
-    UE_SDK_INTEROP(FQuat)
 
     static constexpr FQuat Identity() { return { 0.0, 0.0, 0.0, 1.0 }; }
 };
@@ -95,7 +81,6 @@ struct alignas(16) FTransform {
     constexpr FTransform() = default;
     constexpr FTransform(const FQuat& rotation, const FVector& translation, const FVector& scale)
         : Rotation(rotation), Translation(translation), Scale3D(scale) {}
-    UE_SDK_INTEROP(FTransform)
 
     static constexpr FTransform Identity() { return { FQuat::Identity(), {}, { 1.0, 1.0, 1.0 } }; }
 };
@@ -107,7 +92,6 @@ struct FLinearColor {
 
     constexpr FLinearColor() = default;
     constexpr FLinearColor(float r, float g, float b, float a) : R(r), G(g), B(b), A(a) {}
-    UE_SDK_INTEROP(FLinearColor)
 
     constexpr bool operator==(const FLinearColor&) const = default;
 };
@@ -118,7 +102,6 @@ struct FHitResult {
     alignas(8) uint8_t Data[0xE8]{};
 
     FHitResult() = default;
-    UE_SDK_INTEROP(FHitResult)
 };
 static_assert(sizeof(FHitResult) == 0xE8);
 
@@ -146,7 +129,6 @@ struct FName {
     // UEVR's own FName constructor can't be located in some games (MGS Delta included) and
     // then silently returns None. Defined in Reflection.cpp.
     explicit FName(std::wstring_view name);
-    UE_SDK_INTEROP(FName)
 
     std::wstring ToWString() const { return reinterpret_cast<const uevr::API::FName*>(this)->to_string(); }
     std::string ToString() const;
@@ -162,5 +144,3 @@ std::string narrow(std::wstring_view text);
 inline std::string FName::ToString() const { return narrow(ToWString()); }
 
 } // namespace ue
-
-#undef UE_SDK_INTEROP

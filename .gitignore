@@ -8,7 +8,7 @@
 .vscode/
 CMakeUserPresets.json
 
-# TEMPORARY: local Dumper-7 SDK dump (never committed, being removed)
+# Local Dumper-7 dumps, handy for looking up names (not used by the build)
 /sdk/
 
 # Compiled binaries

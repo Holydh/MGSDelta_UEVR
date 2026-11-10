@@ -277,16 +277,16 @@ void PlayerManager::FetchMotionControllers()
 		auto handMesh = ue::call<ue::UObject*>(motionControllerComponent, L"GetChildComponent", 0);
 		if (ue::get<ue::FName>(motionControllerComponent, L"MotionSource") == ue::FName(L"Left"))
 		{
-			LeftController = (SDK::UMotionControllerComponent*)motionControllerComponent;
-			LeftHandMesh = (SDK::UPoseableMeshComponent*)handMesh;
+			LeftController = motionControllerComponent;
+			LeftHandMesh = handMesh;
 			Logger::DebugPrint(L"Found Left Motion Controller: " + motionControllerComponent->get_full_name());
 			if (handMesh)
 				Logger::DebugPrint(L"Found Left Hand Mesh: " + handMesh->get_full_name());
 		}
 		else
 		{
-			RightController = (SDK::UMotionControllerComponent*)motionControllerComponent;
-			RightHandMesh = (SDK::UPoseableMeshComponent*)handMesh;
+			RightController = motionControllerComponent;
+			RightHandMesh = handMesh;
 			Logger::DebugPrint(L"Found Right Motion Controller: " + motionControllerComponent->get_full_name());
 			if (handMesh)
 				Logger::DebugPrint(L"Found Right Hand Mesh: " + handMesh->get_full_name());

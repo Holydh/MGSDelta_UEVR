@@ -14,10 +14,6 @@ endif()
 set(MGSDELTA_PLUGIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/UEVR_profile/MGSDelta-Win64-Shipping/plugins"
     CACHE PATH "Folder MGSDelta_Plugin.dll is written to (the UEVR profile's plugins folder)")
 
-# TEMPORARY: local Dumper-7 SDK dump. Not in git; being replaced by UEVR API calls.
-set(MGSDELTA_SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdk"
-    CACHE PATH "Folder containing the Dumper-7 SDK dump (SDK.hpp, SDK/...)")
-
 # ---------------------------------------------------------------------------
 # Global settings (also applied to fetched dependencies)
 # ---------------------------------------------------------------------------
@@ -81,35 +77,14 @@ file(GLOB_RECURSE EXTERNAL_HEADERS CONFIGURE_DEPENDS
     external/*.h
     external/*.hpp)
 
-# TEMPORARY: Dumper-7 SDK
-if(NOT EXISTS "${MGSDELTA_SDK_DIR}/SDK.hpp")
-    message(FATAL_ERROR
-        "Dumper-7 SDK dump not found in '${MGSDELTA_SDK_DIR}'.\n"
-        "It is still required until the SDK usages are ported to the UEVR API. "
-        "Set MGSDELTA_SDK_DIR to the dump folder (the one containing SDK.hpp).")
-endif()
-set(SDK_SOURCES
-    ${MGSDELTA_SDK_DIR}/SDK/Basic.cpp
-    ${MGSDELTA_SDK_DIR}/SDK/BP_SnakeStatus_functions.cpp
-    ${MGSDELTA_SDK_DIR}/SDK/CobraUI_functions.cpp
-    ${MGSDELTA_SDK_DIR}/SDK/Cobra_functions.cpp
-    ${MGSDELTA_SDK_DIR}/SDK/CoreUObject_functions.cpp
-    ${MGSDELTA_SDK_DIR}/SDK/Engine_functions.cpp
-    ${MGSDELTA_SDK_DIR}/SDK/Gsr_functions.cpp
-    ${MGSDELTA_SDK_DIR}/SDK/SightDragnovWidget_functions.cpp
-    ${MGSDELTA_SDK_DIR}/SDK/SightMosinWidget_functions.cpp
-    ${MGSDELTA_SDK_DIR}/SDK/UMG_functions.cpp)
-
 add_library(mgsdelta_uevr SHARED
     ${PLUGIN_SOURCES}
     ${EXTERNAL_SOURCES}
-    ${EXTERNAL_HEADERS}
-    ${SDK_SOURCES})
+    ${EXTERNAL_HEADERS})
 
 target_include_directories(mgsdelta_uevr PRIVATE
     src
-    external
-    ${MGSDELTA_SDK_DIR})
+    external)
 
 target_link_libraries(mgsdelta_uevr PRIVATE
     kananlib
@@ -125,7 +100,6 @@ target_compile_options(mgsdelta_uevr PRIVATE
 target_compile_definitions(mgsdelta_uevr PRIVATE
     NOMINMAX
     WINVER=0x0A00
-    MGSDELTA_HAS_SDK=1  # TEMPORARY: removed with the Dumper-7 SDK
     GLM_ENABLE_EXPERIMENTAL)  # code uses glm/gtx/*
 
 # Each configuration links into its own folder, then the DLL + PDB of the
@@ -155,5 +129,4 @@ target_link_options(mgsdelta_uevr PRIVATE $<$<CONFIG:Release>:/DEBUG /OPT:REF /O
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" PREFIX "src" FILES ${PLUGIN_SOURCES})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/external" PREFIX "external"
     FILES ${EXTERNAL_SOURCES} ${EXTERNAL_HEADERS})
-source_group("sdk (temporary)" FILES ${SDK_SOURCES})
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT mgsdelta_uevr)

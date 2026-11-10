@@ -47,18 +47,20 @@ mklink /D "%APPDATA%\UnrealVRMod\MGSDelta-Win64-Shipping" "<repo>\UEVR_profile\M
 The deploy folder can be changed with the `MGSDELTA_PLUGIN_DIR` CMake cache variable.
 Close the game before building: the copy fails while UEVR has the DLL loaded.
 
-### Temporary requirement: Dumper-7 SDK
+### Game updates
 
-The plugin still uses a Dumper-7 SDK dump of the game, which is not part of the repository.
-Place it in `sdk/` (the folder containing `SDK.hpp` and `SDK/`) or point `MGSDELTA_SDK_DIR` to it.
-This dependency is being removed in favor of UEVR API reflection calls, so the plugin no longer
-needs rebuilding after game updates.
+The plugin doesn't embed any game SDK: it finds the game's classes, properties and functions
+by name at runtime through the UEVR API (see `src/ue/`), so it usually keeps working after game
+updates without a rebuild. If an update renames or changes something the plugin uses, it logs a
+`[MGSDelta] ...` error in UEVR's `log.txt` naming exactly what didn't match, and skips that action
+instead of crashing.
 
 ## Repository layout
 
 | Path          | Contents                                                        |
 |---------------|-----------------------------------------------------------------|
 | `src/`        | Plugin source code                                              |
+| `src/ue/`     | Runtime reflection layer over the UEVR API (properties, function calls, engine types) |
 | `external/`   | Vendored third-party code: UEVR API headers, Dear ImGui + render hooks, magic_enum, nlohmann/json |
 | `UEVR_profile/` | The UEVR profile shipped to users (config, Lua scripts, bindings) |
 | `build/`      | Generated build files (not committed, safe to delete)          |
