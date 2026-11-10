@@ -4,6 +4,7 @@
 #include <string>
 #include "uevr/API.hpp"
 #include "Utilities.hpp"
+#include "ue/Types.hpp"
 #include "nlohmann/json.hpp"
 #include "Logger.hpp"
 
@@ -22,9 +23,9 @@ struct WeaponConfig
 {
     glm::fvec3 location_offset{};
     glm::fquat rotation_offset{};
-	SDK::FRotator right_hand_rotation_offset{};
-	SDK::FVector left_hand_location_offset{};
-	SDK::FRotator left_hand_rotation_offset{};
+	ue::FRotator right_hand_rotation_offset{};
+	ue::FVector left_hand_location_offset{};
+	ue::FRotator left_hand_rotation_offset{};
 };
 
 class SettingsManager {

@@ -71,29 +71,37 @@ void HookManager::HookFireFunction() {
 		true);
 }
 
-void* HookManager::OnFireModded(uevr::API::UObject* equipController, SDK::FGsrFireRequest* fireRequest) {
+void* HookManager::OnFireModded(uevr::API::UObject* equipController, void* fireRequest) {
 
 	s_weaponManager->IsShooting = true;
-	//Logger::DebugPrint("%f", s_weaponController->AimPosition.x);
-	//Logger::DebugPrint("FireRequest->FirePosition.X : %f, FireRequest->FirePosition.Y : %f, FireRequest->FirePosition.Z : %f", FireRequest->FirePosition.X, FireRequest->FirePosition.Y, FireRequest->FirePosition.Z);
 
-	fireRequest->FirePosition.X = s_weaponManager->FirePosition.x;
-	fireRequest->FirePosition.Y = s_weaponManager->FirePosition.y;
-	fireRequest->FirePosition.Z = s_weaponManager->FirePosition.z;
+	static uevr::API::UScriptStruct* fireRequestStruct = nullptr;
+	if (fireRequestStruct == nullptr)
+		fireRequestStruct = ue::find_struct(L"ScriptStruct /Script/Gsr.GsrFireRequest");
 
-	//Logger::DebugPrint("s_weaponController->AimPosition.x.x : %f, s_weaponController->AimPosition.x.y : %f, s_weaponController->AimPosition.x.z : %f", 
-	//	s_weaponController->AimPosition.x, s_weaponController->AimPosition.y, s_weaponController->AimPosition.z);
-	//Logger::DebugPrint("Old Aim Position: %f, %f, %f", FireRequest->AimPosition.X, FireRequest->AimPosition.Y, FireRequest->AimPosition.Z);
-	fireRequest->AimPosition.X = s_weaponManager->AimPosition.x;
-	fireRequest->AimPosition.Y = s_weaponManager->AimPosition.y;
-	fireRequest->AimPosition.Z = s_weaponManager->AimPosition.z;
-	//Logger::DebugPrint("New Aim Position: %f, %f, %f", FireRequest->AimPosition.X, FireRequest->AimPosition.Y, FireRequest->AimPosition.Z);
+	// Replace the fire and aim positions with the ones computed from the motion controllers
+	if (auto firePosition = ue::struct_member<ue::FVector>(fireRequest, fireRequestStruct, L"FirePosition"))
+		*firePosition = { s_weaponManager->FirePosition.x, s_weaponManager->FirePosition.y, s_weaponManager->FirePosition.z };
 
+	if (auto aimPosition = ue::struct_member<ue::FVector>(fireRequest, fireRequestStruct, L"AimPosition"))
+		*aimPosition = { s_weaponManager->AimPosition.x, s_weaponManager->AimPosition.y, s_weaponManager->AimPosition.z };
 
 	//Call original function with our replaced parameters
 	auto result = m_fire_hook_fn(equipController, fireRequest);
 	//PLUGIN_LOG_ONCE("Result: 0x%p", result);
 	return result;
+}
+
+void HookManager::ForwardEnteredState(uevr::API::UFunction* fn, void* locals)
+{
+	if (locals == nullptr)
+		return;
+
+	auto true_locals = (char*)locals - 0x50;
+	auto nextStateName = ue::param<ue::FName>(fn, true_locals, L"NextStateName");
+	auto stateMachineName = ue::param<ue::FName>(fn, true_locals, L"StateMachineName");
+	if (nextStateName && stateMachineName)
+		s_playerManager->ProcessPlayerCharacterState(*nextStateName, *stateMachineName);
 }
 
 bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
@@ -105,16 +113,7 @@ bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::U
 		obj->is_a(Utilities::ABP_PlayerMeleeAction_C) ||
 		obj->is_a(Utilities::ABP_PlayerCarryAction_C))
 	{
-		if (locals != nullptr)
-		{
-			auto true_locals = (char*)locals - 0x50;
-			SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
-			//SDK::FName nextState = params->NextStateName;
-			//SDK::FName StateMachine = params->StateMachineName;
-			//Logger::DebugPrint("State Machine : %s", StateMachine.ToString().c_str());
-			//Logger::DebugPrint("Next state : %s", nextState.ToString().c_str());
-			s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
-		}
+		ForwardEnteredState(fn, locals);
 	}
 
 	return true;
@@ -125,16 +124,7 @@ bool HookManager::mod_PlayerKnife_OnEnteredState_post(uevr::API::UFunction* fn, 
 	if (!obj->is_a(Utilities::ABP_PlayerKnifeReadyAction_C))
 		return true;
 
-	if (locals != nullptr)
-	{
-		auto true_locals = (char*)locals - 0x50;
-		SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
-		//SDK::FName nextState = params->NextStateName;
-		//SDK::FName StateMachine = params->StateMachineName;
-		//Logger::DebugPrint("State Machine : %s", StateMachine.ToString().c_str());
-		//Logger::DebugPrint("Next state : %s",nextState.ToString().c_str());
-		s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
-	}
+	ForwardEnteredState(fn, locals);
 
 	return true;
 }
@@ -144,16 +134,7 @@ bool HookManager::mod_PlayerCqcAction_OnEnteredState_post(uevr::API::UFunction* 
 	if (!obj->is_a(Utilities::ABP_EnemyCqc_C))
 		return true;
 
-	if (locals != nullptr)
-	{
-		auto true_locals = (char*)locals - 0x50;
-		SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
-		//SDK::FName nextState = params->NextStateName;
-		//SDK::FName StateMachine = params->StateMachineName;
-		//Logger::DebugPrint("State Machine : %s", StateMachine.ToString().c_str());
-		//Logger::DebugPrint("Next state : %s",nextState.ToString().c_str());
-		s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
-	}
+	ForwardEnteredState(fn, locals);
 
 	return true;
 }
@@ -163,16 +144,7 @@ bool HookManager::mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn
 	if (!obj->is_a(Utilities::ABP_PlayerEludeAction_C))
 		return true;
 
-	if (locals != nullptr)
-	{
-		auto true_locals = (char*)locals - 0x50;
-		SDK::Params::IcsAnimInstance_OnEnteredState* params = (SDK::Params::IcsAnimInstance_OnEnteredState*)true_locals;
-		//s_playerManager->debugParamsTest.NextStateName = params->NextStateName;
-		//s_playerManager->debugParamsTest.StateMachineName = params->StateMachineName;
-		//Logger::DebugPrint("PlayerEludeAction StateMachineName: %s", s_playerManager->debugParamsTest.StateMachineName.ToString().c_str());
-		//Logger::DebugPrint("PlayerEludeAction NextStateName: %s", s_playerManager->debugParamsTest.NextStateName.ToString().c_str());
-		s_playerManager->ProcessPlayerCharacterState(params->NextStateName, params->StateMachineName);
-	}
+	ForwardEnteredState(fn, locals);
 
 	return true;
 }

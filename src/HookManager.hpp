@@ -12,11 +12,7 @@
 #include "WeaponManager.hpp"
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
-
-#include "SDK/Gsr_structs.hpp"
-#include "SDK/Ics_parameters.hpp"
-#include "SDK/Gsr_parameters.hpp"
-#include "SDK/CobraUI_parameters.hpp"
+#include "ue/Reflection.hpp"
 
 class HookManager {
 private:
@@ -28,14 +24,17 @@ private:
     static PlayerManager* s_playerManager;
 
 
-    static void* OnFireModded(uevr::API::UObject* equipcontroller, SDK::FGsrFireRequest* FireRequest);
-    static void* OnFire(uevr::API::UObject* equipcontroller, SDK::FGsrFireRequest* FireRequest) {
+    static void* OnFireModded(uevr::API::UObject* equipcontroller, void* FireRequest);
+    static void* OnFire(uevr::API::UObject* equipcontroller, void* FireRequest) {
         return OnFireModded(equipcontroller, FireRequest);
     };
     bool m_fire_hooked{ false };
     int32_t m_fire_hook_id{};
-    using FireFn = void* (*)(uevr::API::UObject*, SDK::FGsrFireRequest*);
+    using FireFn = void* (*)(uevr::API::UObject*, void*);
     inline static FireFn m_fire_hook_fn{};
+
+    // Reads the state names from an OnEnteredState call and forwards them to the PlayerManager
+    static void ForwardEnteredState(uevr::API::UFunction* fn, void* locals);
 
 public:
     HookManager(WeaponManager* wm, CameraController* cc, PlayerManager* pm) : weaponManager(wm), cameraController(cc), playerManager(pm) {};

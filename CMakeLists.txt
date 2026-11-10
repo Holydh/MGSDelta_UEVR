@@ -57,7 +57,7 @@ FetchContent_MakeAvailable(bddisasm spdlog kananlib glm)
 # ---------------------------------------------------------------------------
 # Plugin
 # ---------------------------------------------------------------------------
-file(GLOB PLUGIN_SOURCES CONFIGURE_DEPENDS
+file(GLOB_RECURSE PLUGIN_SOURCES CONFIGURE_DEPENDS
     src/*.cpp
     src/*.hpp)
 
@@ -125,6 +125,7 @@ target_compile_options(mgsdelta_uevr PRIVATE
 target_compile_definitions(mgsdelta_uevr PRIVATE
     NOMINMAX
     WINVER=0x0A00
+    MGSDELTA_HAS_SDK=1  # TEMPORARY: removed with the Dumper-7 SDK
     GLM_ENABLE_EXPERIMENTAL)  # code uses glm/gtx/*
 
 # Each configuration links into its own folder, then the DLL + PDB of the

@@ -4,10 +4,7 @@
 #include "glm/gtc/quaternion.hpp"
 #include "glm/gtx/quaternion.hpp"
 #include "Logger.hpp"
-
-#include "SDK/CoreUObject_structs.hpp"
-#include "SDK/Engine_parameters.hpp"
-#include "SDK/Engine_classes.hpp"
+#include "ue/Reflection.hpp"
 
 class Utilities {
 private:
@@ -30,16 +27,16 @@ public:
 	static uevr::API::UClass* ABP_EnemyCqc_C;
 
 	//Debug Arrow Actor
-	static SDK::AActor* DebugMesh0;
-	static SDK::AActor* DebugMesh1;
+	static uevr::API::UObject* DebugMesh0;
+	static uevr::API::UObject* DebugMesh1;
 
 	static void InitHelperClasses();
 	static uevr::API::UObject* SpawnActor(UEVR_Vector3d Position, uevr::API::UObject* Owner);
-	static SDK::AActor* SpawnMesh(SDK::FTransform worldTransform, std::wstring_view meshFullName, SDK::UObject*& outMeshComponent);
+	static uevr::API::UObject* SpawnMesh(const ue::FTransform& worldTransform, std::wstring_view meshFullName, uevr::API::UObject*& outMeshComponent);
 	static void DestroyDebugMeshes();
 
 	static float Remap(float value, float inMin, float inMax, float outMin, float outMax);
-	static glm::quat FRotatorToQuat(SDK::FRotator rotator);
-	static SDK::FRotator QuatToFRotator(glm::quat quaternion);
+	static glm::quat FRotatorToQuat(const ue::FRotator& rotator);
+	static ue::FRotator QuatToFRotator(glm::quat quaternion);
 	//static glm::fvec3 OffsetLocalPositionFromWorld(glm::fvec3 worldPosition, glm::fvec3 forwardVector, glm::fvec3 upVector, glm::fvec3 rightVector, glm::fvec3 offsets);
 };

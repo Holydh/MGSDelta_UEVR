@@ -20,10 +20,7 @@
 #include "HookManager.hpp"
 #include "PlayerManager.hpp"
 #include "Logger.hpp"
-
-#include "SDK/Engine_classes.hpp"
-#include "SDK/CoreUObject_classes.hpp"
-#include "SDK/Basic.hpp"
+#include "ue/Reflection.hpp"
 
 #define _CRT_SECURE_NO_WARNINGS 1
 
@@ -35,8 +32,8 @@ class MGSDeltaPlugin : public uevr::Plugin {
 private:
 	void Toggle6DOF(bool enable);
     void CheckLevelChange();
-	SDK::UWorld* currentWorld = nullptr;
-	SDK::ULevel* currentLevel = nullptr;
+	uevr::API::UObject* currentWorld = nullptr;
+	uevr::API::UObject* currentLevel = nullptr;
     bool levelChanged = false;
     bool vr_enabled = false;
 

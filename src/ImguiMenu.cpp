@@ -599,7 +599,7 @@ void ImGuiMenu::internalFrame()
 			if (ImGui::Checkbox("Enable 3D in Radio window", settingsManager->Enable3DRadioPtr))
 			{
 				settingsManager->SettingsModifiedThisFrame = true;
-				if (playerManager->CurrentMenuType == SDK::EGsrUIMenuType::Radio)
+				if (playerManager->CurrentMenuType == ue::EGsrUIMenuType::Radio)
 				{
 					uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DRadioPtr ? 1.0f : 0.0f);
 				}
@@ -610,7 +610,7 @@ void ImGuiMenu::internalFrame()
 			if (ImGui::Checkbox("Enable 3D in Survival Menu", settingsManager->Enable3DSurvivalViewPtr))
 			{
 				settingsManager->SettingsModifiedThisFrame = true;
-				if (playerManager->CurrentMenuType == SDK::EGsrUIMenuType::SV)
+				if (playerManager->CurrentMenuType == ue::EGsrUIMenuType::SV)
 					uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DSurvivalViewPtr ? 1.0f : 0.0f);
 			}
 			if (ImGui::IsItemHovered())

@@ -393,14 +393,15 @@ void MGSDeltaPlugin::CheckLevelChange()
 	static auto gameEngine = API::get()->get_engine();
 	if (gameEngine == nullptr)
 		return;
-	static auto sdkGameEngine = (SDK::UGameEngine*)gameEngine;
-	auto world = sdkGameEngine->GameViewport->World;
+	auto world = ue::get<ue::UObject*>(ue::get<ue::UObject*>(gameEngine, L"GameViewport"), L"World");
 	if (currentWorld != world)
 	{
 		currentWorld = world;
 		levelChanged = true;
 	}
-	auto level = currentWorld->PersistentLevel;
+	if (currentWorld == nullptr)
+		return;
+	auto level = ue::get<ue::UObject*>(currentWorld, L"PersistentLevel");
 	if (currentLevel != level)
 	{
 		currentLevel = level;
@@ -503,12 +504,12 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 		cameraController.ApplyCutsceneSettings();
 
-		if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::Radio && playerManager.PreviousMenuType != SDK::EGsrUIMenuType::Radio)
+		if (playerManager.CurrentMenuType == ue::EGsrUIMenuType::Radio && playerManager.PreviousMenuType != ue::EGsrUIMenuType::Radio)
 		{
 			cameraController.FixRadioMenuRendering();
 			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DRadioPtr ? 1.0f : 0.0f);
 		}
-		if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::SV && playerManager.PreviousMenuType != SDK::EGsrUIMenuType::SV)
+		if (playerManager.CurrentMenuType == ue::EGsrUIMenuType::SV && playerManager.PreviousMenuType != ue::EGsrUIMenuType::SV)
 		{
 			cameraController.FixSurvivalViewerMenuRendering();
 			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DSurvivalViewPtr ? 1.0f : 0.0f);
@@ -581,10 +582,8 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 		Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");
 		return;
 	}
-	auto cc = (SDK::UCobraCutsceneCameraControlManagerComponent*)cobraCutsceneCameraCtrlMngr;
-
 	if (playerManager.IsPlayerControlled || 
-		(cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D && (*settingsManager.EnableImmersiveModePtr || cc->bIsFpv)))
+		(cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D && (*settingsManager.EnableImmersiveModePtr || ue::get<bool>(cobraCutsceneCameraCtrlMngr, L"bIsFpv"))))
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
@@ -597,7 +596,7 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 	}
 
 	//sv_main
-	if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::SV)
+	if (playerManager.CurrentMenuType == ue::EGsrUIMenuType::SV)
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;

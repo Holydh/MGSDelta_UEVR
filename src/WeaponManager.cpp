@@ -230,8 +230,8 @@ void WeaponManager::SpawnDummyCqcKnifeMesh()
 		constexpr SDK::FVector cqcKnifeRelativeLocation = { 1.248f, -2.072f, -4.754f };
 		constexpr SDK::FRotator cqcKnifeRelativeRotation = { 7.228f, -169.534f, 58.205f};
 
-		SDK::UObject* meshComponent;
-		DummyCqcKnifeMeshActor = Utilities::SpawnMesh(sdkLeftWeaponRoot->GetRelativeTransform(), L"SkeletalMesh /Game/Gsr/Weapon/cqck/Mesh/SM_Cqck.SM_Cqck", meshComponent); //L"SkeletalMesh /Game/Gsr/Weapon/cqck/Mesh/SM_Cqck.SM_Cqck"
+		uevr::API::UObject* meshComponent = nullptr;
+		DummyCqcKnifeMeshActor = (SDK::AActor*)Utilities::SpawnMesh(sdkLeftWeaponRoot->GetRelativeTransform(), L"SkeletalMesh /Game/Gsr/Weapon/cqck/Mesh/SM_Cqck.SM_Cqck", meshComponent); //L"SkeletalMesh /Game/Gsr/Weapon/cqck/Mesh/SM_Cqck.SM_Cqck"
 		DummyCqcKnifeMeshActor->K2_AttachRootComponentTo(playerManager->LeftHandMesh, SDK::UKismetStringLibrary::Conv_StringToName(L"None"), SDK::EAttachLocation::SnapToTarget, false);
 		DummyCqcKnifeMeshActor->K2_SetActorRelativeLocation(cqcKnifeRelativeLocation, false, nullptr, true);
 		DummyCqcKnifeMeshActor->K2_SetActorRelativeRotation(cqcKnifeRelativeRotation, false, nullptr, true);
