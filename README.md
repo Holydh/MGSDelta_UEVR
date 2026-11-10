@@ -34,17 +34,18 @@ Use `vs2026` / `vs2026-release` for Visual Studio 2026. The generated solution i
 
 ### Output
 
-- **Release** builds `MGSDelta_Plugin.dll` straight into `UEVR_profile/MGSDelta-Win64-Shipping/plugins/`.
-  Symlink (or copy) `UEVR_profile/MGSDelta-Win64-Shipping` to
-  `%APPDATA%\UnrealVRMod\MGSDelta-Win64-Shipping` to test in-game:
+Every build (Debug or Release) copies `MGSDelta_Plugin.dll` and its `.pdb` into
+`UEVR_profile/MGSDelta-Win64-Shipping/plugins/`, so the last configuration built is the one UEVR loads.
+Per-configuration binaries stay in `build/<preset>/bin/<Config>/`.
 
-  ```
-  mklink /D "%APPDATA%\UnrealVRMod\MGSDelta-Win64-Shipping" "<repo>\UEVR_profile\MGSDelta-Win64-Shipping"
-  ```
+Symlink (or copy) the profile folder into UEVR's profiles folder to test in-game:
 
-- **Debug** builds into `build/<preset>/bin/Debug/` and is never deployed automatically.
+```
+mklink /D "%APPDATA%\UnrealVRMod\MGSDelta-Win64-Shipping" "<repo>\UEVR_profile\MGSDelta-Win64-Shipping"
+```
 
-The output folder can be changed with the `MGSDELTA_PLUGIN_DIR` CMake cache variable.
+The deploy folder can be changed with the `MGSDELTA_PLUGIN_DIR` CMake cache variable.
+Close the game before building: the copy fails while UEVR has the DLL loaded.
 
 ### Temporary requirement: Dumper-7 SDK
 

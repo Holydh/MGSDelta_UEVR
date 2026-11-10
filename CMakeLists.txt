@@ -127,13 +127,24 @@ target_compile_definitions(mgsdelta_uevr PRIVATE
     WINVER=0x0A00
     GLM_ENABLE_EXPERIMENTAL)  # code uses glm/gtx/*
 
-# Release is written straight into the UEVR profile's plugins folder.
-# Debug stays in the build folder: UEVR loads every DLL in plugins/, and sharing
-# one output path would let a Debug build silently replace the Release one.
+# Each configuration links into its own folder, then the DLL + PDB of the
+# configuration just built is copied into the UEVR profile's plugins folder.
 set_target_properties(mgsdelta_uevr PROPERTIES
     OUTPUT_NAME "MGSDelta_Plugin"
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${MGSDELTA_PLUGIN_DIR}"
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin/Debug")
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
+
+add_custom_command(TARGET mgsdelta_uevr POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${MGSDELTA_PLUGIN_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "$<TARGET_FILE:mgsdelta_uevr>" "$<TARGET_PDB_FILE:mgsdelta_uevr>" "${MGSDELTA_PLUGIN_DIR}"
+    COMMENT "Deploying $<CONFIG> MGSDelta_Plugin.dll to ${MGSDELTA_PLUGIN_DIR}")
+
+# Never-produced output: keeps the project from being skipped as "up to date",
+# so switching Debug <-> Release and building always redeploys the right DLL.
+set(DEPLOY_TRIGGER "${CMAKE_BINARY_DIR}/always_redeploy")
+add_custom_command(OUTPUT "${DEPLOY_TRIGGER}" COMMAND ${CMAKE_COMMAND} -E echo_append VERBATIM)
+set_source_files_properties("${DEPLOY_TRIGGER}" PROPERTIES SYMBOLIC TRUE)
+target_sources(mgsdelta_uevr PRIVATE "${DEPLOY_TRIGGER}")
 
 # Keep a PDB for Release too, so crashes in-game can be symbolized
 target_compile_options(mgsdelta_uevr PRIVATE $<$<CONFIG:Release>:/Zi>)
