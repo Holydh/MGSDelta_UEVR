@@ -2,25 +2,25 @@
 
 void PlayerManager::ConvertAllRequiredStringToFnames()
 {
-	fNameBehind = SDK::UKismetStringLibrary::Conv_StringToName(L"Behind");
-	fNamePeepStart = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepStart");
-    fNamePeepLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepLoop");
-    fNamePeepEnd = SDK::UKismetStringLibrary::Conv_StringToName(L"PeepEnd");
-	fNameAimStart = SDK::UKismetStringLibrary::Conv_StringToName(L"AimStart");
-	fNameAimLoop = SDK::UKismetStringLibrary::Conv_StringToName(L"AimLoop");
-	fNameBasic = SDK::UKismetStringLibrary::Conv_StringToName(L"Basic");
-	fNameRolling = SDK::UKismetStringLibrary::Conv_StringToName(L"Rolling");
-	fNameElude = SDK::UKismetStringLibrary::Conv_StringToName(L"Elude");
-	fNameCombo = SDK::UKismetStringLibrary::Conv_StringToName(L"Combo");
-	fNameCombo1 = SDK::UKismetStringLibrary::Conv_StringToName(L"Combo1");
-	fNameCombo2 = SDK::UKismetStringLibrary::Conv_StringToName(L"Combo2");
-	fNameCombo3 = SDK::UKismetStringLibrary::Conv_StringToName(L"Combo3");
-	fNameStab1 = SDK::UKismetStringLibrary::Conv_StringToName(L"Stab1");
-	fNameStab2 = SDK::UKismetStringLibrary::Conv_StringToName(L"Stab2");
-	fNameEnemyCqc = SDK::UKismetStringLibrary::Conv_StringToName(L"SM_Cqc");
-	fNameMain = SDK::UKismetStringLibrary::Conv_StringToName(L"Main");
-	fNameHold = SDK::UKismetStringLibrary::Conv_StringToName(L"Hold");
-	fNameCarry = SDK::UKismetStringLibrary::Conv_StringToName(L"CARRY");
+	fNameBehind = ue::FName(L"Behind");
+	fNamePeepStart = ue::FName(L"PeepStart");
+    fNamePeepLoop = ue::FName(L"PeepLoop");
+    fNamePeepEnd = ue::FName(L"PeepEnd");
+	fNameAimStart = ue::FName(L"AimStart");
+	fNameAimLoop = ue::FName(L"AimLoop");
+	fNameBasic = ue::FName(L"Basic");
+	fNameRolling = ue::FName(L"Rolling");
+	fNameElude = ue::FName(L"Elude");
+	fNameCombo = ue::FName(L"Combo");
+	fNameCombo1 = ue::FName(L"Combo1");
+	fNameCombo2 = ue::FName(L"Combo2");
+	fNameCombo3 = ue::FName(L"Combo3");
+	fNameStab1 = ue::FName(L"Stab1");
+	fNameStab2 = ue::FName(L"Stab2");
+	fNameEnemyCqc = ue::FName(L"SM_Cqc");
+	fNameMain = ue::FName(L"Main");
+	fNameHold = ue::FName(L"Hold");
+	fNameCarry = ue::FName(L"CARRY");
 }
 
 void PlayerManager::ToggleMeshesVisibility(bool visible)
@@ -28,89 +28,40 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	auto pawn = uevr::API::get()->get_local_pawn(0);
 	if (!pawn)
 		return;
-	auto headSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Head");
-	auto hairSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hair");
-	auto handsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hand");
-	auto armsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Arm");
-	auto bodySkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Body");
-	auto backpackSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Backpack");
-	auto bandanaSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Bandana");
-	auto lightning_legSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Lightning_Leg");
-	auto lightning_armSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Lightning_Arm");
-	auto beltLinkSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_BeltLink");
-	auto glassSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Glass");
-	auto waterBottleSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_WaterBottle");
-	auto knifeScabbardSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_KnifeScabbard");
-	auto knifeSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Knife");
-	auto headGearSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_HeadGear");
-	auto hatSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hat");
-	auto eyePatchSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_EyePatch");
-	auto cqcKnifeScabbardSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_CqcKnifeScabbard");
-	auto cqcKnifeSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_CqcKnife");
-	auto halfMK22 = pawn->get_property<uevr::API::UObject*>(L"S_mk22_half");
 
-	bool SetOnlyOwnerSee = visible ? false : true;
-	if (headSkeletalMesh) {
-		headSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
+	static constexpr const wchar_t* playerSkeletalMeshes[] = {
+		L"SkeletalMesh_Head",
+		L"SkeletalMesh_Hair",
+		L"SkeletalMesh_Hand",
+		L"SkeletalMesh_Arm",
+		L"SkeletalMesh_Body",
+		L"SkeletalMesh_Backpack",
+		L"SkeletalMesh_Bandana",
+		L"SkeletalMesh_Lightning_Leg",
+		L"SkeletalMesh_Lightning_Arm",
+		L"SkeletalMesh_BeltLink",
+		L"SkeletalMesh_Glass",
+		L"SkeletalMesh_WaterBottle",
+		L"SkeletalMesh_KnifeScabbard",
+		L"SkeletalMesh_Knife",
+		L"SkeletalMesh_HeadGear",
+		L"SkeletalMesh_Hat",
+		L"SkeletalMesh_EyePatch",
+		L"SkeletalMesh_CqcKnifeScabbard",
+		L"SkeletalMesh_CqcKnife",
+	};
+
+	const bool SetOnlyOwnerSee = visible ? false : true;
+	for (const auto* meshName : playerSkeletalMeshes)
+	{
+		if (auto mesh = ue::get<ue::UObject*>(pawn, meshName))
+			ue::call(mesh, L"SetOnlyOwnerSee", SetOnlyOwnerSee);
 	}
-	if (hairSkeletalMesh) {
-		hairSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (handsSkeletalMesh) {
-		handsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (armsSkeletalMesh) {
-		armsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (bodySkeletalMesh) {
-		bodySkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (backpackSkeletalMesh) {
-		backpackSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (bandanaSkeletalMesh) {
-		bandanaSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (lightning_legSkeletalMesh) {
-		lightning_legSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (lightning_armSkeletalMesh) {
-		lightning_armSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (beltLinkSkeletalMesh) {
-		beltLinkSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (glassSkeletalMesh) {
-		glassSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (waterBottleSkeletalMesh) {
-		waterBottleSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (knifeScabbardSkeletalMesh) {
-		knifeScabbardSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (knifeSkeletalMesh) {
-		knifeSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (headGearSkeletalMesh) {
-		headGearSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (hatSkeletalMesh) {
-		hatSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (eyePatchSkeletalMesh) {
-		eyePatchSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (cqcKnifeScabbardSkeletalMesh) {
-		cqcKnifeScabbardSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (cqcKnifeSkeletalMesh) {
-		cqcKnifeSkeletalMesh->call_function(L"SetOnlyOwnerSee", &SetOnlyOwnerSee);
-	}
-	if (halfMK22) {
-		auto staticMeshComponent = (SDK::UStaticMeshComponent*)halfMK22;
-		staticMeshComponent->SetHiddenInGame(SetOnlyOwnerSee, true);
-		staticMeshComponent->SetHiddenInSceneCapture(SetOnlyOwnerSee);
+
+	if (auto halfMK22 = ue::get<ue::UObject*>(pawn, L"S_mk22_half"))
+	{
+		ue::call(halfMK22, L"SetHiddenInGame", SetOnlyOwnerSee, true);
+		ue::call(halfMK22, L"SetHiddenInSceneCapture", SetOnlyOwnerSee);
 	}
 }
 
@@ -128,21 +79,19 @@ void PlayerManager::ToggleReticleVisibility(bool visible)
 	for (size_t i = 0; i < bp_GsrTpsSightWidget.size(); i++)
 	{
 		//Logger::DebugPrint(bp_GsrTpsSightWidget[i]->get_full_name());
-		SDK::ESlateVisibility visibility;
-		visibility = visible ? SDK::ESlateVisibility::Visible : SDK::ESlateVisibility::Hidden;
-
-		bp_GsrTpsSightWidget[i]->call_function(L"SetVisibility", &visibility);
+		const auto visibility = visible ? ue::ESlateVisibility::Visible : ue::ESlateVisibility::Hidden;
+		ue::call(bp_GsrTpsSightWidget[i], L"SetVisibility", visibility);
 	}
 	Logger::DebugPrint("Crosshair visibility set to : %d", visible);
 }
 
 void PlayerManager::FetchGameState()
 {
-	auto gsrGameStateSubsystem_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrGameStateSubsystem");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
-	auto gsrGameStateSubsystem = (SDK::UGsrGameStateSubsystem*)gsrGameStateSubsystem_c->get_first_object_matching(false);
-	IsPlayerControlled = gsrGameStateSubsystem->CheckGameStatus(CurrentGameStatus);
+	static ue::ClassRef gsrGameStateSubsystem_c{ L"Class /Script/Gsr.GsrGameStateSubsystem" };
+	auto gsrGameStateSubsystem = gsrGameStateSubsystem_c.get() ? gsrGameStateSubsystem_c.get()->get_first_object_matching(false) : nullptr;
+	IsPlayerControlled = ue::call<bool>(gsrGameStateSubsystem, L"CheckGameStatus", CurrentGameStatus);
 
-	CurrentMenuType = gsrGameStateSubsystem->GetUIMenuType();
+	CurrentMenuType = ue::call<ue::EGsrUIMenuType>(gsrGameStateSubsystem, L"GetUIMenuType");
 	//Logger::DebugPrint("IsInRadioCall: %d, IsInSurvivalViewer: %d, IsInPauseMenu: %d", isInRadioCall, isInSurvivalViewer, isInPauseMenu);
 }
 
@@ -158,7 +107,7 @@ bool PlayerManager::PlayerLostControl()
 
 bool PlayerManager::IngameUI()
 {
-	return CurrentMenuType == SDK::EGsrUIMenuType::None || (int)CurrentMenuType >= 4;
+	return CurrentMenuType == ue::EGsrUIMenuType::None || (int)CurrentMenuType >= 4;
 }
 
 void PlayerManager::UpdatePeepingAndCqcGrabState(float deltaTime)
@@ -194,9 +143,16 @@ void PlayerManager::UpdatePeepingAndCqcGrabState(float deltaTime)
 
 void PlayerManager::GetCurrentPlayerStance(float deltaTime)
 {
-	SDK::UWorld* World = SDK::UWorld::GetWorld();
-	SDK::AGsrPlayer* gsrPlayer = (SDK::AGsrPlayer*)World->OwningGameInstance->LocalPlayers[0]->PlayerController->AcknowledgedPawn;
-	CurrentStance = gsrPlayer->GetCurrentStance();
+	// World->OwningGameInstance->LocalPlayers[0]->PlayerController->AcknowledgedPawn
+	auto world = ue::get<ue::UObject*>(ue::get<ue::UObject*>(uevr::API::get()->get_engine(), L"GameViewport"), L"World");
+	auto localPlayers = ue::get_ptr<ue::TArray<ue::UObject*>>(ue::get<ue::UObject*>(world, L"OwningGameInstance"), L"LocalPlayers");
+	if (!localPlayers || localPlayers->empty())
+		return;
+	auto playerController = ue::get<ue::UObject*>(localPlayers->data[0], L"PlayerController");
+	auto gsrPlayer = ue::get<ue::UObject*>(playerController, L"AcknowledgedPawn");
+	if (!gsrPlayer)
+		return;
+	CurrentStance = ue::call<ue::EGsrPlayerStance>(gsrPlayer, L"GetCurrentStance");
 	if (CurrentStance != PreviousStance)
 	{
 		ChangeStanceTimer = 0.0f;
@@ -214,7 +170,7 @@ void PlayerManager::GetCurrentPlayerStance(float deltaTime)
 	//Logger::DebugPrint("Current Stance: %d", (int)CurrentStance); //0=Stand, 1=Squat, 2=Crawl
 }
 
-void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, const SDK::FName& StateMachineName)
+void PlayerManager::ProcessPlayerCharacterState(const ue::FName& StateName, const ue::FName& StateMachineName)
 {
 	if (StateName == fNamePeepStart || 
 		StateName == fNamePeepLoop || 
@@ -253,7 +209,7 @@ void PlayerManager::ProcessPlayerCharacterState(const SDK::FName& StateName, con
 	{
 		MeleeAttackRunning = 
 		StateMachineName == fNameCombo ||
-		StateMachineName == fNameEnemyCqc && !StateName.StartsWith("Gun") ||
+		StateMachineName == fNameEnemyCqc && !StateName.ToWString().starts_with(L"Gun") ||
 		StateName == fNameCombo1 || 
 		StateName == fNameCombo2 || 
 		StateName == fNameCombo3 ||
@@ -290,24 +246,24 @@ void PlayerManager::UpdateForkAndKnifeMeleeState(float delta)
 	}
 }
 
-void PlayerManager::SetPlayerStance(SDK::EGsrPlayerStance NewStance)
+void PlayerManager::SetPlayerStance(ue::EGsrPlayerStance NewStance)
 {
-	static auto gsrPlayerActionCore_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerActionCore");
-	auto gsrPlayerActionCore = (SDK::UGsrPlayerActionCore*)gsrPlayerActionCore_C->get_first_object_matching(false);
-	//Logger::DebugPrint(gsrPlayerActionCore->GetFullName().c_str());
-	gsrPlayerActionCore->RequestChangeStance(NewStance);
+	static ue::ClassRef gsrPlayerActionCore_C{ L"Class /Script/Gsr.GsrPlayerActionCore" };
+	auto gsrPlayerActionCore = gsrPlayerActionCore_C.get() ? gsrPlayerActionCore_C.get()->get_first_object_matching(false) : nullptr;
+	ue::call(gsrPlayerActionCore, L"RequestChangeStance", NewStance);
 }
 
 void PlayerManager::GetCurrentAimStateAndCameraMode()
 {
-	auto playerController = (SDK::ABP_Player_C*)uevr::API::get()->get_local_pawn(0);
-	CurrentCameraMode = playerController->GetCameraMode();
-	IsFirstPersonView = CurrentCameraMode == SDK::EGsrPlayerCameraControllerCameraMode::Subjective;
+	auto player = uevr::API::get()->get_local_pawn(0);
+	if (!player)
+		return;
+	CurrentCameraMode = ue::call<ue::EGsrPlayerCameraControllerCameraMode>(player, L"GetCameraMode");
+	IsFirstPersonView = CurrentCameraMode == ue::EGsrPlayerCameraControllerCameraMode::Subjective;
 
-	auto snakeStatus = (SDK::UBP_SnakeStatus_C*)playerController->GetSnakeStatus();
-	CurrentAimingStatus = snakeStatus->GetAimingStatus();
-	if (CurrentAimingStatus != SDK::EAimingStatus::Aiming_None) IsAiming = true;
-	IsAiming = CurrentAimingStatus == SDK::EAimingStatus::Aiming_None ? false : true;
+	auto snakeStatus = ue::call<ue::UObject*>(player, L"GetSnakeStatus");
+	CurrentAimingStatus = ue::call<ue::EAimingStatus>(snakeStatus, L"GetAimingStatus");
+	IsAiming = CurrentAimingStatus == ue::EAimingStatus::Aiming_None ? false : true;
 }
 
 void PlayerManager::FetchMotionControllers()
@@ -317,20 +273,23 @@ void PlayerManager::FetchMotionControllers()
 	
 	for (size_t i = 0; i < motionControllerComponents.size(); i++)
 	{
-		auto motionControllerComponent = (SDK::UMotionControllerComponent*)motionControllerComponents[i];
-		if (motionControllerComponent->MotionSource == SDK::UKismetStringLibrary::Conv_StringToName(L"Left"))
+		auto motionControllerComponent = motionControllerComponents[i];
+		auto handMesh = ue::call<ue::UObject*>(motionControllerComponent, L"GetChildComponent", 0);
+		if (ue::get<ue::FName>(motionControllerComponent, L"MotionSource") == ue::FName(L"Left"))
 		{
-			LeftController = motionControllerComponent;
-			LeftHandMesh = (SDK::UPoseableMeshComponent*)motionControllerComponent->GetChildComponent(0);
-			Logger::DebugPrint("Found Left Motion Controller: %s", motionControllerComponent->GetFullName().c_str());
-			Logger::DebugPrint("Found Left Hand Mesh: %s", LeftHandMesh->GetFullName().c_str());
+			LeftController = (SDK::UMotionControllerComponent*)motionControllerComponent;
+			LeftHandMesh = (SDK::UPoseableMeshComponent*)handMesh;
+			Logger::DebugPrint(L"Found Left Motion Controller: " + motionControllerComponent->get_full_name());
+			if (handMesh)
+				Logger::DebugPrint(L"Found Left Hand Mesh: " + handMesh->get_full_name());
 		}
 		else
 		{
-			RightController = motionControllerComponent;
-			RightHandMesh = (SDK::UPoseableMeshComponent*)motionControllerComponent->GetChildComponent(0);
-			Logger::DebugPrint("Found Right Motion Controller: %s", motionControllerComponent->GetFullName().c_str());
-			Logger::DebugPrint("Found Right Hand Mesh: %s", RightHandMesh->GetFullName().c_str());
+			RightController = (SDK::UMotionControllerComponent*)motionControllerComponent;
+			RightHandMesh = (SDK::UPoseableMeshComponent*)handMesh;
+			Logger::DebugPrint(L"Found Right Motion Controller: " + motionControllerComponent->get_full_name());
+			if (handMesh)
+				Logger::DebugPrint(L"Found Right Hand Mesh: " + handMesh->get_full_name());
 		}
 			
 		
@@ -341,9 +300,8 @@ void PlayerManager::ToggleVRHandsVisibility(bool enable)
 {
 	bool visibility = enable;
 	auto pawn = uevr::API::get()->get_local_pawn(0);
-	auto handsSkeletalMesh = pawn->get_property<uevr::API::UObject*>(L"SkeletalMesh_Hand");
-	if (handsSkeletalMesh) {
-		handsSkeletalMesh->call_function(L"SetOnlyOwnerSee", &visibility);
+	if (auto handsSkeletalMesh = ue::get<ue::UObject*>(pawn, L"SkeletalMesh_Hand")) {
+		ue::call(handsSkeletalMesh, L"SetOnlyOwnerSee", visibility);
 	}
 	uevr::API::get()->dispatch_lua_event("HideHands", !visibility ? "1" : "0");
 }

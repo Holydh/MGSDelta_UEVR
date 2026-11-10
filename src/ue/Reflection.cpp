@@ -76,7 +76,10 @@ std::unique_ptr<detail::PropertyInfo> make_property_info(FProperty* prop) {
     }
     if (info->field_class == L"StructProperty") {
         const auto* script_struct = reinterpret_cast<uevr::API::FStructProperty*>(prop)->get_struct();
-        if (script_struct != nullptr) info->struct_name = script_struct->get_fname()->to_string();
+        if (script_struct != nullptr) {
+            info->struct_name = script_struct->get_fname()->to_string();
+            info->struct_type = script_struct;
+        }
     }
     return info;
 }
@@ -133,6 +136,40 @@ UScriptStruct* find_struct(std::wstring_view full_name) {
 
 UObject* default_object(UClass* cls) {
     return cls != nullptr ? cls->get_class_default_object() : nullptr;
+}
+
+namespace {
+StructRef struct_at(void* base, const UStruct* owner, std::wstring_view name) {
+    if (base == nullptr || owner == nullptr) return {};
+    const auto* p = detail::find_property(owner, name);
+    if (p == nullptr) return {};
+    if (p->struct_type == nullptr) {
+        log_error_once("Property %ls in %s is %s, but the plugin expects a struct",
+                       p->name.c_str(), struct_name(owner).c_str(), describe(*p).c_str());
+        return {};
+    }
+    return { static_cast<uint8_t*>(base) + p->offset, p->struct_type };
+}
+} // namespace
+
+StructRef StructRef::sub(std::wstring_view name) const {
+    return struct_at(m_data, m_type, name);
+}
+
+StructRef get_struct(const UObject* obj, std::wstring_view name) {
+    return obj != nullptr ? struct_at((void*)obj, obj->get_class(), name) : StructRef{};
+}
+
+FName::FName(std::wstring_view name) {
+    const std::wstring terminated{ name }; // the UEVR C API expects null-terminated strings
+    *this = call_static<FName>(lib::KismetString, L"Conv_StringToName", FStringArg{ terminated });
+    if (IsNone() && !terminated.empty() && terminated != L"None") {
+        // Fallback for games where KismetStringLibrary isn't usable
+        const uevr::API::FName engine_name{ terminated };
+        ComparisonIndex = engine_name.comparison_index;
+        Number = engine_name.number;
+        if (IsNone()) log_error_once("Failed to create FName \"%ls\"", terminated.c_str());
+    }
 }
 
 UClass* ClassRef::get() const {

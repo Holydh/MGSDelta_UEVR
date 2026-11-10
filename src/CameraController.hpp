@@ -3,15 +3,7 @@
 #include "Utilities.hpp"
 #include "Logger.hpp"
 #include "magic_enum/magic_enum.hpp"
-
-#include "SDK/Ics_parameters.hpp"
-#include "SDK/Engine_structs.hpp"
-#include "SDK/Engine_parameters.hpp"
-#include "SDK/Engine_classes.hpp"
-#include "SDK/sv_main_classes.hpp"
-#include "SDK/Radio_classes.hpp"
-#include "SDK/CobraUI_structs.hpp"
-#include "SDK/CobraCutScene_classes.hpp"
+#include "ue/Reflection.hpp"
 
 #include "PlayerManager.hpp"
 #include "SettingsManager.hpp"
@@ -45,9 +37,9 @@ public:
 	UEVR_Rotatord OriginalCameraRotation = { 0.0f, 0.0f, 0.0f };
 	UEVR_Rotatord NewCameraRotation = { 0.0f, 0.0f, 0.0f };
 	UEVR_Rotatord LastCameraRotation = { 0.0f, 0.0f, 0.0f };
-	SDK::FVector CameraForwardVector = { 1.0f, 0.0f, 0.0f };
+	ue::FVector CameraForwardVector = { 1.0f, 0.0f, 0.0f };
 
-	uevr::API::UObject* CameraAttachementActor;
+	uevr::API::UObject* CameraAttachementActor = nullptr;
 	bool SpawnCameraAttachementActor();
 	void DestroyCameraAttachementActor();
 	void AttachCameraToAttachementActor();
@@ -56,10 +48,10 @@ public:
 	bool CameraAttachementActorAvailable = false;
 	//bool CameraAttachementActorPositionSafeguard();
 
-	void CalculateForwardOffset(SDK::FVector location, SDK::FRotator rotation, float fov, float& forwardOffset, glm::fvec3& forward);
+	void CalculateForwardOffset(const ue::FVector& location, const ue::FRotator& rotation, float fov, float& forwardOffset, glm::fvec3& forward);
 
 	void ProcessCamera(float deltaTime);
-	SDK::EGsrItemId CurrentItemID = SDK::EGsrItemId::IT_None;
+	ue::EGsrItemId CurrentItemID = ue::EGsrItemId::IT_None;
 	float InstantCameraPositionTimer = 0.25f;
 	bool InstantCameraPositionNeeded = false;
 	void ProcessCameraResetTimer(float delta);
@@ -91,10 +83,10 @@ public:
 	void SpawnCustom2DScreen();
 	void ResizeBlackBars();
 	void DestroyCustom2DScreen();
-	SDK::AActor* Custom2DScreen = nullptr;
+	uevr::API::UObject* Custom2DScreen = nullptr;
 	//void SetNearClipPlane(float nearClip);
 
 	bool CardBoardEquipped = false;
 
-	SDK::UPanelSlot* UIMenuBackgroundPanelSlot = nullptr;
+	uevr::API::UObject* UIMenuBackgroundPanelSlot = nullptr;
 };

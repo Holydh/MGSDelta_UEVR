@@ -3,13 +3,12 @@
 void CameraController::ToggleCameraWobblingController(bool enabled) {
 	//static auto pawn = uevr::API::get()->get_local_pawn(0);
 	//Logger::DebugPrint("Camera Recoil : " + enabled);
-	auto static wobblingController_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrWobblingController");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
-	auto wobblingController = wobblingController_c->get_first_object_matching(false);
+	static ue::ClassRef wobblingController_c{ L"Class /Script/Gsr.GsrWobblingController" };
+	auto wobblingController = wobblingController_c.get() ? wobblingController_c.get()->get_first_object_matching(false) : nullptr;
 	if (!wobblingController)
 		return;
 	//Logger::DebugPrint(wobblingController->get_full_name());
-	bool setEnabled = enabled ? true : false;
-	wobblingController->call_function(L"SetEnabled", &setEnabled);
+	ue::call(wobblingController, L"SetEnabled", enabled);
 }
 
 bool CameraController::SpawnCameraAttachementActor()
@@ -30,7 +29,7 @@ bool CameraController::SpawnCameraAttachementActor()
 void CameraController::DestroyCameraAttachementActor()
 {
 	if (CameraAttachementActor != nullptr) {
-		CameraAttachementActor->call_function(L"K2_DestroyActor", nullptr);
+		ue::call(CameraAttachementActor, L"K2_DestroyActor");
 		CameraAttachementActor = nullptr;
 		IsCameraAttachedToAttachementActor = false;
 		Logger::DebugPrint("Camera Attachement Actor Destroyed");
@@ -41,7 +40,7 @@ void CameraController::DestroyCameraAttachementActor()
 void CameraController::AttachCameraToAttachementActor()
 {
 	if (!CameraAttachementActor) return;
-	auto rootComponent = CameraAttachementActor->get_property<uevr::API::UObject*>(L"RootComponent");
+	auto rootComponent = ue::get<ue::UObject*>(CameraAttachementActor, L"RootComponent");
 	if (rootComponent) {
 		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(rootComponent);
 		//UEVR_Vector3f test = { 0.0, 0.0, 0.0 };
@@ -62,7 +61,7 @@ void CameraController::AttachCameraToAttachementActor()
 void CameraController::DetachCameraFromAttachementActor()
 {
 	if (!CameraAttachementActor) return;
-	auto rootComponent = CameraAttachementActor->get_property<uevr::API::UObject*>(L"RootComponent");
+	auto rootComponent = ue::get<ue::UObject*>(CameraAttachementActor, L"RootComponent");
     if (rootComponent) {
         uevr::API::UObjectHook::remove_motion_controller_state(rootComponent);
 		IsCameraAttachedToAttachementActor = false;
@@ -90,7 +89,7 @@ void CameraController::DetachCameraFromAttachementActor()
 //	}
 //}
 
-void CameraController::CalculateForwardOffset(SDK::FVector location, SDK::FRotator rotation, float fov, float &forwardOffset, glm::fvec3 &forward)
+void CameraController::CalculateForwardOffset(const ue::FVector& location, const ue::FRotator& rotation, float fov, float &forwardOffset, glm::fvec3 &forward)
 {
 	// Convert rotation to radians
 	float pitchRad = glm::radians(rotation.Pitch);
@@ -121,33 +120,35 @@ void CameraController::ProcessCamera(float deltaTime)
 	float remappedLerpXYMultiplier = Utilities::Remap(*settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
 	float remappedLerpZMultiplier = Utilities::Remap(*settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
 
-	auto static cobraCutsceneCameraCtrlMngr_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent");
-	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c->get_first_object_matching(false);
+	static ue::ClassRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
+	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get() ? cobraCutsceneCameraCtrlMngr_c.get()->get_first_object_matching(false) : nullptr;
 	if (!cobraCutsceneCameraCtrlMngr)
 	{
 		Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");
 		return;
 	}
-	auto cc = (SDK::UCobraCutsceneCameraControlManagerComponent*)cobraCutsceneCameraCtrlMngr;
 
-	auto static playerCameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Cobra.CobraPlayerCameraManager");
-	auto playerCameraManager = playerCameraManager_c->get_first_object_matching(false);
+	static ue::ClassRef playerCameraManager_c{ L"Class /Script/Cobra.CobraPlayerCameraManager" };
+	auto playerCameraManager = playerCameraManager_c.get() ? playerCameraManager_c.get()->get_first_object_matching(false) : nullptr;
 	if (!playerCameraManager)
 	{
 		Logger::DebugPrint("PlayerCameraManager not found");
 		return;
 	}
-	auto pcm = (SDK::ACobraPlayerCameraManager*)playerCameraManager;
-	auto ueLocation = pcm->CameraCachePrivate.POV.Location;
-	auto ueRotation = pcm->CameraCachePrivate.POV.Rotation;
+	// PlayerCameraManager->CameraCachePrivate.POV
+	const auto pov = ue::get_struct(playerCameraManager, L"CameraCachePrivate").sub(L"POV");
+	if (!pov)
+		return;
+	const auto ueLocation = pov.get<ue::FVector>(L"Location");
+	const auto ueRotation = pov.get<ue::FRotator>(L"Rotation");
 	glm::fvec3 originalCamLocation = { ueLocation.X, ueLocation.Y, ueLocation.Z };
 	glm::fvec3 originalCamRotation = { ueRotation.Pitch, ueRotation.Yaw, ueRotation.Roll };
 
-	float actualFOV = pcm->CameraCachePrivate.POV.FOV;
+	float actualFOV = pov.get<float>(L"FOV");
 
 	if (ActualCutsceneState == CutsceneState::Playing3D)
 	{
-		if (cc->bIsFpv)
+		if (ue::get<bool>(cobraCutsceneCameraCtrlMngr, L"bIsFpv"))
 		{
 			InstantCameraPositionNeeded = true;
 			InstantCameraPositionTimer = 0.25f;
@@ -246,15 +247,18 @@ void CameraController::ProcessCamera(float deltaTime)
 	else
 	{
 		auto pawn = uevr::API::get()->get_local_pawn(0);
+		if (!pawn)
+			return;
 		//UEVR_Vector3d floorPosition;
 		//pawn->call_function(L"GetFloorPosition", &floorPosition);
 		//Logger::DebugPrint("GetFloorPosition : %f, %f, %f", floorPosition.x, floorPosition.y, floorPosition.z);
-		UEVR_Vector3d pawnPosition;
-		pawn->call_function(L"K2_GetActorLocation", &pawnPosition);
+		const auto pawnLocation = ue::call<ue::FVector>(pawn, L"K2_GetActorLocation");
+		UEVR_Vector3d pawnPosition{ pawnLocation.X, pawnLocation.Y, pawnLocation.Z };
 		//Logger::DebugPrint("Pawn Position : %f, %f, %f", pawnPosition.x, pawnPosition.y, pawnPosition.z);
-		auto grassVolumeCollisionHead = pawn->get_property<uevr::API::UObject*>(L"GrassVolumeCollisionHead");
+		auto grassVolumeCollisionHead = ue::get<ue::UObject*>(pawn, L"GrassVolumeCollisionHead");
 
-		grassVolumeCollisionHead->call_function(L"K2_GetComponentLocation", &headColliderPosition);
+		const auto headLocation = ue::call<ue::FVector>(grassVolumeCollisionHead, L"K2_GetComponentLocation");
+		headColliderPosition = { headLocation.X, headLocation.Y, headLocation.Z };
 		//Logger::DebugPrint("headColliderPosition : %f, %f, %f", headColliderPosition.x, headColliderPosition.y, headColliderPosition.z);
 
 		// Reset camera position and rotation when player respawn or teleport
@@ -264,10 +268,8 @@ void CameraController::ProcessCamera(float deltaTime)
 			//CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
 			NewCameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
 
-			auto pawn = uevr::API::get()->get_local_pawn(0);
-			UEVR_Rotatord pawnRotation;
-			pawn->call_function(L"K2_GetActorRotation", &pawnRotation);
-			ActualYaw = pawnRotation.yaw;
+			const auto pawnRotation = ue::call<ue::FRotator>(pawn, L"K2_GetActorRotation");
+			ActualYaw = pawnRotation.Yaw;
 			LastCameraRotation.yaw = ActualYaw;
 			NewCameraRotation.yaw = ActualYaw;
 			return;
@@ -284,13 +286,13 @@ void CameraController::ProcessCamera(float deltaTime)
 		{
 			switch (playerManager->CurrentStance)
 			{
-			case SDK::EGsrPlayerStance::Stand:
+			case ue::EGsrPlayerStance::Stand:
 				CameraHeightOffset = 83.0f; //-85.0f
 				break;
-			case SDK::EGsrPlayerStance::Squat:
+			case ue::EGsrPlayerStance::Squat:
 				CameraHeightOffset = 6.7f;
 				break;
-			case SDK::EGsrPlayerStance::Crawl:
+			case ue::EGsrPlayerStance::Crawl:
 				CameraHeightOffset = 10.0f;
 				break;
 			default:
@@ -305,15 +307,15 @@ void CameraController::ProcessCamera(float deltaTime)
 		{
 			switch (playerManager->CurrentStance)
 			{
-			case SDK::EGsrPlayerStance::Stand:
+			case ue::EGsrPlayerStance::Stand:
 				CameraHeightOffset = 83.0f; //-85.0f
 				break;
-			case SDK::EGsrPlayerStance::Squat:
+			case ue::EGsrPlayerStance::Squat:
 				CameraHeightOffset = 83.0f;
 				break;
-			case SDK::EGsrPlayerStance::Crawl:
+			case ue::EGsrPlayerStance::Crawl:
 				// playerPosition.Z actualise one frame after change stance, we need to compensate for that or it results in a sudden camera jump
-				CameraHeightOffset = playerManager->PreviousStance == SDK::EGsrPlayerStance::Squat ? 83.0f : 83.0f + crawlOffset;
+				CameraHeightOffset = playerManager->PreviousStance == ue::EGsrPlayerStance::Squat ? 83.0f : 83.0f + crawlOffset;
 				break;
 			default:
 				break;
@@ -391,7 +393,7 @@ void CameraController::ProcessCamera(float deltaTime)
 		NewCameraPosition.y = newPosition.y;
 		NewCameraPosition.z = newPosition.z;
 
-		if (playerManager->CurrentMenuType == SDK::EGsrUIMenuType::None)
+		if (playerManager->CurrentMenuType == ue::EGsrUIMenuType::None)
 		{
 			YawProcessed = YawInput * 3.0f * *settingsManager->CameraRotationSpeedPtr * deltaTime;
 			if (YawInput != 0.0)
@@ -413,15 +415,13 @@ void CameraController::ProcessCamera(float deltaTime)
 			glm::mix(LastCameraRotation.yaw, ActualYaw, alpha) :
 			ActualYaw;
 
-		if (CurrentItemID == SDK::EGsrItemId::IT_Scope)
+		if (CurrentItemID == ue::EGsrItemId::IT_Scope)
 		{
 			// if fpv is enabled, we need to push the camera forward based on the FOV to prevent it from being too zoomed out
 			float forwardOffset = 0.0f;
 			glm::fvec3 forward{};
-			auto sdkActor = (SDK::AActor*)CameraAttachementActor;
-			SDK::FRotator hmdRotation;
-			hmdRotation = sdkActor->K2_GetActorRotation();
-			CalculateForwardOffset({newPosition.x, newPosition.y, newPosition.z}, { hmdRotation.Pitch, hmdRotation.Yaw, hmdRotation.Roll }, actualFOV, forwardOffset, forward);
+			const auto hmdRotation = ue::call<ue::FRotator>(CameraAttachementActor, L"K2_GetActorRotation");
+			CalculateForwardOffset({newPosition.x, newPosition.y, newPosition.z}, hmdRotation, actualFOV, forwardOffset, forward);
 			// if fpv is enabled, we need to push the camera forward based on the FOV to prevent it from being too zoomed out
 			NewCameraPosition = {
 				ueLocation.X + forward.x * forwardOffset,
@@ -478,8 +478,7 @@ void CameraController::ProcessRoomscaleStance()
 		Logger::DebugPrint("ProcessRoomscaleStance: CameraAttachementActor is null");
 		return;
 	}
-	auto sdkActor = (SDK::AActor*)CameraAttachementActor;
-	auto cameraAttachementPosition = sdkActor->K2_GetActorLocation();
+	auto cameraAttachementPosition = ue::call<ue::FVector>(CameraAttachementActor, L"K2_GetActorLocation");
 	//Logger::DebugPrint("cameraAttachementPosition : %f", cameraAttachementPosition.Z);
 	//Logger::DebugPrint("headColliderPosition : %f", headColliderPosition.z);
 	auto difference = cameraAttachementPosition.Z - headColliderPosition.z;
@@ -490,17 +489,17 @@ void CameraController::ProcessRoomscaleStance()
 	auto hmdHeight = hmdTransform.m[3][1];
 	//Logger::DebugPrint("HMD Transform Z Position : %f", hmdTransform.m[3][1]);
 
-	if (playerManager->CurrentStance == SDK::EGsrPlayerStance::Stand && hmdHeight <= *settingsManager->SquatUnderThisValuePtr)
-		playerManager->SetPlayerStance(SDK::EGsrPlayerStance::Squat);
+	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Stand && hmdHeight <= *settingsManager->SquatUnderThisValuePtr)
+		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Squat);
 
-	if (playerManager->CurrentStance == SDK::EGsrPlayerStance::Squat && hmdHeight <= *settingsManager->CrawlUnderThisValuePtr)
-		playerManager->SetPlayerStance(SDK::EGsrPlayerStance::Crawl);
+	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Squat && hmdHeight <= *settingsManager->CrawlUnderThisValuePtr)
+		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Crawl);
 
-	if (playerManager->CurrentStance == SDK::EGsrPlayerStance::Squat && hmdHeight >= *settingsManager->SquatUnderThisValuePtr)
-		playerManager->SetPlayerStance(SDK::EGsrPlayerStance::Stand);
+	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Squat && hmdHeight >= *settingsManager->SquatUnderThisValuePtr)
+		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Stand);
 
-	if (playerManager->CurrentStance == SDK::EGsrPlayerStance::Crawl && hmdHeight >= *settingsManager->CrawlUnderThisValuePtr)
-		playerManager->SetPlayerStance(SDK::EGsrPlayerStance::Squat);
+	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Crawl && hmdHeight >= *settingsManager->CrawlUnderThisValuePtr)
+		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Squat);
 }
 
 //void CameraController::SetNearClipPlane(float nearClip)
@@ -514,58 +513,62 @@ void CameraController::ProcessRoomscaleStance()
 
 void CameraController::FixSurvivalViewerMenuRendering()
 {
-	auto static sv_main_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/sv_main.sv_main_C");
-	auto sv_main = sv_main_c->get_first_object_matching(false);
+	static ue::ClassRef sv_main_c{ L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/sv_main.sv_main_C" };
+	auto mainWidget = sv_main_c.get() ? sv_main_c.get()->get_first_object_matching(false) : nullptr;
+	if (!mainWidget)
+		return;
 
-	SDK::Usv_main_C* mainWidget = (SDK::Usv_main_C*)sv_main;
-	mainWidget->ModelCaptureCanvas->SetVisibility(SDK::ESlateVisibility::Hidden);
+	ue::call(ue::get<ue::UObject*>(mainWidget, L"ModelCaptureCanvas"), L"SetVisibility", ue::ESlateVisibility::Hidden);
 	//mainWidget->menuBLIcon->SetVisibility(SDK::ESlateVisibility::Visible);
 	//mainWidget->Mask->SetVisibility(SDK::ESlateVisibility::Hidden);
-	// 
+	//
 	// Get sub menu type : mainWidget->GetSvStep();
 
-	auto rootWidgetCanvasPanel = (SDK::UPanelWidget*)mainWidget->WidgetTree->RootWidget;
-	Logger::DebugPrint(rootWidgetCanvasPanel->GetFullName().c_str());
+	auto rootWidgetCanvasPanel = ue::get<ue::UObject*>(ue::get<ue::UObject*>(mainWidget, L"WidgetTree"), L"RootWidget");
+	auto rootSlots = ue::get_ptr<ue::TArray<ue::UObject*>>(rootWidgetCanvasPanel, L"Slots");
+	if (!rootSlots)
+		return;
+	Logger::DebugPrint(rootWidgetCanvasPanel->get_full_name());
 
 	// Loop through slots of the root panel
 	Logger::DebugPrint("Root widget slots:");
-	for (int i = 0; i < rootWidgetCanvasPanel->Slots.Num(); i++)
+	for (auto slot : *rootSlots)
 	{
-		auto slot = rootWidgetCanvasPanel->Slots[i];
-		Logger::DebugPrint(slot->GetFullName().c_str());
-
-		// If you need to cast to CanvasPanelSlot specifically
-		auto canvasSlot = (SDK::UCanvasPanelSlot*)slot;
+		if (!slot)
+			continue;
+		Logger::DebugPrint(slot->get_full_name());
 
 		// Access the widget contained in this slot
-		auto containedWidget = canvasSlot->Content;
+		auto containedWidget = ue::get<ue::UObject*>(slot, L"Content");
 		if (containedWidget) {
-			Logger::DebugPrint(("  Contains: " + std::string(containedWidget->GetFullName())).c_str());
+			Logger::DebugPrint(L"  Contains: " + containedWidget->get_full_name());
 		}
 	}
 
 	// If you want to access a specific child panel's slots
 	// Find a specific child widget by name or index
-	if (rootWidgetCanvasPanel->Slots.Num() > 0) {
+	if (!rootSlots->empty()) {
+		static ue::ClassRef panelWidget_c{ L"Class /Script/UMG.PanelWidget" };
+
 		// Get the first slot's content (which might be another panel)
-		auto firstSlot = (SDK::UCanvasPanelSlot*)rootWidgetCanvasPanel->Slots[0];
-		auto firstChildWidget = firstSlot->Content;
+		auto firstChildWidget = ue::get<ue::UObject*>(rootSlots->data[0], L"Content");
 
 		// If it's a panel, you can access its slots
-		if (firstChildWidget && firstChildWidget->IsA(SDK::UPanelWidget::StaticClass())) {
-			auto childPanel = (SDK::UPanelWidget*)firstChildWidget;
+		if (ue::is_a(firstChildWidget, panelWidget_c)) {
+			auto childSlots = ue::get_ptr<ue::TArray<ue::UObject*>>(firstChildWidget, L"Slots");
+			for (int i = 0; childSlots && i < childSlots->count; i++) {
+				auto slot = childSlots->data[i];
+				if (!slot)
+					continue;
+				const std::wstring slotName = slot->get_fname()->to_string(); // Get just the name without path
 
-			for (int i = 0; i < childPanel->Slots.Num(); i++) {
-				auto slot = (SDK::UPanelSlot*)childPanel->Slots[i];
-				std::string slotName = slot->GetName(); // Get just the name without path
-
-				if (slotName == "CanvasPanelSlot_10") {
-					slot->Content->SetVisibility(SDK::ESlateVisibility::Hidden);
+				if (slotName == L"CanvasPanelSlot_10") {
+					ue::call(ue::get<ue::UObject*>(slot, L"Content"), L"SetVisibility", ue::ESlateVisibility::Hidden);
 					Logger::DebugPrint("Found target slot at index: %i", i);
 				}
-				if (slotName == "CanvasPanelSlot_1")
+				if (slotName == L"CanvasPanelSlot_1")
 				{
-					slot->Content->SetVisibility(SDK::ESlateVisibility::Hidden);
+					ue::call(ue::get<ue::UObject*>(slot, L"Content"), L"SetVisibility", ue::ESlateVisibility::Hidden);
 					Logger::DebugPrint("Found target slot at index: %i", i);
 				}
 			}
@@ -575,25 +578,22 @@ void CameraController::FixSurvivalViewerMenuRendering()
 
 void CameraController::FixRadioMenuRendering()
 {
-	auto static Radio_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/Radio/Radio.Radio_C");
-	auto radio_main = Radio_c->get_first_object_matching(false);
-
-	SDK::URadio_C* mainWidget = (SDK::URadio_C*)radio_main;
-	mainWidget->ModelBg->SetVisibility(SDK::ESlateVisibility::Hidden);
+	static ue::ClassRef Radio_c{ L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/Radio/Radio.Radio_C" };
+	auto mainWidget = Radio_c.get() ? Radio_c.get()->get_first_object_matching(false) : nullptr;
+	ue::call(ue::get<ue::UObject*>(mainWidget, L"ModelBg"), L"SetVisibility", ue::ESlateVisibility::Hidden);
 }
 
 void CameraController::CheckCutscenePlaying()
 {
-	auto static gameStateSubsystem_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrGameStateSubsystem");
-	auto gameStateSubsystem = gameStateSubsystem_c->get_first_object_matching(false);
+	static ue::ClassRef gameStateSubsystem_c{ L"Class /Script/Gsr.GsrGameStateSubsystem" };
+	auto gameStateSubsystem = gameStateSubsystem_c.get() ? gameStateSubsystem_c.get()->get_first_object_matching(false) : nullptr;
 	bool cutscene = false;
 	bool movie = false;
 
 	if (gameStateSubsystem)
 	{
-		auto gameState = (SDK::UGsrGameStateSubsystem*)gameStateSubsystem;
-		cutscene = gameState->CheckGameStatus(SDK::EGsrGameStatus::Cutscene);
-		movie = gameState->CheckGameStatus(SDK::EGsrGameStatus::Movie);
+		cutscene = ue::call<bool>(gameStateSubsystem, L"CheckGameStatus", ue::EGsrGameStatus::Cutscene);
+		movie = ue::call<bool>(gameStateSubsystem, L"CheckGameStatus", ue::EGsrGameStatus::Movie);
 	}
 
 	if (cutscene || movie)
@@ -648,18 +648,17 @@ void CameraController::ApplyCutsceneSettings()
 
 	if (CutscenePlaying())
 	{
-		auto static cobraCutsceneCameraCtrlMngr_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent");
-		auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c->get_first_object_matching(false);
+		static ue::ClassRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
+		auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get() ? cobraCutsceneCameraCtrlMngr_c.get()->get_first_object_matching(false) : nullptr;
 		if (!cobraCutsceneCameraCtrlMngr)
 		{
 			Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");
 			return;
 		}
-		auto cc = (SDK::UCobraCutsceneCameraControlManagerComponent*)cobraCutsceneCameraCtrlMngr;
 
 		if (!*settingsManager->EnableImmersiveModePtr)
 		{
-			if (cc->bIsFpv)
+			if (ue::get<bool>(cobraCutsceneCameraCtrlMngr, L"bIsFpv"))
 				DestroyCustom2DScreen();
 			else
 				SpawnCustom2DScreen();
@@ -672,28 +671,21 @@ void CameraController::SpawnCustom2DScreen()
 	if (!CutscenePlaying() || Custom2DScreen != nullptr)
 		return;
 
+	static ue::ClassRef staticMesh_c{ L"Class /Script/Engine.StaticMesh" };
+	static ue::ClassRef staticMeshComponent_c{ L"Class /Script/Engine.StaticMeshComponent" };
+
 	UEVR_Vector3d uevrVector = { 0.0f, 0.0f, 0.0f };
-	auto uevrActor = Utilities::SpawnActor(uevrVector, nullptr);
-	auto actor = (SDK::AActor*)uevrActor;
+	auto actor = Utilities::SpawnActor(uevrVector, nullptr);
 	if (!actor)
 	{
 		return;
 	}
 
     // 1. Find the mesh asset already loaded in memory
-    static SDK::UStaticMesh* staticMesh = nullptr;
-	auto meshUEVR = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Engine/BasicShapes/Plane.Plane");
-	auto sdkMesh = (SDK::UObject*)meshUEVR;
-    if (sdkMesh->IsA(SDK::UStaticMesh::StaticClass()))
+	auto staticMesh = ue::find_object(L"StaticMesh /Engine/BasicShapes/Plane.Plane");
+    if (ue::is_a(staticMesh, staticMesh_c))
     {
-		staticMesh = (SDK::UStaticMesh*)meshUEVR;
-
-        if (!staticMesh)
-        {
-            Logger::DebugPrint("Failed to find static mesh");
-            return;
-		}
-		Logger::DebugPrint("Found static mesh %s : ", staticMesh->GetFullName().c_str());
+		Logger::DebugPrint(L"Found static mesh : " + staticMesh->get_full_name());
 	}
 	else
 	{
@@ -701,114 +693,110 @@ void CameraController::SpawnCustom2DScreen()
 		return;
 	}
 
-	auto translucentMat = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Material /Engine/EngineDebugMaterials/DebugMeshMaterial.DebugMeshMaterial");
+	auto translucentMat = ue::find_object(L"Material /Engine/EngineDebugMaterials/DebugMeshMaterial.DebugMeshMaterial");
 	if (!translucentMat)
 	{
 		Logger::DebugPrint("Failed to find material for 2D screen");
 		return;
 	}
 
-	auto sdkMat = (SDK::UMaterial*)translucentMat;
-	sdkMat->TwoSided = true;
-	sdkMat->bDisableDepthTest = true;
-	sdkMat->BlendMode = SDK::EBlendMode::BLEND_Translucent;
+	ue::set(translucentMat, L"TwoSided", true);
+	ue::set(translucentMat, L"bDisableDepthTest", true);
+	ue::set(translucentMat, L"BlendMode", ue::EBlendMode::BLEND_Translucent);
 	//sdkMat->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
-	sdkMat->ShadingModel = SDK::EMaterialShadingModel::MSM_Unlit;
+	ue::set(translucentMat, L"ShadingModel", ue::EMaterialShadingModel::MSM_Unlit);
 	////Material /Engine/EngineMaterials/DefaultMaterial.DefaultMaterial
 
 	//auto textureUEVR = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Texture2D /CobraUI/Material/HUD/T_GoggleVignette.T_GoggleVignette");
 	//auto texture = (SDK::UTexture2D*)textureUEVR;
 
-	if (staticMesh)
+	// create 5 planes for the box
+	for (int i = 0; i < 5; i++)
 	{
-		// create 5 planes for the box
-		for (int i = 0; i < 5; i++)
+		auto staticMeshComponent = ue::call<ue::UObject*>(actor, L"AddComponentByClass",
+			staticMeshComponent_c.get(),
+			false,            // bManualAttachment
+			ue::FTransform{}, // RelativeTransform
+			false);           // bDeferredFinish
+
+		if (!staticMeshComponent)
 		{
-			auto* staticMeshComponent = static_cast<SDK::UStaticMeshComponent*>(actor->AddComponentByClass(SDK::UStaticMeshComponent::StaticClass(),
-				false, // bManualAttachment
-				SDK::FTransform{}, // RelativeTransform
-				false // bDeferConstruction
-			));
-
-			if (!staticMeshComponent)
-			{
-				Logger::DebugPrint("Failed to create UStaticMeshComponent");
-				return;
-			}
-			Logger::DebugPrint("Created StaticMeshComponent: %s", staticMeshComponent->GetFullName().c_str());
-			// 3. Assign the mesh asset to our new component instance
-			staticMeshComponent->SetStaticMesh(staticMesh);
-			Logger::DebugPrint("Assigned mesh to StaticMeshComponent");
-
-			// 4. Attach the new component to the Actor's root component
-			staticMeshComponent->K2_AttachToComponent(
-				actor->K2_GetRootComponent(),                      // Parent
-				SDK::FName(),                                      // SocketName (none)
-				SDK::EAttachmentRule::KeepRelative,             // Use the relative location we just set
-				SDK::EAttachmentRule::KeepRelative,             // Use the relative rotation we just set
-				SDK::EAttachmentRule::KeepRelative,             // Use the relative scale we just set
-				false                                            // bWeldSimulatedBodies
-			);
-			Logger::DebugPrint("Attached StaticMeshComponent to Actor's root component");
-
-			// 6. Register the component to make it "live" and renderable in the world
-			staticMeshComponent->Activate(true);
-			Logger::DebugPrint("Activated StaticMeshComponent");
-
-			// Optional: Disable collision if it's just for visuals
-			staticMeshComponent->SetCollisionEnabled(SDK::ECollisionEnabled::NoCollision);
-			staticMeshComponent->Activate(true);
-			staticMeshComponent->SetVisibility(true, false);
-			staticMeshComponent->SetHiddenInGame(false, false);
-			staticMeshComponent->SetWorldScale3D({ 1, 1, 1 });
-			staticMeshComponent->SetMobility(SDK::EComponentMobility::Movable);
-
-			staticMeshComponent->SetRenderCustomDepth(true);
-
-			staticMeshComponent->TranslucencySortPriority = 1000;
-			staticMeshComponent->SetTranslucencySortDistanceOffset(1000);
-
-			auto dynamicMaterial = staticMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, sdkMat);
-			dynamicMaterial->SetVectorParameterValue(
-				SDK::UKismetStringLibrary::Conv_StringToName(L"Color"),
-				SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 9999.0f }
-			);
-
-			//					dynamicMaterial->SetVectorParameterValue(
-			//		SDK::UKismetStringLibrary::Conv_StringToName(L"TintColorAndOpacity"),
-			//		SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 99999.0f }
-			//	);
-			//	dynamicMaterial->SetVectorParameterValue(
-			//		SDK::UKismetStringLibrary::Conv_StringToName(L"BackColor"),
-			//		SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 99999.0f }
-			//	);
-			//	dynamicMaterial->SetScalarParameterValue(
-			//		SDK::UKismetStringLibrary::Conv_StringToName(L"OpacityFromTexture"),
-			//		9999.0f
-			//	);
-			//	dynamicMaterial->SetTextureParameterValue(
-			//		SDK::UKismetStringLibrary::Conv_StringToName(L"SlateUI"),
-			//		texture
-			//	);
-			//}
+			Logger::DebugPrint("Failed to create UStaticMeshComponent");
+			return;
 		}
+		Logger::DebugPrint(L"Created StaticMeshComponent: " + staticMeshComponent->get_full_name());
+		// 3. Assign the mesh asset to our new component instance
+		ue::call(staticMeshComponent, L"SetStaticMesh", staticMesh);
+		Logger::DebugPrint("Assigned mesh to StaticMeshComponent");
+
+		// 4. Attach the new component to the Actor's root component
+		ue::call(staticMeshComponent, L"K2_AttachToComponent",
+			ue::call<ue::UObject*>(actor, L"K2_GetRootComponent"), // Parent
+			ue::FName{},                                          // SocketName (none)
+			ue::EAttachmentRule::KeepRelative,                    // Use the relative location we just set
+			ue::EAttachmentRule::KeepRelative,                    // Use the relative rotation we just set
+			ue::EAttachmentRule::KeepRelative,                    // Use the relative scale we just set
+			false);                                               // bWeldSimulatedBodies
+		Logger::DebugPrint("Attached StaticMeshComponent to Actor's root component");
+
+		// 6. Register the component to make it "live" and renderable in the world
+		ue::call(staticMeshComponent, L"Activate", true);
+		Logger::DebugPrint("Activated StaticMeshComponent");
+
+		// Optional: Disable collision if it's just for visuals
+		ue::call(staticMeshComponent, L"SetCollisionEnabled", ue::ECollisionEnabled::NoCollision);
+		ue::call(staticMeshComponent, L"Activate", true);
+		ue::call(staticMeshComponent, L"SetVisibility", true, false);
+		ue::call(staticMeshComponent, L"SetHiddenInGame", false, false);
+		ue::call(staticMeshComponent, L"SetWorldScale3D", ue::FVector{ 1, 1, 1 });
+		ue::call(staticMeshComponent, L"SetMobility", ue::EComponentMobility::Movable);
+
+		ue::call(staticMeshComponent, L"SetRenderCustomDepth", true);
+
+		ue::set<int32_t>(staticMeshComponent, L"TranslucencySortPriority", 1000);
+		ue::call(staticMeshComponent, L"SetTranslucencySortDistanceOffset", 1000.0f);
+
+		auto dynamicMaterial = ue::call<ue::UObject*>(staticMeshComponent, L"CreateAndSetMaterialInstanceDynamicFromMaterial", 0, translucentMat);
+		ue::call(dynamicMaterial, L"SetVectorParameterValue",
+			ue::FName(L"Color"),
+			ue::FLinearColor{ 0.0f, 0.0f, 0.0f, 9999.0f }
+		);
+
+		//					dynamicMaterial->SetVectorParameterValue(
+		//		SDK::UKismetStringLibrary::Conv_StringToName(L"TintColorAndOpacity"),
+		//		SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 99999.0f }
+		//	);
+		//	dynamicMaterial->SetVectorParameterValue(
+		//		SDK::UKismetStringLibrary::Conv_StringToName(L"BackColor"),
+		//		SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 99999.0f }
+		//	);
+		//	dynamicMaterial->SetScalarParameterValue(
+		//		SDK::UKismetStringLibrary::Conv_StringToName(L"OpacityFromTexture"),
+		//		9999.0f
+		//	);
+		//	dynamicMaterial->SetTextureParameterValue(
+		//		SDK::UKismetStringLibrary::Conv_StringToName(L"SlateUI"),
+		//		texture
+		//	);
+		//}
 	}
 
 	Custom2DScreen = actor;
 
 	ResizeBlackBars();
 
-	auto static cameraManager_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"BlueprintGeneratedClass /Game/Blueprints/Camera/BP_PlayerCameraManager.BP_PlayerCameraManager_C");
-	auto cameraManagerActor = (SDK::AActor*)cameraManager_c->get_first_object_matching(false);
+	static ue::ClassRef cameraManager_c{ L"BlueprintGeneratedClass /Game/Blueprints/Camera/BP_PlayerCameraManager.BP_PlayerCameraManager_C" };
+	auto cameraManagerActor = cameraManager_c.get() ? cameraManager_c.get()->get_first_object_matching(false) : nullptr;
 
-	Custom2DScreen->K2_AttachToActor(cameraManagerActor, 		
-				SDK::FName(),                                      // SocketName (none)
-				SDK::EAttachmentRule::KeepRelative,             // Use the relative location we just set
-				SDK::EAttachmentRule::KeepRelative,             // Use the relative rotation we just set
-				SDK::EAttachmentRule::KeepRelative,             // Use the relative scale we just set
+	ue::call(Custom2DScreen, L"K2_AttachToActor", cameraManagerActor,
+				ue::FName{},                                      // SocketName (none)
+				ue::EAttachmentRule::KeepRelative,             // Use the relative location we just set
+				ue::EAttachmentRule::KeepRelative,             // Use the relative rotation we just set
+				ue::EAttachmentRule::KeepRelative,             // Use the relative scale we just set
 				false                                            // bWeldSimulatedBodies
 			);
-	Logger::DebugPrint("custom box parent : %ls", actor->GetParentActor()->GetFullName().c_str());
+	if (auto parentActor = ue::call<ue::UObject*>(actor, L"GetParentActor"))
+		Logger::DebugPrint(L"custom box parent : " + parentActor->get_full_name());
 }
 
 void CameraController::ResizeBlackBars()
@@ -822,74 +810,74 @@ void CameraController::ResizeBlackBars()
     float D = 2000.0f; // How "deep" the cinema box is
     
     float planeUnit = 100.0f;
-	auto root = Custom2DScreen->K2_GetRootComponent();
-	root->K2_SetRelativeLocation({*settingsManager->BlackBarsSizePtr * 100.0f -1000.0f , 0.0f, 0.0f }, false, nullptr, true);
+	auto root = ue::call<ue::UObject*>(Custom2DScreen, L"K2_GetRootComponent");
+	ue::call(root, L"K2_SetRelativeLocation", ue::FVector{*settingsManager->BlackBarsSizePtr * 100.0f -1000.0f , 0.0f, 0.0f }, false, nullptr, true);
 
-    auto children = root->AttachChildren;
-    for (int i = 0; i < children.Num(); i++)
+    auto children = ue::get_ptr<ue::TArray<ue::UObject*>>(root, L"AttachChildren");
+    for (int i = 0; children && i < children->count; i++)
     {
-        auto smc = (SDK::UStaticMeshComponent*)children[i];
+        auto smc = children->data[i];
         switch (i)
         {
             case 0: // TOP (Ceiling)
-                smc->K2_SetRelativeLocation({ 0.0f, 0.0f, H }, false, nullptr, true);
-                smc->K2_SetRelativeRotation({ 180.0f, 0.0f, 0.0f }, false, nullptr, true);
-                smc->SetWorldScale3D({ D/planeUnit, (W*2)/planeUnit, 1.0f });
+                ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ 0.0f, 0.0f, H }, false, nullptr, true);
+                ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 180.0f, 0.0f, 0.0f }, false, nullptr, true);
+                ue::call(smc, L"SetWorldScale3D", ue::FVector{ D/planeUnit, (W*2)/planeUnit, 1.0f });
                 break;
 
             case 1: // BOTTOM (Floor)
-                smc->K2_SetRelativeLocation({ 0.0f, 0.0f, -H }, false, nullptr, true);
-                smc->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
-                smc->SetWorldScale3D({ D/planeUnit, (W*2)/planeUnit, 1.0f });
+                ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ 0.0f, 0.0f, -H }, false, nullptr, true);
+                ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
+                ue::call(smc, L"SetWorldScale3D", ue::FVector{ D/planeUnit, (W*2)/planeUnit, 1.0f });
                 break;
 
 			case 2: // BACK (The wall behind the screen)
 				// Move it back by the full depth D
-				smc->K2_SetRelativeLocation({ -D * 0.5f, 0.0f, 0.0f }, false, nullptr, true);
-				smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 0.0f }, false, nullptr, true);
-				smc->SetWorldScale3D({ (H * 2) / planeUnit, (W * 2) / planeUnit, 1.0f });
+				ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ -D * 0.5f, 0.0f, 0.0f }, false, nullptr, true);
+				ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 90.0f, 0.0f, 0.0f }, false, nullptr, true);
+				ue::call(smc, L"SetWorldScale3D", ue::FVector{ (H * 2) / planeUnit, (W * 2) / planeUnit, 1.0f });
 				break;
 
 			case 3: // LEFT (Side wall)
-				smc->K2_SetRelativeLocation({ 0.0f, -W, 0.0f }, false, nullptr, true);
-				smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
-				smc->SetWorldScale3D({ (H * 2) / planeUnit, D / planeUnit, 1.0f });
+				ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ 0.0f, -W, 0.0f }, false, nullptr, true);
+				ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
+				ue::call(smc, L"SetWorldScale3D", ue::FVector{ (H * 2) / planeUnit, D / planeUnit, 1.0f });
 				break;
 
 			case 4: // RIGHT (Side wall)
-				smc->K2_SetRelativeLocation({ 0.0f, W, 0.0f }, false, nullptr, true);
-				smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
-				smc->SetWorldScale3D({ (H * 2) / planeUnit, D / planeUnit, 1.0f });
+				ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ 0.0f, W, 0.0f }, false, nullptr, true);
+				ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
+				ue::call(smc, L"SetWorldScale3D", ue::FVector{ (H * 2) / planeUnit, D / planeUnit, 1.0f });
 				break;
 			//case 5: // TOP (Ceiling)
-			//	smc->K2_SetRelativeLocation({ 0.0f, 0.0f, H }, false, nullptr, true);
-			//	smc->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
-			//	smc->SetWorldScale3D({ D / planeUnit, (W * 2) / planeUnit, 1.0f });
+			//	ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ 0.0f, 0.0f, H }, false, nullptr, true);
+			//	ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
+			//	ue::call(smc, L"SetWorldScale3D", ue::FVector{ D / planeUnit, (W * 2) / planeUnit, 1.0f });
 			//	break;
 
 			//case 6: // BOTTOM (Floor)
-			//	smc->K2_SetRelativeLocation({ 0.0f, 0.0f, -H }, false, nullptr, true);
-			//	smc->K2_SetRelativeRotation({ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
-			//	smc->SetWorldScale3D({ D / planeUnit, (W * 2) / planeUnit, 1.0f });
+			//	ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ 0.0f, 0.0f, -H }, false, nullptr, true);
+			//	ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
+			//	ue::call(smc, L"SetWorldScale3D", ue::FVector{ D / planeUnit, (W * 2) / planeUnit, 1.0f });
 			//	break;
 
 			//case 7: // BACK (The wall behind the screen)
 			//	// Move it back by the full depth D
-			//	smc->K2_SetRelativeLocation({ -D * 0.5f, 0.0f, 0.0f }, false, nullptr, true);
-			//	smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 0.0f }, false, nullptr, true);
-			//	smc->SetWorldScale3D({ (H * 2) / planeUnit, (W * 2) / planeUnit, 1.0f });
+			//	ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ -D * 0.5f, 0.0f, 0.0f }, false, nullptr, true);
+			//	ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 90.0f, 0.0f, 0.0f }, false, nullptr, true);
+			//	ue::call(smc, L"SetWorldScale3D", ue::FVector{ (H * 2) / planeUnit, (W * 2) / planeUnit, 1.0f });
 			//	break;
 
 			//case 8: // LEFT (Side wall)
-			//	smc->K2_SetRelativeLocation({ 0.0f, -W, 0.0f }, false, nullptr, true);
-			//	smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
-			//	smc->SetWorldScale3D({ (H * 2) / planeUnit, D / planeUnit, 1.0f });
+			//	ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ 0.0f, -W, 0.0f }, false, nullptr, true);
+			//	ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
+			//	ue::call(smc, L"SetWorldScale3D", ue::FVector{ (H * 2) / planeUnit, D / planeUnit, 1.0f });
 			//	break;
 
 			//case 9: // RIGHT (Side wall)
-			//	smc->K2_SetRelativeLocation({ 0.0f, W, 0.0f }, false, nullptr, true);
-			//	smc->K2_SetRelativeRotation({ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
-			//	smc->SetWorldScale3D({ (H * 2) / planeUnit, D / planeUnit, 1.0f });
+			//	ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ 0.0f, W, 0.0f }, false, nullptr, true);
+			//	ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
+			//	ue::call(smc, L"SetWorldScale3D", ue::FVector{ (H * 2) / planeUnit, D / planeUnit, 1.0f });
 			//	break;
 		}
 	}
@@ -905,7 +893,7 @@ void CameraController::DestroyCustom2DScreen()
 {
 	if (Custom2DScreen)
 	{
-		Custom2DScreen->K2_DestroyActor();
+		ue::call(Custom2DScreen, L"K2_DestroyActor");
 		Custom2DScreen = nullptr;
 	}
 }

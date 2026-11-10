@@ -122,18 +122,30 @@ struct FHitResult {
 };
 static_assert(sizeof(FHitResult) == 0xE8);
 
+// FString argument for engine functions. Non-owning: it points to the caller's string,
+// which only has to outlive the call (the engine copies it). Never use it for an FString
+// returned or owned by the engine.
+struct FStringArg {
+    const wchar_t* Data{};
+    int32_t Num{};
+    int32_t Max{};
+
+    FStringArg() = default;
+    explicit FStringArg(const std::wstring& text)
+        : Data(text.c_str()), Num(static_cast<int32_t>(text.size()) + 1), Max(Num) {}
+};
+static_assert(sizeof(FStringArg) == 0x10);
+
 // Same layout as the engine's FName (and uevr::API::FName).
 struct FName {
     int32_t ComparisonIndex{};
     int32_t Number{};
 
     constexpr FName() = default; // "None"
-    explicit FName(std::wstring_view name) {
-        const std::wstring terminated{ name }; // the UEVR C API expects a null-terminated string
-        const uevr::API::FName engine_name{ terminated };
-        ComparisonIndex = engine_name.comparison_index;
-        Number = engine_name.number;
-    }
+    // Creates (or finds) the name through the engine's KismetStringLibrary::Conv_StringToName.
+    // UEVR's own FName constructor can't be located in some games (MGS Delta included) and
+    // then silently returns None. Defined in Reflection.cpp.
+    explicit FName(std::wstring_view name);
     UE_SDK_INTEROP(FName)
 
     std::wstring ToWString() const { return reinterpret_cast<const uevr::API::FName*>(this)->to_string(); }

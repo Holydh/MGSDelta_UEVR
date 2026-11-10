@@ -24,6 +24,20 @@
 #include "SDK/BP_IT_Thermal_classes.hpp"
 #include "SDK/BP_PlayerCameraManager_classes.hpp"
 #include "SDK/BP_ThermalPostProcess_classes.hpp"
+// TEMPORARY until WeaponManager is ported: SDK headers it used to get through
+// PlayerManager.hpp and CameraController.hpp (both ported)
+#include "SDK/UMG_structs.hpp"
+#include "SDK/Gsr_structs.hpp"
+#include "SDK/Gsr_classes.hpp"
+#include "SDK/Ics_parameters.hpp"
+#include "SDK/BP_Player_classes.hpp"
+#include "SDK/HeadMountedDisplay_classes.hpp"
+#include "SDK/BP_SnakeStatus_classes.hpp"
+#include "SDK/Engine_structs.hpp"
+#include "SDK/sv_main_classes.hpp"
+#include "SDK/Radio_classes.hpp"
+#include "SDK/CobraUI_structs.hpp"
+#include "SDK/CobraCutScene_classes.hpp"
 //#include "SDK/BP_IT_Cigar_classes.hpp"
 
 #include "CameraController.hpp"

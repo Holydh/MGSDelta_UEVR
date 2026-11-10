@@ -89,6 +89,7 @@ template <> struct is_value_struct<FTransform> : std::true_type {};
 template <> struct is_value_struct<FLinearColor> : std::true_type {};
 template <> struct is_value_struct<FHitResult> : std::true_type {};
 template <> struct is_value_struct<FName> : std::true_type {};
+template <> struct is_value_struct<FStringArg> : std::true_type {};
 
 template <typename T> struct is_tarray : std::false_type {};
 template <typename T> struct is_tarray<TArray<T>> : std::true_type {};
@@ -118,6 +119,7 @@ constexpr TypeDesc type_desc() {
     else if constexpr (std::is_same_v<U, float>) return { { L"FloatProperty" }, nullptr, "float" };
     else if constexpr (std::is_same_v<U, double>) return { { L"DoubleProperty" }, nullptr, "double" };
     else if constexpr (std::is_same_v<U, FName>) return { { L"NameProperty" }, nullptr, "FName" };
+    else if constexpr (std::is_same_v<U, FStringArg>) return { { L"StrProperty" }, nullptr, "FString" };
     else if constexpr (std::is_same_v<U, FVector>) return { { L"StructProperty" }, L"Vector", "FVector" };
     else if constexpr (std::is_same_v<U, FVector2D>) return { { L"StructProperty" }, L"Vector2D", "FVector2D" };
     else if constexpr (std::is_same_v<U, FRotator>) return { { L"StructProperty" }, L"Rotator", "FRotator" };
@@ -137,6 +139,7 @@ struct PropertyInfo {
     int32_t offset{ -1 };
     std::wstring field_class;  // e.g. L"StructProperty"
     std::wstring struct_name;  // for StructProperty
+    const UStruct* struct_type{}; // for StructProperty
     std::wstring name;
     mutable std::vector<const TypeDesc*> validated; // types already checked OK
     mutable std::vector<const TypeDesc*> rejected;  // types already reported as mismatching
@@ -287,8 +290,11 @@ T* get_ptr(const UObject* obj, std::wstring_view name) {
     return detail::member_ptr<T>((void*)obj, obj->get_class(), name);
 }
 
+// Not for TArray: UEVR's TArray frees its memory when destroyed, so a copy would free the
+// game's array. Use get_ptr<TArray<T>> to access arrays in place.
 template <typename T>
 T get(const UObject* obj, std::wstring_view name, T fallback = T{}) {
+    static_assert(!detail::is_tarray<T>::value, "use ue::get_ptr<TArray<T>> (a TArray copy would free the game's array)");
     if (obj == nullptr) return fallback;
     if constexpr (std::is_same_v<T, bool>) {
         const auto* p = detail::find_property(obj->get_class(), name);
@@ -302,6 +308,7 @@ T get(const UObject* obj, std::wstring_view name, T fallback = T{}) {
 
 template <typename T>
 bool set(UObject* obj, std::wstring_view name, const T& value) {
+    static_assert(!detail::is_tarray<T>::value, "use ue::get_ptr<TArray<T>> to modify arrays in place");
     if (obj == nullptr) return false;
     if constexpr (std::is_same_v<T, bool>) {
         const auto* p = detail::find_property(obj->get_class(), name);
@@ -315,6 +322,39 @@ bool set(UObject* obj, std::wstring_view name, const T& value) {
         return true;
     }
 }
+
+// A struct instance inside an object or another struct, e.g.
+//   auto pov = ue::get_struct(cameraManager, L"CameraCachePrivate").sub(L"POV");
+//   auto location = pov.get<ue::FVector>(L"Location");
+// The struct type is taken from the reflected property, so no struct name is hard-coded.
+class StructRef {
+public:
+    StructRef() = default;
+    StructRef(void* data, const UStruct* type) : m_data(data), m_type(type) {}
+
+    explicit operator bool() const { return m_data != nullptr && m_type != nullptr; }
+    void* data() const { return m_data; }
+    const UStruct* type() const { return m_type; }
+
+    template <typename T>
+    T* member(std::wstring_view name) const {
+        static_assert(!std::is_same_v<T, bool>, "bool struct members may be bitfields: not supported yet");
+        return detail::member_ptr<T>(m_data, m_type, name);
+    }
+    template <typename T>
+    T get(std::wstring_view name, T fallback = T{}) const {
+        static_assert(!detail::is_tarray<T>::value, "use member<TArray<T>> (a TArray copy would free the game's array)");
+        const T* ptr = member<T>(name);
+        return ptr != nullptr ? *ptr : fallback;
+    }
+    StructRef sub(std::wstring_view name) const; // nested struct member
+
+private:
+    void* m_data{};
+    const UStruct* m_type{};
+};
+
+StructRef get_struct(const UObject* obj, std::wstring_view name);
 
 // Member of a struct instance (e.g. a game struct passed to a hooked native function)
 template <typename T>

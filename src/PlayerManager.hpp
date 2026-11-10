@@ -2,14 +2,14 @@
 #include "magic_enum/magic_enum.hpp"
 #include "uevr/API.hpp"
 #include "Utilities.hpp"
-#include "SDK/UMG_structs.hpp"
-#include "SDK/Engine_classes.hpp"
-#include "SDK/Gsr_structs.hpp"
-#include "SDK/Gsr_classes.hpp"
-#include "SDK/Ics_parameters.hpp"
-#include "SDK/BP_Player_classes.hpp"
-#include "SDK/HeadMountedDisplay_classes.hpp"
-#include "SDK/BP_SnakeStatus_classes.hpp"
+#include "ue/Reflection.hpp"
+
+// TEMPORARY: the hand components below keep their SDK pointer types until WeaponManager
+// (their main user) is ported. Forward declarations only, no SDK include needed here.
+namespace SDK {
+	class UMotionControllerComponent;
+	class UPoseableMeshComponent;
+}
 
 
 class PlayerManager {
@@ -25,9 +25,9 @@ public:
 	bool PlayerGotControl();
 	bool PlayerLostControl();
 
-	SDK::EGsrGameStatus CurrentGameStatus = SDK::EGsrGameStatus::InGame;
-	SDK::EGsrUIMenuType CurrentMenuType = SDK::EGsrUIMenuType::None;
-	SDK::EGsrUIMenuType PreviousMenuType = SDK::EGsrUIMenuType::None;
+	ue::EGsrGameStatus CurrentGameStatus = ue::EGsrGameStatus::InGame;
+	ue::EGsrUIMenuType CurrentMenuType = ue::EGsrUIMenuType::None;
+	ue::EGsrUIMenuType PreviousMenuType = ue::EGsrUIMenuType::None;
 	bool IngameUI();
 
 	enum EPlayerAnimState
@@ -67,24 +67,22 @@ public:
 	bool IsCarrying = false;
 	bool WasCarrying = false;
 
-	SDK::EGsrPlayerStance CurrentStance = SDK::EGsrPlayerStance::Stand;
-	SDK::EGsrPlayerStance PreviousStance = SDK::EGsrPlayerStance::Stand;
+	ue::EGsrPlayerStance CurrentStance = ue::EGsrPlayerStance::Stand;
+	ue::EGsrPlayerStance PreviousStance = ue::EGsrPlayerStance::Stand;
 	float ChangeStanceTimer = 0.0f;
 
-	SDK::Params::IcsAnimInstance_OnEnteredState debugParamsTest;
-
 	void GetCurrentPlayerStance(float deltaTime);
-	void ProcessPlayerCharacterState(const SDK::FName& StateName, const SDK::FName& StateMachineName);
+	void ProcessPlayerCharacterState(const ue::FName& StateName, const ue::FName& StateMachineName);
 	void GetCurrentAimStateAndCameraMode();
 
-	SDK::EGsrPlayerCameraControllerCameraMode CurrentCameraMode = SDK::EGsrPlayerCameraControllerCameraMode::Around;
-	SDK::EGsrPlayerCameraControllerCameraMode PreviousCameraMode = SDK::EGsrPlayerCameraControllerCameraMode::Around;
-	SDK::EAimingStatus CurrentAimingStatus = SDK::EAimingStatus::Aiming_None;
+	ue::EGsrPlayerCameraControllerCameraMode CurrentCameraMode = ue::EGsrPlayerCameraControllerCameraMode::Around;
+	ue::EGsrPlayerCameraControllerCameraMode PreviousCameraMode = ue::EGsrPlayerCameraControllerCameraMode::Around;
+	ue::EAimingStatus CurrentAimingStatus = ue::EAimingStatus::Aiming_None;
 
-	SDK::UMotionControllerComponent* LeftController;
-	SDK::UPoseableMeshComponent* LeftHandMesh;
-	SDK::UMotionControllerComponent* RightController;
-	SDK::UPoseableMeshComponent* RightHandMesh;
+	SDK::UMotionControllerComponent* LeftController = nullptr;
+	SDK::UPoseableMeshComponent* LeftHandMesh = nullptr;
+	SDK::UMotionControllerComponent* RightController = nullptr;
+	SDK::UPoseableMeshComponent* RightHandMesh = nullptr;
 
 	void FetchMotionControllers();
 	bool MainHandAttachedToWeapon = false;
@@ -95,38 +93,38 @@ public:
 	void ProcessVRHandsVisibility();
 	void UpdateForkAndKnifeMeleeState(float delta);
 
-	void SetPlayerStance(SDK::EGsrPlayerStance NewStance);
+	void SetPlayerStance(ue::EGsrPlayerStance NewStance);
 	void Cleanup();
-	//EPlayerAnimState GetCurrentPlayerAnimState(const SDK::FName& State);
+	//EPlayerAnimState GetCurrentPlayerAnimState(const ue::FName& State);
 private:
 	//Peep State Machine Name
-	SDK::FName fNameBehind;
+	ue::FName fNameBehind;
 	//Peep States
-	SDK::FName fNamePeepStart;
-	SDK::FName fNamePeepLoop;
-	SDK::FName fNamePeepEnd;
-	SDK::FName fNameAimStart;
-	SDK::FName fNameAimLoop;
+	ue::FName fNamePeepStart;
+	ue::FName fNamePeepLoop;
+	ue::FName fNamePeepEnd;
+	ue::FName fNameAimStart;
+	ue::FName fNameAimLoop;
 	//Rolling State Machine Name
-	SDK::FName fNameBasic;
+	ue::FName fNameBasic;
 	//Rolling States
-	SDK::FName fNameRolling;
+	ue::FName fNameRolling;
 	//Falling from edge State Machine Name
-	SDK::FName fNameElude;
+	ue::FName fNameElude;
 	//Melee attack
-	SDK::FName fNameEnemyCqc;
-	SDK::FName fNameCombo;
-	SDK::FName fNameCombo1;
-	SDK::FName fNameCombo2;
-	SDK::FName fNameCombo3;
-	SDK::FName fNameStab1;
-	SDK::FName fNameStab2;
+	ue::FName fNameEnemyCqc;
+	ue::FName fNameCombo;
+	ue::FName fNameCombo1;
+	ue::FName fNameCombo2;
+	ue::FName fNameCombo3;
+	ue::FName fNameStab1;
+	ue::FName fNameStab2;
 	//Fork and knife StateMachine Name
-	SDK::FName fNameMain;
+	ue::FName fNameMain;
 	//Fork and knife not attacking state
-	SDK::FName fNameHold;
+	ue::FName fNameHold;
 	//Carry State Machine Name
-	SDK::FName fNameCarry;
+	ue::FName fNameCarry;
 	float forkAndKnifeTimer = 0.0f;
 	float forkAndKnifeDuration = 0.1f;
 };
