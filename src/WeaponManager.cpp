@@ -443,7 +443,8 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	auto currentWeapon = ue::call<ue::UObject*>(EquipController, L"GetCurrentWeapon");
 
-	if (CurrentWeapon != currentWeapon)
+	// Also set up again if the weapon's root was freed: a respawned weapon can get the address of the previous one
+	if (CurrentWeapon != currentWeapon || WeaponRoot.expired())
 	{
 		if (PreviousWeaponID == EGsrEquipId::WP_Dragnov || PreviousWeaponID == EGsrEquipId::WP_MosinNagant || PreviousWeaponID == EGsrEquipId::WP_Rpg)
 			ue::call(ReceiverMesh, L"SetVisibility", false, false);
@@ -527,8 +528,9 @@ void WeaponManager::ProcessWeapon(float delta)
 				for (auto child : childrenArray)
 				{
 					if (!child) continue;
-					//Destroy any previous cylinder mesh if still attached
-					if (ue::is_a(child, StaticMeshComponent_c)) {
+					//Destroy any previous cylinder mesh if still attached. Only ours (owned by the scope actor):
+					//the weapon's own meshes belong to the game, which may still use them.
+					if (ScopeActor && ue::is_a(child, StaticMeshComponent_c) && ue::call<ue::UObject*>(child, L"GetOwner") == ScopeActor) {
 						ue::call(child, L"K2_DestroyComponent", child);
 						ScopeStaticMeshComponent = nullptr;
 					}
@@ -680,6 +682,10 @@ void WeaponManager::ProcessWeapon(float delta)
 		return;
 	}
 		
+
+	// The game recreates its left hand object (e.g. when leaving first person view): drop the destroyed one
+	if (LeftHandWeaponRoot && !ue::is_valid(LeftHandWeaponRoot))
+		LeftHandWeaponRoot = nullptr;
 
 	if (!LeftHandWeaponRoot && hasObjectInLeftHand)
 	{
@@ -1106,6 +1112,8 @@ void WeaponManager::SwitchScopeState(bool enable)
 
 void WeaponManager::SpawnScope()
 {
+	if (!ReceiverMesh)
+		return;
 	if (CurrentWeaponID == EGsrEquipId::WP_Dragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant || CurrentWeaponID == EGsrEquipId::WP_Rpg)
 	{
 		spawnScope();
@@ -1144,6 +1152,11 @@ void WeaponManager::Cleanup()
 	DummyCqcKnifeMeshActor = nullptr;
 	DummyCqcKnifeMesh = nullptr;
 	LeftHandWeaponRoot = nullptr;
+	// Set up the weapon again next frame, even if the new one gets the address of the previous one
+	CurrentWeapon = nullptr;
+	WeaponRoot = nullptr;
+	ReceiverMesh = nullptr;
+	playerCameraManager = nullptr;
 }
 
 void WeaponManager::ToggleThermalVisionScanline()

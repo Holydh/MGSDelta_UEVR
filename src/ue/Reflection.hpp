@@ -23,6 +23,7 @@
 #include "uevr/API.hpp"
 #include "ue/Types.hpp"
 #include "ue/Enums.hpp"
+#include "ue/WeakObject.hpp"
 
 namespace ue {
 
@@ -47,6 +48,7 @@ UScriptStruct* find_struct(std::wstring_view full_name);     // logs once if mis
 UObject* default_object(UClass* cls);                        // class default object (CDO)
 
 // Class resolved on first use and cached once found (Blueprint classes load late).
+// Looked up again if the class gets unloaded.
 class ClassRef {
 public:
     constexpr explicit ClassRef(const wchar_t* full_name) : m_full_name(full_name) {}
@@ -56,7 +58,7 @@ public:
 
 private:
     const wchar_t* m_full_name;
-    mutable UClass* m_cached{ nullptr };
+    mutable WeakObject m_cached{};
 };
 
 // GameEngine->GameViewport->World
@@ -137,7 +139,7 @@ constexpr TypeDesc type_desc() {
     else if constexpr (std::is_same_v<U, FLinearColor>) return { { L"StructProperty" }, L"LinearColor", "FLinearColor" };
     else if constexpr (std::is_same_v<U, FHitResult>) return { { L"StructProperty" }, L"HitResult", "FHitResult" };
     else if constexpr (is_tarray<U>::value) return { { L"ArrayProperty" }, nullptr, "TArray" };
-    else if constexpr (is_object_ptr_v<U> || std::is_same_v<U, std::nullptr_t>)
+    else if constexpr (is_object_ptr_v<U> || std::is_same_v<U, std::nullptr_t> || std::is_same_v<U, WeakObject>)
         return { { L"ObjectProperty", L"ClassProperty", L"ObjectPtrProperty" }, nullptr, "UObject*" };
     else static_assert(sizeof(U) == 0, "ue: unsupported property type");
 }
@@ -231,6 +233,8 @@ void write_arg(const PropertyInfo& p, uint8_t* buffer, const T& value) {
         std::memcpy(dst, value.data(), (size_t)struct_size(value.type())); // bitwise, like the SDK did
     } else if constexpr (is_object_ptr_v<U>) {
         *reinterpret_cast<void**>(dst) = (void*)value;
+    } else if constexpr (std::is_same_v<U, WeakObject>) {
+        *reinterpret_cast<void**>(dst) = (void*)value.get(); // nullptr once the object is gone
     } else {
         *reinterpret_cast<U*>(dst) = value;
     }
@@ -464,7 +468,9 @@ R call_static(UClass* cls, std::wstring_view fn_name, const Args&... args) {
 // Convenience
 // ---------------------------------------------------------------------------
 
-// UKismetSystemLibrary::IsValid, null-safe
+// UKismetSystemLibrary::IsValid, null-safe: false for an object destroyed but not garbage
+// collected yet. Reads the object, so never use it on a pointer that may have been freed:
+// keep such pointers in a ue::WeakObject, which returns nullptr once the object is freed.
 inline bool is_valid(const UObject* obj) {
     return obj != nullptr && call_static<bool>(lib::KismetSystem, L"IsValid", obj);
 }

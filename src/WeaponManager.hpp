@@ -21,7 +21,7 @@ private:
 	PlayerManager* const playerManager;
 	CameraController* const cameraController;
 
-	uevr::API::UObject* playerCameraManager = nullptr; // BP_PlayerCameraManager_C
+	ue::WeakObject playerCameraManager; // BP_PlayerCameraManager_C
 
 	float randomRange(float min, float max);
 	void spawnScope();
@@ -44,32 +44,32 @@ public:
 	void ApplyHandMaterialToVRHands();
 
 	bool IsShooting = false;
-	uevr::API::UObject* EquipController = nullptr;
-	uevr::API::UObject* CurrentWeapon = nullptr;
+	ue::WeakObject EquipController;
+	ue::WeakObject CurrentWeapon;
 	uevr::API::UObject* WeaponAttachParent = nullptr; // USceneComponent
-	uevr::API::UObject* WeaponRoot = nullptr;
-	uevr::API::UObject* LeftHandWeaponRoot = nullptr;
-	uevr::API::UObject* ReceiverMesh = nullptr; // USkeletalMeshComponent
+	ue::WeakObject WeaponRoot;
+	ue::WeakObject LeftHandWeaponRoot;
+	ue::WeakObject ReceiverMesh; // USkeletalMeshComponent
 
-	uevr::API::UObject* ItemController = nullptr; // UGsrItemController
-	uevr::API::UObject* CurrentItem = nullptr; // UObject
+	ue::WeakObject ItemController; // UGsrItemController
+	ue::WeakObject CurrentItem; // UObject
 	ue::EGsrItemId CurrentItemID = ue::EGsrItemId::IT_None;
 	ue::EGsrItemId PreviousItemID = ue::EGsrItemId::IT_None;
 
 	float ZoomInput = 0.0f;
-	uevr::API::UObject* ScopeActor = nullptr; // AActor
-	uevr::API::UObject* SourceDragnovScopeWidget = nullptr; // UUserWidget
-	uevr::API::UObject* DragnovScopeWidget = nullptr; // UWidgetComponent
-	uevr::API::UObject* SourceMosinScopeWidget = nullptr; // UUserWidget
-	uevr::API::UObject* MosinScopeWidget = nullptr; // UWidgetComponent
-	uevr::API::UObject* SourceRpgScopeWidget = nullptr; // UUserWidget
-	uevr::API::UObject* RpgScopeWidget = nullptr; // UWidgetComponent
+	ue::WeakObject ScopeActor; // AActor
+	ue::WeakObject SourceDragnovScopeWidget; // UUserWidget
+	ue::WeakObject DragnovScopeWidget; // UWidgetComponent
+	ue::WeakObject SourceMosinScopeWidget; // UUserWidget
+	ue::WeakObject MosinScopeWidget; // UWidgetComponent
+	ue::WeakObject SourceRpgScopeWidget; // UUserWidget
+	ue::WeakObject RpgScopeWidget; // UWidgetComponent
 
-	uevr::API::UObject* ScopeStaticMeshComponent = nullptr; // UStaticMeshComponent
-	uevr::API::UObject* SceneCaptureComponent = nullptr; // USceneCaptureComponent2D
-	uevr::API::UObject* SceneCaptureUStaticMeshComponent = nullptr; // UStaticMeshComponent
+	ue::WeakObject ScopeStaticMeshComponent; // UStaticMeshComponent
+	ue::WeakObject SceneCaptureComponent; // USceneCaptureComponent2D
+	ue::WeakObject SceneCaptureUStaticMeshComponent; // UStaticMeshComponent
 
-	uevr::API::UObject* ScopeRenderTarget = nullptr; // UTextureRenderTarget2D
+	ue::WeakObject ScopeRenderTarget; // UTextureRenderTarget2D
 
 
 	glm::fquat DefaultUevrHookWeaponRotation{};
@@ -88,8 +88,8 @@ public:
 	glm::dvec3 AimPosition{};
 	ue::FRotator CurrentWeaponWorldRotation{};
 
-	uevr::API::UObject* DummyCqcKnifeMeshActor = nullptr; // AActor
-	uevr::API::UObject* DummyCqcKnifeMesh = nullptr; // USkeletalMeshComponent
+	ue::WeakObject DummyCqcKnifeMeshActor; // AActor
+	ue::WeakObject DummyCqcKnifeMesh; // USkeletalMeshComponent
 
 	bool mainHandShouldAttachToWeapon = false;
 	bool secondHandShouldAttachToWeapon = false;

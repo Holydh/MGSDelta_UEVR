@@ -268,14 +268,27 @@ void PlayerManager::GetCurrentAimStateAndCameraMode()
 
 void PlayerManager::FetchMotionControllers()
 {
-	static auto motionControllerComponent_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/HeadMountedDisplay.MotionControllerComponent");
-	auto motionControllerComponents = motionControllerComponent_c->get_objects_matching(false);
-	
-	for (size_t i = 0; i < motionControllerComponents.size(); i++)
+	static ue::ClassRef motionControllerComponent_c{ L"Class /Script/HeadMountedDisplay.MotionControllerComponent" };
+	static const ue::FName leftSource{ L"Left" };
+	static const ue::FName rightSource{ L"Right" };
+	if (!motionControllerComponent_c.get())
+		return;
+
+	LeftController = nullptr;
+	LeftHandMesh = nullptr;
+	RightController = nullptr;
+	RightHandMesh = nullptr;
+	for (auto motionControllerComponent : motionControllerComponent_c.get()->get_objects_matching(false))
 	{
-		auto motionControllerComponent = motionControllerComponents[i];
+		// Skip the previous hands' controllers: destroyed by the Lua script, but not garbage collected yet
+		if (!ue::is_valid(motionControllerComponent))
+			continue;
+		const auto motionSource = ue::get<ue::FName>(motionControllerComponent, L"MotionSource");
+		if (motionSource != leftSource && motionSource != rightSource)
+			continue;
+
 		auto handMesh = ue::call<ue::UObject*>(motionControllerComponent, L"GetChildComponent", 0);
-		if (ue::get<ue::FName>(motionControllerComponent, L"MotionSource") == ue::FName(L"Left"))
+		if (motionSource == leftSource)
 		{
 			LeftController = motionControllerComponent;
 			LeftHandMesh = handMesh;
@@ -314,6 +327,14 @@ void PlayerManager::ProcessVRHandsVisibility()
 
 void PlayerManager::Cleanup()
 {
+	// The VR hands are gone (destroyed by the Lua script, or with the level): forget them and their
+	// weapon attachment, so the hands get attached again once new ones are created.
+	LeftController = nullptr;
 	LeftHandMesh = nullptr;
+	RightController = nullptr;
 	RightHandMesh = nullptr;
+	MainHandAttachedToWeapon = false;
+	if (SecondHandAttachedToWeapon)
+		uevr::API::get()->dispatch_lua_event("TwoHandsHandling", "0");
+	SecondHandAttachedToWeapon = false;
 }

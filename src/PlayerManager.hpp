@@ -72,10 +72,10 @@ public:
 	ue::EGsrPlayerCameraControllerCameraMode PreviousCameraMode = ue::EGsrPlayerCameraControllerCameraMode::Around;
 	ue::EAimingStatus CurrentAimingStatus = ue::EAimingStatus::Aiming_None;
 
-	uevr::API::UObject* LeftController = nullptr;  // MotionControllerComponent
-	uevr::API::UObject* LeftHandMesh = nullptr;    // PoseableMeshComponent
-	uevr::API::UObject* RightController = nullptr; // MotionControllerComponent
-	uevr::API::UObject* RightHandMesh = nullptr;   // PoseableMeshComponent
+	ue::WeakObject LeftController;  // MotionControllerComponent
+	ue::WeakObject LeftHandMesh;    // PoseableMeshComponent
+	ue::WeakObject RightController; // MotionControllerComponent
+	ue::WeakObject RightHandMesh;   // PoseableMeshComponent
 
 	void FetchMotionControllers();
 	bool MainHandAttachedToWeapon = false;

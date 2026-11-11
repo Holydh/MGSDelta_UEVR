@@ -5,14 +5,6 @@ uevr::API::UObject* Utilities::KismetStringLibrary = nullptr;
 uevr::API::UObject* Utilities::GameplayStatics = nullptr;
 uevr::API::UClass* Utilities::ActorClass = nullptr;
 uevr::API::UClass* Utilities::SceneComponentClass = nullptr;
-uevr::API::UClass* Utilities::ABP_SnakeBasicAction_C = nullptr;
-uevr::API::UClass* Utilities::ABP_PlayerEludeAction_C = nullptr;
-uevr::API::UClass* Utilities::ABP_PlayerKnifeReadyAction_C = nullptr;
-uevr::API::UClass* Utilities::ABP_PlayerRollingAction_C = nullptr;
-uevr::API::UClass* Utilities::ABP_PlayerBehindAction_C = nullptr;
-uevr::API::UClass* Utilities::ABP_PlayerMeleeAction_C = nullptr;
-uevr::API::UClass* Utilities::ABP_PlayerCarryAction_C = nullptr;
-uevr::API::UClass* Utilities::ABP_EnemyCqc_C = nullptr;
 
 uevr::API::UObject* Utilities::DebugMesh0 = nullptr;
 uevr::API::UObject* Utilities::DebugMesh1 = nullptr;
@@ -60,78 +52,18 @@ void Utilities::InitHelperClasses()
 	}
 	SceneComponentClass = sceneComponent_c;
 
-	static auto abp_SnakeBasicAction_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_SnakeBasicAction.ABP_SnakeBasicAction_C");
-	if (!abp_SnakeBasicAction_c)
-	{
-		uevr::API::get()->log_error("abp_SnakeBasicAction_c not found");
-		return;
-	}
-	ABP_SnakeBasicAction_C = abp_SnakeBasicAction_c;
-
-	static auto abp_PlayerEludeAction_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerEludeAction.ABP_PlayerEludeAction_C");
-	if (!abp_PlayerEludeAction_c)
-	{
-		uevr::API::get()->log_error("abp_PlayerEludeAction_c not found");
-		return;
-	}
-	//Logger::DebugPrint(abp_PlayerEludeAction_c->get_full_name());
-	ABP_PlayerEludeAction_C = abp_PlayerEludeAction_c;
-
-	static auto abp_PlayerKnifeReadyAction_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerKnifeReadyAction.ABP_PlayerKnifeReadyAction_C");
-	if (!abp_PlayerKnifeReadyAction_C)
-	{
-		uevr::API::get()->log_error("abp_PlayerKnifeReadyAction_C not found");
-		return;
-	}
-	ABP_PlayerKnifeReadyAction_C = abp_PlayerKnifeReadyAction_C;
-
-	static auto abp_PlayerMeleeAction_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerMeleeAction.ABP_PlayerMeleeAction_C");
-	if (!abp_PlayerMeleeAction_C)
-	{
-		uevr::API::get()->log_error("abp_PlayerKnifeReadyAction_C not found");
-		return;
-	}
-	ABP_PlayerMeleeAction_C = abp_PlayerMeleeAction_C;
-
-	static auto abp_PlayerCarryAction_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerCarryAction.ABP_PlayerCarryAction_C");
-	if (!abp_PlayerCarryAction_C)
-	{
-		uevr::API::get()->log_error("abp_PlayerCarryAction_C not found");
-		return;
-	}
-	ABP_PlayerCarryAction_C = abp_PlayerCarryAction_C;
-
-	static auto abp_EnemyCqc_C = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Enemy/Animation/Cqc/ABP_EnemyCqc.ABP_EnemyCqc_C");
-	if (!abp_EnemyCqc_C)
-	{
-		uevr::API::get()->log_error("abp_EnemyCqc_C not found");
-		return;
-	}
-	ABP_EnemyCqc_C = abp_EnemyCqc_C;
-
-	static auto abp_PlayerRollingAction_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerRollingAction.ABP_PlayerRollingAction_C");
-	if (!abp_PlayerRollingAction_c)
-	{
-		uevr::API::get()->log_error("abp_PlayerRollingAction_c not found");
-		return;
-	}
-	ABP_PlayerRollingAction_C = abp_PlayerRollingAction_c;
-
-	static auto abp_PlayerBehindAction_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerBehindAction.ABP_PlayerBehindAction_C");
-	if (!abp_PlayerBehindAction_c)
-	{
-		uevr::API::get()->log_error("abp_PlayerBehindAction_c not found");
-		return;
-	}
-	ABP_PlayerBehindAction_C = abp_PlayerBehindAction_c;
 	//uevr::API::get()->log_info("KismetMathLibrary: %p", KismetMathLibrary);
 	//Logger::DebugPrint("%s", "KismethMathLibraryFound");
 }
 
 uevr::API::UObject* Utilities::SpawnActor(UEVR_Vector3d Position, uevr::API::UObject* Owner)
 {
-	auto gameEngine = uevr::API::get()->get_engine();
-	auto WorldContextObject = gameEngine->get_property<uevr::API::UObject*>(L"GameViewport")->get_property<uevr::API::UObject*>(L"World");
+	auto WorldContextObject = ue::get_world();
+	if (!WorldContextObject || !ActorClass || !SceneComponentClass)
+	{
+		Logger::DebugPrint("SpawnActor: no world, or helper classes not found");
+		return nullptr;
+	}
 	Logger::DebugPrint(WorldContextObject->get_full_name());
 	const ue::FTransform SpawnTransform{ ue::FQuat::Identity(), { Position.x, Position.y, Position.z }, { 1, 1, 1 } };
 
@@ -170,14 +102,8 @@ uevr::API::UObject* Utilities::SpawnMesh(const ue::FTransform& worldTransform, s
 	static ue::ClassRef StaticMeshComponent_c{ L"Class /Script/Engine.StaticMeshComponent" };
 	static ue::ClassRef SkeletalMeshComponent_c{ L"Class /Script/Engine.SkeletalMeshComponent" };
 
-	UEVR_Vector3d uevrVector = { worldTransform.Translation.X, worldTransform.Translation.Y, worldTransform.Translation.Z };
-	auto actor = SpawnActor(uevrVector, nullptr);
-	if (!actor)
-	{
-		return nullptr;
-	}
-
-	// 1. Find the mesh asset already loaded in memory
+	// 1. Find the mesh asset already loaded in memory. Checked before spawning the actor: a failure
+	// must not leave an actor behind (the caller retries every frame).
 	auto mesh = ue::find_object(meshFullName);
 	if (!mesh)
 	{
@@ -201,6 +127,13 @@ uevr::API::UObject* Utilities::SpawnMesh(const ue::FTransform& worldTransform, s
 		return nullptr;
 	}
 
+	UEVR_Vector3d uevrVector = { worldTransform.Translation.X, worldTransform.Translation.Y, worldTransform.Translation.Z };
+	auto actor = SpawnActor(uevrVector, nullptr);
+	if (!actor)
+	{
+		return nullptr;
+	}
+
 	// 2. Create a new mesh component as a sub-object of the Actor
 	// This makes the Actor the "owner" of the new component.
 	auto meshComponent = ue::call<ue::UObject*>(actor, L"AddComponentByClass",
@@ -212,6 +145,7 @@ uevr::API::UObject* Utilities::SpawnMesh(const ue::FTransform& worldTransform, s
 	if (!meshComponent)
 	{
 		Logger::DebugPrint("Failed to create mesh component");
+		ue::call(actor, L"K2_DestroyActor");
 		return nullptr;
 	}
 	Logger::DebugPrint(L"Created mesh component: " + meshComponent->get_full_name());

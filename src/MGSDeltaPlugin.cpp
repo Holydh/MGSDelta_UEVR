@@ -17,10 +17,9 @@ MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
 
 void MGSDeltaPlugin::on_detach(HMODULE hmod)
 {
-	Toggle6DOF(false);
+	// Runs from DllMain (process exit, loader lock held): the engine and UEVR may already be torn
+	// down, so no game or UEVR calls here. Only restore the patched game code.
 	memoryManager.ToggleFrameOffsetCutsceneFixMemoryInstructions(true);
-	API::VR::set_mod_value("VR_2DScreenMode", false);
-	API::VR::set_mod_value("VR_WorldScale", 1.0f);
 }
 
 void MGSDeltaPlugin::on_initialize() {
@@ -126,6 +125,9 @@ void MGSDeltaPlugin::on_custom_event(const char* event_name, const char* event_d
 	/*Logger::DebugPrint("Custom Event: %s %s", event_name, event_data);*/
 	if (strcmp(event_name, "HandsCreated") == 0)
 	{
+		// "0": the Lua script destroyed the VR hands
+		if (strcmp(event_data, "0") == 0)
+			playerManager.Cleanup();
 		if (strcmp(event_data, "1") == 0)
 		{
 			//Toggle6DOF(false);
@@ -136,16 +138,15 @@ void MGSDeltaPlugin::on_custom_event(const char* event_name, const char* event_d
 			weaponManager.ApplyHandMaterialToVRHands();
 		}
 	}
+	// strtof: never throws on unexpected data (std::stof does, and an exception here crashes the game)
 	if (strcmp(event_name, "MouseX") == 0)
 	{
-		ImGuiIO& io = ImGui::GetIO();
-		imGuiMenu.LastMousePosition.x = std::stof(event_data);
+		imGuiMenu.LastMousePosition.x = std::strtof(event_data, nullptr);
 		//Logger::DebugPrint("MouseX: %f", io.MousePos.x);
 	}
 	if (strcmp(event_name, "MouseY") == 0)
 	{
-		ImGuiIO& io = ImGui::GetIO();
-		imGuiMenu.LastMousePosition.y = std::stof(event_data);
+		imGuiMenu.LastMousePosition.y = std::strtof(event_data, nullptr);
 		//Logger::DebugPrint("MouseY: %f", io.MousePos.y);
 	}
 }
@@ -390,18 +391,19 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 
 void MGSDeltaPlugin::CheckLevelChange()
 {
-	static auto gameEngine = API::get()->get_engine();
-	if (gameEngine == nullptr)
-		return;
-	auto world = ue::get<ue::UObject*>(ue::get<ue::UObject*>(gameEngine, L"GameViewport"), L"World");
-	if (currentWorld != world)
+	auto world = ue::get_world();
+	// A new world can be allocated at the address (and object slot) of the previous one, e.g. when
+	// the same map is reloaded: its clock restarting from zero catches that case.
+	const double worldTime = world ? ue::call_static<double>(ue::lib::GameplayStatics, L"GetRealTimeSeconds", world) : 0.0;
+	if (currentWorld != world || worldTime < lastWorldTime)
 	{
 		currentWorld = world;
 		levelChanged = true;
 	}
-	if (currentWorld == nullptr)
+	lastWorldTime = worldTime;
+	if (world == nullptr)
 		return;
-	auto level = ue::get<ue::UObject*>(currentWorld, L"PersistentLevel");
+	auto level = ue::get<ue::UObject*>(world, L"PersistentLevel");
 	if (currentLevel != level)
 	{
 		currentLevel = level;
@@ -419,8 +421,16 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	if (levelChanged)
 	{
 		levelChanged = false;
+		// Everything from the previous world is already destroyed by now: forget it (weak references
+		// make any leftover call a no-op) and start again from a clean state.
+		Toggle6DOF(false);
+		cameraController.DestroyCustom2DScreen();
 		weaponManager.Cleanup();
 		playerManager.Cleanup();
+		// Turns 6DOF back on below if the player still has control in the new level
+		playerManager.WasPlayerControlled = false;
+		// Blueprint classes that weren't loaded at startup (or were reloaded) can be hooked now
+		hookManager.RetryFailedHooks();
 	}
 
 	playerManager.FetchGameState();
@@ -561,8 +571,8 @@ void MGSDeltaPlugin::on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle rend
 void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters, UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
-		auto static cobraCutsceneCameraCtrlMngr_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent");
-	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c->get_first_object_matching(false);
+	static ue::ClassRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
+	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get() ? cobraCutsceneCameraCtrlMngr_c.get()->get_first_object_matching(false) : nullptr;
 	if (!cobraCutsceneCameraCtrlMngr)
 	{
 		Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");

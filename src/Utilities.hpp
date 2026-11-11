@@ -16,15 +16,15 @@ public:
 	static uevr::API::UClass* ActorClass;
 	static uevr::API::UClass* SceneComponentClass;
 
-	//Animation states classes
-	static uevr::API::UClass* ABP_SnakeBasicAction_C;
-	static uevr::API::UClass* ABP_PlayerEludeAction_C;
-	static uevr::API::UClass* ABP_PlayerRollingAction_C;
-	static uevr::API::UClass* ABP_PlayerBehindAction_C;
-	static uevr::API::UClass* ABP_PlayerKnifeReadyAction_C;
-	static uevr::API::UClass* ABP_PlayerMeleeAction_C;
-	static uevr::API::UClass* ABP_PlayerCarryAction_C;
-	static uevr::API::UClass* ABP_EnemyCqc_C;
+	//Animation states classes (Blueprint classes: resolved when first used, they may not be loaded at startup)
+	static inline constinit ue::ClassRef ABP_SnakeBasicAction_C{ L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_SnakeBasicAction.ABP_SnakeBasicAction_C" };
+	static inline constinit ue::ClassRef ABP_PlayerEludeAction_C{ L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerEludeAction.ABP_PlayerEludeAction_C" };
+	static inline constinit ue::ClassRef ABP_PlayerRollingAction_C{ L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerRollingAction.ABP_PlayerRollingAction_C" };
+	static inline constinit ue::ClassRef ABP_PlayerBehindAction_C{ L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerBehindAction.ABP_PlayerBehindAction_C" };
+	static inline constinit ue::ClassRef ABP_PlayerKnifeReadyAction_C{ L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerKnifeReadyAction.ABP_PlayerKnifeReadyAction_C" };
+	static inline constinit ue::ClassRef ABP_PlayerMeleeAction_C{ L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerMeleeAction.ABP_PlayerMeleeAction_C" };
+	static inline constinit ue::ClassRef ABP_PlayerCarryAction_C{ L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerCarryAction.ABP_PlayerCarryAction_C" };
+	static inline constinit ue::ClassRef ABP_EnemyCqc_C{ L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Enemy/Animation/Cqc/ABP_EnemyCqc.ABP_EnemyCqc_C" };
 
 	//Debug Arrow Actor
 	static uevr::API::UObject* DebugMesh0;

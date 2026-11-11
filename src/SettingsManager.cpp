@@ -9,7 +9,7 @@ bool SettingsManager::LoadWeaponConfigFromFile(const fs::path& path, WeaponConfi
 	std::ifstream ifs(path);
     if (!ifs.is_open())
     {
-        Logger::DebugPrint("Failed to open %s", path);
+        Logger::DebugPrint("Failed to open %s", path.string().c_str());
         return false;
     }
 
@@ -20,7 +20,7 @@ bool SettingsManager::LoadWeaponConfigFromFile(const fs::path& path, WeaponConfi
     }
     catch (const std::exception& e)
     {
-        Logger::DebugPrint("JSON parse error in %s : %s",path ,e.what());
+        Logger::DebugPrint("JSON parse error in %s : %s", path.string().c_str(), e.what());
         return false;
     }
 
@@ -78,7 +78,7 @@ void SettingsManager::LoadAllConfigs(const std::filesystem::path& dir)
 
     if (!std::filesystem::exists(dir) || !std::filesystem::is_directory(dir))
     {
-		Logger::DebugPrint("Config folder not found: %s", dir);
+		Logger::DebugPrint("Config folder not found: %s", dir.string().c_str());
         return;
     }
 
@@ -92,7 +92,7 @@ void SettingsManager::LoadAllConfigs(const std::filesystem::path& dir)
         {
             std::string key = entry.path().stem().string(); // e.g. "WP_Mk22"
             g_weaponConfigs[key] = cfg;
-            Logger::DebugPrint("Loaded config for %s", key);
+            Logger::DebugPrint("Loaded config for %s", key.c_str());
         }
     }
 }
@@ -318,7 +318,7 @@ void SettingsManager::SetBoolValueToFile(const std::string& filePath, const std:
 	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		Logger::DebugPrint("Failed to open %s for reading", filePath);
+		Logger::DebugPrint("Failed to open %s for reading", filePath.c_str());
 		return;
 	}
 
@@ -357,7 +357,7 @@ void SettingsManager::SetBoolValueToFile(const std::string& filePath, const std:
 			}
 			else
 			{
-				Logger::DebugPrint("Failed to open %s for writing", filePath);
+				Logger::DebugPrint("Failed to open %s for writing", filePath.c_str());
 			}
 			return;
 		}
@@ -371,7 +371,7 @@ bool SettingsManager::GetBoolValueFromFile(const std::string& filePath, const st
 	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		Logger::DebugPrint("Failed to open %s", filePath);
+		Logger::DebugPrint("Failed to open %s", filePath.c_str());
 		return defaultValue;
 	}
 
@@ -483,7 +483,7 @@ float SettingsManager::GetFloatValueFromFile(const std::string& filePath, const 
 	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		Logger::DebugPrint("Failed to open %s", filePath);
+		Logger::DebugPrint("Failed to open %s", filePath.c_str());
 		return defaultValue;
 	}
 
@@ -511,7 +511,7 @@ float SettingsManager::GetFloatValueFromFile(const std::string& filePath, const 
 			{
 				return std::stof(valueStr); // Convert the string to float
 			}
-			catch (const std::invalid_argument&)
+			catch (const std::logic_error&) // invalid_argument or out_of_range
 			{
 				Logger::DebugPrint("Error: Invalid float value for key: %s", key.c_str());
 				return defaultValue;
@@ -612,7 +612,7 @@ int SettingsManager::GetIntValueFromFile(const std::string& filePath, const std:
 			{
 				return std::stoi(valueStr);
 			}
-			catch (const std::invalid_argument&)
+			catch (const std::logic_error&) // invalid_argument or out_of_range
 			{
 				Logger::DebugPrint("Error: Invalid int value for key: %s", key.c_str());
 				return defaultValue;

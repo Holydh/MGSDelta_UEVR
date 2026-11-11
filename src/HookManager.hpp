@@ -36,6 +36,19 @@ private:
     // Reads the state names from an OnEnteredState call and forwards them to the PlayerManager
     static void ForwardEnteredState(uevr::API::UFunction* fn, void* locals);
 
+    // Blueprint hooks are kept so they can be applied again: a Blueprint class may not be loaded
+    // yet when the plugin starts, or get unloaded and reloaded with the levels.
+    struct BlueprintHook {
+        std::wstring class_name;
+        std::wstring fn_name;
+        UEVR_UFunction_NativePreFn pre;
+        UEVR_UFunction_NativePostFn post;
+        bool use_native;
+        ue::WeakObject hooked_function; // nullptr until hooked, or once that function is unloaded
+    };
+    std::vector<BlueprintHook> m_bp_hooks;
+    static bool apply_bp_hook(BlueprintHook& hook);
+
 public:
     HookManager(WeaponManager* wm, CameraController* cc, PlayerManager* pm) : weaponManager(wm), cameraController(cc), playerManager(pm) {};
     void Initialize();
@@ -43,6 +56,8 @@ public:
 
     // Standard hook :
     bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native);
+    // Applies the hooks whose class wasn't found yet, or whose function was unloaded since
+    void RetryFailedHooks();
     static bool mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     static bool mod_PlayerKnife_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);

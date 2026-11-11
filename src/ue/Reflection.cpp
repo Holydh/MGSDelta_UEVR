@@ -3,6 +3,7 @@
 #include <windows.h>
 
 #include <cstring>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
@@ -45,23 +46,39 @@ struct WStringHash {
 template <typename V>
 using NameMap = std::unordered_map<std::wstring, V, WStringHash, std::equal_to<>>;
 
-// Per-struct cache. The struct's FName is kept to detect a class unloaded and another
-// one allocated at the same address (the cache is then flushed for that address).
+// Per-struct cache. The struct's name, first property and parent are kept to detect a struct
+// unloaded and another one allocated at the same address (the cache is then flushed for that
+// address). The name alone isn't enough: a Blueprint class reloaded at the same address has
+// the same name, but new properties and functions.
 struct StructCache {
     int32_t name_index{};
     int32_t name_number{};
+    const void* first_property{};
+    const UStruct* super{};
     NameMap<std::unique_ptr<detail::PropertyInfo>> properties; // nullptr = known missing
     NameMap<std::unique_ptr<detail::FunctionInfo>> functions;  // nullptr = known missing
 };
 std::unordered_map<const UStruct*, StructCache> g_cache;
 
+// Flushed entries are kept alive: a FunctionInfo cached for another struct can still point to
+// their PropertyInfos (function parameters are cached under the function's own entry).
+std::list<StructCache> g_retired_caches;
+
 StructCache& cache_for(const UStruct* owner) {
     const auto* fname = owner->get_fname();
+    const void* first_property = owner->get_child_properties();
+    const UStruct* super = owner->get_super();
     auto& entry = g_cache[owner];
-    if (entry.name_index != fname->comparison_index || entry.name_number != fname->number) {
+    if (entry.name_index != fname->comparison_index || entry.name_number != fname->number ||
+        entry.first_property != first_property || entry.super != super) {
+        if (!entry.properties.empty() || !entry.functions.empty()) {
+            g_retired_caches.push_back(std::move(entry));
+        }
         entry = StructCache{};
         entry.name_index = fname->comparison_index;
         entry.name_number = fname->number;
+        entry.first_property = first_property;
+        entry.super = super;
     }
     return entry;
 }
@@ -185,10 +202,43 @@ FName::FName(std::wstring_view name) {
 }
 
 UClass* ClassRef::get() const {
-    if (m_cached == nullptr) {
-        m_cached = uevr::API::get()->find_uobject<UClass>(m_full_name);
+    if (auto* cls = m_cached.get()) {
+        return static_cast<UClass*>(cls);
     }
-    return m_cached;
+    auto* cls = uevr::API::get()->find_uobject<UClass>(m_full_name);
+    m_cached = cls;
+    return cls;
+}
+
+void WeakObject::assign(UObject* object) {
+    reset();
+    if (object == nullptr) return;
+    m_object = object;
+    m_class = object->get_class();
+    // UObjectBase::InternalIndex, right after the vtable and the object flags (same in UE4 and UE5)
+    const int32_t index = *reinterpret_cast<const int32_t*>(reinterpret_cast<const uint8_t*>(object) + 0xC);
+    const auto* objects = uevr::API::FUObjectArray::get();
+    if (objects != nullptr && index >= 0 && index < objects->get_object_count() && objects->get_object(index) == object) {
+        m_index = index;
+    } else {
+        log_error_once("WeakObject: object index not found in GUObjectArray, using UObjectHook::exists instead");
+    }
+}
+
+UObject* WeakObject::get() const {
+    if (m_object == nullptr) return nullptr;
+    if (m_index >= 0) {
+        // Never reads the object itself: if it was freed, its slot is empty or holds another object
+        const auto* objects = uevr::API::FUObjectArray::get();
+        if (objects == nullptr || m_index >= objects->get_object_count() || objects->get_object(m_index) != m_object) {
+            return nullptr;
+        }
+    } else if (!uevr::API::UObjectHook::exists(m_object)) {
+        return nullptr;
+    }
+    // Same slot and address, but a different kind of object
+    if (m_object->get_class() != m_class) return nullptr;
+    return m_object;
 }
 
 namespace detail {

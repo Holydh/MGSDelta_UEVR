@@ -30,10 +30,11 @@ void CameraController::DestroyCameraAttachementActor()
 {
 	if (CameraAttachementActor != nullptr) {
 		ue::call(CameraAttachementActor, L"K2_DestroyActor");
-		CameraAttachementActor = nullptr;
-		IsCameraAttachedToAttachementActor = false;
 		Logger::DebugPrint("Camera Attachement Actor Destroyed");
 	}
+	// Also when the actor is already gone (destroyed with its level)
+	CameraAttachementActor = nullptr;
+	IsCameraAttachedToAttachementActor = false;
 	CameraAttachementActorAvailable = false;
 }
 
@@ -632,7 +633,7 @@ void CameraController::ApplyCutsceneSettings()
 		{
 			SpawnCustom2DScreen();
 		}
-		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)));
+		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)).c_str());
 		uevr::API::VR::set_mod_value("VR_2DScreenMode", ActualCutsceneState == CameraController::CutsceneState::Playing2D ?	true : false);
 		uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesPtr ? 1.0f : 0.0f);
 		uevr::API::VR::set_mod_value("VR_DecoupledPitch", *settingsManager->EnableImmersiveModePtr);
@@ -640,7 +641,7 @@ void CameraController::ApplyCutsceneSettings()
 	if (CutsceneStops())
 	{
 		DestroyCustom2DScreen();
-		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)));
+		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)).c_str());
 		uevr::API::VR::set_mod_value("VR_DecoupledPitch", true);
 		uevr::API::VR::set_mod_value("VR_2DScreenMode", false);
 		uevr::API::VR::set_mod_value("VR_WorldScale", 1.0f);
@@ -674,14 +675,8 @@ void CameraController::SpawnCustom2DScreen()
 	static ue::ClassRef staticMesh_c{ L"Class /Script/Engine.StaticMesh" };
 	static ue::ClassRef staticMeshComponent_c{ L"Class /Script/Engine.StaticMeshComponent" };
 
-	UEVR_Vector3d uevrVector = { 0.0f, 0.0f, 0.0f };
-	auto actor = Utilities::SpawnActor(uevrVector, nullptr);
-	if (!actor)
-	{
-		return;
-	}
-
-    // 1. Find the mesh asset already loaded in memory
+    // 1. Find the assets already loaded in memory. Checked before spawning the actor: this runs every
+	// frame of a cutscene until it succeeds, so a failure must not leave an actor behind.
 	auto staticMesh = ue::find_object(L"StaticMesh /Engine/BasicShapes/Plane.Plane");
     if (ue::is_a(staticMesh, staticMesh_c))
     {
@@ -697,6 +692,13 @@ void CameraController::SpawnCustom2DScreen()
 	if (!translucentMat)
 	{
 		Logger::DebugPrint("Failed to find material for 2D screen");
+		return;
+	}
+
+	UEVR_Vector3d uevrVector = { 0.0f, 0.0f, 0.0f };
+	auto actor = Utilities::SpawnActor(uevrVector, nullptr);
+	if (!actor)
+	{
 		return;
 	}
 
@@ -721,6 +723,7 @@ void CameraController::SpawnCustom2DScreen()
 		if (!staticMeshComponent)
 		{
 			Logger::DebugPrint("Failed to create UStaticMeshComponent");
+			ue::call(actor, L"K2_DestroyActor");
 			return;
 		}
 		Logger::DebugPrint(L"Created StaticMeshComponent: " + staticMeshComponent->get_full_name());

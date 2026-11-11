@@ -107,11 +107,11 @@ void HookManager::ForwardEnteredState(uevr::API::UFunction* fn, void* locals)
 bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
 	//Logger::DebugPrint(obj->get_class()->get_full_name());
-	if (obj->is_a(Utilities::ABP_SnakeBasicAction_C) || 
-		obj->is_a(Utilities::ABP_PlayerRollingAction_C) || 
-		obj->is_a(Utilities::ABP_PlayerBehindAction_C) || 
-		obj->is_a(Utilities::ABP_PlayerMeleeAction_C) ||
-		obj->is_a(Utilities::ABP_PlayerCarryAction_C))
+	if (ue::is_a(obj, Utilities::ABP_SnakeBasicAction_C) || 
+		ue::is_a(obj, Utilities::ABP_PlayerRollingAction_C) || 
+		ue::is_a(obj, Utilities::ABP_PlayerBehindAction_C) || 
+		ue::is_a(obj, Utilities::ABP_PlayerMeleeAction_C) ||
+		ue::is_a(obj, Utilities::ABP_PlayerCarryAction_C))
 	{
 		ForwardEnteredState(fn, locals);
 	}
@@ -121,7 +121,7 @@ bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::U
 
 bool HookManager::mod_PlayerKnife_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {	
-	if (!obj->is_a(Utilities::ABP_PlayerKnifeReadyAction_C))
+	if (!ue::is_a(obj, Utilities::ABP_PlayerKnifeReadyAction_C))
 		return true;
 
 	ForwardEnteredState(fn, locals);
@@ -131,7 +131,7 @@ bool HookManager::mod_PlayerKnife_OnEnteredState_post(uevr::API::UFunction* fn, 
 
 bool HookManager::mod_PlayerCqcAction_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {	
-	if (!obj->is_a(Utilities::ABP_EnemyCqc_C))
+	if (!ue::is_a(obj, Utilities::ABP_EnemyCqc_C))
 		return true;
 
 	ForwardEnteredState(fn, locals);
@@ -141,7 +141,7 @@ bool HookManager::mod_PlayerCqcAction_OnEnteredState_post(uevr::API::UFunction* 
 
 bool HookManager::mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	if (!obj->is_a(Utilities::ABP_PlayerEludeAction_C))
+	if (!ue::is_a(obj, Utilities::ABP_PlayerEludeAction_C))
 		return true;
 
 	ForwardEnteredState(fn, locals);
@@ -151,6 +151,8 @@ bool HookManager::mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn
 
 bool HookManager::mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
+	// The Lua script destroys the VR hands and creates new ones: forget the current ones now
+	s_playerManager->Cleanup();
 	uevr::API::get()->dispatch_lua_event("HandsReset", "0");
 	return true;
 }
@@ -164,25 +166,40 @@ bool HookManager::mod_CobraLevelSequence_OnCameraCut_post(uevr::API::UFunction* 
 
 bool HookManager::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native)
 {
+	auto& hook = m_bp_hooks.emplace_back(BlueprintHook{ std::wstring{ class_name }, std::wstring{ fn_name }, pre, post, use_native });
+	return apply_bp_hook(hook);
+}
+
+void HookManager::RetryFailedHooks()
+{
+	for (auto& hook : m_bp_hooks)
+	{
+		if (!hook.hooked_function)
+			apply_bp_hook(hook);
+	}
+}
+
+bool HookManager::apply_bp_hook(BlueprintHook& hook)
+{
 	Logger::DebugPrint("Entering hook_bp_fn");
-	auto obj = (uevr::API::UClass*)uevr::API::get()->find_uobject(class_name);
+	auto obj = (uevr::API::UClass*)uevr::API::get()->find_uobject(hook.class_name);
 
 	if (obj == nullptr) {
-		Logger::DebugPrint("Failed to find %ls", class_name.data());
+		Logger::DebugPrint("Failed to find %ls", hook.class_name.c_str());
 		return false;
 	}
 
-	auto fn = obj->find_function(fn_name);
+	auto fn = obj->find_function(hook.fn_name);
 
 	if (fn == nullptr) {
-		Logger::DebugPrint("Failed to find %ls", fn_name.data());
+		Logger::DebugPrint("Failed to find %ls", hook.fn_name.c_str());
 		return false;
 	}
 
 	Logger::DebugPrint("getting function flags");
 	uint32_t flags = fn->get_function_flags();
 
-	if (use_native)
+	if (hook.use_native)
 	{
 		flags = flags | 0x400;
 	}
@@ -194,6 +211,9 @@ bool HookManager::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_
 	Logger::DebugPrint("Setting function flags to 0x%08x", flags);
 	fn->set_function_flags(flags);
 	
-	Logger::DebugPrint("Calling hook_ptr for %ls", fn_name.data());
-	return uevr::API::get()->param()->sdk->ufunction->hook_ptr((UEVR_UFunctionHandle)fn, pre, post);
+	Logger::DebugPrint("Calling hook_ptr for %ls", hook.fn_name.c_str());
+	const bool hooked = uevr::API::get()->param()->sdk->ufunction->hook_ptr((UEVR_UFunctionHandle)fn, hook.pre, hook.post);
+	if (hooked)
+		hook.hooked_function = fn;
+	return hooked;
 }

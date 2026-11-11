@@ -412,7 +412,7 @@ void ImGuiMenu::internalFrame()
 				settingsManager->SettingsModifiedThisFrame = true;
 				if (!*settingsManager->EnableWeaponsScopesPtr)
 					weaponManager->DestroyScope();
-				else
+				else if (playerManager->IsPlayerControlled)
 					weaponManager->SpawnScope();
 			}
 			if (ImGui::IsItemHovered())
@@ -635,11 +635,16 @@ bool ImGuiMenu::initializeImGui() {
 
 	std::scoped_lock _{ m_imgui_mutex };
 
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
+	// Initialization runs again after each device reset (desktop <-> VR): keep the same context
+	// instead of leaking a new one every time
+	if (ImGui::GetCurrentContext() == nullptr)
+	{
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
 
-	static const auto imgui_ini = uevr::API::get()->get_persistent_dir(L"imgui_mgsDeltaVR_plugin.ini").string();
-	ImGui::GetIO().IniFilename = imgui_ini.c_str();
+		static const auto imgui_ini = uevr::API::get()->get_persistent_dir(L"imgui_mgsDeltaVR_plugin.ini").string();
+		ImGui::GetIO().IniFilename = imgui_ini.c_str();
+	}
 	//ImGui::GetIO().MouseDrawCursor = true;
 	const auto renderer_data = uevr::API::get()->param()->renderer;
 

@@ -39,7 +39,7 @@ public:
 	UEVR_Rotatord LastCameraRotation = { 0.0f, 0.0f, 0.0f };
 	ue::FVector CameraForwardVector = { 1.0f, 0.0f, 0.0f };
 
-	uevr::API::UObject* CameraAttachementActor = nullptr;
+	ue::WeakObject CameraAttachementActor;
 	bool SpawnCameraAttachementActor();
 	void DestroyCameraAttachementActor();
 	void AttachCameraToAttachementActor();
@@ -83,7 +83,7 @@ public:
 	void SpawnCustom2DScreen();
 	void ResizeBlackBars();
 	void DestroyCustom2DScreen();
-	uevr::API::UObject* Custom2DScreen = nullptr;
+	ue::WeakObject Custom2DScreen;
 	//void SetNearClipPlane(float nearClip);
 
 	bool CardBoardEquipped = false;

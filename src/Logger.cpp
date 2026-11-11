@@ -3,13 +3,7 @@
 
 #define MAX_DEBUG_MESSAGE_SIZE 2048
 
-namespace {
-    // Helper: convert wide string to UTF-8 std::string
-    inline std::string WStringToUtf8(const std::wstring& wstr) {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
-        return conv.to_bytes(wstr);
-    }
-}
+#include "ue/Types.hpp"
 
 void Logger::DebugPrint(const char* Format, ...)
 {
@@ -34,7 +28,7 @@ void Logger::DebugPrint(const std::wstring& wstr)
     if (!g_DebugEnabled)
         return;
 
-    std::string utf8msg = WStringToUtf8(wstr);
+    std::string utf8msg = ue::narrow(wstr);
 
     // Print to console
     printf("%s\n", utf8msg.c_str());

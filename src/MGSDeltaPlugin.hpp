@@ -32,8 +32,9 @@ class MGSDeltaPlugin : public uevr::Plugin {
 private:
 	void Toggle6DOF(bool enable);
     void CheckLevelChange();
-	uevr::API::UObject* currentWorld = nullptr;
-	uevr::API::UObject* currentLevel = nullptr;
+	ue::WeakObject currentWorld;
+	ue::WeakObject currentLevel;
+	double lastWorldTime = 0.0;
     bool levelChanged = false;
     bool vr_enabled = false;
 

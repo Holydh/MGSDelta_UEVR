@@ -25,9 +25,9 @@ private:
 	CameraController* const cameraController;
 	PlayerManager* const playerManager;
 
-	HWND m_wnd;
+	HWND m_wnd{};
     bool m_initialized = false;
-    bool m_was_rendering_desktop;
+    bool m_was_rendering_desktop = false;
 
     
     std::string_view Framework_UI_Distance = "UI_Framework_Distance";
