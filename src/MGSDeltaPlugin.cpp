@@ -27,7 +27,9 @@ void MGSDeltaPlugin::on_initialize() {
 	API::get()->log_info("%s", "on_initialize");
 	std::filesystem::path config_file = API::get()->get_persistent_dir() / "plugins" / "aimfix.txt";
 	std::filesystem::path debug_file = API::get()->get_persistent_dir() / "debug";
-	std::filesystem::path uobjectHook_file = API::get()->get_persistent_dir() / "uobjecthook";
+	// Weapon offsets (weapon and hands) read by the plugin. Kept out of the uobjecthook folder: UEVR loads every
+	// file there as its own state files.
+	std::filesystem::path weaponConfigsDir = API::get()->get_persistent_dir() / "weapons";
 	// Check if the file exists
 	g_DebugEnabled = std::filesystem::exists(debug_file);
 	if (g_DebugEnabled) {
@@ -45,7 +47,7 @@ void MGSDeltaPlugin::on_initialize() {
 	weaponManager.InitWeaponManager();
 	settingsManager.InitSettingsManager();
 	settingsManager.GetOrCreateConfigFile();
-	settingsManager.LoadAllConfigs(uobjectHook_file);
+	settingsManager.LoadAllConfigs(weaponConfigsDir);
 	playerManager.ConvertAllRequiredStringToFnames();
 	hookManager.Initialize();
 	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_OnEnteredState_post, true);
@@ -571,8 +573,8 @@ void MGSDeltaPlugin::on_post_slate_draw_window(UEVR_FSlateRHIRendererHandle rend
 void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters, UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
-	static ue::ClassRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
-	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get() ? cobraCutsceneCameraCtrlMngr_c.get()->get_first_object_matching(false) : nullptr;
+	static ue::SingletonRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
+	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get();
 	if (!cobraCutsceneCameraCtrlMngr)
 	{
 		Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");

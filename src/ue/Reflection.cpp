@@ -210,6 +210,24 @@ UClass* ClassRef::get() const {
     return cls;
 }
 
+UObject* SingletonRef::get() const {
+    // is_valid also rejects an instance destroyed but not garbage collected yet: during a level
+    // change the old and new instances can both be in the object list for a while
+    if (auto* obj = m_cached.get(); obj != nullptr && is_valid(obj)) {
+        return obj;
+    }
+    m_cached.reset();
+    auto* cls = m_class.get();
+    if (cls == nullptr) return nullptr;
+    for (auto* obj : cls->get_objects_matching(false)) {
+        if (is_valid(obj)) {
+            m_cached = obj;
+            return obj;
+        }
+    }
+    return nullptr;
+}
+
 void WeakObject::assign(UObject* object) {
     reset();
     if (object == nullptr) return;

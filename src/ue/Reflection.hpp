@@ -61,6 +61,20 @@ private:
     mutable WeakObject m_cached{};
 };
 
+// The live instance of a class the game has a single one of (a subsystem, the camera manager...).
+// The engine's object list is only searched when the cached instance is gone or being destroyed
+// (e.g. after a level change), instead of on every use.
+class SingletonRef {
+public:
+    constexpr explicit SingletonRef(const wchar_t* class_full_name) : m_class(class_full_name) {}
+    UObject* get() const;
+    operator UObject*() const { return get(); }
+
+private:
+    ClassRef m_class;
+    mutable WeakObject m_cached{};
+};
+
 // GameEngine->GameViewport->World
 UObject* get_world();
 

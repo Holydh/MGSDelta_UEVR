@@ -8,7 +8,7 @@ constinit ue::ClassRef WidgetComponent_c{ L"Class /Script/UMG.WidgetComponent" }
 constinit ue::ClassRef Image_c{ L"Class /Script/UMG.Image" };
 constinit ue::ClassRef GsrGun_c{ L"Class /Script/Gsr.GsrGun" };
 constinit ue::ClassRef PlayerCameraManagerBP_c{ L"BlueprintGeneratedClass /Game/Blueprints/Camera/BP_PlayerCameraManager.BP_PlayerCameraManager_C" };
-constinit ue::ClassRef GsrPlayerCameraController_c{ L"Class /Script/Gsr.GsrPlayerCameraController" };
+constinit ue::SingletonRef GsrPlayerCameraController_c{ L"Class /Script/Gsr.GsrPlayerCameraController" };
 constinit ue::ClassRef CSightDragnovWidget_c{ L"Class /Script/CobraUI.CSightDragnovWidget" };
 constinit ue::ClassRef CSightMosinWidget_c{ L"Class /Script/CobraUI.CSightMosinWidget" };
 constinit ue::ClassRef CSightRpg7Widget_c{ L"Class /Script/CobraUI.CSightRpg7Widget" };
@@ -383,6 +383,23 @@ void WeaponManager::ProcessTwoHandsGrabWeaponLocationAndRotation()
 }
 
 
+// Makes UEVR hold the weapon in the right hand, with the offsets of the weapon's config file
+void WeaponManager::AttachWeaponRootToHand()
+{
+	if (!WeaponRoot)
+		return;
+	UEVR_Vector3f defaultPos = { DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y, DefaultUevrHookWeaponPosition.z };
+	UEVR_Quaternionf defaultRot = {DefaultUevrHookWeaponRotation.w, DefaultUevrHookWeaponRotation.x, DefaultUevrHookWeaponRotation.y, DefaultUevrHookWeaponRotation.z};
+
+	auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(WeaponRoot);
+	if (!motionState)
+		return;
+	motionState->set_location_offset(&defaultPos);
+	motionState->set_rotation_offset(&defaultRot);
+	motionState->set_hand(1);
+	motionState->set_permanent(true);
+}
+
 void WeaponManager::RemoveUobjectHookFromHand(Hand handSide)
 {
 	ue::FHitResult outHit;
@@ -501,14 +518,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		CurrentRelativeWeaponRotation = DefaultRelativeWeaponRotation;
 		CurrentRelativeWeaponRotationEuler = glm::eulerAngles(CurrentRelativeWeaponRotation);
 
-		UEVR_Vector3f defaultPos = { DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y, DefaultUevrHookWeaponPosition.z };
-		UEVR_Quaternionf defaultRot = {DefaultUevrHookWeaponRotation.w, DefaultUevrHookWeaponRotation.x, DefaultUevrHookWeaponRotation.y, DefaultUevrHookWeaponRotation.z};
-
-		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(WeaponRoot);
-		motionState->set_location_offset(&defaultPos);
-		motionState->set_rotation_offset(&defaultRot);
-		motionState->set_hand(1);
-		motionState->set_permanent(true);
+		AttachWeaponRootToHand();
 
 
 
@@ -556,7 +566,15 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 
 		if (mainHandShouldAttachToWeapon)
-			AttachHandNextFrame = true;	
+			AttachHandNextFrame = true;
+	}
+
+	// The weapon is detached from the hand during melee attacks, while carrying, with the scope item, and
+	// while the player has no control (menus, radio, cutscenes): put it back once none of these applies.
+	if (WeaponRoot && !playerManager->MeleeAttackRunning && !playerManager->IsCarrying && CurrentItemID != ue::EGsrItemId::IT_Scope &&
+		uevr::API::UObjectHook::get_motion_controller_state(WeaponRoot) == nullptr)
+	{
+		AttachWeaponRootToHand();
 	}
 
 	if (CurrentWeaponID == EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
@@ -1067,7 +1085,7 @@ void WeaponManager::SetAimDirection()
 		return;
 	//Will be used to control the grenades throw direction
 	//This controls only the aim when the camera controller is disabled. When cc enabled, it controls the camera rotation but the inputs are conflicting.
-	auto gsrCameraController = firstObjectOf(GsrPlayerCameraController_c);
+	auto gsrCameraController = GsrPlayerCameraController_c.get();
 
 	//Logger::DebugPrint(root_component->get_full_name());
 	if (gsrCameraController == nullptr || !cameraController->CameraAttachementActor)

@@ -121,16 +121,16 @@ void CameraController::ProcessCamera(float deltaTime)
 	float remappedLerpXYMultiplier = Utilities::Remap(*settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
 	float remappedLerpZMultiplier = Utilities::Remap(*settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
 
-	static ue::ClassRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
-	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get() ? cobraCutsceneCameraCtrlMngr_c.get()->get_first_object_matching(false) : nullptr;
+	static ue::SingletonRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
+	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get();
 	if (!cobraCutsceneCameraCtrlMngr)
 	{
 		Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");
 		return;
 	}
 
-	static ue::ClassRef playerCameraManager_c{ L"Class /Script/Cobra.CobraPlayerCameraManager" };
-	auto playerCameraManager = playerCameraManager_c.get() ? playerCameraManager_c.get()->get_first_object_matching(false) : nullptr;
+	static ue::SingletonRef playerCameraManager_c{ L"Class /Script/Cobra.CobraPlayerCameraManager" };
+	auto playerCameraManager = playerCameraManager_c.get();
 	if (!playerCameraManager)
 	{
 		Logger::DebugPrint("PlayerCameraManager not found");
@@ -586,8 +586,8 @@ void CameraController::FixRadioMenuRendering()
 
 void CameraController::CheckCutscenePlaying()
 {
-	static ue::ClassRef gameStateSubsystem_c{ L"Class /Script/Gsr.GsrGameStateSubsystem" };
-	auto gameStateSubsystem = gameStateSubsystem_c.get() ? gameStateSubsystem_c.get()->get_first_object_matching(false) : nullptr;
+	static ue::SingletonRef gameStateSubsystem_c{ L"Class /Script/Gsr.GsrGameStateSubsystem" };
+	auto gameStateSubsystem = gameStateSubsystem_c.get();
 	bool cutscene = false;
 	bool movie = false;
 
@@ -649,8 +649,8 @@ void CameraController::ApplyCutsceneSettings()
 
 	if (CutscenePlaying())
 	{
-		static ue::ClassRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
-		auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get() ? cobraCutsceneCameraCtrlMngr_c.get()->get_first_object_matching(false) : nullptr;
+		static ue::SingletonRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
+		auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get();
 		if (!cobraCutsceneCameraCtrlMngr)
 		{
 			Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");

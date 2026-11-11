@@ -368,6 +368,7 @@ public:
 	void FetchEquipController();
 	void SpawnDummyCqcKnifeMesh();
 	void ToggleDummyCQCKnifeMeshVisibility();
+	void AttachWeaponRootToHand();
 	void RemoveUobjectHookFromHand(Hand handSide);
 	void ProcessWeapon(float delta);
 	void FetchWeaponMeshAimData();

@@ -270,16 +270,6 @@ void ImGuiMenu::internalFrame()
 	if (!uevr::API::get()->param()->functions->is_drawing_ui())
 		return;
 	//ImGui::GetIO().WantCaptureMouse = false; //API::get()->param()->functions->is_drawing_ui;
-	static auto spot_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.SpotLight");
-	auto kismet_system_library = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.KismetSystemLibrary")->get_class_default_object();
-	auto kismet_math_library = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.KismetMathLibrary")->get_class_default_object();
-	auto kismet_rendering_library = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.KismetRenderingLibrary")->get_class_default_object();
-	auto kismet_material_library = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.KismetMaterialLibrary")->get_class_default_object();
-	auto kismet_input_library = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.KismetInputLibrary")->get_class_default_object();
-	auto kismet_string_library = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.KismetStringLibrary")->get_class_default_object();
-	auto kismet_array_library = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.KismetArrayLibrary")->get_class_default_object();
-	auto kismet_text_library = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.KismetTextLibrary")->get_class_default_object();
-	auto statics = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.GameplayStatics")->get_class_default_object();
 	
 	if (!imguiSettingsInitialized)
 	{

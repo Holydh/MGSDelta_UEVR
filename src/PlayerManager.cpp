@@ -87,8 +87,8 @@ void PlayerManager::ToggleReticleVisibility(bool visible)
 
 void PlayerManager::FetchGameState()
 {
-	static ue::ClassRef gsrGameStateSubsystem_c{ L"Class /Script/Gsr.GsrGameStateSubsystem" };
-	auto gsrGameStateSubsystem = gsrGameStateSubsystem_c.get() ? gsrGameStateSubsystem_c.get()->get_first_object_matching(false) : nullptr;
+	static ue::SingletonRef gsrGameStateSubsystem_c{ L"Class /Script/Gsr.GsrGameStateSubsystem" };
+	auto gsrGameStateSubsystem = gsrGameStateSubsystem_c.get();
 	IsPlayerControlled = ue::call<bool>(gsrGameStateSubsystem, L"CheckGameStatus", CurrentGameStatus);
 
 	CurrentMenuType = ue::call<ue::EGsrUIMenuType>(gsrGameStateSubsystem, L"GetUIMenuType");
