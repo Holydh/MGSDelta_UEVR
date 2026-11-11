@@ -109,7 +109,8 @@ bool D3D12::initialize() {
     auto& backbuffer = this->get_rt(D3D12::RTV::BACKBUFFER_0);
     auto desc = backbuffer->GetDesc();
 
-    if (!ImGui_ImplDX12_Init(device, 1, desc.Format, this->srv_desc_heap.Get(),
+    // 3: the menu is drawn twice per frame (VR UI + spectator), each draw needs its own vertex buffers
+    if (!ImGui_ImplDX12_Init(device, 3, desc.Format, this->srv_desc_heap.Get(),
         this->get_cpu_srv(device, D3D12::SRV::IMGUI_FONT), this->get_gpu_srv(device, D3D12::SRV::IMGUI_FONT))) 
     {
         return false;

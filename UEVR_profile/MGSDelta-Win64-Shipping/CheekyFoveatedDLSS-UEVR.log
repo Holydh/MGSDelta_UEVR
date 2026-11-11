@@ -2939,3 +2939,333 @@
 18:28:01.015 [P36732 T13164] D3D12 canonical history view=9223373876459300568 calls=11401 resets=19 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1441x1470@0,0 offset=0.000000,0.000000 mvScale=0.377621,0.377504
 18:28:01.015 [P36732 T13164] D3D12 canonical history view=9223373876459355480 calls=11401 resets=19 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1441x1470@0,0 offset=0.000000,0.000000 mvScale=0.377621,0.377504
 18:28:01.082 [P36732 T13164] FG guide capture prepared_eyes=0 raw_eyes=0 fallbacks=0 allocated_eye_slots=0 consumer_leased_eyes=0 actual_bytes=0 equivalent_raw_snapshot_bytes=0 pending_submissions=0 submitted_unretired=0 retired=0 foreign=0 cancelled=0 latest_pending_eval=0 latest_pending_recording=0 observed_submit_lists=2121882 recognized_guide_submits=1580 execution_queue_discovered=0 (worker prepared rows exclude borrowed guides)
+23:13:02.028 [P31144 T29576] Cheeky 0.7.0 UEVR plugin initializing; runtime remains resident until game exit
+23:13:02.028 [P31144 T29576] STARTUP session=31144-01DD72292AA750B4 component=runtime version=0.7.0 compiled=Nov  7 2026 20:52:11 image_timestamp=6AEF8FA0 image_size=2371584
+23:13:02.028 [P31144 T29576] STARTUP component=runtime pdb_guid=A7DACADF-6DE4-4EE7-8061-1D34A4FAD61E pdb_age=1
+23:13:02.029 [P31144 T29576] STARTUP stage=runtime_interception begin
+23:13:02.029 [P31144 T29576] D3D12 DLSS hook path: Lower feature runtime (changes require restart)
+23:13:02.029 [P31144 T29576] Interception startup begin
+23:13:02.029 [P31144 T29576] HOOKDBG crash diagnostics VEH=000001E0A2526ED0 emergency_log=C:\Users\Dam\AppData\Local\Temp\CheekyFoveatedDLSS_crash.log
+23:13:02.029 [P31144 T29576] HOOKDBG DLL notification register status=0x00000000 cookie=000001E0A2526A80
+23:13:02.029 [P31144 T29576] Early executable interception active=no
+23:13:02.029 [P31144 T29576] MinHook initialize result=0
+23:13:02.029 [P31144 T29576] Streamline detected module=sl.interposer.dll
+23:13:02.029 [P31144 T29576] Arming Streamline persistent hooks alongside direct NGX hooks
+23:13:02.029 [P31144 T29576] SL persistent-hook resolve module=00007FFE2DA50000 evaluate=00007FFE2DA57A90 setTag=00007FFE2DA57730 setTagForFrame=0000000000000000 setConstants=00007FFE2DA577C0 getFeature=00007FFE2DA5A9A0
+23:13:02.063 [P31144 T29576] Streamline MinHook installed name=slEvaluateFeature target=00007FFE2DA57A90 trampoline=00007FFE2D990FC0 detour=00007FFD910F91C0
+23:13:02.097 [P31144 T29576] Streamline MinHook installed name=slSetTag target=00007FFE2DA57730 trampoline=00007FFE2D990F80 detour=00007FFD910F86B0
+23:13:02.131 [P31144 T29576] Streamline MinHook installed name=slSetConstants target=00007FFE2DA577C0 trampoline=00007FFE2D990F40 detour=00007FFD910F8890
+23:13:02.166 [P31144 T29576] Streamline MinHook installed name=slGetFeatureFunction target=00007FFE2DA5A9A0 trampoline=00007FFE2D990F00 detour=00007FFD910F8D20
+23:13:02.166 [P31144 T29576] Streamline persistent hooks evaluate=yes setTag=yes setTagForFrame=no setConstants=yes getFeatureFunction=yes
+23:13:02.166 [P31144 T29576] HOOKDBG GetProcAddress IAT interception disabled; Streamline interception remains enabled
+23:13:02.166 [P31144 T29576] Initial executable IAT patch complete patched=no getProcAddress=disabled
+23:13:02.166 [P31144 T29576] NGX runtime admitted immediately runtime=nvngx_dlss.dll module=00007FFD675E0000 phase=startup
+23:13:02.166 [P31144 T29576] NGX runtime admitted immediately runtime=nvngx_dlss.dll module=00007FFD675E0000 phase=startup
+23:13:02.166 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D12_Init module=00007FFD675E0000 path=H:\Games\METAL GEAR SOLID DELTA\Engine\Plugins\Marketplace\nvidia\DLSS\Binaries\ThirdParty\Win64\nvngx_dlss.dll target=00007FFD6760BE70 detour=00007FFD910FC700
+23:13:02.166 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D12_Init target=00007FFD6760BE70 result=0(MH_OK) trampoline=00007FFD675D0FC0
+23:13:02.200 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D12_Init target=00007FFD6760BE70 result=0(MH_OK)
+23:13:02.200 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D12_Init target=00007FFD6760BE70 detour=00007FFD910FC700
+23:13:02.200 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D12_Shutdown1 module=00007FFD675E0000 path=H:\Games\METAL GEAR SOLID DELTA\Engine\Plugins\Marketplace\nvidia\DLSS\Binaries\ThirdParty\Win64\nvngx_dlss.dll target=00007FFD6760D750 detour=00007FFD910FC740
+23:13:02.200 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D12_Shutdown1 target=00007FFD6760D750 result=0(MH_OK) trampoline=00007FFD675D0F80
+23:13:02.233 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D12_Shutdown1 target=00007FFD6760D750 result=0(MH_OK)
+23:13:02.233 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D12_Shutdown1 target=00007FFD6760D750 detour=00007FFD910FC740
+23:13:02.233 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D11_CreateFeature module=00007FFD675E0000 path=H:\Games\METAL GEAR SOLID DELTA\Engine\Plugins\Marketplace\nvidia\DLSS\Binaries\ThirdParty\Win64\nvngx_dlss.dll target=00007FFD6760BB50 detour=00007FFD910FEDD0
+23:13:02.233 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D11_CreateFeature target=00007FFD6760BB50 result=0(MH_OK) trampoline=00007FFD675D0F40
+23:13:02.267 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D11_CreateFeature target=00007FFD6760BB50 result=0(MH_OK)
+23:13:02.267 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D11_CreateFeature target=00007FFD6760BB50 detour=00007FFD910FEDD0
+23:13:02.267 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D11_EvaluateFeature module=00007FFD675E0000 path=H:\Games\METAL GEAR SOLID DELTA\Engine\Plugins\Marketplace\nvidia\DLSS\Binaries\ThirdParty\Win64\nvngx_dlss.dll target=00007FFD6760BCB0 detour=00007FFD910FEE00
+23:13:02.267 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D11_EvaluateFeature target=00007FFD6760BCB0 result=0(MH_OK) trampoline=00007FFD675D0F00
+23:13:02.302 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D11_EvaluateFeature target=00007FFD6760BCB0 result=0(MH_OK)
+23:13:02.302 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D11_EvaluateFeature target=00007FFD6760BCB0 detour=00007FFD910FEE00
+23:13:02.302 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D11_ReleaseFeature module=00007FFD675E0000 path=H:\Games\METAL GEAR SOLID DELTA\Engine\Plugins\Marketplace\nvidia\DLSS\Binaries\ThirdParty\Win64\nvngx_dlss.dll target=00007FFD6760C000 detour=00007FFD910FEE20
+23:13:02.302 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D11_ReleaseFeature target=00007FFD6760C000 result=0(MH_OK) trampoline=00007FFD675D0EC0
+23:13:02.334 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D11_ReleaseFeature target=00007FFD6760C000 result=0(MH_OK)
+23:13:02.334 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D11_ReleaseFeature target=00007FFD6760C000 detour=00007FFD910FEE20
+23:13:02.334 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D12_CreateFeature module=00007FFD675E0000 path=H:\Games\METAL GEAR SOLID DELTA\Engine\Plugins\Marketplace\nvidia\DLSS\Binaries\ThirdParty\Win64\nvngx_dlss.dll target=00007FFD6760D2E0 detour=00007FFD91104520
+23:13:02.334 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D12_CreateFeature target=00007FFD6760D2E0 result=0(MH_OK) trampoline=00007FFD675D0E80
+23:13:02.367 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D12_CreateFeature target=00007FFD6760D2E0 result=0(MH_OK)
+23:13:02.367 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D12_CreateFeature target=00007FFD6760D2E0 detour=00007FFD91104520
+23:13:02.367 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D12_EvaluateFeature module=00007FFD675E0000 path=H:\Games\METAL GEAR SOLID DELTA\Engine\Plugins\Marketplace\nvidia\DLSS\Binaries\ThirdParty\Win64\nvngx_dlss.dll target=00007FFD6760D450 detour=00007FFD911045A0
+23:13:02.367 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D12_EvaluateFeature target=00007FFD6760D450 result=0(MH_OK) trampoline=00007FFD675D0E40
+23:13:02.400 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D12_EvaluateFeature target=00007FFD6760D450 result=0(MH_OK)
+23:13:02.400 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D12_EvaluateFeature target=00007FFD6760D450 detour=00007FFD911045A0
+23:13:02.400 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D12_ReleaseFeature module=00007FFD675E0000 path=H:\Games\METAL GEAR SOLID DELTA\Engine\Plugins\Marketplace\nvidia\DLSS\Binaries\ThirdParty\Win64\nvngx_dlss.dll target=00007FFD6760D730 detour=00007FFD91104690
+23:13:02.400 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D12_ReleaseFeature target=00007FFD6760D730 result=0(MH_OK) trampoline=00007FFD675D0E00
+23:13:02.433 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D12_ReleaseFeature target=00007FFD6760D730 result=0(MH_OK)
+23:13:02.433 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D12_ReleaseFeature target=00007FFD6760D730 detour=00007FFD91104690
+23:13:02.434 [P31144 T29576] RR lower-runtime discovery candidates=0; waiting for an RR snippet
+23:13:02.434 [P31144 T29576] NGX core callback owner selected module=00007FFDDE270000 (retained until game exit)
+23:13:02.434 [P31144 T29576] NGX runtime admitted immediately runtime=_nvngx.dll module=00007FFDDE270000 phase=startup
+23:13:02.434 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D11_Init module=00007FFDDE270000 path=C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_0373d825005116d0\_nvngx.dll target=00007FFDDE2D3A40 detour=00007FFD910FC650
+23:13:02.434 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D11_Init target=00007FFDDE2D3A40 result=0(MH_OK) trampoline=00007FFDDE260FC0
+23:13:02.469 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D11_Init target=00007FFDDE2D3A40 result=0(MH_OK)
+23:13:02.469 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D11_Init target=00007FFDDE2D3A40 detour=00007FFD910FC650
+23:13:02.469 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D12_Init module=00007FFDDE270000 path=C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_0373d825005116d0\_nvngx.dll target=00007FFDDE2D65A0 detour=00007FFD910FC720
+23:13:02.469 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D12_Init target=00007FFDDE2D65A0 result=0(MH_OK) trampoline=00007FFDDE260F80
+23:13:02.502 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D12_Init target=00007FFDDE2D65A0 result=0(MH_OK)
+23:13:02.502 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D12_Init target=00007FFDDE2D65A0 detour=00007FFD910FC720
+23:13:02.502 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D12_Shutdown1 module=00007FFDDE270000 path=C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_0373d825005116d0\_nvngx.dll target=00007FFDDE2D6BB0 detour=00007FFD910FC760
+23:13:02.502 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D12_Shutdown1 target=00007FFDDE2D6BB0 result=0(MH_OK) trampoline=00007FFDDE260F40
+23:13:02.534 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D12_Shutdown1 target=00007FFDDE2D6BB0 result=0(MH_OK)
+23:13:02.534 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D12_Shutdown1 target=00007FFDDE2D6BB0 detour=00007FFD910FC760
+23:13:02.534 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D11_CreateFeature module=00007FFDDE270000 path=C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_0373d825005116d0\_nvngx.dll target=00007FFDDE2D42B0 detour=00007FFD910FD6D0
+23:13:02.534 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D11_CreateFeature target=00007FFDDE2D42B0 result=0(MH_OK) trampoline=00007FFDDE260F00
+23:13:02.566 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D11_CreateFeature target=00007FFDDE2D42B0 result=0(MH_OK)
+23:13:02.566 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D11_CreateFeature target=00007FFDDE2D42B0 detour=00007FFD910FD6D0
+23:13:02.566 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D11_ReleaseFeature module=00007FFDDE270000 path=C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_0373d825005116d0\_nvngx.dll target=00007FFDDE2D4380 detour=00007FFD910FEE30
+23:13:02.566 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D11_ReleaseFeature target=00007FFDDE2D4380 result=0(MH_OK) trampoline=00007FFDDE260EC0
+23:13:02.600 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D11_ReleaseFeature target=00007FFDDE2D4380 result=0(MH_OK)
+23:13:02.601 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D11_ReleaseFeature target=00007FFDDE2D4380 detour=00007FFD910FEE30
+23:13:02.601 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D12_CreateFeature module=00007FFDDE270000 path=C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_0373d825005116d0\_nvngx.dll target=00007FFDDE2D6E30 detour=00007FFD910FF260
+23:13:02.601 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D12_CreateFeature target=00007FFDDE2D6E30 result=0(MH_OK) trampoline=00007FFDDE260E80
+23:13:02.635 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D12_CreateFeature target=00007FFDDE2D6E30 result=0(MH_OK)
+23:13:02.635 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D12_CreateFeature target=00007FFDDE2D6E30 detour=00007FFD910FF260
+23:13:02.635 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D12_EvaluateFeature module=00007FFDDE270000 path=C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_0373d825005116d0\_nvngx.dll target=00007FFDDE2D6F90 detour=00007FFD911035E0
+23:13:02.635 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D12_EvaluateFeature target=00007FFDDE2D6F90 result=0(MH_OK) trampoline=00007FFDDE260E40
+23:13:02.667 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D12_EvaluateFeature target=00007FFDDE2D6F90 result=0(MH_OK)
+23:13:02.667 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D12_EvaluateFeature target=00007FFDDE2D6F90 detour=00007FFD911035E0
+23:13:02.667 [P31144 T29576] HOOKDBG MinHook attempt export=NVSDK_NGX_D3D12_ReleaseFeature module=00007FFDDE270000 path=C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_0373d825005116d0\_nvngx.dll target=00007FFDDE2D6F30 detour=00007FFD91104430
+23:13:02.667 [P31144 T29576] HOOKDBG MinHook create export=NVSDK_NGX_D3D12_ReleaseFeature target=00007FFDDE2D6F30 result=0(MH_OK) trampoline=00007FFDDE260E00
+23:13:02.700 [P31144 T29576] HOOKDBG MinHook enable export=NVSDK_NGX_D3D12_ReleaseFeature target=00007FFDDE2D6F30 result=0(MH_OK)
+23:13:02.700 [P31144 T29576] Direct detour installed export=NVSDK_NGX_D3D12_ReleaseFeature target=00007FFDDE2D6F30 detour=00007FFD91104430
+23:13:02.836 [P31144 T29576] Vulkan NGX hook route=0 create=1 evaluate=1 release=1
+23:13:02.977 [P31144 T29576] Vulkan NGX hook route=1 create=1 evaluate=1 release=1
+23:13:02.977 [P31144 T29576] Initial direct hook scan complete installed=yes
+23:13:02.977 [P31144 T29576] STARTUP stage=runtime_interception end success=0x00000001 elapsed_ms=953
+23:13:02.977 [P31144 T29576] STARTUP stage=runtime_configure_graphics begin
+23:13:03.215 [P31144 T29576] D3D12 observer family ready methods=7 execute=00007FFDB1B0ACC0 reset=00007FFDB1CB8830 copy=00007FFDB1CACDC0 texture=00007FFDB1CACFE0 resolve=00007FFDB1CB9D20 untracked_unlocked=1
+23:13:03.216 [P31144 T29576] STARTUP stage=runtime_configure_graphics end ready=0x00000001 elapsed_ms=234
+23:13:03.216 [P31144 T29576] FG UEVR rendering mode changed -2 -> -1 epoch=2: FG paused; non-native/unknown mode (FgEnabled preference preserved)
+23:13:03.216 [P31144 T29576] STARTUP stage=runtime_eye_calibration_enable begin
+23:13:03.216 [P31144 T29576] STARTUP stage=runtime_eye_calibration_enable end status=0x00000000 elapsed_ms=0
+23:13:03.216 [P31144 T29576] STARTUP milestone=runtime_start_complete
+23:13:03.216 [P31144 T29576] FG guide capture prepared_eyes=0 raw_eyes=0 fallbacks=0 allocated_eye_slots=0 consumer_leased_eyes=0 actual_bytes=0 equivalent_raw_snapshot_bytes=0 pending_submissions=0 submitted_unretired=0 retired=0 foreign=0 cancelled=0 latest_pending_eval=0 latest_pending_recording=0 observed_submit_lists=0 recognized_guide_submits=0 execution_queue_discovered=0 (worker prepared rows exclude borrowed guides)
+23:13:03.216 [P31144 T29576] GPU memory process tick=7088812 node=0 fg_enabled=0 fg_active=0 queue_request=2 local_valid=1 local_usage=7805005824 local_budget=24505221120 local_headroom=16700215296 local_over=0 local_peak=7805005824 local_over_samples=0 nonlocal_valid=1 nonlocal_usage=322842624 nonlocal_budget=33388722176 baseline_valid=0 baseline_fg=0 baseline_tick=0 baseline_local=0 game_fps=0.000 unique_fps=0.000 cadence_valid=0 present_fps=0.000 hr=0x00000000/0x00000000 (bytes)
+23:13:03.216 [P31144 T29576] FG resource memory tick=7088812 {"layer_supported":true,"presenter_present":false,"guides_supported":true,"capture_tick":0,"worker_tick":0,"presenter_tick":0,"guide_tick":7088812,"categories":{"capture":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"generated":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"upload_pool":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"guide_depth":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"guide_motion":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"prepared_color":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"prepared_depth":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"prepared_motion":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"ngx_outputs":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"periphery":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"composition":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"swapchain_native":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"swapchain_generated":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"swapchain_auxiliary":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0}},"app_resource_bytes":0,"swapchain_estimated_bytes":0,"known_resource_bytes":0,"unknown_resources":0} (allocation requirements; excludes NGX internals/driver overhead; not residency)
+23:13:03.216 [P31144 T29576] GPU timing recorded=0 submitted=0 completed=0 valid=0 discarded=0 waiting_submit=0 waiting_gpu=0 failures=0 hr=0x00000000 queue_submissions=0
+23:13:03.216 [P31144 T29576] FG UEVR rendering mode changed -1 -> 0 epoch=3: Native Stereo / FG allowed (FgEnabled preference preserved)
+23:13:03.289 [P31144 T5620] NVIDIA Reflex override hooks armed (NvAPI D3D Sleep / SetSleepMode)
+23:13:03.465 [P31144 T5620] NVAPI D3D11 recording calls guarded (depth bounds, UAV overlap) under the D3D11 device lock
+23:13:03.465 [P31144 T5620] HOOKDBG worker tick=0 begin tid=5620
+23:13:03.465 [P31144 T5620] HOOKDBG worker tick=0 patch scan begin
+23:13:03.466 [P31144 T5620] HOOKDBG worker tick=0 patch scan end patched=no direct scan begin
+23:13:03.466 [P31144 T5620] HOOKDBG worker tick=0 direct scan end detoured=no
+23:13:03.466 [P31144 T5620] HOOKDBG worker tick=0 end
+23:13:03.672 [P31144 T29576] D3D12 NGX evaluation route=Public nvngx_dlss.dll handle=000001E0A25FE298 command=000001DE6D179660
+23:13:03.716 [P31144 T5620] HOOKDBG DLL LOAD seq=0 name=perfos.dll base=00007FFE07520000 size=61440
+23:13:03.716 [P31144 T5620] HOOKDBG worker tick=1 begin tid=5620
+23:13:03.716 [P31144 T5620] HOOKDBG worker tick=1 patch scan begin
+23:13:03.717 [P31144 T5620] HOOKDBG worker tick=1 patch scan end patched=no direct scan begin
+23:13:03.717 [P31144 T5620] HOOKDBG worker tick=1 direct scan end detoured=no
+23:13:03.717 [P31144 T5620] HOOKDBG worker tick=1 end
+23:13:03.742 [P31144 T29576] D3D12 canonical create view=9223374101163270808 feature=1 input=725x408 output=725x408 flags=0x0000000B quality=5 motionBlurFix=0 result=0x00000001 handle=000001E028034690
+23:13:03.743 [P31144 T29576] D3D12 canonical history view=9223374101163270808 calls=1 resets=1 corrections=0 reset=1 requested=0 keyChanged=1 motionReset=1 cropChanged=1 corrected=0 crop=725x408@0,0 offset=0.000000,0.000000 mvScale=0.377604,0.377778
+23:13:03.743 [P31144 T29576] Gaze projection view=2064308495000 valid=0 tangents=(0.000000,0.000000,0.000000,0.000000) XR0 valid=1 tangents=(-1.376382,0.839100,1.191754,-1.150368) XR1 valid=1 tangents=(-0.839100,1.376382,1.191754,-1.150368)
+23:13:03.743 [P31144 T29576] Gaze mapping rejected DLSS view=2064308495000 resource=0x1E0A2649830 rect=(0,0 1920x1080) stereo_assigned=0 eye=0 flags=0x1 views=2
+23:13:03.743 [P31144 T29576] Gaze mapping XR eye=0 resource=0x0 swapchain=0x0 rect=(0,0 0x0) array=0 flags=0xC0
+23:13:03.743 [P31144 T29576] Gaze mapping XR eye=1 resource=0x0 swapchain=0x0 rect=(0,0 0x0) array=0 flags=0xC0
+23:13:03.745 [P31144 T29576] D3D12 declared MV view=2064308495000 flags=0x00000009 space=output rect=432,344 1056x486
+23:13:03.770 [P31144 T29576] D3D12 canonical create view=2064308495000 feature=1 input=528x243 output=1056x486 flags=0x00000009 quality=0 motionBlurFix=0 result=0x00000001 handle=000001E028025630
+23:13:03.770 [P31144 T29576] D3D12 canonical history view=2064308495000 calls=1 resets=1 corrections=0 reset=1 requested=0 keyChanged=1 motionReset=1 cropChanged=1 corrected=0 crop=1056x486@432,344 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:03.771 [P31144 T29576] D3D12 NGX evaluation route=Public nvngx_dlss.dll handle=000001E0A2525088 command=000001E0A0AD8AE0
+23:13:03.800 [P31144 T29576] D3D12 canonical create view=9223374101162381448 feature=1 input=725x408 output=725x408 flags=0x0000000B quality=5 motionBlurFix=0 result=0x00000001 handle=000001E0280396B0
+23:13:03.800 [P31144 T29576] D3D12 canonical history view=9223374101162381448 calls=1 resets=1 corrections=0 reset=1 requested=0 keyChanged=1 motionReset=1 cropChanged=1 corrected=0 crop=725x408@0,0 offset=0.000000,0.000000 mvScale=0.377604,0.377778
+23:13:03.800 [P31144 T29576] Gaze projection view=2064307605640 valid=0 tangents=(0.000000,0.000000,0.000000,0.000000) XR0 valid=1 tangents=(-1.376382,0.839100,1.191754,-1.150368) XR1 valid=1 tangents=(-0.839100,1.376382,1.191754,-1.150368)
+23:13:03.800 [P31144 T29576] Gaze mapping rejected DLSS view=2064307605640 resource=0x1E0A27C81F0 rect=(0,0 1920x1080) stereo_assigned=1 eye=1 flags=0x1 views=2
+23:13:03.800 [P31144 T29576] Gaze mapping XR eye=0 resource=0x0 swapchain=0x0 rect=(0,0 0x0) array=0 flags=0xC0
+23:13:03.800 [P31144 T29576] Gaze mapping XR eye=1 resource=0x0 swapchain=0x0 rect=(0,0 0x0) array=0 flags=0xC0
+23:13:03.801 [P31144 T29576] D3D12 declared MV view=2064307605640 flags=0x00000009 space=output rect=432,344 1056x486
+23:13:03.826 [P31144 T29576] D3D12 canonical create view=2064307605640 feature=1 input=528x243 output=1056x486 flags=0x00000009 quality=0 motionBlurFix=0 result=0x00000001 handle=000001E028027E30
+23:13:03.826 [P31144 T29576] D3D12 canonical history view=2064307605640 calls=1 resets=1 corrections=0 reset=1 requested=0 keyChanged=1 motionReset=1 cropChanged=1 corrected=0 crop=1056x486@432,344 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:03.829 [P31144 T30040] DLSS-NR allocator storage retired recordings=2 generations=1
+23:13:03.905 [P31144 T29576] FEATURE_CREATE begin route=D3D12-core feature=1(SR) count=1 input=1044x896 output=2087x1791 flags=0x00000009 original=00007FFDDE260E80 context=000001E087DA87B0
+23:13:03.905 [P31144 T29576] FEATURE_CREATE begin route=D3D12-public feature=1(SR) count=1 input=1044x896 output=2087x1791 flags=0x00000009 original=00007FFD675D0E80 context=000001E087DA87B0
+23:13:03.936 [P31144 T29576] FEATURE_CREATE end route=D3D12-public feature=1(SR) count=1 result=0x00000001 handle=000001E02803BEB0 elapsed_ms=31
+23:13:03.936 [P31144 T29576] FG game DLSS-SR feature created: handle=000001E02803BEB0 revision=2 (FG history refresh on next complete stereo pair)
+23:13:03.937 [P31144 T29576] FEATURE_CREATE end route=D3D12-core feature=1(SR) count=1 result=0x00000001 handle=000001E1FB770348 elapsed_ms=31
+23:13:03.937 [P31144 T29576] D3D12 NGX evaluation route=Public nvngx_dlss.dll handle=000001E1FB770348 command=000001E087DA87B0
+23:13:03.964 [P31144 T29576] D3D12 canonical create view=9223374106952926024 feature=1 input=788x676 output=788x676 flags=0x0000000B quality=5 motionBlurFix=0 result=0x00000001 handle=000001E02803E6D0
+23:13:03.964 [P31144 T29576] D3D12 canonical history view=9223374106952926024 calls=1 resets=1 corrections=0 reset=1 requested=0 keyChanged=1 motionReset=1 cropChanged=1 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:03.965 [P31144 T29576] Gaze projection view=2070098150216 valid=0 tangents=(0.000000,0.000000,0.000000,0.000000) XR0 valid=1 tangents=(-1.376382,0.839100,1.191754,-1.150368) XR1 valid=1 tangents=(-0.839100,1.376382,1.191754,-1.150368)
+23:13:03.965 [P31144 T29576] Gaze mapping rejected DLSS view=2070098150216 resource=0x1E1FB650220 rect=(0,0 2087x1791) stereo_assigned=1 eye=0 flags=0x1 views=2
+23:13:03.965 [P31144 T29576] Gaze mapping XR eye=0 resource=0x0 swapchain=0x0 rect=(0,0 0x0) array=0 flags=0xC0
+23:13:03.965 [P31144 T29576] Gaze mapping XR eye=1 resource=0x0 swapchain=0x0 rect=(0,0 0x0) array=0 flags=0xC0
+23:13:03.966 [P31144 T29576] D3D12 declared MV view=2070098150216 flags=0x00000009 space=output rect=469,569 1148x806
+23:13:03.967 [P31144 T5620] HOOKDBG worker tick=2 begin tid=5620
+23:13:03.967 [P31144 T5620] HOOKDBG worker tick=2 patch scan begin
+23:13:03.967 [P31144 T5620] HOOKDBG worker tick=2 patch scan end patched=no direct scan begin
+23:13:03.967 [P31144 T5620] HOOKDBG worker tick=2 direct scan end detoured=no
+23:13:03.967 [P31144 T5620] HOOKDBG worker tick=2 end
+23:13:03.990 [P31144 T29576] D3D12 canonical create view=2070098150216 feature=1 input=574x403 output=1148x806 flags=0x00000009 quality=0 motionBlurFix=0 result=0x00000001 handle=000001E028048710
+23:13:03.990 [P31144 T29576] D3D12 canonical history view=2070098150216 calls=1 resets=1 corrections=0 reset=1 requested=0 keyChanged=1 motionReset=1 cropChanged=1 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:03.994 [P31144 T29576] FEATURE_CREATE begin route=D3D12-core feature=1(SR) count=2 input=1044x896 output=2087x1791 flags=0x00000009 original=00007FFDDE260E80 context=000001E09B02D010
+23:13:03.994 [P31144 T29576] FEATURE_CREATE begin route=D3D12-public feature=1(SR) count=2 input=1044x896 output=2087x1791 flags=0x00000009 original=00007FFD675D0E80 context=000001E09B02D010
+23:13:04.023 [P31144 T29576] FEATURE_CREATE end route=D3D12-public feature=1(SR) count=2 result=0x00000001 handle=000001E028040ED0 elapsed_ms=32
+23:13:04.023 [P31144 T29576] FG game DLSS-SR feature created: handle=000001E028040ED0 revision=3 (FG history refresh on next complete stereo pair)
+23:13:04.023 [P31144 T29576] FEATURE_CREATE end route=D3D12-core feature=1(SR) count=2 result=0x00000001 handle=000001E1FB776108 elapsed_ms=32
+23:13:04.023 [P31144 T29576] D3D12 NGX evaluation route=Public nvngx_dlss.dll handle=000001E1FB776108 command=000001E09B02D010
+23:13:04.051 [P31144 T29576] D3D12 canonical create view=9223374106952950024 feature=1 input=788x676 output=788x676 flags=0x0000000B quality=5 motionBlurFix=0 result=0x00000001 handle=000001E0280436F0
+23:13:04.051 [P31144 T29576] D3D12 canonical history view=9223374106952950024 calls=1 resets=1 corrections=0 reset=1 requested=0 keyChanged=1 motionReset=1 cropChanged=1 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.051 [P31144 T29576] Gaze projection view=2070098174216 valid=0 tangents=(0.000000,0.000000,0.000000,0.000000) XR0 valid=1 tangents=(-1.376382,0.839100,1.191754,-1.150368) XR1 valid=1 tangents=(-0.839100,1.376382,1.191754,-1.150368)
+23:13:04.051 [P31144 T29576] Gaze mapping rejected DLSS view=2070098174216 resource=0x1E1FB6574E0 rect=(0,0 2087x1791) stereo_assigned=1 eye=1 flags=0x1 views=2
+23:13:04.051 [P31144 T29576] Gaze mapping XR eye=0 resource=0x0 swapchain=0x0 rect=(0,0 0x0) array=0 flags=0xC0
+23:13:04.051 [P31144 T29576] Gaze mapping XR eye=1 resource=0x0 swapchain=0x0 rect=(0,0 0x0) array=0 flags=0xC0
+23:13:04.052 [P31144 T29576] D3D12 declared MV view=2070098174216 flags=0x00000009 space=output rect=469,569 1148x806
+23:13:04.077 [P31144 T29576] D3D12 canonical create view=2070098174216 feature=1 input=574x403 output=1148x806 flags=0x00000009 quality=0 motionBlurFix=0 result=0x00000001 handle=000001E028045EF0
+23:13:04.077 [P31144 T29576] D3D12 canonical history view=2070098174216 calls=1 resets=1 corrections=0 reset=1 requested=0 keyChanged=1 motionReset=1 cropChanged=1 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.083 [P31144 T30040] DLSS-NR allocator storage retired recordings=2 generations=2
+23:13:04.189 [P31144 T29576] CALIB summary seq=1 session=1 source_api=12 submit_api=12 evals=2 submits=0 reject=0xCD captured_age_ms=297 completed=1 accepted=0 black_sample_images=0 slow_calls_over20ms=0 max_call_ms=3.64
+23:13:04.189 [P31144 T29576] CALIB verification background=1 completed_patch_calls=0 worker_us_per_frame=0.00 last_sample_ms=0.00 peak_sample_ms=0.00 exact=0 nearby=0 broad=0
+23:13:04.189 [P31144 T29576] CALIB acquisition_counts attempts=0 successes=0 recalibration_requests=0 failure_streak=0/20 last_reason=session_or_calibration_reset
+23:13:04.189 [P31144 T29576] CALIB last_failure seq=1 mask=0xCD detail=no_consistent_eye_pair evals=2 source_mask=0x3 shared_assumed=0 motion_unreliable=0 error_xy=0.00,0.00 scores=0.000,1.000,0.000,1.000;0.000,0.000,0.000,0.000;0.000,0.000,0.000,0.000
+23:13:04.213 [P31144 T29576] D3D12 NGX evaluation route=Public nvngx_dlss.dll handle=000001E1FB770348 command=000001E09B02D010
+23:13:04.213 [P31144 T29576] D3D12 canonical history view=9223374106952926024 calls=2 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.213 [P31144 T29576] D3D12 declared MV view=2070098150216 flags=0x00000009 space=output rect=469,569 1148x806
+23:13:04.213 [P31144 T29576] D3D12 canonical history view=2070098150216 calls=2 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.213 [P31144 T29576] D3D12 NGX evaluation route=Public nvngx_dlss.dll handle=000001E1FB776108 command=000001E0A1D6B430
+23:13:04.213 [P31144 T29576] D3D12 canonical history view=9223374106952950024 calls=2 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.213 [P31144 T29576] D3D12 declared MV view=2070098174216 flags=0x00000009 space=output rect=469,569 1148x806
+23:13:04.213 [P31144 T29576] D3D12 canonical history view=2070098174216 calls=2 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.218 [P31144 T5620] HOOKDBG worker tick=3 begin tid=5620
+23:13:04.218 [P31144 T5620] HOOKDBG worker tick=3 patch scan begin
+23:13:04.218 [P31144 T5620] HOOKDBG worker tick=3 patch scan end patched=no direct scan begin
+23:13:04.218 [P31144 T5620] HOOKDBG worker tick=3 direct scan end detoured=no
+23:13:04.218 [P31144 T5620] HOOKDBG worker tick=3 end
+23:13:04.220 [P31144 T30040] DLSS-NR allocator storage retired recordings=2 generations=3
+23:13:04.228 [P31144 T29576] FG guide capture prepared_eyes=0 raw_eyes=0 fallbacks=0 allocated_eye_slots=0 consumer_leased_eyes=0 actual_bytes=0 equivalent_raw_snapshot_bytes=0 pending_submissions=0 submitted_unretired=0 retired=0 foreign=0 cancelled=0 latest_pending_eval=0 latest_pending_recording=0 observed_submit_lists=174 recognized_guide_submits=0 execution_queue_discovered=0 (worker prepared rows exclude borrowed guides)
+23:13:04.228 [P31144 T29576] GPU memory process tick=7089828 node=0 fg_enabled=0 fg_active=0 queue_request=2 local_valid=1 local_usage=9740378112 local_budget=24505221120 local_headroom=14764843008 local_over=0 local_peak=9740378112 local_over_samples=0 nonlocal_valid=1 nonlocal_usage=446357504 nonlocal_budget=33388722176 baseline_valid=0 baseline_fg=0 baseline_tick=0 baseline_local=0 game_fps=0.000 unique_fps=0.000 cadence_valid=0 present_fps=3.290 hr=0x00000000/0x00000000 (bytes)
+23:13:04.228 [P31144 T29576] FG resource memory tick=7089828 {"layer_supported":true,"presenter_present":false,"guides_supported":true,"capture_tick":0,"worker_tick":0,"presenter_tick":0,"guide_tick":7089828,"categories":{"capture":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"generated":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"upload_pool":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"guide_depth":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"guide_motion":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"prepared_color":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"prepared_depth":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"prepared_motion":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"ngx_outputs":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"periphery":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"composition":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"swapchain_native":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"swapchain_generated":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"swapchain_auxiliary":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0}},"app_resource_bytes":0,"swapchain_estimated_bytes":0,"known_resource_bytes":0,"unknown_resources":0} (allocation requirements; excludes NGX internals/driver overhead; not residency)
+23:13:04.252 [P31144 T29576] D3D12 NGX evaluation route=Public nvngx_dlss.dll handle=000001E1FB770348 command=000001E0A0AD8AE0
+23:13:04.252 [P31144 T29576] D3D12 canonical history view=9223374106952926024 calls=3 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.252 [P31144 T29576] Gaze projection view=2070098150216 valid=0 tangents=(0.000000,0.000000,0.000000,0.000000) XR0 valid=1 tangents=(-1.376382,0.839100,1.191754,-1.150368) XR1 valid=1 tangents=(-0.839100,1.376382,1.191754,-1.150368)
+23:13:04.252 [P31144 T29576] Gaze mapping rejected DLSS view=2070098150216 resource=0x1E1FB650220 rect=(0,0 2087x1791) stereo_assigned=1 eye=0 flags=0x49 views=2
+23:13:04.252 [P31144 T29576] Gaze mapping XR eye=0 resource=0x1E0A2F686D0 swapchain=0x10035 rect=(0,0 1679x1759) array=0 flags=0x1D0
+23:13:04.252 [P31144 T29576] Gaze mapping XR eye=1 resource=0x1E0A2F686D0 swapchain=0x10035 rect=(2494,0 1680x1759) array=0 flags=0x1D0
+23:13:04.252 [P31144 T29576] D3D12 declared MV view=2070098150216 flags=0x00000009 space=output rect=469,569 1148x806
+23:13:04.252 [P31144 T29576] D3D12 canonical history view=2070098150216 calls=3 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.253 [P31144 T29576] D3D12 NGX evaluation route=Public nvngx_dlss.dll handle=000001E1FB776108 command=000001E08D95A440
+23:13:04.253 [P31144 T29576] D3D12 canonical history view=9223374106952950024 calls=3 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.253 [P31144 T29576] Gaze projection view=2070098174216 valid=0 tangents=(0.000000,0.000000,0.000000,0.000000) XR0 valid=1 tangents=(-1.376382,0.839100,1.191754,-1.150368) XR1 valid=1 tangents=(-0.839100,1.376382,1.191754,-1.150368)
+23:13:04.253 [P31144 T29576] Gaze mapping rejected DLSS view=2070098174216 resource=0x1E1FB6574E0 rect=(0,0 2087x1791) stereo_assigned=1 eye=1 flags=0x49 views=2
+23:13:04.253 [P31144 T29576] Gaze mapping XR eye=0 resource=0x1E0A2F686D0 swapchain=0x10035 rect=(0,0 1679x1759) array=0 flags=0x1D0
+23:13:04.253 [P31144 T29576] Gaze mapping XR eye=1 resource=0x1E0A2F686D0 swapchain=0x10035 rect=(2494,0 1680x1759) array=0 flags=0x1D0
+23:13:04.253 [P31144 T29576] D3D12 declared MV view=2070098174216 flags=0x00000009 space=output rect=469,569 1148x806
+23:13:04.253 [P31144 T29576] D3D12 canonical history view=2070098174216 calls=3 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.258 [P31144 T30040] DLSS-NR allocator storage retired recordings=2 generations=4
+23:13:04.277 [P31144 T29576] D3D12 canonical history view=9223374106952926024 calls=4 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.277 [P31144 T29576] D3D12 canonical history view=2070098150216 calls=4 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.278 [P31144 T29576] D3D12 canonical history view=9223374106952950024 calls=4 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.278 [P31144 T29576] D3D12 canonical history view=2070098174216 calls=4 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.305 [P31144 T29576] D3D12 canonical history view=9223374106952926024 calls=5 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.305 [P31144 T29576] D3D12 canonical history view=2070098150216 calls=5 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.305 [P31144 T29576] D3D12 canonical history view=9223374106952950024 calls=5 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.305 [P31144 T29576] D3D12 canonical history view=2070098174216 calls=5 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.333 [P31144 T29576] D3D12 canonical history view=9223374106952926024 calls=6 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.333 [P31144 T29576] D3D12 canonical history view=2070098150216 calls=6 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.333 [P31144 T29576] D3D12 canonical history view=9223374106952950024 calls=6 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.333 [P31144 T29576] D3D12 canonical history view=2070098174216 calls=6 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.361 [P31144 T29576] D3D12 canonical history view=9223374106952926024 calls=7 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.361 [P31144 T29576] D3D12 canonical history view=2070098150216 calls=7 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.362 [P31144 T29576] D3D12 canonical history view=9223374106952950024 calls=7 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.362 [P31144 T29576] D3D12 canonical history view=2070098174216 calls=7 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.389 [P31144 T29576] D3D12 canonical history view=9223374106952926024 calls=8 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.389 [P31144 T29576] D3D12 canonical history view=2070098150216 calls=8 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.389 [P31144 T29576] D3D12 canonical history view=9223374106952950024 calls=8 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=788x676@0,0 offset=0.000000,0.000000 mvScale=0.377575,0.377443
+23:13:04.390 [P31144 T29576] D3D12 canonical history view=2070098174216 calls=8 resets=1 corrections=0 reset=0 requested=0 keyChanged=0 motionReset=0 cropChanged=0 corrected=0 crop=1148x806@469,569 offset=0.000000,0.000000 mvScale=1.000000,1.000000
+23:13:04.468 [P31144 T5620] HOOKDBG worker tick=4 begin tid=5620
+23:13:04.468 [P31144 T5620] HOOKDBG worker tick=4 patch scan begin
+23:13:04.469 [P31144 T5620] HOOKDBG worker tick=4 patch scan end patched=no direct scan begin
+23:13:04.469 [P31144 T5620] HOOKDBG worker tick=4 direct scan end detoured=no
+23:13:04.469 [P31144 T5620] HOOKDBG worker tick=4 end
+23:13:04.527 [P31144 T29576] VR alignment history reset view=2070098150216 reason=3
+23:13:04.528 [P31144 T29576] VR alignment history reset view=2070098174216 reason=3
+23:13:04.554 [P31144 T29576] VR gaze mapping established view=2070098150216 eye=0 route=pixel-marker
+23:13:04.554 [P31144 T29576] VR alignment history reset view=2070098150216 reason=5
+23:13:04.554 [P31144 T29576] VR gaze mapping established view=2070098174216 eye=1 route=pixel-marker
+23:13:04.554 [P31144 T29576] VR alignment history reset view=2070098174216 reason=5
+23:13:04.719 [P31144 T5620] HOOKDBG worker tick=5 begin tid=5620
+23:13:04.719 [P31144 T5620] HOOKDBG worker tick=5 patch scan begin
+23:13:04.719 [P31144 T5620] HOOKDBG worker tick=5 patch scan end patched=no direct scan begin
+23:13:04.720 [P31144 T5620] HOOKDBG worker tick=5 direct scan end detoured=no
+23:13:04.720 [P31144 T5620] HOOKDBG worker tick=5 end
+23:13:04.970 [P31144 T5620] HOOKDBG worker tick=6 begin tid=5620
+23:13:04.970 [P31144 T5620] HOOKDBG worker tick=6 patch scan begin
+23:13:04.970 [P31144 T5620] HOOKDBG worker tick=6 patch scan end patched=no direct scan begin
+23:13:04.970 [P31144 T5620] HOOKDBG worker tick=6 direct scan end detoured=no
+23:13:04.970 [P31144 T5620] HOOKDBG worker tick=6 end
+23:13:05.220 [P31144 T5620] HOOKDBG worker tick=7 begin tid=5620
+23:13:05.220 [P31144 T5620] HOOKDBG worker tick=7 patch scan begin
+23:13:05.220 [P31144 T5620] HOOKDBG worker tick=7 patch scan end patched=no direct scan begin
+23:13:05.221 [P31144 T5620] HOOKDBG worker tick=7 direct scan end detoured=no
+23:13:05.221 [P31144 T5620] HOOKDBG worker tick=7 end
+23:13:05.232 [P31144 T29576] FG guide capture prepared_eyes=0 raw_eyes=0 fallbacks=0 allocated_eye_slots=0 consumer_leased_eyes=0 actual_bytes=0 equivalent_raw_snapshot_bytes=0 pending_submissions=0 submitted_unretired=0 retired=0 foreign=0 cancelled=0 latest_pending_eval=0 latest_pending_recording=0 observed_submit_lists=4930 recognized_guide_submits=0 execution_queue_discovered=0 (worker prepared rows exclude borrowed guides)
+23:13:05.232 [P31144 T29576] GPU memory process tick=7090828 node=0 fg_enabled=0 fg_active=0 queue_request=2 local_valid=1 local_usage=9450602496 local_budget=24505221120 local_headroom=15054618624 local_over=0 local_peak=9740378112 local_over_samples=0 nonlocal_valid=1 nonlocal_usage=455921664 nonlocal_budget=33388722176 baseline_valid=0 baseline_fg=0 baseline_tick=0 baseline_local=0 game_fps=0.000 unique_fps=0.000 cadence_valid=0 present_fps=35.936 hr=0x00000000/0x00000000 (bytes)
+23:13:05.232 [P31144 T29576] FG resource memory tick=7090828 {"layer_supported":true,"presenter_present":false,"guides_supported":true,"capture_tick":0,"worker_tick":0,"presenter_tick":0,"guide_tick":7090828,"categories":{"capture":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"generated":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"upload_pool":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"guide_depth":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"guide_motion":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"prepared_color":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"prepared_depth":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"prepared_motion":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"ngx_outputs":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"periphery":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"composition":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"swapchain_native":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"swapchain_generated":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"swapchain_auxiliary":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0}},"app_resource_bytes":0,"swapchain_estimated_bytes":0,"known_resource_bytes":0,"unknown_resources":0} (allocation requirements; excludes NGX internals/driver overhead; not residency)
+23:13:05.471 [P31144 T5620] HOOKDBG worker tick=8 begin tid=5620
+23:13:05.471 [P31144 T5620] HOOKDBG worker tick=8 patch scan begin
+23:13:05.471 [P31144 T5620] HOOKDBG worker tick=8 patch scan end patched=no direct scan begin
+23:13:05.471 [P31144 T5620] HOOKDBG worker tick=8 direct scan end detoured=no
+23:13:05.471 [P31144 T5620] HOOKDBG worker tick=8 end
+23:13:05.722 [P31144 T5620] HOOKDBG worker tick=9 begin tid=5620
+23:13:05.722 [P31144 T5620] HOOKDBG worker tick=9 patch scan begin
+23:13:05.722 [P31144 T5620] HOOKDBG worker tick=9 patch scan end patched=no direct scan begin
+23:13:05.722 [P31144 T5620] HOOKDBG worker tick=9 direct scan end detoured=no
+23:13:05.722 [P31144 T5620] HOOKDBG worker tick=9 end
+23:13:05.972 [P31144 T5620] HOOKDBG worker tick=10 begin tid=5620
+23:13:05.972 [P31144 T5620] HOOKDBG worker tick=10 patch scan begin
+23:13:05.972 [P31144 T5620] HOOKDBG worker tick=10 patch scan end patched=no direct scan begin
+23:13:05.972 [P31144 T5620] HOOKDBG worker tick=10 direct scan end detoured=no
+23:13:05.972 [P31144 T5620] HOOKDBG worker tick=10 end
+23:13:06.223 [P31144 T5620] HOOKDBG worker tick=11 begin tid=5620
+23:13:06.223 [P31144 T5620] HOOKDBG worker tick=11 patch scan begin
+23:13:06.223 [P31144 T5620] HOOKDBG worker tick=11 patch scan end patched=no direct scan begin
+23:13:06.223 [P31144 T5620] HOOKDBG worker tick=11 direct scan end detoured=no
+23:13:06.223 [P31144 T5620] HOOKDBG worker tick=11 end
+23:13:06.232 [P31144 T29576] FG guide capture prepared_eyes=0 raw_eyes=0 fallbacks=0 allocated_eye_slots=0 consumer_leased_eyes=0 actual_bytes=0 equivalent_raw_snapshot_bytes=0 pending_submissions=0 submitted_unretired=0 retired=0 foreign=0 cancelled=0 latest_pending_eval=0 latest_pending_recording=0 observed_submit_lists=9908 recognized_guide_submits=0 execution_queue_discovered=0 (worker prepared rows exclude borrowed guides)
+23:13:06.233 [P31144 T29576] GPU memory process tick=7091828 node=0 fg_enabled=0 fg_active=0 queue_request=2 local_valid=1 local_usage=9350742016 local_budget=24505221120 local_headroom=15154479104 local_over=0 local_peak=9740378112 local_over_samples=0 nonlocal_valid=1 nonlocal_usage=358289408 nonlocal_budget=33388722176 baseline_valid=0 baseline_fg=0 baseline_tick=0 baseline_local=0 game_fps=0.000 unique_fps=0.000 cadence_valid=0 present_fps=36.716 hr=0x00000000/0x00000000 (bytes)
+23:13:06.233 [P31144 T29576] FG resource memory tick=7091828 {"layer_supported":true,"presenter_present":false,"guides_supported":true,"capture_tick":0,"worker_tick":0,"presenter_tick":0,"guide_tick":7091828,"categories":{"capture":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"generated":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"upload_pool":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"guide_depth":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"guide_motion":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"prepared_color":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"prepared_depth":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"prepared_motion":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"ngx_outputs":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"periphery":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"composition":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"swapchain_native":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"swapchain_generated":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0},"swapchain_auxiliary":{"bytes":0,"resources":0,"reusable_bytes":0,"reusable_resources":0,"unknown_resources":0}},"app_resource_bytes":0,"swapchain_estimated_bytes":0,"known_resource_bytes":0,"unknown_resources":0} (allocation requirements; excludes NGX internals/driver overhead; not residency)
+23:13:06.473 [P31144 T5620] HOOKDBG worker tick=12 begin tid=5620
+23:13:06.473 [P31144 T5620] HOOKDBG worker tick=12 patch scan begin
+23:13:06.473 [P31144 T5620] HOOKDBG worker tick=12 patch scan end patched=no direct scan begin
+23:13:06.473 [P31144 T5620] HOOKDBG worker tick=12 direct scan end detoured=no
+23:13:06.473 [P31144 T5620] HOOKDBG worker tick=12 end
+23:13:06.723 [P31144 T5620] HOOKDBG worker tick=13 begin tid=5620
+23:13:06.723 [P31144 T5620] HOOKDBG worker tick=13 patch scan begin
+23:13:06.723 [P31144 T5620] HOOKDBG worker tick=13 patch scan end patched=no direct scan begin
+23:13:06.724 [P31144 T5620] HOOKDBG worker tick=13 direct scan end detoured=no
+23:13:06.724 [P31144 T5620] HOOKDBG worker tick=13 end
+23:13:06.974 [P31144 T5620] HOOKDBG worker tick=14 begin tid=5620
+23:13:06.974 [P31144 T5620] HOOKDBG worker tick=14 patch scan begin
+23:13:06.974 [P31144 T5620] HOOKDBG worker tick=14 patch scan end patched=no direct scan begin
+23:13:06.974 [P31144 T5620] HOOKDBG worker tick=14 direct scan end detoured=no
+23:13:06.974 [P31144 T5620] HOOKDBG worker tick=14 end
+23:13:07.224 [P31144 T5620] HOOKDBG worker tick=15 begin tid=5620
+23:13:07.224 [P31144 T5620] HOOKDBG worker tick=15 patch scan begin
+23:13:07.224 [P31144 T5620] HOOKDBG worker tick=15 patch scan end patched=no direct scan begin
+23:13:07.224 [P31144 T5620] HOOKDBG worker tick=15 direct scan end detoured=no
+23:13:07.224 [P31144 T5620] HOOKDBG worker tick=15 end
+23:13:07.232 [P31144 T29576] FG guide capture prepared_eyes=0 raw_eyes=0 fallbacks=0 allocated_eye_slots=0 consumer_leased_eyes=0 actual_bytes=0 equivalent_raw_snapshot_bytes=0 pending_submissions=0 submitted_unretired=0 retired=0 foreign=0 cancelled=0 latest_pending_eval=0 latest_pending_recording=0 observed_submit_lists=14897 recognized_guide_submits=0 execution_queue_discovered=0 (worker prepared rows exclude borrowed guides)
+23:13:07.474 [P31144 T5620] HOOKDBG worker tick=16 begin tid=5620
+23:13:07.474 [P31144 T5620] HOOKDBG worker tick=16 patch scan begin
+23:13:07.474 [P31144 T5620] HOOKDBG worker tick=16 patch scan end patched=no direct scan begin
+23:13:07.474 [P31144 T5620] HOOKDBG worker tick=16 direct scan end detoured=no
+23:13:07.474 [P31144 T5620] HOOKDBG worker tick=16 end
+23:13:07.724 [P31144 T5620] HOOKDBG worker tick=17 begin tid=5620
+23:13:07.724 [P31144 T5620] HOOKDBG worker tick=17 patch scan begin
+23:13:07.724 [P31144 T5620] HOOKDBG worker tick=17 patch scan end patched=no direct scan begin
+23:13:07.724 [P31144 T5620] HOOKDBG worker tick=17 direct scan end detoured=no
+23:13:07.724 [P31144 T5620] HOOKDBG worker tick=17 end
+23:13:07.975 [P31144 T5620] HOOKDBG worker tick=18 begin tid=5620
+23:13:07.975 [P31144 T5620] HOOKDBG worker tick=18 patch scan begin
+23:13:07.975 [P31144 T5620] HOOKDBG worker tick=18 patch scan end patched=no direct scan begin
+23:13:07.975 [P31144 T5620] HOOKDBG worker tick=18 direct scan end detoured=no
+23:13:07.975 [P31144 T5620] HOOKDBG worker tick=18 end
+23:13:08.225 [P31144 T5620] HOOKDBG worker tick=19 begin tid=5620
+23:13:08.225 [P31144 T5620] HOOKDBG worker tick=19 patch scan begin
+23:13:08.225 [P31144 T5620] HOOKDBG worker tick=19 patch scan end patched=no direct scan begin
+23:13:08.225 [P31144 T5620] HOOKDBG worker tick=19 direct scan end detoured=no
+23:13:08.225 [P31144 T5620] HOOKDBG worker tick=19 end
+23:13:08.232 [P31144 T29576] FG guide capture prepared_eyes=0 raw_eyes=0 fallbacks=0 allocated_eye_slots=0 consumer_leased_eyes=0 actual_bytes=0 equivalent_raw_snapshot_bytes=0 pending_submissions=0 submitted_unretired=0 retired=0 foreign=0 cancelled=0 latest_pending_eval=0 latest_pending_recording=0 observed_submit_lists=19887 recognized_guide_submits=0 execution_queue_discovered=0 (worker prepared rows exclude borrowed guides)
+23:13:08.232 [P31144 T29576] SYSTEM load cpu_total=22% cpu_busiest_core=89% cpu_game=10% gpu=98% (Graphics_1) gpu_game=44% gpu_encode=0% gpu_valid=1 vram_used_mb=8917 vram_budget_mb=23370 game_fps=0.0 native_fps=0.0 generated_fps=0.0 cadence_valid=0 pdh_collect_ms=0.47 pdh_collect_max_ms=1.28
+23:13:08.232 [P31144 T29576] GPU timing recorded=93 submitted=93 completed=93 valid=93 discarded=0 waiting_submit=0 waiting_gpu=0 failures=0 hr=0x00000000 queue_submissions=12249
+23:13:08.341 [P31144 T29576] FG UEVR rendering mode changed 0 -> -1 epoch=4: FG paused; non-native/unknown mode (FgEnabled preference preserved)

@@ -22,29 +22,29 @@ void ImGuiMenu::RenderImGuiFrame()
 
 	const auto renderer_data = uevr::API::get()->param()->renderer;
 
-	if (!uevr::API::get()->param()->vr->is_hmd_active()) {
-		if (!m_was_rendering_desktop) {
-			m_was_rendering_desktop = true;
-			onDeviceReset();
+	if (!uevr::API::get()->param()->vr->is_hmd_active() && !m_was_rendering_desktop) {
+		m_was_rendering_desktop = true;
+		onDeviceReset();
+		return;
+	}
+
+	// Drawn to the backbuffer in VR too, so the menu shows on the spectator window and works with the mouse
+	if (!uevr::API::get()->param()->functions->is_drawing_ui())
+		return;
+
+	if (renderer_data->renderer_type == UEVR_RENDERER_D3D11) {
+		ImGui_ImplDX11_NewFrame();
+		g_d3d11.render_imgui();
+	}
+	else if (renderer_data->renderer_type == UEVR_RENDERER_D3D12) {
+		auto command_queue = (ID3D12CommandQueue*)renderer_data->command_queue;
+
+		if (command_queue == nullptr) {
 			return;
 		}
 
-		m_was_rendering_desktop = true;
-
-		if (renderer_data->renderer_type == UEVR_RENDERER_D3D11) {
-			ImGui_ImplDX11_NewFrame();
-			g_d3d11.render_imgui();
-		}
-		else if (renderer_data->renderer_type == UEVR_RENDERER_D3D12) {
-			auto command_queue = (ID3D12CommandQueue*)renderer_data->command_queue;
-
-			if (command_queue == nullptr) {
-				return;
-			}
-
-			ImGui_ImplDX12_NewFrame();
-			g_d3d12.render_imgui();
-		}
+		ImGui_ImplDX12_NewFrame();
+		g_d3d12.render_imgui();
 	}
 }
 
@@ -205,9 +205,12 @@ void ImGuiMenu::handleVRcursor()
  //           
  //           // Update ImGui input state
             io.MousePos = LastMousePosition;
-			ControllerInput = Inputs::IsActionActive(false, "/actions/default/in/AButtonRight");
+			const bool controllerInput = Inputs::IsActionActive(false, "/actions/default/in/AButtonRight");
 			//io.AddMouseButtonEvent(0, io.MouseClicked);
-			io.AddMouseButtonEvent(0, ControllerInput);
+			// Only send changes: sending it every frame would release the real mouse button held from on_message
+			if (controllerInput != ControllerInput)
+				io.AddMouseButtonEvent(0, controllerInput);
+			ControllerInput = controllerInput;
     //    }
     //}
 }
