@@ -659,6 +659,11 @@ void MGSDeltaPlugin::on_post_viewport_client_draw(UEVR_UGameViewportClientHandle
 void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, XINPUT_STATE* state)
 {
 	PLUGIN_LOG_ONCE("XInput Get State");
+
+	// Must run first: may replace the state with the one UEVR built in a nested inner call
+	// (GameInput XInput forwarder), so the code below and the game see the correct inputs.
+	Inputs::FixNestedXInputCall(retval, user_index, state);
+
 	//if (state->Gamepad.sThumbRX != 0.0)
 	//	Logger::DebugPrint("%d", state->Gamepad.sThumbRX);
 	float rawRightXInput = (float)state->Gamepad.sThumbRX / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
