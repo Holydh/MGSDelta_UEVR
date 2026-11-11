@@ -352,7 +352,7 @@ void PlayerManager::FindBasicAction(float deltaTime)
 	}
 }
 
-void PlayerManager::UpdateLinearLocomotion(bool enabled, double hmdYaw, float deltaTime)
+void PlayerManager::UpdateLinearLocomotion(bool enabled, double viewYaw, float deltaTime)
 {
 	LinearLocomotionActive = false;
 	FindBasicAction(deltaTime);
@@ -375,6 +375,12 @@ void PlayerManager::UpdateLinearLocomotion(bool enabled, double hmdYaw, float de
 	if (!enabled || CurrentMenuType != ue::EGsrUIMenuType::None)
 		return;
 
+	// Wall-hugging, climbing, rolling... are other action modules, and falling, swimming or ladders
+	// aren't ground movement: the game keeps its own motion there
+	auto movement = ue::get<ue::UObject*>(uevr::API::get()->get_local_pawn(0), L"CharacterMovement");
+	if (!ue::call<bool>(BasicAction, L"IsActive") || !ue::call<bool>(movement, L"IsMovingOnGround"))
+		return;
+
 	// Top speeds of the game's own TPS locomotion, measured in cm/s
 	double maxSpeed;
 	switch (CurrentStance)
@@ -385,7 +391,6 @@ void PlayerManager::UpdateLinearLocomotion(bool enabled, double hmdYaw, float de
 	default: return;
 	}
 
-	LinearLocomotionYaw = hmdYaw;
 	constexpr double deadZone = 0.1;
 	const double stickX = MoveStickX;
 	const double stickY = MoveStickY;
@@ -393,7 +398,7 @@ void PlayerManager::UpdateLinearLocomotion(bool enabled, double hmdYaw, float de
 	const double rate = magnitude > deadZone ? (std::min(magnitude, 1.0) - deadZone) / (1.0 - deadZone) : 0.0;
 
 	// Unreal: X forward, Y right, positive yaw turns right
-	const double yaw = glm::radians(hmdYaw);
+	const double yaw = glm::radians(viewYaw);
 	const ue::FVector forward{ std::cos(yaw), std::sin(yaw), 0.0 };
 	const ue::FVector right{ -std::sin(yaw), std::cos(yaw), 0.0 };
 	const ue::FVector direction = rate > 0.0 ? (forward * stickY + right * stickX) / magnitude : ue::FVector{};

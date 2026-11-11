@@ -96,8 +96,7 @@ public:
 	ue::WeakObject BasicAction; // the local player's GsrPlayerBasicAction
 	bool LinearLocomotionActive = false;
 	ue::FVector LinearLocomotionVelocity{};
-	double LinearLocomotionYaw = 0.0; // logged while investigating the direction issue
-	void UpdateLinearLocomotion(bool enabled, double hmdYaw, float deltaTime);
+	void UpdateLinearLocomotion(bool enabled, double viewYaw, float deltaTime);
 private:
 	void FindBasicAction(float deltaTime);
 	float basicActionSearchTimer = 0.0f;

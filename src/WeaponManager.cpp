@@ -1088,17 +1088,15 @@ void WeaponManager::SetAimDirection()
 	auto gsrCameraController = GsrPlayerCameraController_c.get();
 
 	//Logger::DebugPrint(root_component->get_full_name());
-	if (gsrCameraController == nullptr || !cameraController->CameraAttachementActor)
+	if (gsrCameraController == nullptr)
 	{
-		Logger::DebugPrint("SetAimDirection : No CameraController or no CameraAttachementActor found");
+		Logger::DebugPrint("SetAimDirection : No CameraController found");
 		return;
 	}
 
-	const auto hmdRotation = ue::call<ue::FRotator>(cameraController->CameraAttachementActor, L"K2_GetActorRotation");
-	//Logger::DebugPrint("pitch : %f, yaw : %f, roll : %f", hmdRotation.Pitch, hmdRotation.Yaw, hmdRotation.Roll);
 	// SetCameraRotation(EndRotation, InterpTime). The SDK-era call only passed the rotation,
 	// so InterpTime was read from undefined memory. 0 = apply the rotation immediately.
-	ue::call(gsrCameraController, L"SetCameraRotation", hmdRotation, 0.0f);
+	ue::call(gsrCameraController, L"SetCameraRotation", cameraController->ViewRotation, 0.0f);
 	
 
 	//auto cameraActor = ue::get<ue::UObject*>(CurrentWeapon, L"m_cameraActor");

@@ -489,7 +489,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		
 		weaponManager.SetAimDirection();
 
-		playerManager.UpdateLinearLocomotion(*settingsManager.LinearLocomotionPtr, cameraController.ViewYaw, delta);
+		playerManager.UpdateLinearLocomotion(*settingsManager.LinearLocomotionPtr, cameraController.ViewRotation.Yaw, delta);
 
 		/*	Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
@@ -662,7 +662,13 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 {
 	PLUGIN_LOG_ONCE("Post Calculate Stereo View Offset");
 	// Final view rotation: base camera yaw (right stick) + headset, real or simulated
-	cameraController.ViewYaw = is_double ? ((UEVR_Rotatord*)rotation)->yaw : rotation->yaw;
+	if (is_double)
+	{
+		const auto* rot = (UEVR_Rotatord*)rotation;
+		cameraController.ViewRotation = { rot->pitch, rot->yaw, rot->roll };
+	}
+	else
+		cameraController.ViewRotation = { rotation->pitch, rotation->yaw, rotation->roll };
 
 	//we need to override uevr attachement controls so we're running this later
 	if (playerManager.IsPlayerControlled && playerManager.SecondHandAttachedToWeapon && ranOnce)
