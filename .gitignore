@@ -23,3 +23,4 @@ CMakeUserPresets.json
 # UEVR profile: built plugin and runtime files
 UEVR_profile/MGSDelta-Win64-Shipping/plugins/
 UEVR_profile/MGSDelta-Win64-Shipping/log.txt
+.mcp.json
