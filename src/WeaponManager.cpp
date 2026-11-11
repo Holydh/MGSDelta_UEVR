@@ -199,6 +199,14 @@ inline const char* WeaponManager::WeaponIdToKey(EGsrEquipId id)
 
 void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot, ue::FRotator& outRightHandRotationOffset, ue::FVector& outLeftHandLocationOffset, ue::FRotator& outLeftHandRotationOffset)
 {
+	// Weapons without a config get the default offsets, not the previous weapon's ones
+	const WeaponConfig defaults{};
+	outPos = defaults.location_offset;
+	outRot = defaults.rotation_offset;
+	outRightHandRotationOffset = defaults.right_hand_rotation_offset;
+	outLeftHandLocationOffset = defaults.left_hand_location_offset;
+	outLeftHandRotationOffset = defaults.left_hand_rotation_offset;
+
 	const char* key = WeaponIdToKey(currentWeapon);
 	if (!key)
 	{

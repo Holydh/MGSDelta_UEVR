@@ -21,7 +21,7 @@ namespace fs = std::filesystem;
 struct WeaponConfig
 {
     glm::fvec3 location_offset{};
-    glm::fquat rotation_offset{};
+    glm::fquat rotation_offset{ 1.0f, 0.0f, 0.0f, 0.0f }; // identity (w, x, y, z): {} would be a zero quaternion
 	ue::FRotator right_hand_rotation_offset{};
 	ue::FVector left_hand_location_offset{};
 	ue::FRotator left_hand_rotation_offset{};
