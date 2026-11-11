@@ -26,6 +26,8 @@ public:
 	static inline constinit ue::ClassRef ABP_PlayerCarryAction_C{ L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Player/Animations/ABP_PlayerCarryAction.ABP_PlayerCarryAction_C" };
 	static inline constinit ue::ClassRef ABP_EnemyCqc_C{ L"AnimBlueprintGeneratedClass /Game/Gsr/Blueprints/Enemy/Animation/Cqc/ABP_EnemyCqc.ABP_EnemyCqc_C" };
 
+	static inline constinit ue::ClassRef GsrPlayerBasicAction_c{ L"Class /Script/Gsr.GsrPlayerBasicAction" };
+
 	//Debug Arrow Actor
 	static uevr::API::UObject* DebugMesh0;
 	static uevr::API::UObject* DebugMesh1;

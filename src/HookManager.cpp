@@ -164,6 +164,45 @@ bool HookManager::mod_CobraLevelSequence_OnCameraCut_post(uevr::API::UFunction* 
 	return true;
 }
 
+bool HookManager::mod_IcsActorActionModule_OnOverrideRootMotionVelocity_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+	static bool loggedFirstCall = false;
+	if (!loggedFirstCall && obj != nullptr)
+	{
+		loggedFirstCall = true;
+		Logger::DebugPrint(L"OnOverrideRootMotionVelocityBP hook called, first on: " + obj->get_full_name());
+	}
+
+	if (result == nullptr || obj == nullptr || obj != s_playerManager->BasicAction.get())
+		return true;
+
+	auto velocity = static_cast<ue::FVector*>(result);
+	const ue::FVector gameVelocity = *velocity;
+	if (s_playerManager->LinearLocomotionActive)
+	{
+		// Z kept from the game (root motion is horizontal while walking)
+		velocity->X = s_playerManager->LinearLocomotionVelocity.X;
+		velocity->Y = s_playerManager->LinearLocomotionVelocity.Y;
+	}
+
+	// Experiment logging, ~4 times per second at 60 fps
+	static int callCount = 0;
+	if (++callCount % 15 == 0)
+	{
+		// The return value is inside the ProcessEvent parameter buffer: the parameters are just before it
+		static const auto* returnValue = ue::detail::find_property(fn, L"ReturnValue");
+		const ue::FVector* currentVelocity = returnValue ?
+			ue::param<ue::FVector>(fn, static_cast<uint8_t*>(result) - returnValue->offset, L"CurrentVelocity") : nullptr;
+		const ue::FVector current = currentVelocity ? *currentVelocity : ue::FVector{};
+		Logger::DebugPrint("RootMotion current %.1f (%.1f, %.1f, %.1f) | returned by game %.1f | ours %.1f (%.1f, %.1f) | active %d | stance %d | view yaw %.1f | stick (%.2f, %.2f)",
+			current.Size(), current.X, current.Y, current.Z,
+			gameVelocity.Size(), velocity->Size(), velocity->X, velocity->Y, s_playerManager->LinearLocomotionActive,
+			(int)s_playerManager->CurrentStance, s_playerManager->LinearLocomotionYaw,
+			s_playerManager->MoveStickX, s_playerManager->MoveStickY);
+	}
+	return true;
+}
+
 bool HookManager::hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native)
 {
 	auto& hook = m_bp_hooks.emplace_back(BlueprintHook{ std::wstring{ class_name }, std::wstring{ fn_name }, pre, post, use_native });

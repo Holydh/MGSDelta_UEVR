@@ -365,6 +365,12 @@ void ImGuiMenu::internalFrame()
 		
 		if (ImGui::CollapsingHeader("Gameplay"))
 		{
+			ImGui::SeparatorText("Locomotion");
+			if (ImGui::Checkbox("Linear head-relative locomotion (experimental)", settingsManager->LinearLocomotionPtr))
+				settingsManager->SettingsModifiedThisFrame = true;
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Constant speed in the direction of your head, instead of following Snake's animations.");
+
 			ImGui::SeparatorText("RoomScale");
 			if (ImGui::Checkbox("Enable RoomScale Prone And Crouch", settingsManager->EnableRoomscaleProneAndCrouchPtr))
 				settingsManager->SettingsModifiedThisFrame = true;

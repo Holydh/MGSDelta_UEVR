@@ -38,6 +38,7 @@ public:
 	UEVR_Rotatord NewCameraRotation = { 0.0f, 0.0f, 0.0f };
 	UEVR_Rotatord LastCameraRotation = { 0.0f, 0.0f, 0.0f };
 	ue::FVector CameraForwardVector = { 1.0f, 0.0f, 0.0f };
+	double ViewYaw = 0.0; // yaw of the VR view rendered last frame
 
 	ue::WeakObject CameraAttachementActor;
 	bool SpawnCameraAttachementActor();

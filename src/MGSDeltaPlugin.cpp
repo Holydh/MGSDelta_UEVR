@@ -64,6 +64,7 @@ void MGSDeltaPlugin::on_initialize() {
 	//hookManager.hook_bp_fn(L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/sv_main.sv_main_C", L"OnSurvivalViewerChanged", (UEVR_UFunction_NativePreFn)HookManager::mod_sv_main_OnSurvivalViewerChanged_pre, NULL, false);
 
 	hookManager.hook_bp_fn(L"BlueprintGeneratedClass /Game/Cinematics/Blueprints/BP_CobraLevelSequence.BP_CobraLevelSequence_C", L"OnCameraCut", NULL, (UEVR_UFunction_NativePreFn)HookManager::mod_CobraLevelSequence_OnCameraCut_post, true);
+	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsActorActionModule", L"OnOverrideRootMotionVelocityBP", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_IcsActorActionModule_OnOverrideRootMotionVelocity_post, true);
 
 	//hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePlay", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePlay_post, true);
 	//hookManager.hook_bp_fn(L"Class /Script/MGS3.CutsceneObject", L"OnSequencePause", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_CutsceneObject_OnSequencePause_post, true);
@@ -487,7 +488,9 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		//Logger::DebugPrint("Before SetAimDirection");
 		
 		weaponManager.SetAimDirection();
-	
+
+		playerManager.UpdateLinearLocomotion(*settingsManager.LinearLocomotionPtr, cameraController.ViewYaw, delta);
+
 		/*	Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
 		//Logger::DebugPrint("Before UpdatePeepingState");
@@ -505,6 +508,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	else
 	{
 		uevr::API::UObjectHook::remove_all_motion_controller_states();
+		playerManager.LinearLocomotionActive = false;
 
 		cameraController.CheckCutscenePlaying();
 		if (playerManager.WasPlayerControlled)
@@ -657,6 +661,9 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 	UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double)
 {
 	PLUGIN_LOG_ONCE("Post Calculate Stereo View Offset");
+	// Final view rotation: base camera yaw (right stick) + headset, real or simulated
+	cameraController.ViewYaw = is_double ? ((UEVR_Rotatord*)rotation)->yaw : rotation->yaw;
+
 	//we need to override uevr attachement controls so we're running this later
 	if (playerManager.IsPlayerControlled && playerManager.SecondHandAttachedToWeapon && ranOnce)
 	{
@@ -694,6 +701,9 @@ void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, 
 	Inputs::LeftGripInputPressed = triggerInput > 0.5f ? true : false;
 
 	Inputs::LeftGripInputPressed = state->Gamepad.wButtons == 256 ? true : false;
+
+	playerManager.MoveStickX = (float)state->Gamepad.sThumbLX / 32768.0f;
+	playerManager.MoveStickY = (float)state->Gamepad.sThumbLY / 32768.0f;
 
 	//float rawLeftXInput = (float)state->Gamepad.sThumbLX / 32768.0f; // Normalize to -1.0 to 1.0
 	//float rawLeftYInput = (float)state->Gamepad.sThumbLY / 32768.0f; // Normalize to -1.0 to 1.0

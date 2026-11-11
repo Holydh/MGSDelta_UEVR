@@ -89,7 +89,20 @@ public:
 	void SetPlayerStance(ue::EGsrPlayerStance NewStance);
 	void Cleanup();
 	//EPlayerAnimState GetCurrentPlayerAnimState(const ue::FName& State);
+
+	// Linear head-relative locomotion: replaces the root motion velocity of the basic action
+	float MoveStickX = 0.0f; // left stick, -1..1, written by the XInput callback
+	float MoveStickY = 0.0f;
+	ue::WeakObject BasicAction; // the local player's GsrPlayerBasicAction
+	bool LinearLocomotionActive = false;
+	ue::FVector LinearLocomotionVelocity{};
+	double LinearLocomotionYaw = 0.0; // logged while investigating the direction issue
+	void UpdateLinearLocomotion(bool enabled, double hmdYaw, float deltaTime);
 private:
+	void FindBasicAction(float deltaTime);
+	float basicActionSearchTimer = 0.0f;
+	bool rootMotionCallbackEnabledByUs = false;
+
 	//Peep State Machine Name
 	ue::FName fNameBehind;
 	//Peep States

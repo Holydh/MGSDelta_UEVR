@@ -325,6 +325,83 @@ void PlayerManager::ProcessVRHandsVisibility()
 		ToggleVRHandsVisibility(MeleeAttackRunning || IsCarrying ? false : true);
 }
 
+void PlayerManager::FindBasicAction(float deltaTime)
+{
+	auto pawn = uevr::API::get()->get_local_pawn(0);
+	if (BasicAction && ue::call<ue::UObject*>(BasicAction, L"GetOwnerActor") == pawn)
+		return;
+
+	BasicAction = nullptr;
+	rootMotionCallbackEnabledByUs = false;
+	// The engine's object list is scanned at most once per second while the action isn't found
+	basicActionSearchTimer -= deltaTime;
+	if (!pawn || basicActionSearchTimer > 0.0f || !Utilities::GsrPlayerBasicAction_c.get())
+		return;
+	basicActionSearchTimer = 1.0f;
+
+	for (auto action : Utilities::GsrPlayerBasicAction_c.get()->get_objects_matching(false))
+	{
+		if (ue::is_valid(action) && ue::call<ue::UObject*>(action, L"GetOwnerActor") == pawn)
+		{
+			BasicAction = action;
+			Logger::DebugPrint(L"Found player basic action: " + action->get_full_name());
+			Logger::DebugPrint("Root motion override callback enabled by the game: %d",
+				ue::call<bool>(action, L"IsSetOverrideRootMotionVelocityCallbackState"));
+			return;
+		}
+	}
+}
+
+void PlayerManager::UpdateLinearLocomotion(bool enabled, double hmdYaw, float deltaTime)
+{
+	LinearLocomotionActive = false;
+	FindBasicAction(deltaTime);
+	if (!BasicAction)
+		return;
+
+	// The callback is only asked for when enabled. Never disabled if the game enabled it itself.
+	const bool callbackEnabled = ue::call<bool>(BasicAction, L"IsSetOverrideRootMotionVelocityCallbackState");
+	if (enabled && !callbackEnabled)
+	{
+		ue::call(BasicAction, L"SetOverrideRootMotionVelocityCallbackState", true);
+		rootMotionCallbackEnabledByUs = true;
+	}
+	else if (!enabled && rootMotionCallbackEnabledByUs)
+	{
+		ue::call(BasicAction, L"SetOverrideRootMotionVelocityCallbackState", false);
+		rootMotionCallbackEnabledByUs = false;
+	}
+
+	if (!enabled || CurrentMenuType != ue::EGsrUIMenuType::None)
+		return;
+
+	// Top speeds of the game's own TPS locomotion, measured in cm/s
+	double maxSpeed;
+	switch (CurrentStance)
+	{
+	case ue::EGsrPlayerStance::Stand: maxSpeed = 390.0; break;
+	case ue::EGsrPlayerStance::Squat: maxSpeed = 320.0; break;
+	case ue::EGsrPlayerStance::Crawl: maxSpeed = 122.0; break;
+	default: return;
+	}
+
+	LinearLocomotionYaw = hmdYaw;
+	constexpr double deadZone = 0.1;
+	const double stickX = MoveStickX;
+	const double stickY = MoveStickY;
+	const double magnitude = std::sqrt(stickX * stickX + stickY * stickY);
+	const double rate = magnitude > deadZone ? (std::min(magnitude, 1.0) - deadZone) / (1.0 - deadZone) : 0.0;
+
+	// Unreal: X forward, Y right, positive yaw turns right
+	const double yaw = glm::radians(hmdYaw);
+	const ue::FVector forward{ std::cos(yaw), std::sin(yaw), 0.0 };
+	const ue::FVector right{ -std::sin(yaw), std::cos(yaw), 0.0 };
+	const ue::FVector direction = rate > 0.0 ? (forward * stickY + right * stickX) / magnitude : ue::FVector{};
+
+	LinearLocomotionVelocity = direction * (rate * maxSpeed);
+	LinearLocomotionActive = true;
+}
+
 void PlayerManager::Cleanup()
 {
 	// The VR hands are gone (destroyed by the Lua script, or with the level): forget them and their
