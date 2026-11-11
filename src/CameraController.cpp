@@ -455,16 +455,16 @@ void CameraController::ProcessCameraResetTimer(float delta)
 //void CameraController::DisableGrassFading()
 //{
 //	Logger::DebugPrint("DisableGrassFading");
-//	auto uClass = (uevr::API::UClass*)SDK::UCameraFadingComponent::StaticClass();
-//	auto uCameraFadingComponents = uClass->get_objects_matching();
-//	for (size_t i = 0; i < uCameraFadingComponents.size(); i++)
+//	static ue::ClassRef cameraFadingComponent_c{ L"Class /Script/Cobra.CameraFadingComponent" };
+//	if (!cameraFadingComponent_c.get())
+//		return;
+//	for (auto component : cameraFadingComponent_c.get()->get_objects_matching())
 //	{
-//		Logger::DebugPrint(uCameraFadingComponents[i]->get_full_name());
-//		auto sdkComponent = (SDK::UCameraFadingComponent*)uCameraFadingComponents[i];
-//		sdkComponent->bAutoActivate = false;
-//		sdkComponent->GrassFadingRadius = 0.0f;
-//		sdkComponent->ClearCache();
-//		sdkComponent->Deactivate();
+//		Logger::DebugPrint(component->get_full_name());
+//		ue::set(component, L"bAutoActivate", false);
+//		ue::set(component, L"GrassFadingRadius", 0.0f);
+//		ue::call(component, L"ClearCache");
+//		ue::call(component, L"Deactivate");
 //	}
 //}
 
@@ -504,11 +504,11 @@ void CameraController::ProcessRoomscaleStance()
 
 //void CameraController::SetNearClipPlane(float nearClip)
 //{
-//	auto playerCameraActor_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrPlayerCameraActor");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
-//	auto playerCamera = playerCameraActor_c->get_first_object_matching(false);
-//	auto sdkPlayerCamera = (SDK::AGsrPlayerCameraActor*)playerCamera;
-//	sdkPlayerCamera->CameraComponent->SetOrthoNearClipPlane(nearClip);
-//	Logger::DebugPrint("%f", sdkPlayerCamera->CameraComponent->OrthoNearClipPlane);
+//	static ue::ClassRef playerCameraActor_c{ L"Class /Script/Gsr.GsrPlayerCameraActor" };
+//	auto playerCamera = playerCameraActor_c.get() ? playerCameraActor_c.get()->get_first_object_matching(false) : nullptr;
+//	auto cameraComponent = ue::get<ue::UObject*>(playerCamera, L"CameraComponent");
+//	ue::call(cameraComponent, L"SetOrthoNearClipPlane", nearClip);
+//	Logger::DebugPrint("%f", ue::get<float>(cameraComponent, L"OrthoNearClipPlane"));
 //}
 
 void CameraController::FixSurvivalViewerMenuRendering()
@@ -519,8 +519,8 @@ void CameraController::FixSurvivalViewerMenuRendering()
 		return;
 
 	ue::call(ue::get<ue::UObject*>(mainWidget, L"ModelCaptureCanvas"), L"SetVisibility", ue::ESlateVisibility::Hidden);
-	//mainWidget->menuBLIcon->SetVisibility(SDK::ESlateVisibility::Visible);
-	//mainWidget->Mask->SetVisibility(SDK::ESlateVisibility::Hidden);
+	//ue::call(ue::get<ue::UObject*>(mainWidget, L"menuBLIcon"), L"SetVisibility", ue::ESlateVisibility::Visible);
+	//ue::call(ue::get<ue::UObject*>(mainWidget, L"Mask"), L"SetVisibility", ue::ESlateVisibility::Hidden);
 	//
 	// Get sub menu type : mainWidget->GetSvStep();
 
@@ -703,12 +703,11 @@ void CameraController::SpawnCustom2DScreen()
 	ue::set(translucentMat, L"TwoSided", true);
 	ue::set(translucentMat, L"bDisableDepthTest", true);
 	ue::set(translucentMat, L"BlendMode", ue::EBlendMode::BLEND_Translucent);
-	//sdkMat->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
+	//ue::set(translucentMat, L"MaterialDomain", ue::EMaterialDomain::MD_Surface);
 	ue::set(translucentMat, L"ShadingModel", ue::EMaterialShadingModel::MSM_Unlit);
 	////Material /Engine/EngineMaterials/DefaultMaterial.DefaultMaterial
 
 	//auto textureUEVR = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Texture2D /CobraUI/Material/HUD/T_GoggleVignette.T_GoggleVignette");
-	//auto texture = (SDK::UTexture2D*)textureUEVR;
 
 	// create 5 planes for the box
 	for (int i = 0; i < 5; i++)
@@ -762,23 +761,10 @@ void CameraController::SpawnCustom2DScreen()
 			ue::FLinearColor{ 0.0f, 0.0f, 0.0f, 9999.0f }
 		);
 
-		//					dynamicMaterial->SetVectorParameterValue(
-		//		SDK::UKismetStringLibrary::Conv_StringToName(L"TintColorAndOpacity"),
-		//		SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 99999.0f }
-		//	);
-		//	dynamicMaterial->SetVectorParameterValue(
-		//		SDK::UKismetStringLibrary::Conv_StringToName(L"BackColor"),
-		//		SDK::FLinearColor{ 0.0f, 0.0f, 0.0f, 99999.0f }
-		//	);
-		//	dynamicMaterial->SetScalarParameterValue(
-		//		SDK::UKismetStringLibrary::Conv_StringToName(L"OpacityFromTexture"),
-		//		9999.0f
-		//	);
-		//	dynamicMaterial->SetTextureParameterValue(
-		//		SDK::UKismetStringLibrary::Conv_StringToName(L"SlateUI"),
-		//		texture
-		//	);
-		//}
+		//ue::call(dynamicMaterial, L"SetVectorParameterValue", ue::FName(L"TintColorAndOpacity"), ue::FLinearColor{ 0.0f, 0.0f, 0.0f, 99999.0f });
+		//ue::call(dynamicMaterial, L"SetVectorParameterValue", ue::FName(L"BackColor"), ue::FLinearColor{ 0.0f, 0.0f, 0.0f, 99999.0f });
+		//ue::call(dynamicMaterial, L"SetScalarParameterValue", ue::FName(L"OpacityFromTexture"), 9999.0f);
+		//ue::call(dynamicMaterial, L"SetTextureParameterValue", ue::FName(L"SlateUI"), textureUEVR);
 	}
 
 	Custom2DScreen = actor;

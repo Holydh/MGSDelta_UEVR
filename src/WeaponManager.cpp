@@ -49,8 +49,8 @@ void WeaponManager::ApplyHandMaterialToVRHands()
 		return;
 	auto handMaterial = ue::call<ue::TArray<ue::UObject*>>(pawnHandMesh, L"GetMaterials");
 	auto previousMaterialCount = ue::call<int32_t>(playerManager->LeftHandMesh, L"GetNumMaterials");
-	// Cleanup additional override material slots
-	for (int i = handMaterial.count; i < handMaterial.count; i++)
+	// Cleanup additional override material slots (left over from a hand material with more slots)
+	for (int i = handMaterial.count; i < previousMaterialCount; i++)
 	{
 		ue::call(playerManager->LeftHandMesh, L"SetMaterial", i, nullptr);
 		ue::call(playerManager->RightHandMesh, L"SetMaterial", i, nullptr);
@@ -262,61 +262,48 @@ void WeaponManager::SpawnDummyCqcKnifeMesh()
 		ue::call(DummyCqcKnifeMeshActor, L"K2_SetActorRelativeRotation", cqcKnifeRelativeRotation, false, nullptr, true);
 		DummyCqcKnifeMesh = meshComponent;
 		ue::call(DummyCqcKnifeMesh, L"SetOnlyOwnerSee", true);
-		//SDK::USkeletalMeshComponent* cqcKnifeMesh = (SDK::USkeletalMeshComponent*)DummyCqcKnifeMeshActor;
-		//cqcKnifeMesh->K2_SetRelativeLocationAndRotation(cqcKnifeRelativeLocation, cqcKnifeRelativeRotation, false, nullptr, true);
 	}
 	//DummyCqcKnifeMeshActor->SetActorHiddenInGame(true);
 }
 
 void WeaponManager::ToggleDummyCQCKnifeMeshVisibility()
 {
-	if (!LeftHandWeaponRoot)
-		return;
-
-	auto leftWeaponMesh = LeftHandWeaponRoot;
-	if (playerManager->IsPlayerControlled && holdCQCKnifeInLeftHand && playerManager->SecondHandAttachedToWeapon)
+	// SetOnlyOwnerSee(true) hides a mesh from the VR view. Only call the engine when it differs.
+	auto setHidden = [](ue::UObject* mesh, bool hidden)
 	{
-		if (!playerManager->LeftHandMesh)
-			return;
-		if (!ue::is_valid(DummyCqcKnifeMesh) || !DummyCqcKnifeMesh)
-		{
-			DummyCqcKnifeMesh = nullptr;
-			if (ue::is_valid(DummyCqcKnifeMeshActor))
-			{
-				ue::call(DummyCqcKnifeMeshActor, L"K2_DestroyActor");
-				DummyCqcKnifeMeshActor = nullptr;
-			}
-
-			SpawnDummyCqcKnifeMesh();
-		}
-
-
-		if (ue::get<bool>(DummyCqcKnifeMesh, L"bOnlyOwnerSee") == true)
-		{
-			ue::call(leftWeaponMesh, L"SetOnlyOwnerSee", true);
-			ue::call(DummyCqcKnifeMesh, L"SetOnlyOwnerSee", false);
-		}
-	}
-	if (!playerManager->IsPlayerControlled)
+		if (mesh && ue::get<bool>(mesh, L"bOnlyOwnerSee") != hidden)
+			ue::call(mesh, L"SetOnlyOwnerSee", hidden);
+	};
+	auto destroyDummyKnife = [this]()
 	{
 		DummyCqcKnifeMesh = nullptr;
 		if (ue::is_valid(DummyCqcKnifeMeshActor))
-		{
 			ue::call(DummyCqcKnifeMeshActor, L"K2_DestroyActor");
-			DummyCqcKnifeMeshActor = nullptr;
-		}
+		DummyCqcKnifeMeshActor = nullptr;
+	};
+
+	if (!playerManager->IsPlayerControlled)
+	{
+		destroyDummyKnife();
 		return;
 	}
 
+	// While the left hand holds the weapon, the dummy knife (attached to the VR left hand)
+	// replaces the game's left hand CQC knife.
+	const bool showDummyKnife = holdCQCKnifeInLeftHand && playerManager->SecondHandAttachedToWeapon && playerManager->LeftHandMesh;
 
-	if (holdCQCKnifeInLeftHand && !playerManager->SecondHandAttachedToWeapon)
+	if (showDummyKnife && LeftHandWeaponRoot && !ue::is_valid(DummyCqcKnifeMesh))
 	{
-		if (ue::is_valid(DummyCqcKnifeMesh) && ue::get<bool>(DummyCqcKnifeMesh, L"bOnlyOwnerSee") == false)
-		{
-			ue::call(leftWeaponMesh, L"SetOnlyOwnerSee", false);
-			ue::call(DummyCqcKnifeMesh, L"SetOnlyOwnerSee", true);
-		}
+		destroyDummyKnife();
+		SpawnDummyCqcKnifeMesh();
 	}
+
+	// Enforced every frame, not only on changes: the game recreates its left hand knife (e.g. when
+	// leaving first person view), and the new one used to stay visible next to the dummy (two knives).
+	if (ue::is_valid(DummyCqcKnifeMesh))
+		setHidden(DummyCqcKnifeMesh, !showDummyKnife);
+	if (holdCQCKnifeInLeftHand && LeftHandWeaponRoot)
+		setHidden(LeftHandWeaponRoot, showDummyKnife);
 }
 
 void WeaponManager::ProcessTwoHandsGrabWeapon()
@@ -493,11 +480,6 @@ void WeaponManager::ProcessWeapon(float delta)
 
 		FetchWeaponOffsets(CurrentWeaponID, DefaultUevrHookWeaponPosition, DefaultUevrHookWeaponRotation, RightHandRotationOffset, LeftHandLocationOffset, LeftHandRotationOffset);
 
-		//if (!weaponShouldAttach)
-		//{
-		//	auto sdkSceneComponent = (SDK::USceneComponent*)WeaponRoot;
-		//	AttachParent = sdkSceneComponent->GetAttachParent();
-		//}
 
 
 		Logger::DebugPrint("Applied weapon offsets from config");
@@ -750,7 +732,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (ue::is_a(CurrentWeapon, GsrGun_c) && !isReceiverMeshVisible && !playerManager->IsCarrying)
 		{
 			ue::call(ReceiverMesh, L"SetVisibility", true, false);
-			//Logger::DebugPrint("IsAttachedSuppressor : %i", sdkGun->IsAttachedSuppressor());
+			//Logger::DebugPrint("IsAttachedSuppressor : %i", ue::call<bool>(CurrentWeapon, L"IsAttachedSuppressor"));
 			bool isAttachedSuppressor = ue::call<bool>(CurrentWeapon, L"IsAttachedSuppressor");
 			auto suppressorMesh = ue::get<ue::UObject*>(ue::get<ue::UObject*>(CurrentWeapon, L"GunPartsController"), L"m_suppressorMesh");
 			if (suppressorMesh)
@@ -759,12 +741,12 @@ void WeaponManager::ProcessWeapon(float delta)
 			}
 
 			// Set cqc knife visibility. DOESN'T WORK. Something is overwritting it each frame.
-			//Logger::DebugPrint("CanCqc : %i", sdkGun->CanCqc());
-			//if (sdkGun->CanCqc())
+			//Logger::DebugPrint("CanCqc : %i", ue::call<bool>(CurrentWeapon, L"CanCqc"));
+			//if (ue::call<bool>(CurrentWeapon, L"CanCqc"))
 			//{
-			//	auto sdkEquipController = (SDK::UGsrEquipController*)EquipController;
-			//	Logger::DebugPrint("Knife Is Visible : %i", sdkEquipController->m_knifeActor->SkeletalMeshComponent->IsVisible());
-			//	sdkEquipController->m_knifeActor->SkeletalMeshComponent->SetVisibility(true, true);
+			//	auto knifeMesh = ue::get<ue::UObject*>(ue::get<ue::UObject*>(EquipController, L"m_knifeActor"), L"SkeletalMeshComponent");
+			//	Logger::DebugPrint("Knife Is Visible : %i", ue::call<bool>(knifeMesh, L"IsVisible"));
+			//	ue::call(knifeMesh, L"SetVisibility", true, true);
 			//}
 		}
 
@@ -1087,13 +1069,11 @@ void WeaponManager::SetAimDirection()
 	ue::call(gsrCameraController, L"SetCameraRotation", hmdRotation, 0.0f);
 	
 
-	//auto root_component = CurrentWeapon->get_property<uevr::API::UObject*>(L"m_cameraActor");
-	////Logger::DebugPrint(root_component->get_full_name());
-	//if (root_component != nullptr)
+	//auto cameraActor = ue::get<ue::UObject*>(CurrentWeapon, L"m_cameraActor");
+	//if (cameraActor != nullptr)
 	//{
-	//	auto cameraActor = (SDK::AActor*)root_component;
-	//	SDK::FHitResult hitResult;
-	//	cameraActor->K2_SetActorRelativeRotation(CurrentWeaponWorldRotation, false, &hitResult, true);
+	//	ue::FHitResult hitResult;
+	//	ue::call(cameraActor, L"K2_SetActorRelativeRotation", CurrentWeaponWorldRotation, false, &hitResult, true);
 	//}
 }
 
@@ -1139,7 +1119,8 @@ void WeaponManager::DestroyScope()
 	if (SceneCaptureComponent) ue::call(SceneCaptureComponent, L"K2_DestroyComponent", SceneCaptureComponent);
 	if (SceneCaptureUStaticMeshComponent) ue::call(SceneCaptureUStaticMeshComponent, L"K2_DestroyComponent", SceneCaptureUStaticMeshComponent);
 	if (DragnovScopeWidget) ue::call(DragnovScopeWidget, L"K2_DestroyComponent", DragnovScopeWidget);
-	if (MosinScopeWidget) ue::call(MosinScopeWidget, L"K2_DestroyComponent", DragnovScopeWidget);
+	if (MosinScopeWidget) ue::call(MosinScopeWidget, L"K2_DestroyComponent", MosinScopeWidget);
+	if (RpgScopeWidget) ue::call(RpgScopeWidget, L"K2_DestroyComponent", RpgScopeWidget);
 	if (ScopeActor) ue::call(ScopeActor, L"K2_DestroyActor");
 	ScopeStaticMeshComponent = nullptr;
 	SceneCaptureComponent = nullptr;
@@ -1150,6 +1131,8 @@ void WeaponManager::DestroyScope()
 	DragnovScopeWidget = nullptr;
 	SourceMosinScopeWidget = nullptr;
 	MosinScopeWidget = nullptr;
+	SourceRpgScopeWidget = nullptr;
+	RpgScopeWidget = nullptr;
 }
 
 void WeaponManager::Cleanup()
@@ -1384,7 +1367,7 @@ void WeaponManager::spawnScopeStaticMeshComponent()
 	ue::set(uDiskMaterial, L"TwoSided", false);
 	ue::set(uDiskMaterial, L"BlendMode", ue::EBlendMode::BLEND_Opaque);
 	ue::set(uDiskMaterial, L"bDisableDepthTest", true);
-	//uMaterial->MaterialDomain = SDK::EMaterialDomain::MD_Surface;
+	//ue::set(uDiskMaterial, L"MaterialDomain", ue::EMaterialDomain::MD_Surface);
 	ue::set(uDiskMaterial, L"ShadingModel", ue::EMaterialShadingModel::MSM_DefaultLit);
 
 
@@ -1404,9 +1387,8 @@ void WeaponManager::spawnScopeStaticMeshComponent()
 	auto scopeDynamicMaterial = ue::call<ue::UObject*>(scopeStaticMeshComponent, L"CreateAndSetMaterialInstanceDynamicFromMaterial", 0, uDiskMaterial);
 	//Applying the render texture to the material :
 	ue::call(scopeDynamicMaterial, L"SetTextureParameterValue", ue::FName(L"LinearColor"), ScopeRenderTarget);
-	//SDK::FLinearColor color = {};
-	//color.R = color.G = color.B = color.A = 2.0f;
-	//scopeDynamicMaterial->SetVectorParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"Color"), color);
+	//const ue::FLinearColor color = { 2.0f, 2.0f, 2.0f, 2.0f };
+	//ue::call(scopeDynamicMaterial, L"SetVectorParameterValue", ue::FName(L"Color"), color);
 	//Logger::DebugPrint("render target applied to scopeDynamicMaterial");
 
 	ScopeStaticMeshComponent = scopeStaticMeshComponent;
@@ -1427,8 +1409,8 @@ void WeaponManager::spawnSceneCaptureComponent()
 	ue::set(SceneCaptureComponent, L"bCaptureOnMovement", false);
 	ue::set(SceneCaptureComponent, L"bCaptureEveryFrame", true);
 	ue::set(SceneCaptureComponent, L"bUseRayTracingIfEnabled", false);
-	//SceneCaptureComponent->PrimitiveRenderMode = SDK::ESceneCapturePrimitiveRenderMode::PRM_LegacySceneCapture;
-	//SceneCaptureComponent->CaptureSource = SDK::ESceneCaptureSource::SCS_SceneColorHDR;
+	//ue::set(SceneCaptureComponent, L"PrimitiveRenderMode", ue::ESceneCapturePrimitiveRenderMode::PRM_LegacySceneCapture);
+	//ue::set(SceneCaptureComponent, L"CaptureSource", ue::ESceneCaptureSource::SCS_SceneColorHDR);
 	ue::set(SceneCaptureComponent, L"bAlwaysPersistRenderingState", true);
 	const auto postProcess = ue::get_struct(SceneCaptureComponent, L"PostProcessSettings");
 	postProcess.set(L"bOverride_MotionBlurAmount", true);
@@ -1450,7 +1432,7 @@ void WeaponManager::spawnSceneCaptureComponent()
 	ue::call(SceneCaptureUStaticMeshComponent, L"SetMobility", ue::EComponentMobility::Movable);
 
 	//auto cigarMesh = uevr::API::get()->find_uobject<uevr::API::UObject>(L"StaticMesh /Game/Art/Environment/HD_GameplayAssets/Mesh/ciga_cigar_dmo_hd.ciga_cigar_dmo_hd");
-	//SceneCaptureUStaticMeshComponent->SetStaticMesh((SDK::UStaticMesh*)cigarMesh);
+	//ue::call(SceneCaptureUStaticMeshComponent, L"SetStaticMesh", cigarMesh);
 }
 
 void ProcessAllChildWidgets(ue::UObject* ParentWidget, const ue::FLinearColor& NewTint)
@@ -1582,7 +1564,6 @@ void WeaponManager::spawnScopeWidget()
 	SetAllImageTints(arrowGroup, color);
 
 
-	//ScopeWidget = (SDK::UWidgetComponent*)uObject;
 }
 
 void WeaponManager::attachScopeToWeapon()

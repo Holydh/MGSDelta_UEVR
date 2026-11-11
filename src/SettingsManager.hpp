@@ -14,7 +14,6 @@
 #include <fstream>
 #include "glm/glm.hpp"
 #include <glm/gtc/type_ptr.hpp>
-#define GLM_FORCE_QUAT_DATA_XYZW
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;

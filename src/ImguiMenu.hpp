@@ -17,7 +17,6 @@
 
 #include "glm/glm.hpp"
 #include <glm/gtc/type_ptr.hpp>
-#define GLM_FORCE_QUAT_DATA_XYZW
 
 class ImGuiMenu {
 private:

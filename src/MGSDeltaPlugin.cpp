@@ -433,7 +433,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	//test
 	//if (!cameraController.IsMenuOpen && cameraController.WasMenuOpen)
 	//{
-	//	playerManager.SetPlayerStance(SDK::EGsrPlayerStance::Crawl);
+	//	playerManager.SetPlayerStance(ue::EGsrPlayerStance::Crawl);
 
 	//}
 
@@ -441,7 +441,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	{
 		Toggle6DOF(true);
 		Logger::DebugPrint("Player took control");
-		//playerManager.SetPlayerStance(SDK::EGsrPlayerStance::Crawl);
+		//playerManager.SetPlayerStance(ue::EGsrPlayerStance::Crawl);
 	}
 
 	if (playerManager.PlayerLostControl())
@@ -485,11 +485,6 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		cameraController.ProcessRoomscaleStance();
 
 		weaponManager.ProcessTwoHandsGrabWeapon();
-		//if (weaponController.ScopeWidgetDynamicMaterial)
-		//{
-		//	auto rt = weaponController.ScopeWidget->GetRenderTarget();
-		//	weaponController.ScopeWidgetDynamicMaterial->SetTextureParameterValue(SDK::UKismetStringLibrary::Conv_StringToName(L"Color_ExponentIn"), rt);
-		//}
 	}
 	else
 	{
@@ -523,15 +518,6 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	cameraController.ProcessCameraResetTimer(delta);
 
 
-	//Debug
-	//if (playerManager.IsPlayerControlled)
-	//{
-	//	auto camActor = (SDK::AActor*)cameraController.CameraAttachementActor;
-	//	auto cameraLocation = camActor->K2_GetActorLocation();
-	//	//Logger::DebugPrint("Camera forward: %f, %f, %f", cameraController.CameraForwardVector.X, cameraController.CameraForwardVector.Y, cameraController.CameraForwardVector.Z);
-	//	SDK::FHitResult hitResult;
-	//	Utilities::DebugCigar0->K2_SetActorRelativeLocation(cameraLocation + cameraController.CameraForwardVector * 100.0f, false, &hitResult, true);
-	//}
 
 	imGuiMenu.ProcessImGui(delta);
 
@@ -612,7 +598,7 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 		//rot->roll = 0.0f;
 	}
 
-	//if (playerManager.CurrentMenuType == SDK::EGsrUIMenuType::Radio)
+	//if (playerManager.CurrentMenuType == ue::EGsrUIMenuType::Radio)
 	//{
 	//	if (Inputs::IsKeyPressed(VK_UP))
 	//		z += 0.05f;

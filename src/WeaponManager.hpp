@@ -6,8 +6,6 @@
 #include "Logger.hpp"
 #include "glm/glm.hpp"
 #include <glm/gtc/type_ptr.hpp>
-#define GLM_FORCE_QUAT_DATA_XYZW
-#define GLM_FORCE_INLINE
 #include "magic_enum/magic_enum.hpp"
 
 #include "ue/Reflection.hpp"

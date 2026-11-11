@@ -89,18 +89,23 @@ namespace uevr {
         // Honestly you can get away with only using wstring most of the time
         // And when you can't, you can often use std::filesystem::path which seems to auto handle it
         // But it doesn't hurt to have these available
+        // UTF-8 <-> UTF-16 conversions
         std::wstring widen(const std::string& s)
         {
-            std::wstring temp(s.length(), L' ');
-            std::copy(s.begin(), s.end(), temp.begin());
-            return temp;
+            if (s.empty()) return {};
+            const int size = MultiByteToWideChar(CP_UTF8, 0, s.data(), (int)s.size(), nullptr, 0);
+            std::wstring result(size, L'\0');
+            MultiByteToWideChar(CP_UTF8, 0, s.data(), (int)s.size(), result.data(), size);
+            return result;
         }
 
         std::string narrow(const std::wstring& s)
         {
-            std::string temp(s.length(), ' ');
-            std::copy(s.begin(), s.end(), temp.begin());
-            return temp;
+            if (s.empty()) return {};
+            const int size = WideCharToMultiByte(CP_UTF8, 0, s.data(), (int)s.size(), nullptr, 0, nullptr, nullptr);
+            std::string result(size, '\0');
+            WideCharToMultiByte(CP_UTF8, 0, s.data(), (int)s.size(), result.data(), size, nullptr, nullptr);
+            return result;
         }
 
 

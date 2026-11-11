@@ -26,7 +26,7 @@ void Logger::DebugPrint(const char* Format, ...)
     printf("%s\n", FormattedMessage);
 
     // Send to UE logger
-    uevr::API::get()->log_info(FormattedMessage);
+    uevr::API::get()->log_info("%s", FormattedMessage);
 }
 
 void Logger::DebugPrint(const std::wstring& wstr)
@@ -40,5 +40,5 @@ void Logger::DebugPrint(const std::wstring& wstr)
     printf("%s\n", utf8msg.c_str());
 
     // Send to UE logger
-    uevr::API::get()->log_info(utf8msg.c_str());
+    uevr::API::get()->log_info("%s", utf8msg.c_str());
 }
