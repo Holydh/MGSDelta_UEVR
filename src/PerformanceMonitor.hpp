@@ -8,6 +8,7 @@
 
 // Frame timings measured from the engine tick callbacks, plus GPU usage (the Windows counters
 // Task Manager uses) and per-thread CPU usage, sampled on a background thread every 2 seconds.
+// Off until Enabled is set from the menu.
 class PerformanceMonitor {
 public:
 	struct ThreadUsage {
@@ -37,6 +38,7 @@ public:
 
 	Snapshot GetSnapshot();
 
+	std::atomic<bool> Enabled = false;
 	std::atomic<bool> LogToFile = false;
 
 private:

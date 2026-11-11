@@ -5,6 +5,7 @@
 #include <tlhelp32.h>
 
 #include <algorithm>
+#include <optional>
 #include <thread>
 #include <unordered_map>
 
@@ -241,6 +242,12 @@ void PerformanceMonitor::Start()
 
 void PerformanceMonitor::OnPreEngineTickStart()
 {
+	if (!Enabled)
+	{
+		lastFrameStart = 0;
+		tickStart = 0;
+		return;
+	}
 	gameThreadId = GetCurrentThreadId();
 	const int64_t now = qpc();
 	if (lastFrameStart != 0)
@@ -257,7 +264,8 @@ void PerformanceMonitor::OnPreEngineTickStart()
 
 void PerformanceMonitor::OnPreEngineTickEnd()
 {
-	pluginTicks = qpc() - tickStart;
+	if (tickStart != 0)
+		pluginTicks = qpc() - tickStart;
 }
 
 void PerformanceMonitor::OnPostEngineTick()
@@ -280,14 +288,41 @@ PerformanceMonitor::Snapshot PerformanceMonitor::GetSnapshot()
 
 void PerformanceMonitor::samplingLoop()
 {
-	GpuCounters gpu{ GetCurrentProcessId() };
+	std::optional<GpuCounters> gpu; // opened when first enabled
 	ThreadCounters threads;
-	threads.Sample(1.0, 0);
-	int64_t windowStart = qpc();
+	bool wasEnabled = false;
+	int64_t windowStart = 0;
 
 	while (true)
 	{
-		Sleep(2000);
+		Sleep(wasEnabled ? 2000 : 500);
+		if (!Enabled)
+		{
+			wasEnabled = false;
+			continue;
+		}
+		if (!wasEnabled)
+		{
+			// Baseline sample: usages are measured between two samples
+			wasEnabled = true;
+			if (gpu)
+			{
+				Snapshot ignored;
+				gpu->Collect(ignored);
+			}
+			else
+				gpu.emplace(GetCurrentProcessId());
+			threads.Sample(1.0, 0);
+			windowStart = qpc();
+			{
+				std::scoped_lock lock{ totalsMutex };
+				totals = {};
+			}
+			std::scoped_lock lock{ snapshotMutex };
+			latest = {};
+			continue;
+		}
+
 		const int64_t now = qpc();
 		const double windowSeconds = (now - windowStart) * qpcToMs / 1000.0;
 		windowStart = now;
@@ -311,7 +346,7 @@ void PerformanceMonitor::samplingLoop()
 			s.gameTickMaxMs = (float)frame.tickMax;
 			s.pluginMs = (float)(frame.pluginSum / frame.ticks);
 		}
-		gpu.Collect(s);
+		gpu->Collect(s);
 		s.busiestThreads = threads.Sample(windowSeconds, gameThreadId);
 		s.valid = true;
 

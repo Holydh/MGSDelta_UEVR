@@ -650,29 +650,37 @@ void ImGuiMenu::internalFrame()
 
 			ImGui::Dummy(ImVec2(0.0f, 10.0f));
 			ImGui::SeparatorText("Measure");
-			const auto stats = performanceMonitor->GetSnapshot();
-			if (!stats.valid)
-				ImGui::Text("Measuring...");
-			else
+			bool monitoring = performanceMonitor->Enabled;
+			if (ImGui::Checkbox("Measure performance", &monitoring))
+				performanceMonitor->Enabled = monitoring;
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Measures framerate, GPU and thread usage every 2 s. Off by default");
+			if (monitoring)
 			{
-				ImGui::Text("%.0f fps, frame %.1f ms (max %.1f)", stats.fps, stats.frameMs, stats.frameMaxMs);
-				ImGui::Text("Game thread tick %.1f ms (max %.1f), plugin %.2f ms", stats.gameTickMs, stats.gameTickMaxMs, stats.pluginMs);
-				if (stats.gpuPercent >= 0.0f)
-				{
-					ImGui::Text("GPU %.0f%% (game %.0f%%), VRAM %.0f MB", stats.gpuPercent, stats.gpuGamePercent, stats.vramMB);
-					ImGui::Text("Game GPU engines: %s", stats.gpuGameEngines.c_str());
-				}
+				const auto stats = performanceMonitor->GetSnapshot();
+				if (!stats.valid)
+					ImGui::Text("Measuring...");
 				else
-					ImGui::Text("GPU usage unavailable");
-				ImGui::Text("Busiest threads (%% of one core):");
-				if (ImGui::IsItemHovered())
-					ImGui::SetTooltip("A thread close to 100%% (GameThread, RenderThread, RHIThread) limits the framerate.\nGPU close to 100%% = the GPU limits it.");
-				for (const auto& thread : stats.busiestThreads)
-					ImGui::BulletText("%s  %.0f%%", thread.name.c_str(), thread.cpuPercent);
+				{
+					ImGui::Text("%.0f fps, frame %.1f ms (max %.1f)", stats.fps, stats.frameMs, stats.frameMaxMs);
+					ImGui::Text("Game thread tick %.1f ms (max %.1f), plugin %.2f ms", stats.gameTickMs, stats.gameTickMaxMs, stats.pluginMs);
+					if (stats.gpuPercent >= 0.0f)
+					{
+						ImGui::Text("GPU %.0f%% (game %.0f%%), VRAM %.0f MB", stats.gpuPercent, stats.gpuGamePercent, stats.vramMB);
+						ImGui::Text("Game GPU engines: %s", stats.gpuGameEngines.c_str());
+					}
+					else
+						ImGui::Text("GPU usage unavailable");
+					ImGui::Text("Busiest threads (%% of one core):");
+					if (ImGui::IsItemHovered())
+						ImGui::SetTooltip("A thread close to 100%% (GameThread, RenderThread, RHIThread) limits the framerate.\nGPU close to 100%% = the GPU limits it.");
+					for (const auto& thread : stats.busiestThreads)
+						ImGui::BulletText("%s  %.0f%%", thread.name.c_str(), thread.cpuPercent);
+				}
+				bool logToFile = performanceMonitor->LogToFile;
+				if (ImGui::Checkbox("Write these stats to log.txt every 2 s", &logToFile))
+					performanceMonitor->LogToFile = logToFile;
 			}
-			bool logToFile = performanceMonitor->LogToFile;
-			if (ImGui::Checkbox("Write these stats to log.txt every 2 s", &logToFile))
-				performanceMonitor->LogToFile = logToFile;
 		}
 
 		ImGui::PopItemWidth();
