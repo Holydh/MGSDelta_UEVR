@@ -31,6 +31,9 @@ public:
 	};
 
 	void Start();
+	// The sampling thread only runs while enabled: as long as it runs, the CRT keeps the plugin DLL
+	// loaded, so UEVR can't unload (and the build can't overwrite) the plugin.
+	void SetEnabled(bool enabled);
 	// Game thread
 	void OnPreEngineTickStart();
 	void OnPreEngineTickEnd();
@@ -57,6 +60,7 @@ private:
 	int64_t tickStart = 0;
 	int64_t pluginTicks = 0;
 	std::atomic<DWORD> gameThreadId = 0;
+	std::atomic<bool> samplingThreadRunning = false;
 
 	std::mutex totalsMutex;
 	FrameTotals totals;

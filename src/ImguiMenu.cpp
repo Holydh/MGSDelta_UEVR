@@ -655,7 +655,7 @@ void ImGuiMenu::internalFrame()
 			ImGui::SeparatorText("Measure");
 			bool monitoring = performanceMonitor->Enabled;
 			if (ImGui::Checkbox("Measure performance", &monitoring))
-				performanceMonitor->Enabled = monitoring;
+				performanceMonitor->SetEnabled(monitoring);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Measures framerate, GPU and thread usage every 2 s. Off by default");
 			if (monitoring)

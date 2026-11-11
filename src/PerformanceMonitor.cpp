@@ -38,6 +38,11 @@ public:
 		PdhAddEnglishCounterW(query, L"\\GPU Process Memory(*)\\Dedicated Usage", 0, &memory);
 		PdhCollectQueryData(query); // utilization is computed between two collections
 	}
+	~GpuCounters()
+	{
+		if (query != nullptr)
+			PdhCloseQuery(query);
+	}
 
 	void Collect(PerformanceMonitor::Snapshot& s)
 	{
@@ -130,6 +135,13 @@ private:
 // CPU time of every thread of the game, named with the names Unreal gives them (RenderThread, RHIThread...)
 class ThreadCounters {
 public:
+	~ThreadCounters()
+	{
+		for (auto& [id, thread] : threads)
+			if (thread.handle != nullptr)
+				CloseHandle(thread.handle);
+	}
+
 	std::vector<PerformanceMonitor::ThreadUsage> Sample(double windowSeconds, DWORD gameThreadId)
 	{
 		std::vector<PerformanceMonitor::ThreadUsage> usages;
@@ -236,8 +248,13 @@ void PerformanceMonitor::Start()
 	QueryPerformanceFrequency(&frequency);
 	qpcToMs = 1000.0 / (double)frequency.QuadPart;
 	LogToFile = g_DebugEnabled;
-	// Detached: Windows ends it with the process (the plugin is never unloaded before that)
-	std::thread(&PerformanceMonitor::samplingLoop, this).detach();
+}
+
+void PerformanceMonitor::SetEnabled(bool enabled)
+{
+	Enabled = enabled;
+	if (enabled && !samplingThreadRunning.exchange(true))
+		std::thread(&PerformanceMonitor::samplingLoop, this).detach();
 }
 
 void PerformanceMonitor::OnPreEngineTickStart()
@@ -298,6 +315,10 @@ void PerformanceMonitor::samplingLoop()
 		Sleep(wasEnabled ? 2000 : 500);
 		if (!Enabled)
 		{
+			samplingThreadRunning = false;
+			// Re-enabled while exiting: SetEnabled saw the thread still running and didn't start one
+			if (!Enabled || samplingThreadRunning.exchange(true))
+				return;
 			wasEnabled = false;
 			continue;
 		}
