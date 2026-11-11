@@ -1111,6 +1111,8 @@ void WeaponManager::SetAimDirection()
 
 void WeaponManager::SwitchScopeState(bool enable)
 {
+	// Hiding the capture isn't guaranteed to stop it from rendering the scene every frame
+	if (SceneCaptureComponent) ue::set(SceneCaptureComponent, L"bCaptureEveryFrame", enable);
 	if (SceneCaptureComponent) ue::call(SceneCaptureComponent, L"SetVisibility", enable, false);
 	if (SceneCaptureUStaticMeshComponent) ue::call(SceneCaptureUStaticMeshComponent, L"SetVisibility", enable, false);
 	if (ScopeStaticMeshComponent) ue::call(ScopeStaticMeshComponent, L"SetVisibility", enable, false);
@@ -1446,7 +1448,7 @@ void WeaponManager::spawnSceneCaptureComponent()
 	}
 	ue::set(SceneCaptureComponent, L"TextureTarget", ScopeRenderTarget);
 	ue::set(SceneCaptureComponent, L"bCaptureOnMovement", false);
-	ue::set(SceneCaptureComponent, L"bCaptureEveryFrame", true);
+	ue::set(SceneCaptureComponent, L"bCaptureEveryFrame", false); // enabled while aiming, see SwitchScopeState
 	ue::set(SceneCaptureComponent, L"bUseRayTracingIfEnabled", false);
 	//ue::set(SceneCaptureComponent, L"PrimitiveRenderMode", ue::ESceneCapturePrimitiveRenderMode::PRM_LegacySceneCapture);
 	//ue::set(SceneCaptureComponent, L"CaptureSource", ue::ESceneCaptureSource::SCS_SceneColorHDR);
@@ -1464,6 +1466,11 @@ void WeaponManager::spawnSceneCaptureComponent()
 	postProcess.set(L"LensFlareIntensity", 0.0f); //Disable lens flares
 	postProcess.set(L"bOverride_VignetteIntensity", true);
 	postProcess.set(L"VignetteIntensity", 0.0f);//Disable vignette
+	// Lumen in the scope view is a second full Lumen update each frame
+	postProcess.set(L"bOverride_DynamicGlobalIlluminationMethod", true);
+	postProcess.set(L"DynamicGlobalIlluminationMethod", ue::EDynamicGlobalIlluminationMethod::None);
+	postProcess.set(L"bOverride_ReflectionMethod", true);
+	postProcess.set(L"ReflectionMethod", ue::EReflectionMethod::None);
 	ue::call(SceneCaptureComponent, L"SetVisibility", false, false);
 	ue::call(SceneCaptureComponent, L"SetMobility", ue::EComponentMobility::Movable);
 

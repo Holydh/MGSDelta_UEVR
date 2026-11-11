@@ -607,6 +607,74 @@ void ImGuiMenu::internalFrame()
 				ImGui::SetTooltip("Works perfectly, enabled by default");
 		}
 
+		if (ImGui::CollapsingHeader("Performance"))
+		{
+			ImGui::TextWrapped("Checked settings are forced: the game would otherwise reset them on each level and cutscene. Unchecking one gives it back to the game.");
+			const char* group = nullptr;
+			for (auto& o : performanceManager->Overrides)
+			{
+				if (group == nullptr || strcmp(group, o.group) != 0)
+				{
+					group = o.group;
+					ImGui::Dummy(ImVec2(0.0f, 10.0f));
+					ImGui::SeparatorText(group);
+				}
+				ImGui::PushID(&o);
+				if (ImGui::Checkbox("##enabled", &o.enabled))
+				{
+					performanceManager->RequestApply();
+					performanceManager->Save();
+				}
+				ImGui::SameLine();
+				ImGui::BeginDisabled(!o.enabled || o.missing);
+				const std::string name = ue::narrow(o.name);
+				bool changed = false;
+				if (o.isInt)
+				{
+					int value = (int)std::lround(o.value);
+					changed = ImGui::SliderInt(name.c_str(), &value, (int)o.min, (int)o.max);
+					if (changed)
+						o.value = (float)value;
+				}
+				else
+					changed = ImGui::SliderFloat(name.c_str(), &o.value, o.min, o.max, "%.2f");
+				if (changed)
+					performanceManager->RequestApply();
+				if (ImGui::IsItemDeactivatedAfterEdit())
+					performanceManager->Save();
+				ImGui::EndDisabled();
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+					ImGui::SetTooltip("%s", o.missing ? "Not found in this game" : o.tooltip);
+				ImGui::PopID();
+			}
+
+			ImGui::Dummy(ImVec2(0.0f, 10.0f));
+			ImGui::SeparatorText("Measure");
+			const auto stats = performanceMonitor->GetSnapshot();
+			if (!stats.valid)
+				ImGui::Text("Measuring...");
+			else
+			{
+				ImGui::Text("%.0f fps, frame %.1f ms (max %.1f)", stats.fps, stats.frameMs, stats.frameMaxMs);
+				ImGui::Text("Game thread tick %.1f ms (max %.1f), plugin %.2f ms", stats.gameTickMs, stats.gameTickMaxMs, stats.pluginMs);
+				if (stats.gpuPercent >= 0.0f)
+				{
+					ImGui::Text("GPU %.0f%% (game %.0f%%), VRAM %.0f MB", stats.gpuPercent, stats.gpuGamePercent, stats.vramMB);
+					ImGui::Text("Game GPU engines: %s", stats.gpuGameEngines.c_str());
+				}
+				else
+					ImGui::Text("GPU usage unavailable");
+				ImGui::Text("Busiest threads (%% of one core):");
+				if (ImGui::IsItemHovered())
+					ImGui::SetTooltip("A thread close to 100%% (GameThread, RenderThread, RHIThread) limits the framerate.\nGPU close to 100%% = the GPU limits it.");
+				for (const auto& thread : stats.busiestThreads)
+					ImGui::BulletText("%s  %.0f%%", thread.name.c_str(), thread.cpuPercent);
+			}
+			bool logToFile = performanceMonitor->LogToFile;
+			if (ImGui::Checkbox("Write these stats to log.txt every 2 s", &logToFile))
+				performanceMonitor->LogToFile = logToFile;
+		}
+
 		ImGui::PopItemWidth();
 	}
 	ImGui::End();

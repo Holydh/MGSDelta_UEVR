@@ -7,7 +7,7 @@ using namespace uevr;
 
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager, &weaponManager, &cameraController, &playerManager),
+MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager, &weaponManager, &cameraController, &playerManager, &performanceManager, &performanceMonitor),
 inputs(),
 cameraController(&playerManager, &settingsManager), 
 weaponManager(/*&memoryManager,*/ &settingsManager, &playerManager, &cameraController),
@@ -48,6 +48,8 @@ void MGSDeltaPlugin::on_initialize() {
 	settingsManager.InitSettingsManager();
 	settingsManager.GetOrCreateConfigFile();
 	settingsManager.LoadAllConfigs(weaponConfigsDir);
+	performanceManager.Init();
+	performanceMonitor.Start();
 	playerManager.ConvertAllRequiredStringToFnames();
 	hookManager.Initialize();
 	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsAnimInstance", L"OnEnteredState", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_OnEnteredState_post, true);
@@ -416,8 +418,10 @@ void MGSDeltaPlugin::CheckLevelChange()
 
 void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Pre Engine Tick: %f", delta);
+	performanceMonitor.OnPreEngineTickStart();
 	//auto start = std::chrono::high_resolution_clock::now();
 	deltaTime = delta;
+	performanceManager.Update(delta);
 	CheckLevelChange();
 
 	if (levelChanged)
@@ -556,10 +560,12 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	if (weaponManager.AttachHandNextFrame)
 		weaponManager.NextFrame = true;
 	ranOnce = false;
+	performanceMonitor.OnPreEngineTickEnd();
 }
 
 void MGSDeltaPlugin::on_post_engine_tick(API::UGameEngine* engine, float delta) {
 	PLUGIN_LOG_ONCE("Post Engine Tick: %f", delta);
+	performanceMonitor.OnPostEngineTick();
 }
 
 void MGSDeltaPlugin::on_pre_slate_draw_window(UEVR_FSlateRHIRendererHandle renderer, UEVR_FViewportInfoHandle viewport_info) {

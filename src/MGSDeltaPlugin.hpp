@@ -53,6 +53,8 @@ public:
 	HookManager hookManager;
 	SettingsManager settingsManager;
 	PlayerManager playerManager;
+	PerformanceManager performanceManager;
+	PerformanceMonitor performanceMonitor;
 
     void on_initialize() override;
     //void on_dllmain(HMODULE hmod) override;

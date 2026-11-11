@@ -67,6 +67,16 @@ enum class EComponentMobility : uint8_t
     Movable                = 2,
     EComponentMobility_MAX = 3,
 };
+// from Engine_structs.hpp
+enum class EDynamicGlobalIlluminationMethod : uint8_t
+{
+    None                                 = 0,
+    Lumen                                = 1,
+    ScreenSpace                          = 2,
+    RayTraced                            = 3,
+    Plugin                               = 4,
+    EDynamicGlobalIlluminationMethod_MAX = 5,
+};
 // from Gsr_structs.hpp
 enum class EGsrGameStatus : uint8_t
 {
@@ -207,6 +217,15 @@ enum class EMaterialShadingModel : uint8_t
     MSM_NUM                        = 14,
     MSM_FromMaterialExpression     = 15,
     MSM_MAX                        = 16,
+};
+// from Engine_structs.hpp
+enum class EReflectionMethod : uint8_t
+{
+    None                  = 0,
+    Lumen                 = 1,
+    ScreenSpace           = 2,
+    RayTraced             = 3,
+    EReflectionMethod_MAX = 4,
 };
 // from Engine_structs.hpp
 enum class ERelativeTransformSpace : uint8_t

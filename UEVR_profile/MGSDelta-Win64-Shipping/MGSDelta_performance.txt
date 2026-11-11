@@ -1,0 +1,16 @@
+# MGSDelta Plugin performance settings, saved from the plugin menu (Performance section).
+# cvar=enabled,value
+r.AntiAliasingMethod=false,4
+r.Nanite.MaxPixelsPerEdge=false,2.51
+r.StaticMeshLODDistanceScale=true,4
+r.SkeletalMeshLODBias=true,1
+foliage.LODDistanceScale=false,0.39
+r.ViewDistanceScale=true,0.2
+r.Lumen.DiffuseIndirect.Allow=true,1
+r.Lumen.ScreenProbeGather.DownsampleFactor=true,64
+r.Lumen.ScreenProbeGather.ShortRangeAO=true,1
+r.Shadow.CSM.MaxCascades=true,1
+r.Shadow.DistanceScale=true,2
+r.Shadow.MaxResolution=true,256
+r.SeparateTranslucencyScreenPercentage=false,25
+r.VolumetricFog=false,0

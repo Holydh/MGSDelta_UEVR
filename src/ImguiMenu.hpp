@@ -5,6 +5,8 @@
 #include "SettingsManager.hpp"
 #include "WeaponManager.hpp"
 #include "CameraController.hpp"
+#include "PerformanceManager.hpp"
+#include "PerformanceMonitor.hpp"
 
 // only really necessary if you want to render to the screen
 #include "renderlib/uevr_imgui/imgui_impl_dx11.h"
@@ -24,6 +26,8 @@ private:
     WeaponManager* const weaponManager;
 	CameraController* const cameraController;
 	PlayerManager* const playerManager;
+	PerformanceManager* const performanceManager;
+	PerformanceMonitor* const performanceMonitor;
 
 	HWND m_wnd{};
     bool m_initialized = false;
@@ -47,7 +51,7 @@ private:
 	bool imguiSettingsInitialized = false;
 
 public:
-    ImGuiMenu(SettingsManager* sm, WeaponManager* wm, CameraController* cm, PlayerManager* pm) : settingsManager(sm), weaponManager(wm), cameraController(cm), playerManager(pm) {};
+    ImGuiMenu(SettingsManager* sm, WeaponManager* wm, CameraController* cm, PlayerManager* pm, PerformanceManager* perf, PerformanceMonitor* perfMonitor) : settingsManager(sm), weaponManager(wm), cameraController(cm), playerManager(pm), performanceManager(perf), performanceMonitor(perfMonitor) {};
 
     void InitializeImGuiSettings();
 

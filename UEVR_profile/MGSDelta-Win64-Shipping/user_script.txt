@@ -18,7 +18,6 @@ r.RayTracing.Reflections.ScreenPercentage 30
 r.FilmGrain 0
 r.NT.EnableConstrainAspectRatio 0
 r.Lumen.DiffuseIndirect.Allow 1
-r.DetailMode 0
 r.DisableDistortion 1
 r.RefractionQuality 0
 grass.CullDistanceScale 1.0
