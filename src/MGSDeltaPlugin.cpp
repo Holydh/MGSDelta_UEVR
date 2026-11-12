@@ -537,7 +537,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	// Full body IK toggled in VR: show or hide the body (the head stays hidden)
 	if (vr_enabled && bodyIK.Enabled != playerManager.BodyMeshesVisible)
 		playerManager.ToggleMeshesVisibility(bodyIK.Enabled, false);
-	bodyIK.Update(hookManager);
+	bodyIK.Update(hookManager, playerManager);
 
 
 	imGuiMenu.ProcessImGui(delta);
