@@ -362,7 +362,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		//cameraController.DisableGrassFading();
 		cameraController.ToggleCameraWobblingController(false);
 		//memoryManager.ToggleAimRelatedMemoryInstructions(false);
-		playerManager.ToggleMeshesVisibility(false);
+		playerManager.ToggleMeshesVisibility(bodyIK.Enabled, false);
 		playerManager.ToggleReticleVisibility(false);
 		if (!cameraController.SpawnCameraAttachementActor())
 			return;
@@ -381,7 +381,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 	{
 		cameraController.ToggleCameraWobblingController(true);
 		//memoryManager.ToggleAimRelatedMemoryInstructions(true);
-		playerManager.ToggleMeshesVisibility(true);
+		playerManager.ToggleMeshesVisibility(true, true);
 		playerManager.ToggleReticleVisibility(true);
 		cameraController.DetachCameraFromAttachementActor();
 		cameraController.DestroyCameraAttachementActor();
@@ -433,6 +433,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		cameraController.DestroyCustom2DScreen();
 		weaponManager.Cleanup();
 		playerManager.Cleanup();
+		bodyIK.Cleanup();
 		// Turns 6DOF back on below if the player still has control in the new level
 		playerManager.WasPlayerControlled = false;
 		// Blueprint classes that weren't loaded at startup (or were reloaded) can be hooked now
@@ -533,6 +534,10 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		cameraController.ProcessCamera(delta);
 	cameraController.ProcessCameraResetTimer(delta);
 
+	// Full body IK toggled in VR: show or hide the body (the head stays hidden)
+	if (vr_enabled && bodyIK.Enabled != playerManager.BodyMeshesVisible)
+		playerManager.ToggleMeshesVisibility(bodyIK.Enabled, false);
+	bodyIK.Update(hookManager);
 
 
 	imGuiMenu.ProcessImGui(delta);

@@ -19,6 +19,7 @@
 #include "MemoryManager.hpp"
 #include "HookManager.hpp"
 #include "PlayerManager.hpp"
+#include "BodyIK.hpp"
 #include "Logger.hpp"
 #include "ue/Reflection.hpp"
 
@@ -55,6 +56,7 @@ public:
 	PlayerManager playerManager;
 	PerformanceManager performanceManager;
 	PerformanceMonitor performanceMonitor;
+	BodyIK bodyIK;
 
     void on_initialize() override;
     //void on_dllmain(HMODULE hmod) override;

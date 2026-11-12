@@ -8,7 +8,9 @@
 class PlayerManager {
 public:
 	void ConvertAllRequiredStringToFnames();
-	void ToggleMeshesVisibility(bool visible);
+	// Head meshes: the head and everything worn on it. Body meshes: the rest of Snake.
+	void ToggleMeshesVisibility(bool bodyVisible, bool headVisible);
+	bool BodyMeshesVisible = true;
 	void ToggleReticleVisibility(bool visible);
 
 	bool WasPlayerControlled = false;

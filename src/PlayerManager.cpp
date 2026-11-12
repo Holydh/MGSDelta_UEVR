@@ -23,45 +23,52 @@ void PlayerManager::ConvertAllRequiredStringToFnames()
 	fNameCarry = ue::FName(L"CARRY");
 }
 
-void PlayerManager::ToggleMeshesVisibility(bool visible)
+void PlayerManager::ToggleMeshesVisibility(bool bodyVisible, bool headVisible)
 {
+	BodyMeshesVisible = bodyVisible;
 	auto pawn = uevr::API::get()->get_local_pawn(0);
 	if (!pawn)
 		return;
 
-	static constexpr const wchar_t* playerSkeletalMeshes[] = {
+	static constexpr const wchar_t* playerHeadMeshes[] = {
 		L"SkeletalMesh_Head",
 		L"SkeletalMesh_Hair",
+		L"SkeletalMesh_Bandana",
+		L"SkeletalMesh_Glass",
+		L"SkeletalMesh_HeadGear",
+		L"SkeletalMesh_Hat",
+		L"SkeletalMesh_EyePatch",
+	};
+	static constexpr const wchar_t* playerBodyMeshes[] = {
 		L"SkeletalMesh_Hand",
 		L"SkeletalMesh_Arm",
 		L"SkeletalMesh_Body",
 		L"SkeletalMesh_Backpack",
-		L"SkeletalMesh_Bandana",
 		L"SkeletalMesh_Lightning_Leg",
 		L"SkeletalMesh_Lightning_Arm",
 		L"SkeletalMesh_BeltLink",
-		L"SkeletalMesh_Glass",
 		L"SkeletalMesh_WaterBottle",
 		L"SkeletalMesh_KnifeScabbard",
 		L"SkeletalMesh_Knife",
-		L"SkeletalMesh_HeadGear",
-		L"SkeletalMesh_Hat",
-		L"SkeletalMesh_EyePatch",
 		L"SkeletalMesh_CqcKnifeScabbard",
 		L"SkeletalMesh_CqcKnife",
 	};
 
-	const bool SetOnlyOwnerSee = visible ? false : true;
-	for (const auto* meshName : playerSkeletalMeshes)
+	// SetOnlyOwnerSee(true) hides a mesh from the VR view
+	auto setVisible = [pawn](const wchar_t* meshName, bool visible)
 	{
 		if (auto mesh = ue::get<ue::UObject*>(pawn, meshName))
-			ue::call(mesh, L"SetOnlyOwnerSee", SetOnlyOwnerSee);
-	}
+			ue::call(mesh, L"SetOnlyOwnerSee", !visible);
+	};
+	for (const auto* meshName : playerHeadMeshes)
+		setVisible(meshName, headVisible);
+	for (const auto* meshName : playerBodyMeshes)
+		setVisible(meshName, bodyVisible);
 
 	if (auto halfMK22 = ue::get<ue::UObject*>(pawn, L"S_mk22_half"))
 	{
-		ue::call(halfMK22, L"SetHiddenInGame", SetOnlyOwnerSee, true);
-		ue::call(halfMK22, L"SetHiddenInSceneCapture", SetOnlyOwnerSee);
+		ue::call(halfMK22, L"SetHiddenInGame", !bodyVisible, true);
+		ue::call(halfMK22, L"SetHiddenInSceneCapture", !bodyVisible);
 	}
 }
 
@@ -313,7 +320,8 @@ void PlayerManager::ToggleVRHandsVisibility(bool enable)
 {
 	bool visibility = enable;
 	auto pawn = uevr::API::get()->get_local_pawn(0);
-	if (auto handsSkeletalMesh = ue::get<ue::UObject*>(pawn, L"SkeletalMesh_Hand")) {
+	// With the body shown (full body IK), its hands stay visible
+	if (auto handsSkeletalMesh = ue::get<ue::UObject*>(pawn, L"SkeletalMesh_Hand"); handsSkeletalMesh && !BodyMeshesVisible) {
 		ue::call(handsSkeletalMesh, L"SetOnlyOwnerSee", visibility);
 	}
 	uevr::API::get()->dispatch_lua_event("HideHands", !visibility ? "1" : "0");

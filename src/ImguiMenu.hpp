@@ -7,6 +7,7 @@
 #include "CameraController.hpp"
 #include "PerformanceManager.hpp"
 #include "PerformanceMonitor.hpp"
+#include "BodyIK.hpp"
 
 // only really necessary if you want to render to the screen
 #include "renderlib/uevr_imgui/imgui_impl_dx11.h"

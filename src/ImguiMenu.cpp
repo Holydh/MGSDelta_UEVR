@@ -610,6 +610,8 @@ void ImGuiMenu::internalFrame()
 				ImGui::SetTooltip("Works perfectly, enabled by default");
 		}
 
+		BodyIK::DrawMenu();
+
 		if (ImGui::CollapsingHeader("Performance"))
 		{
 			ImGui::TextWrapped("Checked settings are forced: the game would otherwise reset them on each level and cutscene. Unchecking one gives it back to the game.");
