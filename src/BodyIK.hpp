@@ -8,8 +8,10 @@
 //
 // The head goes under the headset (Snake's eyes where the camera is), the spine hangs from it down to
 // the hips, and the arms reach for the VR hands (the Lua hands on the motion controllers, which are
-// copies of Snake's arm mesh placed with the profile's hand offsets). The legs keep the game's
-// animation, carried along by the hips.
+// copies of Snake's arm mesh placed with the profile's hand offsets). The feet are planted in the
+// world and step or walk as the body goes, the legs reach them, and the hips come down as far as the
+// feet need. Crawling, the body keeps the game's animation, slid along the floor to lie behind the
+// eyes (the arms still reach).
 #include <array>
 #include <chrono>
 #include <cstdint>
@@ -19,6 +21,7 @@
 #include "uevr/API.hpp"
 #include "ue/Reflection.hpp"
 #include "ik/ArmIK.hpp"
+#include "ik/LegsIK.hpp"
 #include "ik/SpineIK.hpp"
 #include "ik/TorsoIK.hpp"
 
@@ -103,8 +106,8 @@ private:
     // Where the VR hand's hand bone is in the world, placed from the controller
     std::optional<Transform> TargetHand(Arm& arm) const;
     void ApplyPose();
-    // The hips, spine and head, in mesh space. hands: the hand targets [left, right], when tracked.
-    void SolveSpine(ue::FTransform* pose, const Transform& meshToWorld, const std::optional<Transform> hands[2], double scale, double dt);
+    // The hips, spine, head and legs, in mesh space. hands: the hand targets [left, right], when tracked.
+    void SolveBody(ue::FTransform* pose, const Transform& meshToWorld, const std::optional<Transform> hands[2], double scale, double dt);
     void SolveArm(Arm& arm, ue::FTransform* pose, const ik::ChestFrame& chest, const Transform& target, double dt);
     // Spreads the hand's roll about the forearm over the forearm's twist bones
     void TwistForearm(Arm& arm, ue::FTransform* pose, const glm::dquat& animLowerRot, const glm::dquat& animHandRot);
@@ -131,7 +134,8 @@ private:
     // BaseBody_Hips, Spine, Spine1, Spine2, Neck, Head: the chain hung from the headset
     int32_t m_hips = -1, m_spine = -1, m_spine1 = -1, m_spine2 = -1, m_neck = -1, m_head = -1;
     int32_t m_headEnd = -1;
-    int32_t m_upLegs[2] = { -1, -1 }, m_legs[2] = { -1, -1 }, m_feet[2] = { -1, -1 }; // [left, right]
+    // BaseBody_*UpLeg, *Leg, *Foot, *FootFinger1 (the ball of the foot) [left, right]
+    int32_t m_upLegs[2] = { -1, -1 }, m_legs[2] = { -1, -1 }, m_feet[2] = { -1, -1 }, m_toes[2] = { -1, -1 };
     std::vector<int32_t> m_hipsSubtree; // BaseBody_Hips and every bone below it
     ue::WeakObject m_hmd;
     // While the headset is followed: the torso's yaw (mesh space), the hips' (world), the spine's pitch
@@ -145,6 +149,20 @@ private:
     // and the body's right
     struct SegmentAxes { glm::dvec3 up, right; };
     std::optional<std::array<SegmentAxes, 5>> m_segmentAxes;
+    // From the reference pose, in each leg bone's frame (UpLeg, Leg, Foot, toes): the solved frame's
+    // +y (along the leg, or towards the toes) and +z (forward, or up)
+    struct LegAxes { glm::dvec3 y[4], z[4]; };
+    LegAxes m_legAxes[2];
+    Transform m_hipJointsLocal[2];  // the UpLegs in the hips bone's frame, as in the reference pose
+    ik::SpineSkeleton m_spineSkel{}; // Snake's lengths, from the reference pose (scale set per frame)
+    ik::LegSkeleton m_legSkel;
+    double m_hipDown = 0.0;          // the hip joints below the hips joint (m)
+    // The feet, planted in the world (the IK's axes, m), and the centre of mass they balance
+    std::optional<ik::Feet> m_footing;
+    std::optional<glm::dvec3> m_lastCom;
+    glm::dvec3 m_comVel{};
+    double m_hipDrop = 0.0;          // how far the hips are pulled down to keep the feet planted (m)
+    bool m_crawling = false;
     std::optional<glm::dvec3> m_headForwardLocal; // the way the face looks, in the head bone's frame
     glm::dvec3 m_headUpLocal{};                   // up to the top of the head, in the head bone's frame
     std::vector<Transform> m_refPose;             // the skeleton's reference pose (component space)
@@ -156,6 +174,7 @@ private:
     ik::ArmParams m_armParams;
     ik::TorsoParams m_torsoParams;
     ik::SpineParams m_spineParams;
+    ik::LegParams m_legParams;
     std::chrono::steady_clock::time_point m_lastSolve{};
 
     // The VR camera's origin, this frame and last frame

@@ -119,16 +119,8 @@ struct SwivelFrame {
     double Angle(const glm::dvec3& e) const { return std::atan2(glm::dot(e, o), glm::dot(e, u)); }
 };
 
-struct TwoBoneResult {
-    glm::dvec3 elbow{};
-    glm::dvec3 wrist{};
-    glm::dvec3 forearm{}; // unit, towards the wrist end of the bone
-    glm::dvec3 fold{};    // the way the forearm folds, square to the upper arm
-    bool reached = false;
-};
+} // namespace
 
-// Law-of-cosines two-bone solve. Flexion stays inside [flex[0], flex[1]]: at full reach the bones
-// stretch (up to maxStretch, then the hand floats), near the shoulder they shorten.
 TwoBoneResult TwoBone(const glm::dvec3& shoulder, const glm::dvec3& target, const double lengths[2],
                       const glm::dvec3& pole, const double flex[2], double maxStretch, const glm::dvec3& down) {
     double a = lengths[0], b = lengths[1];
@@ -158,6 +150,8 @@ TwoBoneResult TwoBone(const glm::dvec3& shoulder, const glm::dvec3& target, cons
     r.reached = d <= (lengths[0] + lengths[1]) * 1.001;
     return r;
 }
+
+namespace {
 
 bool InsideTorso(const ArmSkeleton& skel, const glm::dvec3& local) {
     const double half = TorsoBox[0] * skel.scale, back = TorsoBox[1] * skel.scale;
@@ -279,9 +273,8 @@ glm::dvec2 Girdle(const glm::dvec3& dir) {
     return { std::clamp(lift * GirdleRise, 0.0, 40.0) * Deg, std::clamp(forth, -25.0, 25.0) * Deg };
 }
 
-// How far from the shoulder an arm length long bends as if the hand were, reaching d: d, until ease
-// short of full reach; from there it eases onto full reach, ease past it, and stays there. The
-// shoulder goes the rest of the way.
+} // namespace
+
 double EasedReach(double d, double length, double ease) {
     if (ease > 0.0 && d > length - ease) {
         const double u = std::min(d - (length - ease), 2.0 * ease);
@@ -289,8 +282,6 @@ double EasedReach(double d, double length, double ease) {
     }
     return std::min(d, length);
 }
-
-} // namespace
 
 glm::dvec3 PlaceShoulder(const ArmParams& p, const ArmSkeleton& skel, double dt, ArmState& state, Side side,
                          const ChestFrame& chest, const glm::dvec3& clavicleRoot, const glm::dvec3& restShoulder, const glm::dvec3& wrist) {

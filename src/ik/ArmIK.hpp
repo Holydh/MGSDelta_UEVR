@@ -81,6 +81,24 @@ struct ArmPose {
 };
 
 // Solves one arm. shoulder: the shoulder joint, which doesn't move. Returns nothing on tracking loss.
+struct TwoBoneResult {
+    glm::dvec3 elbow{};
+    glm::dvec3 wrist{};
+    glm::dvec3 forearm{}; // unit, towards the wrist end of the bone
+    glm::dvec3 fold{};    // the way the forearm folds, square to the upper arm
+    bool reached = false;
+};
+
+// Law-of-cosines two-bone solve. Flexion stays inside [flex[0], flex[1]]: at full reach the bones
+// stretch (up to maxStretch, then the end floats), near the root they shorten. pole: the way the
+// middle joint bends out; down: the way to fall back on with the target on the root.
+TwoBoneResult TwoBone(const glm::dvec3& root, const glm::dvec3& target, const double lengths[2],
+                      const glm::dvec3& pole, const double flex[2], double maxStretch, const glm::dvec3& down);
+
+// How far from its root a chain length long bends as if its end were, reaching d: d, until ease
+// short of full reach; from there it eases onto full reach, ease past it, and stays there.
+double EasedReach(double d, double length, double ease);
+
 // Where the shoulder joint goes, about the clavicle's root from where it rests: lifted and swung
 // with the way the upper arm pointed last frame (the shoulder girdle), and towards a hand near or
 // past the arm's reach. The clavicle keeps its length.

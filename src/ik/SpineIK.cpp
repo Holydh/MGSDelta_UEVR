@@ -17,9 +17,6 @@ constexpr double PitchShare[4] = { 0.85, 0.95, 1.05, 1.15 };
 constexpr double TwistShare[4] = { 0.3, 0.55, 0.8, 1.0 };
 // The neck bends halfway between the upper chest and the head
 constexpr double NeckFollow = 0.5;
-// A little lean back looking up, folded over at the other end
-constexpr double MinPitch = -15.0 * Deg;
-constexpr double MaxPitch = 115.0 * Deg;
 
 const glm::dvec3 Up{ 0, 1, 0 };
 const glm::dvec3 Right{ 1, 0, 0 };
@@ -83,6 +80,8 @@ Chain BuildChain(const SpineSkeleton& skel, const ChainInput& input) {
     const glm::dvec3 neckDir = NormalizeOr(glm::mix(NeckUp(frames[3]), NeckUp(input.headRot), NeckFollow), dirs[3]);
 
     Chain chain;
+    for (int i = 0; i < 4; i++)
+        chain.yaw[i] = yaw[i];
     chain.pos[5] = input.headJoint;
     chain.pos[4] = input.headJoint - neckDir * skel.neck;
     for (int i = 3; i >= 0; i--)
@@ -94,6 +93,14 @@ Chain BuildChain(const SpineSkeleton& skel, const ChainInput& input) {
     chain.rot[4] = SpineFrame(neckDir, NormalizeOr(glm::mix(chestRight, input.headRot * Right, NeckFollow), chestRight));
     chain.rot[5] = input.headRot;
     return chain;
+}
+
+void ShiftHips(Chain& chain, double dy) {
+    constexpr double Share[4] = { 1.0, 2.0 / 3.0, 1.0 / 3.0, 0.0 };
+    for (int i = 0; i < 4; i++)
+        chain.pos[i].y -= dy * Share[i];
+    for (int i = 0; i < 4; i++)
+        chain.rot[i] = SpineFrame(chain.pos[i + 1] - chain.pos[i], YawRot(chain.yaw[i]) * Right);
 }
 
 } // namespace ik

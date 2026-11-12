@@ -31,6 +31,9 @@ struct SpineParams {
 
 // The neck leans forward this much from the chest's up, upright
 constexpr double NeckLean = 10.0 * std::numbers::pi / 180.0;
+// Spine pitch limits: a little lean back looking up, folded over at the other end
+constexpr double MinPitch = -15.0 * std::numbers::pi / 180.0;
+constexpr double MaxPitch = 115.0 * std::numbers::pi / 180.0;
 
 // Hips -> spine -> chest -> upper chest -> neck, and the neck to the head joint
 struct SpineSkeleton {
@@ -56,9 +59,14 @@ struct ChainInput {
 struct Chain {
     glm::dvec3 pos[6];
     glm::dquat rot[6];
+    double yaw[4]; // of each joint from the hips to the upper chest
 };
 
 Chain BuildChain(const SpineSkeleton& skel, const ChainInput& input);
+
+// Moves the hips down by dy (up when negative) and spreads it over the spine, which stretches or
+// compresses: the upper chest stays, and with it the shoulders and arms
+void ShiftHips(Chain& chain, double dy);
 
 // A rotation whose +y is y and whose +z is as near zHint as it can be (fallbackZ when zHint is
 // along y); x = y × z
