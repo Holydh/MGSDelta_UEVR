@@ -80,6 +80,12 @@ public:
 	bool CutscenePlaying();
 	bool CutsceneStops();
 	void ApplyCutsceneSettings();
+	void ShowMovieOnUI();
+	void HideMovieUI();
+	ue::WeakObject MovieWidget;
+	ue::WeakObject MovieTexture;
+	ue::WeakObject MoviePlayer;
+	ue::EBinkMediaPlayerBinkDrawStyle MoviePlayerDrawStyle{};
 
 	void SpawnCustom2DScreen();
 	void ResizeBlackBars();

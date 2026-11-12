@@ -33,6 +33,16 @@ enum class EAttachmentRule : uint8_t
     SnapToTarget        = 2,
     EAttachmentRule_MAX = 3,
 };
+// from BinkMediaPlayer_structs.hpp
+enum class EBinkMediaPlayerBinkDrawStyle : uint8_t
+{
+    BMASM_Bink_DS_RenderToTexture                     = 0,
+    BMASM_Bink_DS_OverlayFillScreenWithAspectRatio    = 1,
+    BMASM_Bink_DS_OverlayOriginalMovieSize            = 2,
+    BMASM_Bink_DS_OverlayFillScreen                   = 3,
+    BMASM_Bink_DS_OverlaySpecificDestinationRectangle = 4,
+    BMASM_Bink_DS_MAX                                 = 5,
+};
 // from Engine_structs.hpp
 enum class EBlendMode : uint8_t
 {

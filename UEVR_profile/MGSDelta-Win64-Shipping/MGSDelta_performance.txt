@@ -11,6 +11,6 @@ r.Lumen.ScreenProbeGather.DownsampleFactor=true,64
 r.Lumen.ScreenProbeGather.ShortRangeAO=true,1
 r.Shadow.CSM.MaxCascades=true,1
 r.Shadow.DistanceScale=false,2
-r.Shadow.MaxResolution=false,256
+r.Shadow.MaxResolution=true,256
 r.SeparateTranslucencyScreenPercentage=false,25
 r.VolumetricFog=false,0

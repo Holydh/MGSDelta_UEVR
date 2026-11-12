@@ -647,6 +647,11 @@ void CameraController::ApplyCutsceneSettings()
 		uevr::API::VR::set_mod_value("VR_WorldScale", 1.0f);
 	}
 
+	if (ActualCutsceneState == CutsceneState::Playing2D)
+		ShowMovieOnUI();
+	else
+		HideMovieUI();
+
 	if (CutscenePlaying())
 	{
 		static ue::SingletonRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
@@ -665,6 +670,74 @@ void CameraController::ApplyCutsceneSettings()
 				SpawnCustom2DScreen();
 		}
 	}
+}
+
+// 2D cutscenes are Bink overlays drawn across the whole double-wide stereo render target, which splits them
+// between the eyes. Render them to a texture instead, shown by a full-screen widget: UEVR draws the UI whole in each eye.
+void CameraController::ShowMovieOnUI()
+{
+	static ue::ClassRef binkMediaPlayer_c{ L"Class /Script/BinkMediaPlayer.BinkMediaPlayer" };
+	if (!binkMediaPlayer_c.get())
+		return;
+
+	for (auto player : binkMediaPlayer_c.get()->get_objects_matching(false))
+	{
+		// Radio, food, cure... movies already render to textures shown by the game's widgets
+		const auto drawStyle = ue::get<ue::EBinkMediaPlayerBinkDrawStyle>(player, L"BinkDrawStyle");
+		if (drawStyle == ue::EBinkMediaPlayerBinkDrawStyle::BMASM_Bink_DS_RenderToTexture)
+			continue;
+
+		if (MovieWidget == nullptr)
+		{
+			static ue::ClassRef widgetBlueprintLibrary_c{ L"Class /Script/UMG.WidgetBlueprintLibrary" };
+			static ue::ClassRef commonUserWidget_c{ L"Class /Script/CommonUI.CommonUserWidget" }; // UUserWidget is abstract
+			static ue::ClassRef image_c{ L"Class /Script/UMG.Image" };
+			static ue::ClassRef binkMediaTexture_c{ L"Class /Script/BinkMediaPlayer.BinkMediaTexture" };
+
+			auto widget = ue::call_static<ue::UObject*>(widgetBlueprintLibrary_c.get(), L"Create",
+				ue::get_world(), commonUserWidget_c.get(), nullptr);
+			auto widgetTree = ue::get<ue::UObject*>(widget, L"WidgetTree");
+			if (!widgetTree || !image_c.get() || !binkMediaTexture_c.get())
+			{
+				Logger::DebugPrint("Failed to create the 2D cutscene widget");
+				return;
+			}
+
+			auto image = uevr::API::get()->spawn_object(image_c.get(), widgetTree);
+			auto texture = uevr::API::get()->spawn_object(binkMediaTexture_c.get(), widget);
+			if (!image || !texture)
+			{
+				Logger::DebugPrint("Failed to create the 2D cutscene image or texture");
+				return;
+			}
+			ue::set(widgetTree, L"RootWidget", image);
+			ue::call(image, L"SetBrushResourceObject", texture);
+			ue::call(widget, L"AddToViewport", -100); // below the game's widgets (subtitles...)
+
+			MovieWidget = widget;
+			MovieTexture = texture;
+		}
+
+		ue::set(player, L"BinkDrawStyle", ue::EBinkMediaPlayerBinkDrawStyle::BMASM_Bink_DS_RenderToTexture);
+		ue::call(MovieTexture, L"SetMediaPlayer", player);
+		MoviePlayer = player;
+		MoviePlayerDrawStyle = drawStyle;
+	}
+}
+
+void CameraController::HideMovieUI()
+{
+	if (MovieWidget == nullptr)
+		return;
+
+	ue::call(MovieWidget, L"RemoveFromParent");
+	MovieWidget = nullptr;
+	MovieTexture = nullptr;
+
+	// In case the game reuses this player for its next movie
+	if (MoviePlayer)
+		ue::set(MoviePlayer, L"BinkDrawStyle", MoviePlayerDrawStyle);
+	MoviePlayer = nullptr;
 }
 
 void CameraController::SpawnCustom2DScreen()
