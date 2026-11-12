@@ -32,3 +32,5 @@ cutsceneCameraRotationLerp=7.000000
 enable3DCutscenes=true
 enable3DRadio=false
 enable3DSurvivalView=true
+------ Full Body IK Settings ------
+enableFullBodyIK=true

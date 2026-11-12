@@ -137,6 +137,8 @@ void SettingsManager::InitSettingsManager()
 	Enable3DCutscenesPtr = &enable3DCutscenes;
 	Enable3DRadioPtr = &enable3DRadio;
 	Enable3DSurvivalViewPtr = &enable3DSurvivalView;
+
+	EnableFullBodyIKPtr = &enableFullBodyIK;
 }
 
 void SettingsManager::FetchUevrSettings(bool writeToPlugin)
@@ -194,6 +196,8 @@ void SettingsManager::FetchPluginSettings()
 	enable3DRadio = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DRadio", false);
 	enable3DSurvivalView = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DSurvivalView", true);
 
+	enableFullBodyIK = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableFullBodyIK", true);
+
 
 	if (debugMod) Logger::DebugPrint("Plugin Settings Updated");
 }
@@ -245,6 +249,8 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DRadio", enable3DRadio);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DSurvivalView", enable3DSurvivalView);
 
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableFullBodyIK", enableFullBodyIK);
+
 	Logger::DebugPrint("Config change saved in MGSDelta_config.txt");
 }
 
@@ -293,7 +299,9 @@ void SettingsManager::GetOrCreateConfigFile()
 			"------ Rendering Settings ------\n"
 			"enable3DCutscenes=true\n"
 			"enable3DRadio=false\n"
-			"enable3DSurvivalView=true\n";
+			"enable3DSurvivalView=true\n"
+			"------ Full Body IK Settings ------\n"
+			"enableFullBodyIK=true\n";
 
 		HANDLE hCreateFile = CreateFileA(pluginConfigFilePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hCreateFile != INVALID_HANDLE_VALUE)

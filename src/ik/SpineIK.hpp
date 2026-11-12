@@ -52,6 +52,7 @@ struct ChainInput {
     double torsoYaw;
     double rootYaw;
     double pitch;
+    bool lying = false; // every segment takes the whole pitch, the trunk straight (standing, the upper back curls more)
 };
 
 // Hips, spine, chest, upper chest, neck, head: positions, and frames whose +y runs up the segment to

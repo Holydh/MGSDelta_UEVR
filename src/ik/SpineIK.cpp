@@ -74,7 +74,7 @@ Chain BuildChain(const SpineSkeleton& skel, const ChainInput& input) {
     {
         yaw[i] = input.rootYaw + twist * TwistShare[i];
         // Each segment pitched forward about its own right
-        frames[i] = YawRot(yaw[i]) * glm::angleAxis(input.pitch * PitchShare[i], Right);
+        frames[i] = YawRot(yaw[i]) * glm::angleAxis(input.pitch * (input.lying ? 1.0 : PitchShare[i]), Right);
         dirs[i] = frames[i] * Up;
     }
     const glm::dvec3 neckDir = NormalizeOr(glm::mix(NeckUp(frames[3]), NeckUp(input.headRot), NeckFollow), dirs[3]);

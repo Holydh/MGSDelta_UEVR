@@ -42,9 +42,12 @@ struct LegParams {
     double gaitStepTimeMin = 0.28; // s
     double gaitStepTimeMax = 0.5;
     double gaitSpacing = 0.4;      // walking narrows the stance to this share of footSpacing
+    // A walking step is at most this long (m at reference size): quicker steps rather than longer ones
+    // (FRIK's stride grows with the speed, past a leg's reach)
+    double walkStepMax = 0.6;
     // Faster than this the body runs (m/s), slower than runStopSpeed it walks again
-    double runStartSpeed = 2.2;
-    double runStopSpeed = 1.8;
+    double runStartSpeed = 1.6;
+    double runStopSpeed = 1.3;
     double runStepTime = 0.32;     // s per step: about 3 a second, a light run's
     double runStanceLength = 0.6;  // the body goes at most this far over a foot on the ground (m at reference size)
     double runStepHeight = 0.18;

@@ -145,6 +145,12 @@ bool Advance(Foot& foot, const glm::dvec3& target, double yaw) {
     return false;
 }
 
+// Running, the share of the cycle a foot is down: while the body goes runStanceLength over it, at
+// most half the cycle (then it's a walk)
+double RunDuty(const LegParams& p, const LegSkeleton& skel, double speed) {
+    return std::min(0.5, p.runStanceLength * skel.scale / std::max(speed * 2.0 * p.runStepTime, 1e-6));
+}
+
 // The ankle and the ball of the foot for a foot lift off the floor, the heel raised heelLift radians
 // about the ball
 std::pair<glm::dvec3, glm::dvec3> AnkleAt(const LegSkeleton& skel, const Foot& foot, double lift, double heelLift) {
@@ -181,9 +187,10 @@ void Feet::Update(const LegParams& p, const LegSkeleton& skel, double dt, const 
     {
         if (!m_runPhase)
         {
-            // The foot further ahead comes down first
-            const double ahead0 = glm::dot(feet[0].pos - feet[1].pos, walk);
-            m_runPhase = ahead0 >= 0.0 ? 0.0 : 0.5;
+            // Both feet set off for where the run puts them down: the one further ahead just leaving the
+            // floor (where the walk left them, they're often already well behind the body)
+            const int front = glm::dot(feet[0].pos - feet[1].pos, walk) >= 0.0 ? 0 : 1;
+            m_runPhase = std::fmod(RunDuty(p, skel, speed) - (front == 0 ? 0.0 : 0.5) + 1.0, 1.0);
             m_gait.reset();
             for (Foot& f : feet)
             {
@@ -223,7 +230,8 @@ void Feet::UpdateGait(const LegParams& p, const LegSkeleton& skel, double dt, co
     const int swing = *m_gait;
     const double speed = glm::length(v);
     // FRIK: step time = clamp(cos(speed / 2 m/s))
-    const double duration = std::clamp(std::cos(speed / 2.0), p.gaitStepTimeMin, p.gaitStepTimeMax);
+    const double duration = std::min(std::clamp(std::cos(speed / 2.0), p.gaitStepTimeMin, p.gaitStepTimeMax),
+        p.walkStepMax * skel.scale / std::max(speed, 1e-6));
     const glm::dvec3 other = feet[1 - swing].pos;
     Foot& foot = feet[swing];
     if (!foot.step)
@@ -251,8 +259,7 @@ void Feet::UpdateRun(const LegParams& p, const LegSkeleton& skel, double dt, con
     // a walk), and in the air the rest of the cycle, both feet at once part of it. It comes down half
     // its stance ahead of where the body will be, so the body goes over it from front to back.
     const double cycle = 2.0 * p.runStepTime;
-    const double speed = glm::length(v);
-    const double duty = std::min(0.5, p.runStanceLength * skel.scale / std::max(speed * cycle, 1e-6));
+    const double duty = RunDuty(p, skel, glm::length(v));
     const double previous = *m_runPhase;
     m_runPhase = std::fmod(previous + dt / cycle, 1.0);
     for (int i = 0; i < 2; i++)

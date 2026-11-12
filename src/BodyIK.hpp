@@ -10,8 +10,8 @@
 // the hips, and the arms reach for the VR hands (the Lua hands on the motion controllers, which are
 // copies of Snake's arm mesh placed with the profile's hand offsets). The feet are planted in the
 // world and step or walk as the body goes, the legs reach them, and the hips come down as far as the
-// feet need. Crawling, the body keeps the game's animation, slid along the floor to lie behind the
-// eyes (the arms still reach).
+// feet need. Crawling, the trunk lies flat behind the head, the legs straight back. The game's own
+// animation is set aside meanwhile: the body starts from the reference pose.
 #include <array>
 #include <chrono>
 #include <cstdint>
@@ -40,7 +40,8 @@ public:
     // Level change: everything bound to the previous world is gone
     void Cleanup();
 
-    static void DrawMenu();
+    // enabled: the saved setting, settingsModified: set when it changes
+    static void DrawMenu(bool* enabled, bool& settingsModified);
     // Where UEVR renders an eye from, once the headset is applied: shown against Snake's eyes in the menu
     void OnViewComputed(int viewIndex, const glm::dvec3& position, const glm::dvec3& rotation);
 
@@ -49,7 +50,7 @@ public:
     // head under the headset, it would follow the headset and push itself away.
     static ue::FVector ToAnimatedHead(const ue::FVector& worldPoint);
 
-    bool Enabled = false;
+    bool Enabled = true; // follows the setting (MGSDeltaPlugin)
     // Snake's eyes from the camera, in the headset's frame: forward, right, up (cm)
     float HeadOffset[3] = { 16.3f, 0.0f, -4.8f };
 
@@ -163,6 +164,8 @@ private:
     glm::dvec3 m_comVel{};
     double m_hipDrop = 0.0;          // how far the hips are pulled down to keep the feet planted (m)
     bool m_crawling = false;
+    bool m_playerControlled = false;
+    std::vector<bool> m_isVirtual; // the skeleton's virtual bones ("VB ..."), which the game derives from others
     std::optional<glm::dvec3> m_headForwardLocal; // the way the face looks, in the head bone's frame
     glm::dvec3 m_headUpLocal{};                   // up to the top of the head, in the head bone's frame
     std::vector<Transform> m_refPose;             // the skeleton's reference pose (component space)

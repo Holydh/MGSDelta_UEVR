@@ -5,6 +5,7 @@
 #include <cwctype>
 #include <iterator>
 #include <map>
+#include <numbers>
 #include <span>
 #include <string>
 #include <utility>
@@ -146,6 +147,9 @@ constexpr double VelocityTau = 0.1;
 constexpr double MovingSpeed = 0.3;
 // Standing straight, the legs are a sliver short of straight, so a knee keeps a few degrees of bend (chasm, FRIK)
 constexpr double LegSlack = 0.998;
+// Crawling, the trunk lies flat behind the head (spine pitch, radians), and gets there this slowly (s)
+constexpr double PronePitch = 90.0 * std::numbers::pi / 180.0;
+constexpr double ProneTau = 0.3;
 // The centre of mass is this share of the way from the hips to the head joint (chasm, against motion capture)
 constexpr double ComUpTheSpine = 0.3;
 // The body this far from its feet went somewhere without walking (a teleport, a cutscene): they start
@@ -253,6 +257,7 @@ void BodyIK::Update(HookManager& hookManager, const PlayerManager& playerManager
     }
     m_hmd = hmdActor;
     m_crawling = playerManager.CurrentStance == ue::EGsrPlayerStance::Crawl;
+    m_playerControlled = playerManager.IsPlayerControlled;
 
     // The camera origin only drives UEVR while the player has control (MGSDeltaPlugin::on_early_calculate_stereo_view_offset)
     const Transform origin{ RotatorToQuat(cameraRotation.pitch, cameraRotation.yaw, cameraRotation.roll),
@@ -538,6 +543,14 @@ bool BodyIK::Bind(ue::UObject* mesh)
     const glm::dvec3 f = headInverse * chestForward;
     m_headForwardLocal = glm::normalize(f - m_headUpLocal * glm::dot(f, m_headUpLocal));
 
+    // The elbows' hinge, in the upper arms' frames: the forearm folds forward (the reference arm may be
+    // straight, which shows no hinge)
+    for (auto& arm : m_arms)
+    {
+        const glm::dvec3 upperDir = glm::normalize(refAt(arm.lower) - refAt(arm.upper));
+        arm.hingeLocal = glm::normalize(glm::inverse(m_refPose[arm.upper].rotation) * glm::cross(upperDir, chestForward));
+    }
+
     // Snake's lengths, standing on the floor (the mesh's origin)
     for (int k = 0; k < 4; k++)
         m_spineSkel.spine[k] = glm::distance(refAt(chain[k]), refAt(chain[k + 1])) * CmToM;
@@ -567,6 +580,10 @@ bool BodyIK::Bind(ue::UObject* mesh)
     }
     uevr::API::get()->log_info("[MGSDelta] BodyIK: legs: thigh %.1f cm, shin %.1f, ankle %.1f high, ball of the foot %.1f ahead and %.1f high, hip joints %.1f below the hips",
         m_legSkel.thigh / CmToM, m_legSkel.shin / CmToM, m_legSkel.ankleHeight / CmToM, m_legSkel.toeForward / CmToM, m_legSkel.toeHeight / CmToM, m_hipDown / CmToM);
+
+    m_isVirtual.assign(m_numBones, false);
+    for (int32_t i = 0; i < m_numBones; i++)
+        m_isVirtual[i] = names[i].ToString().rfind("VB ", 0) == 0;
 
     m_scratch.resize(m_numBones);
     Logger::DebugPrint("BodyIK: bound to %d bones", m_numBones);
@@ -658,7 +675,8 @@ void BodyIK::ApplyPose()
     const int32_t read = ReadIndex();
     auto* pose = read >= 0 ? PoseBuffer(1 - read) : nullptr;
     auto* mesh = m_mesh.get();
-    if (pose == nullptr || mesh == nullptr)
+    // Outside the player's control (cutscenes, menus), the game's animation
+    if (pose == nullptr || mesh == nullptr || !m_playerControlled)
         return;
 
     const auto now = std::chrono::steady_clock::now();
@@ -667,7 +685,19 @@ void BodyIK::ApplyPose()
     m_lastSolve = now;
 
     const Transform meshToWorld = ToTransform(ue::call<ue::FTransform>(mesh, L"K2_GetComponentToWorld"));
+    // The game's head, which the camera follows (ToAnimatedHead)
     const Transform animatedHead = ToTransform(pose[m_head]);
+
+    // The game's animation is set aside: every bone starts from the reference pose, and the IK places
+    // the body from there (the virtual bones aside: the game derives them from the others)
+    for (int32_t bone = 0; bone < m_numBones; bone++)
+    {
+        if (m_isVirtual[bone])
+            continue;
+        pose[bone].Rotation = ToUe(m_refPose[bone].rotation);
+        pose[bone].Translation = ToUe(m_refPose[bone].translation);
+        pose[bone].Scale3D = ToUe(m_refPose[bone].scale);
+    }
 
     // The VR hands' hand bones, in Snake's mesh space: where Snake's hands go, and how they're turned
     std::optional<Transform> hands[2];
@@ -725,22 +755,6 @@ void BodyIK::SolveBody(ue::FTransform* pose, const Transform& meshToWorld, const
     const glm::dvec3 hmdUp = hmd.rotation * glm::dvec3{ 0, 0, 1 };
     const glm::dvec3 eyes = hmd.translation + hmd.rotation * glm::dvec3{ HeadOffset[0], HeadOffset[1], HeadOffset[2] };
 
-    if (m_crawling)
-    {
-        // Crawling, the body keeps the game's animation, slid along the floor to lie behind the eyes
-        m_torso.reset();
-        m_root.reset();
-        m_lastEyes.reset();
-        m_footing.reset();
-        m_lastCom.reset();
-        m_hipDrop = 0.0;
-        const glm::dvec3 animatedEyes = Compose(Transform{ {}, m_eyesLocal.value_or(glm::dvec3{}), { 1, 1, 1 } }, ToTransform(pose[m_head])).translation;
-        const glm::dvec3 shift{ eyes.x - animatedEyes.x, eyes.y - animatedEyes.y, 0.0 };
-        for (int32_t bone = 0; bone < m_numBones; bone++)
-            pose[bone].Translation = ToUe(ToGlm(pose[bone].Translation) + shift);
-        return;
-    }
-
     const int32_t bones[6] = { m_hips, m_spine, m_spine1, m_spine2, m_neck, m_head };
 
     // The head turns with the headset, and goes where Snake's eyes are at the camera
@@ -749,25 +763,31 @@ void BodyIK::SolveBody(ue::FTransform* pose, const Transform& meshToWorld, const
         : (hmdUp * HeadPivotDown + hmdForward * HeadPivotBack) * scale / CmToM;
     const glm::dvec3 headJoint = eyes - headToEyes;
 
+    // Between mesh space and the world, the IK's axes (m). The yaws below are filtered in the world:
+    // the mesh turns with the pawn, which the game and the player controller turn back and forth.
+    auto toWorld = [&](const glm::dvec3& v) { return ToIK(Compose(Transform{ {}, FromIK(v) / CmToM, { 1, 1, 1 } }, meshToWorld).translation * CmToM); };
+    auto toMesh = [&](const glm::dvec3& v) { return ToIK(Relative(Transform{ {}, FromIK(v) / CmToM, { 1, 1, 1 } }, meshToWorld).translation * CmToM); };
+    const glm::dvec3 meshForward = meshToWorld.rotation * glm::dvec3{ 1, 0, 0 };
+    const double meshYaw = std::atan2(meshForward.y, meshForward.x);
+
     // ---- torso yaw: where the hands and head have the chest face (chasm's torso.rs) ----
     const glm::dvec3 forwardIK = ToIK(hmdForward), upIK = ToIK(hmdUp);
     // Looking straight down, the top of the head still points the way you face
     glm::dvec3 facing = forwardIK - upIK * forwardIK.y;
     facing.y = 0.0;
-    const double headYaw = glm::length(facing) > 1e-4 ? ik::YawOf(facing) : (m_torso ? m_torso->Yaw() : 0.0);
+    const double headYaw = glm::length(facing) > 1e-4 ? ik::YawOf(facing) + meshYaw : (m_torso ? m_torso->Yaw() : meshYaw);
     if (!m_torso)
         m_torso.emplace(headYaw);
     std::optional<glm::dvec3> handsIK[2];
     for (int i = 0; i < 2; i++)
     {
         if (hands[i])
-            handsIK[i] = ToIK(hands[i]->translation * CmToM);
+            handsIK[i] = toWorld(ToIK(hands[i]->translation * CmToM));
     }
-    const double torsoYaw = m_torso->Update(m_torsoParams, dt, scale, ToIK(eyes * CmToM), ToIK(headJoint * CmToM), headYaw, handsIK);
+    const double torsoYawWorld = m_torso->Update(m_torsoParams, dt, scale, toWorld(ToIK(eyes * CmToM)), toWorld(ToIK(headJoint * CmToM)), headYaw, handsIK);
+    const double torsoYaw = ik::WrapAngle(torsoYawWorld - meshYaw);
 
-    // ---- root yaw: the hips trail the torso, in the world (the mesh turns with the pawn) ----
-    const glm::dvec3 meshForward = meshToWorld.rotation * glm::dvec3{ 1, 0, 0 };
-    const double meshYaw = std::atan2(meshForward.y, meshForward.x);
+    // ---- root yaw: the hips trail the torso ----
     if (m_lastEyes && dt > 0.0)
     {
         const glm::dvec3 moved = hmdWorld.translation - *m_lastEyes;
@@ -776,9 +796,9 @@ void BodyIK::SolveBody(ue::FTransform* pose, const Transform& meshToWorld, const
     }
     m_lastEyes = hmdWorld.translation;
     if (!m_root)
-        m_root.emplace(torsoYaw + meshYaw);
+        m_root.emplace(torsoYawWorld);
     const bool moving = m_eyesSpeed > MovingSpeed || (m_footing && m_footing->Walking());
-    const double rootYaw = m_root->Update(dt, torsoYaw + meshYaw, moving) - meshYaw;
+    const double rootYaw = ik::WrapAngle(m_root->Update(dt, torsoYawWorld, moving) - meshYaw);
 
     ik::SpineSkeleton skel = m_spineSkel;
     skel.scale = scale;
@@ -793,13 +813,15 @@ void BodyIK::SolveBody(ue::FTransform* pose, const Transform& meshToWorld, const
     const double standingEyes = legs.ankleHeight + (legs.thigh + legs.shin) * LegSlack + m_hipDown + skel.spine[0] + skel.spine[1]
         + skel.spine[2] + skel.spine[3] + skel.neck * std::cos(ik::NeckLean) + eyesUp;
     const double headPitch = std::asin(std::clamp(-forwardIK.y, -1.0, 1.0));
-    m_pitch.Step(ik::TargetPitch(m_spineParams, skel, levelEyes, standingEyes, headPitch) - m_pitch.value, dt, m_spineParams.tau);
+    const double targetPitch = m_crawling ? PronePitch : ik::TargetPitch(m_spineParams, skel, levelEyes, standingEyes, headPitch);
+    m_pitch.Step(targetPitch - m_pitch.value, dt, m_crawling ? ProneTau : m_spineParams.tau);
 
     ik::ChainInput input;
     input.headJoint = ToIK(headJoint * CmToM);
     input.headRot = ik::FrameYZ(upIK, forwardIK, forwardIK);
     input.torsoYaw = torsoYaw;
     input.rootYaw = rootYaw;
+    input.lying = m_crawling;
     auto chainAt = [&](double pitch) {
         ik::ChainInput at = input;
         at.pitch = pitch;
@@ -822,86 +844,94 @@ void BodyIK::SolveBody(ue::FTransform* pose, const Transform& meshToWorld, const
             joints[i] = ToIK(Compose(m_hipJointsLocal[i], hips).translation * CmToM);
         return joints;
     };
-    // Between mesh space and the world, the IK's axes (m)
-    auto toWorld = [&](const glm::dvec3& v) { return ToIK(Compose(Transform{ {}, FromIK(v) / CmToM, { 1, 1, 1 } }, meshToWorld).translation * CmToM); };
-    auto toMesh = [&](const glm::dvec3& v) { return ToIK(Relative(Transform{ {}, FromIK(v) / CmToM, { 1, 1, 1 } }, meshToWorld).translation * CmToM); };
-    auto flat = [](const glm::dvec3& v) { return glm::dvec3{ v.x, 0.0, v.z }; };
+    auto flat =[](const glm::dvec3& v) { return glm::dvec3{ v.x, 0.0, v.z }; };
 
-    // ---- feet: planted in the world ----
-    const glm::dvec3 com = toWorld(glm::mix(chain.pos[0], input.headJoint, ComUpTheSpine));
-    if (m_lastCom && dt > 0.0)
-        m_comVel = glm::mix(m_comVel, (com - *m_lastCom) / dt, ik::Smoothing(dt, VelocityTau));
-    m_lastCom = com;
-    const double rootYawWorld = rootYaw + meshYaw;
-    if (!m_footing || glm::length(flat(com - 0.5 * (m_footing->feet[0].pos + m_footing->feet[1].pos))) > FeetResetDistance)
-    {
-        m_footing.emplace(m_legParams, legs, com, rootYawWorld);
-        m_comVel = {};
-    }
-    ik::FeetInput feetInput;
-    feetInput.com = com;
-    feetInput.comVel = m_comVel;
-    feetInput.rootYaw = rootYawWorld;
-    const auto joints = hipJoints(chain);
-    for (int i = 0; i < 2; i++)
-        feetInput.hips[i] = toWorld(joints[i]);
-    feetInput.hipsYaw = chain.yaw[0] + meshYaw;
-    m_footing->Update(m_legParams, legs, dt, feetInput);
-    // In mesh space, on the floor under the pawn
+    // Crawling, the body lies flat behind the head, the legs straight back from the hips (the
+    // reference pose): no feet
     ik::Foot feet[2];
-    double lifts[2];
-    for (int i = 0; i < 2; i++)
+    double lifts[2] = { 0.0, 0.0 };
+    if (m_crawling)
     {
-        feet[i] = m_footing->feet[i];
-        feet[i].pos = flat(toMesh(feet[i].pos));
-        feet[i].yaw = ik::WrapAngle(feet[i].yaw - meshYaw);
-        lifts[i] = feet[i].Lift(m_legParams, scale);
+        m_footing.reset();
+        m_lastCom.reset();
+        m_hipDrop = 0.0;
     }
-
-    // ---- hips: keep both feet planted ----
-    auto hipsRange = [&](const ik::Chain& c) {
-        const auto j = hipJoints(c);
-        double low = -std::numeric_limits<double>::max(), high = std::numeric_limits<double>::max();
+    else
+    {
+        // ---- feet: planted in the world ----
+        const glm::dvec3 com = toWorld(glm::mix(chain.pos[0], input.headJoint, ComUpTheSpine));
+        if (m_lastCom && dt > 0.0)
+            m_comVel = glm::mix(m_comVel, (com - *m_lastCom) / dt, ik::Smoothing(dt, VelocityTau));
+        m_lastCom = com;
+        const double rootYawWorld = rootYaw + meshYaw;
+        if (!m_footing || glm::length(flat(com - 0.5 * (m_footing->feet[0].pos + m_footing->feet[1].pos))) > FeetResetDistance)
+        {
+            m_footing.emplace(m_legParams, legs, com, rootYawWorld);
+            m_comVel = {};
+        }
+        ik::FeetInput feetInput;
+        feetInput.com = com;
+        feetInput.comVel = m_comVel;
+        feetInput.rootYaw = rootYawWorld;
+        const auto joints = hipJoints(chain);
+        for (int i = 0; i < 2; i++)
+            feetInput.hips[i] = toWorld(joints[i]);
+        feetInput.hipsYaw = chain.yaw[0] + meshYaw;
+        m_footing->Update(m_legParams, legs, dt, feetInput);
+        // In mesh space, on the floor under the pawn
         for (int i = 0; i < 2; i++)
         {
-            const auto [lo, hi] = ik::HipHeightRange(m_legParams, legs, j[i], feet[i], lifts[i]);
-            const double offset = j[i].y - c.pos[0].y;
-            low = std::max(low, lo - offset);
-            high = std::min(high, hi - offset);
+            feet[i] = m_footing->feet[i];
+            feet[i].pos = flat(toMesh(feet[i].pos));
+            feet[i].yaw = ik::WrapAngle(feet[i].yaw - meshYaw);
+            lifts[i] = feet[i].Lift(m_legParams, scale);
         }
-        return std::pair{ low, high };
-    };
-    const double tooLow = hipsRange(chain).first;
-    if (chain.pos[0].y < tooLow)
-    {
-        // Too low for the knees: bend the spine further (that raises the hips), then squash it
-        double lo = m_pitch.value, hi = ik::MaxPitch;
-        if (chainAt(hi).pos[0].y >= tooLow)
-        {
-            for (int i = 0; i < 12; i++)
+
+        // ---- hips: keep both feet planted ----
+        auto hipsRange = [&](const ik::Chain& c) {
+            const auto j = hipJoints(c);
+            double low = -std::numeric_limits<double>::max(), high = std::numeric_limits<double>::max();
+            for (int i = 0; i < 2; i++)
             {
-                const double mid = 0.5 * (lo + hi);
-                if (chainAt(mid).pos[0].y >= tooLow)
-                    hi = mid;
-                else
-                    lo = mid;
+                const auto [lo, hi] = ik::HipHeightRange(m_legParams, legs, j[i], feet[i], lifts[i]);
+                const double offset = j[i].y - c.pos[0].y;
+                low = std::max(low, lo - offset);
+                high = std::min(high, hi - offset);
             }
+            return std::pair{ low, high };
+        };
+        const double tooLow = hipsRange(chain).first;
+        if (chain.pos[0].y < tooLow)
+        {
+            // Too low for the knees: bend the spine further (that raises the hips), then squash it
+            double lo = m_pitch.value, hi = ik::MaxPitch;
+            if (chainAt(hi).pos[0].y >= tooLow)
+            {
+                for (int i = 0; i < 12; i++)
+                {
+                    const double mid = 0.5 * (lo + hi);
+                    if (chainAt(mid).pos[0].y >= tooLow)
+                        hi = mid;
+                    else
+                        lo = mid;
+                }
+            }
+            // (Where the knees can't bend further, the spine bends at once)
+            m_pitch = ik::Follow{ hi, 0.0 };
+            chain = chainAt(hi);
+            const double shortBy = tooLow - chain.pos[0].y;
+            if (shortBy > 0.0)
+                ik::ShiftHips(chain, -shortBy);
         }
-        // (Where the knees can't bend further, the spine bends at once)
-        m_pitch = ik::Follow{ hi, 0.0 };
-        chain = chainAt(hi);
-        const double shortBy = tooLow - chain.pos[0].y;
-        if (shortBy > 0.0)
-            ik::ShiftHips(chain, -shortBy);
+        const auto [low, high] = hipsRange(chain);
+        // Too high to reach the feet: pull the hips down (the spine stretches). The pull is held and let go
+        // slowly so a walking gait doesn't bob the body every step.
+        const double excess = std::max(chain.pos[0].y - high, 0.0);
+        m_hipDrop = excess >= m_hipDrop ? excess : m_hipDrop + (excess - m_hipDrop) * ik::Smoothing(dt, m_legParams.hipReleaseTau);
+        const double drop = std::min(m_hipDrop, std::max(chain.pos[0].y - low, 0.0));
+        if (drop > 0.0)
+            ik::ShiftHips(chain, drop);
     }
-    const auto [low, high] = hipsRange(chain);
-    // Too high to reach the feet: pull the hips down (the spine stretches). The pull is held and let go
-    // slowly so a walking gait doesn't bob the body every step.
-    const double excess = std::max(chain.pos[0].y - high, 0.0);
-    m_hipDrop = excess >= m_hipDrop ? excess : m_hipDrop + (excess - m_hipDrop) * ik::Smoothing(dt, m_legParams.hipReleaseTau);
-    const double drop = std::min(m_hipDrop, std::max(chain.pos[0].y - low, 0.0));
-    if (drop > 0.0)
-        ik::ShiftHips(chain, drop);
 
     // ---- write it all: the chain, the head, the legs, the shoulders ----
     BoneOverride overrides[16];
@@ -914,7 +944,7 @@ void BodyIK::SolveBody(ue::FTransform* pose, const Transform& meshToWorld, const
     overrides[count++] = { m_head, headRot, FromIK(chain.pos[5]) / CmToM };
     const glm::dvec3 hipsForward = chain.rot[0] * glm::dvec3{ 0, 0, 1 };
     const auto legJoints = hipJoints(chain);
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 2 && !m_crawling; i++)
     {
         const ik::LegPose leg = ik::SolveLeg(m_legParams, legs, legJoints[i], feet[i], lifts[i], hipsForward);
         const int32_t legBones[4] = { m_upLegs[i], m_legs[i], m_feet[i], m_toes[i] };
@@ -1076,13 +1106,14 @@ void BodyIK::WriteSubtree(ue::FTransform* pose, const std::vector<int32_t>& subt
     }
 }
 
-void BodyIK::DrawMenu()
+void BodyIK::DrawMenu(bool* enabled, bool& settingsModified)
 {
     auto* self = s_instance;
     if (self == nullptr || !ImGui::CollapsingHeader("Full body IK (experimental)"))
         return;
 
-    ImGui::Checkbox("Enable", &self->Enabled);
+    if (ImGui::Checkbox("Enable", enabled))
+        settingsModified = true;
     ImGui::SliderFloat3("Head offset (forward, right, up, cm)", self->HeadOffset, -30.0f, 30.0f, "%.1f");
     ImGui::Text("Mesh bound: %s, bones: %d, pose buffers: %s", self->m_mesh.get() ? "yes" : "no", self->m_numBones,
         self->m_readIndexOffset >= 0 ? "found" : "not found");

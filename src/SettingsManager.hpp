@@ -75,7 +75,9 @@ public:
 	bool* Enable3DCutscenesPtr;
 	bool* Enable3DRadioPtr;
 	bool* Enable3DSurvivalViewPtr;
-	
+
+	bool* EnableFullBodyIKPtr;
+
 private:
 	bool attachCameraToSnakeHead = false;
 	float cameraRotationSpeed = 10.0f;
@@ -110,6 +112,8 @@ private:
 	bool enable3DCutscenes = true;
 	bool enable3DRadio = false;
 	bool enable3DSurvivalView = true;
+
+	bool enableFullBodyIK = true;
 
 	std::string GetConfigFilePath(bool uevr);
 	std::string uevrSettingsFileName = "config.txt";

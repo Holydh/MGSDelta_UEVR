@@ -616,7 +616,7 @@ void ImGuiMenu::internalFrame()
 				ImGui::SetTooltip("Works perfectly, enabled by default");
 		}
 
-		BodyIK::DrawMenu();
+		BodyIK::DrawMenu(settingsManager->EnableFullBodyIKPtr, settingsManager->SettingsModifiedThisFrame);
 
 		if (ImGui::CollapsingHeader("Performance"))
 		{
