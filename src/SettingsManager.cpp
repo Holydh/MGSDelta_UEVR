@@ -114,6 +114,7 @@ void SettingsManager::InitSettingsManager()
 	CameraPositionZLerpPtr = &cameraPositionZLerp;
 
 	EnableRoomscaleProneAndCrouchPtr = &enableRoomscaleProneAndCrouch;
+	LinearLocomotionPtr = &linearLocomotion;
 	SquatUnderThisValuePtr = &squatUnderThisValue;
 	CrawlUnderThisValuePtr = &crawlUnderThisValue;
 
@@ -168,6 +169,7 @@ void SettingsManager::FetchPluginSettings()
 	cameraPositionZLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraPositionZLerp", 5.0f);
 
 	enableRoomscaleProneAndCrouch = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableRoomscaleProneAndCrouch", false);
+	linearLocomotion = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "linearLocomotion", true);
 	squatUnderThisValue = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "squatUnderThisValue", -0.4f);
 	crawlUnderThisValue = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "crawlUnderThisValue", -0.8f);
 
@@ -220,6 +222,7 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraPositionZLerp", cameraPositionZLerp);
 
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableRoomscaleProneAndCrouch", enableRoomscaleProneAndCrouch);
+	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "linearLocomotion", linearLocomotion);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "squatUnderThisValue", squatUnderThisValue);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "crawlUnderThisValue", crawlUnderThisValue);
 
@@ -269,6 +272,7 @@ void SettingsManager::GetOrCreateConfigFile()
 			"cameraPositionZLerp=5.0\n"
 			"------ Gameplay Settings ------\n"
 			"enableRoomscaleProneAndCrouch=false\n"
+			"linearLocomotion=true\n"
 			"squatUnderThisValue=-0.4\n"
 			"crawlUnderThisValue=-0.8\n"
 			"------ Weapons Settings ------\n"
@@ -285,7 +289,6 @@ void SettingsManager::GetOrCreateConfigFile()
 			"smoothCameraMovementsInImmersiveCutscenes=true\n"
 			"cutsceneCameraPositionLerp=5.0\n"
 			"cutsceneCameraRotationLerp=8.0\n"
-			"smoothCameraMovementsInImmersiveCutscenes=true\n"
 			//"enableCutoutScreenForCutscenes=true\n"
 			"------ Rendering Settings ------\n"
 			"enable3DCutscenes=true\n"

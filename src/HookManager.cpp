@@ -16,7 +16,10 @@ void HookManager::Initialize()
 }
 
 
-int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* destination, void** original, bool findRealCall) {
+// findRealCall: hooks the function called by the exec thunk instead, at callOffset from the first instruction
+// matching realCallPattern (one instruction: scan_disasm compares the pattern within each instruction)
+int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* destination, void** original, bool findRealCall,
+	const char* realCallPattern = "E8 ? ? ? ?", uintptr_t callOffset = 0) {
 	auto obj = (uevr::API::UClass*)uevr::API::get()->find_uobject(class_name);
 
 	if (obj == nullptr) {
@@ -44,7 +47,7 @@ int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* d
 		return uevr::API::get()->param()->functions->register_inline_hook((void*)native, (void*)destination, original);
 	}
 
-	auto insn = utility::scan_disasm((uintptr_t)native, 0x1000, "E8 ? ? ? ?");
+	auto insn = utility::scan_disasm((uintptr_t)native, 0x1000, realCallPattern);
 
 	if (!insn) {
 		PLUGIN_LOG_ONCE_ERROR("Failed to find the instruction");
@@ -52,7 +55,12 @@ int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* d
 		return -1;
 	}
 
-	uintptr_t insn_val = insn.value();
+	uintptr_t insn_val = insn.value() + callOffset;
+
+	if (*(uint8_t*)insn_val != 0xE8) {
+		PLUGIN_LOG_ONCE_ERROR("No call after the instruction found for %ls", fn_name.data());
+		return -1;
+	}
 
 	auto relative_offset = *(int32_t*)(insn_val + 1);
 
@@ -69,6 +77,22 @@ void HookManager::HookFireFunction() {
 		OnFire,
 		(void**)&m_fire_hook_fn,
 		true);
+}
+
+void HookManager::HookSetEnableWallCollision() {
+	// The thunk's first call is the parameter reading: the real setter is the call after "setnz dl"
+	hook_fn(
+		L"Class /Script/Ics.IcsCharacter",
+		L"SetEnableWallCollision",
+		OnSetEnableWallCollision,
+		(void**)&m_set_enable_wall_collision_fn,
+		true,
+		"0F 95 C2",
+		3);
+}
+
+void HookManager::OnSetEnableWallCollision(uevr::API::UObject* character, bool enable) {
+	m_set_enable_wall_collision_fn(character, s_playerManager->FilterWallCollision(character, enable));
 }
 
 void* HookManager::OnFireModded(uevr::API::UObject* equipController, void* fireRequest) {
@@ -161,6 +185,18 @@ bool HookManager::mod_CobraLevelSequence_OnCameraCut_post(uevr::API::UFunction* 
 {
 	s_cameraController->InstantCameraPositionTimer = 0.05f;
 	s_cameraController->InstantCameraPositionNeeded = true;
+	return true;
+}
+
+bool HookManager::mod_IcsActorActionModule_OnOverrideRootMotionVelocity_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+{
+	if (result == nullptr || obj == nullptr || obj != s_playerManager->BasicAction.get() || !s_playerManager->LinearLocomotionActive)
+		return true;
+
+	// Z kept from the game (root motion is horizontal while walking)
+	auto velocity = static_cast<ue::FVector*>(result);
+	velocity->X = s_playerManager->LinearLocomotionVelocity.X;
+	velocity->Y = s_playerManager->LinearLocomotionVelocity.Y;
 	return true;
 }
 

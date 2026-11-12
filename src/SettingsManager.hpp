@@ -52,6 +52,7 @@ public:
 	float* CameraPositionZLerpPtr;
 
 	bool* EnableRoomscaleProneAndCrouchPtr;
+	bool* LinearLocomotionPtr;
 	float* SquatUnderThisValuePtr;
 	float* CrawlUnderThisValuePtr;
 
@@ -86,6 +87,7 @@ private:
 	float cameraPositionZLerp = 5.0f;
 
 	bool enableRoomscaleProneAndCrouch = false;
+	bool linearLocomotion = true;
 	float squatUnderThisValue = -0.4f;
 	float crawlUnderThisValue = -0.8f;
 

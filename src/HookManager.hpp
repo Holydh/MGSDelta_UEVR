@@ -33,6 +33,11 @@ private:
     using FireFn = void* (*)(uevr::API::UObject*, void*);
     inline static FireFn m_fire_hook_fn{};
 
+    // Native AIcsCharacter::SetEnableWallCollision: the game's state changes call it directly, not through the UFunction
+    static void OnSetEnableWallCollision(uevr::API::UObject* character, bool enable);
+    using SetEnableWallCollisionFn = void (*)(uevr::API::UObject*, bool);
+    inline static SetEnableWallCollisionFn m_set_enable_wall_collision_fn{};
+
     // Reads the state names from an OnEnteredState call and forwards them to the PlayerManager
     static void ForwardEnteredState(uevr::API::UFunction* fn, void* locals);
 
@@ -53,6 +58,7 @@ public:
     HookManager(WeaponManager* wm, CameraController* cc, PlayerManager* pm) : weaponManager(wm), cameraController(cc), playerManager(pm) {};
     void Initialize();
     void HookFireFunction();
+    void HookSetEnableWallCollision();
 
     // Standard hook :
     bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native);
@@ -66,4 +72,6 @@ public:
     static bool mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
     
     static bool mod_CobraLevelSequence_OnCameraCut_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+
+    static bool mod_IcsActorActionModule_OnOverrideRootMotionVelocity_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
 };

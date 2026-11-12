@@ -11,6 +11,7 @@ cameraPositionXYLerp=3.500000
 cameraPositionZLerp=5.000000
 ------ Gameplay Settings ------
 enableRoomscaleProneAndCrouch=false
+linearLocomotion=true
 squatUnderThisValue=-0.400000
 crawlUnderThisValue=-0.800000
 ------ Weapons Settings ------
@@ -27,7 +28,6 @@ blackBarsSize=5.000000
 smoothCameraMovementsInImmersiveCutscenes=true
 cutsceneCameraPositionLerp=6.000000
 cutsceneCameraRotationLerp=7.000000
-smoothCameraMovementsInImmersiveCutscenes=true
 ------ Rendering Settings ------
 enable3DCutscenes=true
 enable3DRadio=false
