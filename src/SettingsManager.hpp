@@ -87,7 +87,7 @@ private:
 	float cameraPositionZLerp = 5.0f;
 
 	bool enableRoomscaleProneAndCrouch = false;
-	bool linearLocomotion = false;
+	bool linearLocomotion = true;
 	float squatUnderThisValue = -0.4f;
 	float crawlUnderThisValue = -0.8f;
 

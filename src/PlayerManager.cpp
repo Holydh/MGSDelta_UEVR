@@ -352,6 +352,69 @@ void PlayerManager::FindBasicAction(float deltaTime)
 	}
 }
 
+void PlayerManager::ApplyCompactCollision()
+{
+	// FPV sets its own compact collision. Pushing into something: the body collision triggers the
+	// contact actions (wall-hug, stepping over ledges...)
+	if (IsFirstPersonView || fullBodyCollisionTimer > 0.0f)
+		return;
+
+	// The game rewrites each body sphere from the pose every frame: the whole controller is turned
+	// off instead, so only the capsule collides
+	if (!subCollisionController)
+		subCollisionController = ue::call<ue::UObject*>(uevr::API::get()->get_local_pawn(0), L"GetSubCollisionController");
+	ue::call(subCollisionController, L"SetActive", false);
+
+	if (!compactCollisionApplied)
+		Logger::DebugPrint("Compact collision: body sub-collisions turned off");
+	compactCollisionApplied = true;
+}
+
+void PlayerManager::UpdateCompactCollision(bool enabled, float deltaTime)
+{
+	// Blocked: the capsule moved much slower than the velocity we gave it last frame. With root
+	// motion the movement component keeps reporting the requested velocity, so the actual
+	// displacement is measured instead.
+	constexpr double minRequestedSpeed = 50.0; // cm/s
+	constexpr double blockedSpeedRatio = 0.5;
+	// Long enough that walking up to something and stopping against it stays compact
+	constexpr float blockedDelay = 0.5f;       // s pushing before the body collision comes back
+	constexpr float fullBodyHoldTime = 1.0f;   // s moving freely before going compact again
+
+	const auto location = ue::call<ue::FVector>(uevr::API::get()->get_local_pawn(0), L"K2_GetActorLocation");
+	const double movedX = location.X - lastPawnLocation.X;
+	const double movedY = location.Y - lastPawnLocation.Y;
+	const double actualSpeed = lastDeltaTime > 0.0f ? std::sqrt(movedX * movedX + movedY * movedY) / lastDeltaTime : 0.0;
+	const bool blocked = lastRequestedSpeed > minRequestedSpeed && actualSpeed < lastRequestedSpeed * blockedSpeedRatio;
+
+	// Prone always stays compact, even against walls
+	const bool prone = CurrentStance == ue::EGsrPlayerStance::Crawl;
+	blockedTime = blocked && !prone ? blockedTime + deltaTime : 0.0f;
+	if (blockedTime >= blockedDelay)
+	{
+		if (fullBodyCollisionTimer <= 0.0f)
+			Logger::DebugPrint("Compact collision: pushing into something, body collision needed");
+		fullBodyCollisionTimer = fullBodyHoldTime;
+	}
+	else
+		fullBodyCollisionTimer = prone ? 0.0f : std::max(0.0f, fullBodyCollisionTimer - deltaTime);
+
+	lastPawnLocation = location;
+	lastDeltaTime = deltaTime;
+	lastRequestedSpeed = LinearLocomotionActive ?
+		std::sqrt(LinearLocomotionVelocity.X * LinearLocomotionVelocity.X + LinearLocomotionVelocity.Y * LinearLocomotionVelocity.Y) : 0.0;
+
+	// Wall-hugging, ladders, climbing, CQC, rolling... are other action modules: they get the game's
+	// own collision back. Not tied to being on the ground, so stepping down doesn't toggle it.
+	const bool compactLocomotion = enabled && !IsFirstPersonView && ue::call<bool>(BasicAction, L"IsActive");
+	if (compactCollisionApplied && (!compactLocomotion || fullBodyCollisionTimer > 0.0f))
+	{
+		compactCollisionApplied = false;
+		ue::call(subCollisionController, L"SetActive", true);
+		Logger::DebugPrint("Compact collision: body sub-collisions back on");
+	}
+}
+
 void PlayerManager::UpdateLinearLocomotion(bool enabled, double viewYaw, float deltaTime)
 {
 	LinearLocomotionActive = false;
@@ -377,9 +440,13 @@ void PlayerManager::UpdateLinearLocomotion(bool enabled, double viewYaw, float d
 
 	// Wall-hugging, climbing, rolling... are other action modules, and falling, swimming or ladders
 	// aren't ground movement: the game keeps its own motion there
-	auto movement = ue::get<ue::UObject*>(uevr::API::get()->get_local_pawn(0), L"CharacterMovement");
+	auto pawn = uevr::API::get()->get_local_pawn(0);
+	auto movement = ue::get<ue::UObject*>(pawn, L"CharacterMovement");
 	if (!ue::call<bool>(BasicAction, L"IsActive") || !ue::call<bool>(movement, L"IsMovingOnGround"))
 		return;
+
+	// Body faces the view, like in FPV: melee, CQC and throws start from the actor's facing
+	ue::call<bool>(pawn, L"K2_SetActorRotation", ue::FRotator{ 0.0, viewYaw, 0.0 }, false);
 
 	// Top speeds of the game's own TPS locomotion, measured in cm/s
 	double maxSpeed;
@@ -405,6 +472,36 @@ void PlayerManager::UpdateLinearLocomotion(bool enabled, double viewYaw, float d
 
 	LinearLocomotionVelocity = direction * (rate * maxSpeed);
 	LinearLocomotionActive = true;
+}
+
+void PlayerManager::LogCollisionAndRotation(double viewYaw)
+{
+	auto pawn = uevr::API::get()->get_local_pawn(0);
+	if (!pawn)
+		return;
+
+	auto capsule = ue::get<ue::UObject*>(pawn, L"CapsuleComponent");
+	Logger::DebugPrint("[Collision] camera mode %d, stance %d | capsule radius %.1f, half height %.1f | actor yaw %.1f, view yaw %.1f",
+		(int)CurrentCameraMode, (int)CurrentStance,
+		ue::call<float>(capsule, L"GetScaledCapsuleRadius"), ue::call<float>(capsule, L"GetScaledCapsuleHalfHeight"),
+		ue::call<ue::FRotator>(pawn, L"K2_GetActorRotation").Yaw, viewYaw);
+
+	// EGsrPlayerSubCollisionIndex
+	static constexpr const char* subCollisionNames[] = {
+		"Head", "RightArm", "LeftArm", "RightLeg", "LeftLeg", "RightFoot", "LeftFoot", "Root", "RightArmUpper", "LeftArmUpper"
+	};
+	auto subCollisions = ue::call<ue::UObject*>(pawn, L"GetSubCollisionController");
+	Logger::DebugPrint("[Collision] sub-collisions active %d", ue::call<bool>(subCollisions, L"IsActive"));
+	for (uint8_t i = 0; i < std::size(subCollisionNames); i++)
+	{
+		const auto position = ue::call<ue::FVector>(subCollisions, L"GetCalculatedLocalPosition", i);
+		const auto setPosition = ue::call<ue::FVector>(subCollisions, L"GetLocalPosition", i);
+		Logger::DebugPrint("[Collision]   %s: enabled %d, radius %.1f, position (%.1f, %.1f, %.1f) | set (%.1f, %.1f, %.1f), socket %s, from offset Z %.1f, adjust Z to base %d",
+			subCollisionNames[i], ue::call<bool>(subCollisions, L"IsEnable", i), ue::call<float>(subCollisions, L"GetRadius", i),
+			position.X, position.Y, position.Z, setPosition.X, setPosition.Y, setPosition.Z,
+			ue::call<ue::FName>(subCollisions, L"GetBaseSocketName", i).ToString().c_str(),
+			ue::call<float>(subCollisions, L"GetFromOffsetZ", i), ue::call<bool>(subCollisions, L"IsAdjustZToActorBase", i));
+	}
 }
 
 void PlayerManager::Cleanup()

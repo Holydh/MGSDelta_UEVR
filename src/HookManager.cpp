@@ -173,6 +173,8 @@ bool HookManager::mod_IcsActorActionModule_OnOverrideRootMotionVelocity_post(uev
 	auto velocity = static_cast<ue::FVector*>(result);
 	velocity->X = s_playerManager->LinearLocomotionVelocity.X;
 	velocity->Y = s_playerManager->LinearLocomotionVelocity.Y;
+
+	s_playerManager->ApplyCompactCollision();
 	return true;
 }
 

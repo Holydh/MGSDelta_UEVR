@@ -169,7 +169,7 @@ void SettingsManager::FetchPluginSettings()
 	cameraPositionZLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraPositionZLerp", 5.0f);
 
 	enableRoomscaleProneAndCrouch = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableRoomscaleProneAndCrouch", false);
-	linearLocomotion = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "linearLocomotion", false);
+	linearLocomotion = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "linearLocomotion", true);
 	squatUnderThisValue = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "squatUnderThisValue", -0.4f);
 	crawlUnderThisValue = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "crawlUnderThisValue", -0.8f);
 
@@ -272,7 +272,7 @@ void SettingsManager::GetOrCreateConfigFile()
 			"cameraPositionZLerp=5.0\n"
 			"------ Gameplay Settings ------\n"
 			"enableRoomscaleProneAndCrouch=false\n"
-			"linearLocomotion=false\n"
+			"linearLocomotion=true\n"
 			"squatUnderThisValue=-0.4\n"
 			"crawlUnderThisValue=-0.8\n"
 			"------ Weapons Settings ------\n"

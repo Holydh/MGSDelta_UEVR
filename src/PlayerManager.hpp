@@ -97,10 +97,24 @@ public:
 	bool LinearLocomotionActive = false;
 	ue::FVector LinearLocomotionVelocity{};
 	void UpdateLinearLocomotion(bool enabled, double viewYaw, float deltaTime);
+	// TPS basic locomotion, every stance: only the capsule collides, close to the compact collision of
+	// the game's FPV, instead of the whole body. Applied from the root motion hook, during the movement update.
+	void ApplyCompactCollision();
+	// Turns the body collision back on for everything else, and while pushing into something
+	void UpdateCompactCollision(bool enabled, float deltaTime);
+	// Debug (F9): capsule, sub-collisions and facing, to compare TPS and FPV
+	void LogCollisionAndRotation(double viewYaw);
 private:
 	void FindBasicAction(float deltaTime);
 	float basicActionSearchTimer = 0.0f;
 	bool rootMotionCallbackEnabledByUs = false;
+	ue::WeakObject subCollisionController; // the local player's IcsSubCollisionController
+	bool compactCollisionApplied = false;
+	ue::FVector lastPawnLocation{};
+	float lastDeltaTime = 0.0f;
+	double lastRequestedSpeed = 0.0;
+	float blockedTime = 0.0f;
+	float fullBodyCollisionTimer = 0.0f;
 
 	//Peep State Machine Name
 	ue::FName fNameBehind;

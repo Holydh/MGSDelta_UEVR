@@ -490,6 +490,13 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		weaponManager.SetAimDirection();
 
 		playerManager.UpdateLinearLocomotion(*settingsManager.LinearLocomotionPtr, cameraController.ViewRotation.Yaw, delta);
+		playerManager.UpdateCompactCollision(*settingsManager.LinearLocomotionPtr, delta);
+
+		static bool wasCollisionLogKeyPressed = false;
+		const bool collisionLogKeyPressed = g_DebugEnabled && Inputs::IsKeyPressed(VK_F9);
+		if (collisionLogKeyPressed && !wasCollisionLogKeyPressed)
+			playerManager.LogCollisionAndRotation(cameraController.ViewRotation.Yaw);
+		wasCollisionLogKeyPressed = collisionLogKeyPressed;
 
 		/*	Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
