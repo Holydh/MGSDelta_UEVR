@@ -19,6 +19,7 @@
 #include "MemoryManager.hpp"
 #include "HookManager.hpp"
 #include "PlayerManager.hpp"
+#include "HudManager.hpp"
 #include "Logger.hpp"
 #include "ue/Reflection.hpp"
 
@@ -54,6 +55,7 @@ public:
 	SettingsManager settingsManager;
 	PlayerManager playerManager;
 	PerformanceManager performanceManager;
+	HudManager hudManager;
 	PerformanceMonitor performanceMonitor;
 
     void on_initialize() override;

@@ -499,6 +499,12 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 			playerManager.LogCollisionAndRotation(cameraController.ViewRotation.Yaw);
 		wasCollisionLogKeyPressed = collisionLogKeyPressed;
 
+		static bool wasHudLogKeyPressed = false;
+		const bool hudLogKeyPressed = g_DebugEnabled && Inputs::IsKeyPressed(VK_F10);
+		if (hudLogKeyPressed && !wasHudLogKeyPressed)
+			hudManager.LogHudWidgets();
+		wasHudLogKeyPressed = hudLogKeyPressed;
+
 		/*	Logger::DebugPrint("Before GetCurrentPlayerStance");*/
 		playerManager.GetCurrentPlayerStance(delta);
 		//Logger::DebugPrint("Before UpdatePeepingState");
