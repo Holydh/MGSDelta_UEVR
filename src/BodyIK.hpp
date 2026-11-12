@@ -81,8 +81,12 @@ private:
     int32_t ReadIndex() const;                       // -1 while unknown
     ue::FTransform* PoseBuffer(int32_t index) const; // nullptr for an invalid index
     void UpdateTarget(Arm& arm, ue::UObject* handMesh, ue::UObject* controller);
-    // In first person the game hides Snake's model (SetVisibility): his body is shown again
-    void KeepBodyVisible(ue::UObject* pawn);
+    // In first person the game hides Snake's model every frame, through its model parts controller: his
+    // body's parts are taken from it meanwhile, and shown as they were in the normal view.
+    // bodyShown: Snake's body is shown in VR.
+    void KeepBodyVisible(ue::UObject* pawn, bool bodyShown);
+    // Gives the body's parts back to the model parts controller
+    void ReleaseBodyParts();
     // UEVR places the controllers and the headset from the camera's origin when the view is computed,
     // after Snake's animation: during it they still hang from last frame's origin. This moves a
     // transform from last frame's origin to this frame's.
@@ -129,7 +133,11 @@ private:
     // The VR camera's origin, this frame and last frame
     Transform m_cameraOrigin, m_previousCameraOrigin;
     bool m_hasCameraOrigin = false;
-    std::vector<bool> m_visibleInNormalView; // per PlayerManager::BodyMeshNames
+    // The parts registered in Snake's model parts controller, head parts aside, as last seen in the normal view
+    struct BodyPart { ue::WeakObject mesh; uint32_t partBit; bool visible; };
+    std::vector<BodyPart> m_bodyParts;
+    ue::WeakObject m_partsController;
+    bool m_bodyPartsTaken = false;
 
     // Snake's head as animated and as solved, last frame (world): for ToAnimatedHead
     Transform m_headAnimated, m_headSolved;

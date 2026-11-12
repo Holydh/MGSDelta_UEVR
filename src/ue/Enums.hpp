@@ -173,6 +173,32 @@ enum class EGsrPlayerCameraRequestModelVisibility : uint8_t
     EGsrPlayerCameraRequestModelVisibility_MAX = 6,
 };
 // from Gsr_structs.hpp
+enum class EGsrPlayerModelPart : uint8_t
+{
+    None                    = 0,
+    Head                    = 1,
+    Body                    = 2,
+    Arm                     = 3,
+    Hand                    = 4,
+    CqcKnife                = 5,
+    CqcKnifeHolder          = 6,
+    SurvivalKnife           = 7,
+    SurvivalKnifeHolder     = 8,
+    Backpack                = 9,
+    Bandana                 = 10,
+    Eyepatch                = 11,
+    Glass                   = 12,
+    Hat                     = 13,
+    HolsterGun              = 14,
+    ModelPartBandageWaist   = 15,
+    ModelPartBandageRDArm   = 16,
+    ModelPartBandageRUArm   = 17,
+    ModelPartBandageLDArm   = 18,
+    ModelPartBandageLUArm   = 19,
+    ModelPartBandageChest   = 20,
+    All                     = 255,
+};
+// from Gsr_structs.hpp
 enum class EGsrPlayerStance : uint8_t
 {
     Stand                = 0,

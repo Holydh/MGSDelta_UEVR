@@ -1,8 +1,10 @@
 #include "BodyIK.hpp"
 
 #include <algorithm>
+#include <bit>
 #include <iterator>
 #include <map>
+#include <span>
 #include <string>
 #include <utility>
 
@@ -146,6 +148,31 @@ constexpr int SpineBendPasses = 4;
 // The head mapping (ToAnimatedHead) stays in use this long after the last solve
 constexpr double HeadMapLifetime = 0.25;
 
+// The meshes registered in Snake's model parts controller (UGsrModelPartsController, not reflected): a
+// TArray of these. Each frame the game sets their visibility from the camera's request, by part.
+// (Its UnregisterMesh_BP is an empty stub in the shipping game.)
+constexpr int32_t RegisteredPartsOffset = 0xA8;
+struct RegisteredPart {
+    ue::UObject* mesh;
+    uint32_t partBit; // 1 << EGsrPlayerModelPart
+};
+// A part bit none of the game's visibility updates selects: a mesh registered with it is left alone
+constexpr uint32_t TakenPartBit = 1u << 31;
+
+std::span<RegisteredPart> RegisteredParts(ue::UObject* controller)
+{
+    if (controller == nullptr)
+        return {};
+    const auto& array = *reinterpret_cast<const RawArray*>(reinterpret_cast<uint8_t*>(controller) + RegisteredPartsOffset);
+    return { static_cast<RegisteredPart*>(array.data), static_cast<size_t>(std::max(array.num, 0)) };
+}
+
+bool IsHeadPart(ue::EGsrPlayerModelPart part)
+{
+    using enum ue::EGsrPlayerModelPart;
+    return part == Head || part == Bandana || part == Eyepatch || part == Glass || part == Hat;
+}
+
 } // namespace
 
 ue::FVector BodyIK::ToAnimatedHead(const ue::FVector& worldPoint)
@@ -162,22 +189,51 @@ BodyIK::Transform BodyIK::FollowCamera(const Transform& world) const
     return Compose(Relative(world, m_previousCameraOrigin), m_cameraOrigin);
 }
 
-void BodyIK::KeepBodyVisible(ue::UObject* pawn)
+void BodyIK::KeepBodyVisible(ue::UObject* pawn, bool bodyShown)
 {
-    const auto request = ue::call<ue::EGsrPlayerCameraRequestModelVisibility>(pawn, L"GetCurrentCameraModelVisibility");
-    const bool firstPerson = request >= ue::EGsrPlayerCameraRequestModelVisibility::Subjective;
-    m_visibleInNormalView.resize(std::size(PlayerManager::BodyMeshNames), false);
-    for (size_t i = 0; i < std::size(PlayerManager::BodyMeshNames); i++)
+    const bool firstPerson = bodyShown && ue::call<ue::EGsrPlayerCameraRequestModelVisibility>(pawn, L"GetCurrentCameraModelVisibility")
+        >= ue::EGsrPlayerCameraRequestModelVisibility::Subjective;
+    if (!firstPerson)
     {
-        auto* mesh = ue::get<ue::UObject*>(pawn, PlayerManager::BodyMeshNames[i]);
-        if (mesh == nullptr)
-            continue;
-        const bool visible = ue::get<bool>(mesh, L"bVisible");
-        // Only what the game shows in its normal view comes back: what Snake doesn't wear stays hidden
-        if (!firstPerson)
-            m_visibleInNormalView[i] = visible;
-        else if (m_visibleInNormalView[i] && !visible)
-            ue::call(mesh, L"SetVisibility", true, false);
+        ReleaseBodyParts();
+        m_bodyParts.clear();
+        m_partsController = bodyShown ? ue::get<ue::UObject*>(pawn, L"ModelPartsController") : nullptr;
+        // The body's parts as the game shows them in its normal view
+        for (const auto& entry : RegisteredParts(m_partsController.get()))
+        {
+            if (entry.mesh != nullptr && !IsHeadPart(static_cast<ue::EGsrPlayerModelPart>(std::countr_zero(entry.partBit))))
+                m_bodyParts.push_back({ entry.mesh, entry.partBit, ue::get<bool>(entry.mesh, L"bVisible") });
+        }
+        return;
+    }
+    if (m_bodyPartsTaken)
+        return;
+    // The game would hide them every frame: they're taken from it until the normal view is back
+    m_bodyPartsTaken = true;
+    for (auto& entry : RegisteredParts(m_partsController.get()))
+    {
+        for (const auto& bodyPart : m_bodyParts)
+        {
+            if (entry.mesh == nullptr || entry.mesh != bodyPart.mesh.get())
+                continue;
+            entry.partBit = TakenPartBit;
+            ue::call(entry.mesh, L"SetVisibility", bodyPart.visible, false);
+        }
+    }
+}
+
+void BodyIK::ReleaseBodyParts()
+{
+    if (!m_bodyPartsTaken)
+        return;
+    m_bodyPartsTaken = false;
+    for (auto& entry : RegisteredParts(m_partsController.get()))
+    {
+        for (const auto& bodyPart : m_bodyParts)
+        {
+            if (entry.partBit == TakenPartBit && entry.mesh == bodyPart.mesh.get())
+                entry.partBit = bodyPart.partBit;
+        }
     }
 }
 
@@ -185,7 +241,10 @@ void BodyIK::Update(HookManager& hookManager, const PlayerManager& playerManager
                     const UEVR_Vector3d& cameraPosition, const UEVR_Rotatord& cameraRotation)
 {
     if (!Enabled)
+    {
+        ReleaseBodyParts();
         return;
+    }
     m_hmd = hmdActor;
 
     // The camera origin only drives UEVR while the player has control (MGSDeltaPlugin::on_early_calculate_stereo_view_offset)
@@ -196,6 +255,7 @@ void BodyIK::Update(HookManager& hookManager, const PlayerManager& playerManager
     m_hasCameraOrigin = playerManager.IsPlayerControlled;
 
     auto pawn = uevr::API::get()->get_local_pawn(0);
+    KeepBodyVisible(pawn, playerManager.BodyMeshesVisible && playerManager.IsPlayerControlled);
     // ACharacter::Mesh. The game's name table spells this property in lowercase.
     auto mesh = ue::get<ue::UObject*>(pawn, L"mesh");
     if (mesh == nullptr)
@@ -248,9 +308,6 @@ void BodyIK::Update(HookManager& hookManager, const PlayerManager& playerManager
 
     UpdateTarget(m_arms[0], playerManager.LeftHandMesh, playerManager.LeftController);
     UpdateTarget(m_arms[1], playerManager.RightHandMesh, playerManager.RightController);
-
-    if (playerManager.BodyMeshesVisible && playerManager.IsPlayerControlled)
-        KeepBodyVisible(pawn);
 }
 
 void BodyIK::UpdateTarget(Arm& arm, ue::UObject* handMesh, ue::UObject* controller)
@@ -273,6 +330,9 @@ void BodyIK::UpdateTarget(Arm& arm, ue::UObject* handMesh, ue::UObject* controll
 
 void BodyIK::Cleanup()
 {
+    ReleaseBodyParts();
+    m_bodyParts.clear();
+    m_partsController.reset();
     m_mesh.reset();
     m_failedMesh.reset();
     m_animInstance.reset();
