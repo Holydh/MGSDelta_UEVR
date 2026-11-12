@@ -79,6 +79,7 @@ void MGSDeltaPlugin::on_initialize() {
 	memoryManager.InitMemoryManager();
 	memoryManager.ToggleFrameOffsetCutsceneFixMemoryInstructions(false);
 	hookManager.HookFireFunction();
+	hookManager.HookSetEnableWallCollision();
 	//hookManager.HookCameraModifyFunction();
 }
 
@@ -516,6 +517,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	{
 		uevr::API::UObjectHook::remove_all_motion_controller_states();
 		playerManager.LinearLocomotionActive = false;
+		// Cutscenes and menus get the game's own collision back
+		playerManager.UpdateCompactCollision(false, delta);
 
 		cameraController.CheckCutscenePlaying();
 		if (playerManager.WasPlayerControlled)

@@ -352,24 +352,6 @@ void PlayerManager::FindBasicAction(float deltaTime)
 	}
 }
 
-void PlayerManager::ApplyCompactCollision()
-{
-	// FPV sets its own compact collision. Pushing into something: the body collision triggers the
-	// contact actions (wall-hug, stepping over ledges...)
-	if (IsFirstPersonView || fullBodyCollisionTimer > 0.0f)
-		return;
-
-	// The game rewrites each body sphere from the pose every frame: the whole controller is turned
-	// off instead, so only the capsule collides
-	if (!subCollisionController)
-		subCollisionController = ue::call<ue::UObject*>(uevr::API::get()->get_local_pawn(0), L"GetSubCollisionController");
-	ue::call(subCollisionController, L"SetActive", false);
-
-	if (!compactCollisionApplied)
-		Logger::DebugPrint("Compact collision: body sub-collisions turned off");
-	compactCollisionApplied = true;
-}
-
 void PlayerManager::UpdateCompactCollision(bool enabled, float deltaTime)
 {
 	// Blocked: the capsule moved much slower than the velocity we gave it last frame. With root
@@ -381,7 +363,8 @@ void PlayerManager::UpdateCompactCollision(bool enabled, float deltaTime)
 	constexpr float blockedDelay = 0.5f;       // s pushing before the body collision comes back
 	constexpr float fullBodyHoldTime = 1.0f;   // s moving freely before going compact again
 
-	const auto location = ue::call<ue::FVector>(uevr::API::get()->get_local_pawn(0), L"K2_GetActorLocation");
+	auto pawn = uevr::API::get()->get_local_pawn(0);
+	const auto location = ue::call<ue::FVector>(pawn, L"K2_GetActorLocation");
 	const double movedX = location.X - lastPawnLocation.X;
 	const double movedY = location.Y - lastPawnLocation.Y;
 	const double actualSpeed = lastDeltaTime > 0.0f ? std::sqrt(movedX * movedX + movedY * movedY) / lastDeltaTime : 0.0;
@@ -393,26 +376,81 @@ void PlayerManager::UpdateCompactCollision(bool enabled, float deltaTime)
 	if (blockedTime >= blockedDelay)
 	{
 		if (fullBodyCollisionTimer <= 0.0f)
-			Logger::DebugPrint("Compact collision: pushing into something, body collision needed");
+			Logger::DebugPrint("Compact collision: pushing into something, body spheres needed");
 		fullBodyCollisionTimer = fullBodyHoldTime;
 	}
 	else
 		fullBodyCollisionTimer = prone ? 0.0f : std::max(0.0f, fullBodyCollisionTimer - deltaTime);
+
+	if (!subCollisionController)
+		subCollisionController = ue::call<ue::UObject*>(pawn, L"GetSubCollisionController");
+
+	// Investigation: Snake moved without any input (pushed out when stopping next to a wall).
+	// The states logged are the ones the game left during its last tick, before ours below.
+	const double moved = std::sqrt(movedX * movedX + movedY * movedY);
+	if (enabled && LinearLocomotionActive && lastRequestedSpeed < 1.0 && LinearLocomotionVelocity.X == 0.0 &&
+		LinearLocomotionVelocity.Y == 0.0 && moved > 1.0 && moved < 100.0)
+	{
+		auto capsule = ue::get<ue::UObject*>(pawn, L"CapsuleComponent");
+		Logger::DebugPrint("[Push] %.1f cm without input | state %s | capsule radius %.1f, half height %.1f | wall collision enabled %d, radius %.1f | sub-collisions active %d | compact %d",
+			moved, ue::call<ue::FName>(BasicAction, L"GetCurrentStateName").ToString().c_str(),
+			ue::call<float>(capsule, L"GetUnscaledCapsuleRadius"), ue::call<float>(capsule, L"GetUnscaledCapsuleHalfHeight"),
+			ue::call<bool>(pawn, L"IsEnableWallCollision"), ue::call<float>(pawn, L"GetWallCollisionRadius"),
+			ue::call<bool>(subCollisionController, L"IsActive"), compactCollisionApplied);
+	}
 
 	lastPawnLocation = location;
 	lastDeltaTime = deltaTime;
 	lastRequestedSpeed = LinearLocomotionActive ?
 		std::sqrt(LinearLocomotionVelocity.X * LinearLocomotionVelocity.X + LinearLocomotionVelocity.Y * LinearLocomotionVelocity.Y) : 0.0;
 
-	// Wall-hugging, ladders, climbing, CQC, rolling... are other action modules: they get the game's
-	// own collision back. Not tied to being on the ground, so stepping down doesn't toggle it.
-	const bool compactLocomotion = enabled && !IsFirstPersonView && ue::call<bool>(BasicAction, L"IsActive");
-	if (compactCollisionApplied && (!compactLocomotion || fullBodyCollisionTimer > 0.0f))
+	// Standing and crouched: every action (wall-hug, ladders...). Prone: only the prone locomotion,
+	// the prone actions keep the game's collision. FPV sets its own compact collision.
+	const bool compact = enabled && !IsFirstPersonView && (!prone || ue::call<bool>(BasicAction, L"IsActive"));
+	// The body spheres come back while pushing into something (wall-hug, step over), never the
+	// 40 cm wall capsule: it would push Snake away from the wall as the wall-hug starts.
+	const bool bodyCompact = compact && fullBodyCollisionTimer <= 0.0f;
+
+	// Master switch, left alone by the game: it rewrites the body spheres itself every frame
+	if (bodyCompact)
+		ue::call(subCollisionController, L"SetActive", false);
+	else if (bodyCollisionOff)
+		ue::call(subCollisionController, L"SetActive", true);
+	if (bodyCompact != bodyCollisionOff)
+		Logger::DebugPrint("Compact collision: body collision %s", bodyCompact ? "turned off" : "back on");
+	bodyCollisionOff = bodyCompact;
+
+	if (compact && !compactCollisionApplied)
+	{
+		// Before compactCollisionApplied: FilterWallCollision lets this call through
+		wallCollisionWantedByGame = ue::call<bool>(pawn, L"IsEnableWallCollision");
+		ue::call(pawn, L"SetEnableWallCollision", false);
+		compactCollisionApplied = true;
+		Logger::DebugPrint("Compact collision: wall collision turned off");
+	}
+	else if (!compact && compactCollisionApplied)
 	{
 		compactCollisionApplied = false;
-		ue::call(subCollisionController, L"SetActive", true);
-		Logger::DebugPrint("Compact collision: body sub-collisions back on");
+		if (wallCollisionWantedByGame)
+			ue::call(pawn, L"SetEnableWallCollision", true);
+		Logger::DebugPrint("Compact collision: wall collision back on");
 	}
+}
+
+bool PlayerManager::FilterWallCollision(ue::UObject* character, bool enable)
+{
+	if (!compactCollisionApplied || character != uevr::API::get()->get_local_pawn(0))
+		return enable;
+
+	// Kept for when the game's collision comes back
+	wallCollisionWantedByGame = enable;
+
+	// Investigation: confirms the game's calls go through this hook (first occurrences only)
+	static int hookLogs = 0;
+	if (enable && hookLogs++ < 10)
+		Logger::DebugPrint("[Push] game turned the wall collision on (state %s): kept off",
+			ue::call<ue::FName>(BasicAction, L"GetCurrentStateName").ToString().c_str());
+	return false;
 }
 
 void PlayerManager::UpdateLinearLocomotion(bool enabled, double viewYaw, float deltaTime)
@@ -485,6 +523,9 @@ void PlayerManager::LogCollisionAndRotation(double viewYaw)
 		(int)CurrentCameraMode, (int)CurrentStance,
 		ue::call<float>(capsule, L"GetScaledCapsuleRadius"), ue::call<float>(capsule, L"GetScaledCapsuleHalfHeight"),
 		ue::call<ue::FRotator>(pawn, L"K2_GetActorRotation").Yaw, viewYaw);
+	Logger::DebugPrint("[Collision] wall collision enabled %d, radius %.1f, half height %.1f",
+		ue::call<bool>(pawn, L"IsEnableWallCollision"), ue::call<float>(pawn, L"GetWallCollisionRadius"),
+		ue::call<float>(pawn, L"GetWallCollisionHalfHeight"));
 
 	// EGsrPlayerSubCollisionIndex
 	static constexpr const char* subCollisionNames[] = {

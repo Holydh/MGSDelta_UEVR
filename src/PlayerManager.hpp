@@ -97,11 +97,12 @@ public:
 	bool LinearLocomotionActive = false;
 	ue::FVector LinearLocomotionVelocity{};
 	void UpdateLinearLocomotion(bool enabled, double viewYaw, float deltaTime);
-	// TPS basic locomotion, every stance: only the capsule collides, close to the compact collision of
-	// the game's FPV, instead of the whole body. Applied from the root motion hook, during the movement update.
-	void ApplyCompactCollision();
-	// Turns the body collision back on for everything else, and while pushing into something
+	// Only the root capsule collides (close to the compact collision of the game's FPV) instead of the
+	// whole body and the wall capsule. Every frame; enabled = false gives the game's collision back.
 	void UpdateCompactCollision(bool enabled, float deltaTime);
+	// Called by the native SetEnableWallCollision hook, returns the value to apply. The game turns the
+	// wall capsule back on at each state change, which pushes Snake out of walls: kept off while compact.
+	bool FilterWallCollision(ue::UObject* character, bool enable);
 	// Debug (F9): capsule, sub-collisions and facing, to compare TPS and FPV
 	void LogCollisionAndRotation(double viewYaw);
 private:
@@ -109,12 +110,14 @@ private:
 	float basicActionSearchTimer = 0.0f;
 	bool rootMotionCallbackEnabledByUs = false;
 	ue::WeakObject subCollisionController; // the local player's IcsSubCollisionController
-	bool compactCollisionApplied = false;
+	bool compactCollisionApplied = false; // wall capsule kept off
+	bool bodyCollisionOff = false;
 	ue::FVector lastPawnLocation{};
 	float lastDeltaTime = 0.0f;
 	double lastRequestedSpeed = 0.0;
 	float blockedTime = 0.0f;
 	float fullBodyCollisionTimer = 0.0f;
+	bool wallCollisionWantedByGame = false;
 
 	//Peep State Machine Name
 	ue::FName fNameBehind;

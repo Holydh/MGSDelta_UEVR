@@ -3,7 +3,7 @@
 r.AntiAliasingMethod=false,4
 r.Nanite.MaxPixelsPerEdge=false,2.51
 r.StaticMeshLODDistanceScale=true,4
-r.SkeletalMeshLODBias=true,1
+r.SkeletalMeshLODBias=true,0
 foliage.LODDistanceScale=false,0.39
 r.ViewDistanceScale=true,0.2
 r.Lumen.DiffuseIndirect.Allow=true,1
