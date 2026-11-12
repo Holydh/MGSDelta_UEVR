@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <bit>
+#include <cwctype>
 #include <iterator>
 #include <map>
 #include <span>
@@ -133,18 +134,20 @@ std::vector<int32_t> Subtree(const std::vector<int32_t>& parents, int32_t root) 
 
 // Mesh space (the engine's axes: x forward, y right, z up) to the IK's convention (x right, y up, z forward)
 glm::dvec3 ToIK(const glm::dvec3& v) { return { v.y, v.z, v.x }; }
+glm::dvec3 FromIK(const glm::dvec3& v) { return { v.z, v.x, v.y }; }
 
 // The head joint (the neck's pivot) behind and below the eyes, in the head's frame: down, back (m at
 // reference size; Parger et al. 2018, chasm's head_pivot)
 constexpr double HeadPivotDown = 0.046;
 constexpr double HeadPivotBack = 0.087;
-// Share of the torso's twist each spine joint takes, from the hips up (BaseBody_Spine, Spine1, Spine2)
-constexpr double SpineTwistShare[3] = { 0.35, 0.35, 0.3 };
-// How far each joint of the chain (Spine, Spine1, Spine2, Neck) may bend to bring the head under the
-// headset (degrees), and the share of the remaining bend it takes per pass
-constexpr double SpineBendLimitDeg[4] = { 35.0, 30.0, 30.0, 30.0 };
-constexpr double SpineBendShare = 0.5;
-constexpr int SpineBendPasses = 4;
+// Smoothing of the eyes' speed over the ground (s), and the speed above which the body counts as
+// moving (m/s, VRIK's move threshold)
+constexpr double VelocityTau = 0.1;
+constexpr double MovingSpeed = 0.3;
+// Snake's ankles above the floor standing (m at reference size), and his legs a sliver longer than
+// the standing hip to ankle distance, so a standing knee keeps a few degrees of bend (chasm, FRIK)
+constexpr double AnkleHeight = 0.08;
+constexpr double LegSlack = 0.998;
 // The head mapping (ToAnimatedHead) stays in use this long after the last solve
 constexpr double HeadMapLifetime = 0.25;
 
@@ -308,6 +311,49 @@ void BodyIK::Update(HookManager& hookManager, const PlayerManager& playerManager
 
     UpdateTarget(m_arms[0], playerManager.LeftHandMesh, playerManager.LeftController);
     UpdateTarget(m_arms[1], playerManager.RightHandMesh, playerManager.RightController);
+    if (!m_eyesSearched)
+        FindEyes(pawn);
+}
+
+void BodyIK::FindEyes(ue::UObject* pawn)
+{
+    // The body's skeleton has no face: the eyes are in the facial mesh, which shares the head bone. Its
+    // own pose is read (component space), so it doesn't matter whether the hidden face animates.
+    m_eyesSearched = true;
+    auto* face = ue::get<ue::UObject*>(pawn, L"SkeletalMesh_Head");
+    if (face == nullptr || ue::call<int32_t>(face, L"GetBoneIndex", m_headName) < 0)
+    {
+        uevr::API::get()->log_error("[MGSDelta] BodyIK: no head bone in Snake's facial mesh, the head pivot is estimated");
+        return;
+    }
+    auto boneInFace = [face](const ue::FName& name) {
+        return ToTransform(ue::call<ue::FTransform>(face, L"GetBoneTransform", name, ue::ERelativeTransformSpace::RTS_Component));
+    };
+    const Transform head = boneInFace(m_headName);
+    glm::dvec3 sum{};
+    int count = 0;
+    const int32_t numBones = ue::call<int32_t>(face, L"GetNumBones");
+    for (int32_t i = 0; i < numBones; i++)
+    {
+        const auto name = ue::call<ue::FName>(face, L"GetBoneName", i);
+        std::wstring lower = name.ToWString();
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::towlower);
+        if (lower.find(L"eye") == std::wstring::npos || lower.find(L"brow") != std::wstring::npos)
+            continue;
+        const glm::dvec3 local = glm::inverse(head.rotation) * (boneInFace(name).translation - head.translation) / head.scale;
+        if (glm::length(local) > 25.0) // e.g. a look-at target, not part of the face
+            continue;
+        sum += local;
+        count++;
+    }
+    if (count == 0)
+    {
+        uevr::API::get()->log_error("[MGSDelta] BodyIK: no eye bones in Snake's facial mesh, the head pivot is estimated");
+        return;
+    }
+    m_eyesLocal = sum / static_cast<double>(count);
+    uevr::API::get()->log_info("[MGSDelta] BodyIK: Snake's eyes from %d facial bones, at %.1f, %.1f, %.1f cm in the head bone's frame (%.1f cm away)",
+        count, m_eyesLocal->x, m_eyesLocal->y, m_eyesLocal->z, glm::length(*m_eyesLocal));
 }
 
 void BodyIK::UpdateTarget(Arm& arm, ue::UObject* handMesh, ue::UObject* controller)
@@ -338,7 +384,12 @@ void BodyIK::Cleanup()
     m_animInstance.reset();
     m_hmd.reset();
     m_torso.reset();
+    m_root.reset();
+    m_lastEyes.reset();
+    m_segmentAxes.reset();
     m_headForwardLocal.reset();
+    m_eyesLocal.reset();
+    m_eyesSearched = false;
     for (auto& arm : m_arms)
     {
         arm.target.reset();
@@ -385,17 +436,34 @@ bool BodyIK::Bind(ue::UObject* mesh)
             uevr::API::get()->log_error("[MGSDelta] BodyIK: bone %ls not found", name);
         return it != indexByName.end() ? it->second : -1;
     };
+    m_hips = boneIndex(L"BaseBody_Hips");
     m_spine = boneIndex(L"BaseBody_Spine");
     m_spine1 = boneIndex(L"BaseBody_Spine1");
     m_spine2 = boneIndex(L"BaseBody_Spine2");
     m_neck = boneIndex(L"BaseBody_Neck");
     m_head = boneIndex(L"BaseBody_Head");
     m_headEnd = boneIndex(L"BaseBody_HeadEnd");
-    bool found = m_spine >= 0 && m_spine1 >= 0 && m_spine2 >= 0 && m_neck >= 0 && m_head >= 0 && m_headEnd >= 0;
+    bool found = m_hips >= 0 && m_spine >= 0 && m_spine1 >= 0 && m_spine2 >= 0 && m_neck >= 0 && m_head >= 0 && m_headEnd >= 0;
+    for (int i = 0; i < 2; i++)
+    {
+        const std::wstring side = i == 0 ? L"Left" : L"Right";
+        m_upLegs[i] = boneIndex((L"BaseBody_" + side + L"UpLeg").c_str());
+        m_legs[i] = boneIndex((L"BaseBody_" + side + L"Leg").c_str());
+        m_feet[i] = boneIndex((L"BaseBody_" + side + L"Foot").c_str());
+        found = found && m_upLegs[i] >= 0 && m_legs[i] >= 0 && m_feet[i] >= 0;
+    }
     if (found)
-        m_spineSubtree = Subtree(m_parents, m_spine);
+    {
+        m_hipsSubtree = Subtree(m_parents, m_hips);
+        m_headName = names[m_head];
+    }
     m_torso.reset();
+    m_root.reset();
+    m_lastEyes.reset();
+    m_segmentAxes.reset();
     m_headForwardLocal.reset();
+    m_eyesLocal.reset();
+    m_eyesSearched = false;
     for (int i = 0; i < 2; i++)
     {
         auto& arm = m_arms[i];
@@ -542,7 +610,7 @@ void BodyIK::ApplyPose()
     auto armLength = [&](const Arm& arm) { return glm::distance(at(arm.upper), at(arm.lower)) + glm::distance(at(arm.lower), at(arm.hand)); };
     const double scale = 0.5 * (armLength(m_arms[0]) + armLength(m_arms[1])) / ReferenceArmLength;
 
-    SolveUpperBody(pose, meshToWorld, hands, scale, dt);
+    SolveSpine(pose, meshToWorld, hands, scale, dt);
 
     // The upper chest as the spine now has it: up the spine, right across the shoulders
     ik::ChestFrame chest;
@@ -563,30 +631,41 @@ void BodyIK::ApplyPose()
     m_headSolvedTime = now;
 }
 
-void BodyIK::SolveUpperBody(ue::FTransform* pose, const Transform& meshToWorld, const std::optional<Transform> hands[2], double scale, double dt)
+void BodyIK::SolveSpine(ue::FTransform* pose, const Transform& meshToWorld, const std::optional<Transform> hands[2], double scale, double dt)
 {
     auto* hmdActor = m_hmd.get();
     auto* hmdRoot = hmdActor != nullptr ? ue::get<ue::UObject*>(hmdActor, L"RootComponent") : nullptr;
     if (hmdRoot == nullptr)
     {
         m_torso.reset();
+        m_root.reset();
+        m_lastEyes.reset();
         return;
     }
 
     // The headset in mesh space (cm): UEVR moves this actor with it. Its x looks forward, z up.
-    const Transform hmd = Relative(FollowCamera(ToTransform(ue::call<ue::FTransform>(hmdRoot, L"K2_GetComponentToWorld"))), meshToWorld);
+    const Transform hmdWorld = FollowCamera(ToTransform(ue::call<ue::FTransform>(hmdRoot, L"K2_GetComponentToWorld")));
+    const Transform hmd = Relative(hmdWorld, meshToWorld);
     const glm::dvec3 hmdForward = hmd.rotation * glm::dvec3{ 1, 0, 0 };
     const glm::dvec3 hmdUp = hmd.rotation * glm::dvec3{ 0, 0, 1 };
     const glm::dvec3 eyes = hmd.translation;
 
     auto at = [pose](int32_t bone) { return ToGlm(pose[bone].Translation); };
-    const glm::dvec3 up{ 0, 0, 1 };
+    const int32_t bones[6] = { m_hips, m_spine, m_spine1, m_spine2, m_neck, m_head };
 
-    // The chest as the game animated it
-    const glm::dvec3 chestUp = glm::normalize(at(m_neck) - at(m_spine2));
-    const glm::dvec3 across = at(m_arms[1].upper) - at(m_arms[0].upper);
-    const glm::dvec3 chestRight = glm::normalize(across - chestUp * glm::dot(across, chestUp));
-    const glm::dvec3 chestForward = glm::cross(chestRight, chestUp);
+    // The chain bones' own axes, from the game's pose: up to the next joint, and the body's right
+    // (across the hip joints for the hips, across the shoulders above them)
+    if (!m_segmentAxes)
+    {
+        std::array<SegmentAxes, 5> axes;
+        for (int k = 0; k < 5; k++)
+        {
+            const glm::dquat inverse = glm::inverse(ToGlm(pose[bones[k]].Rotation));
+            const glm::dvec3 right = k == 0 ? at(m_upLegs[1]) - at(m_upLegs[0]) : at(m_arms[1].upper) - at(m_arms[0].upper);
+            axes[k] = { glm::normalize(inverse * (at(bones[k + 1]) - at(bones[k]))), glm::normalize(inverse * right) };
+        }
+        m_segmentAxes = axes;
+    }
 
     // The head bone's own axes: up to the top of the head, and the way the face looks, taken once from
     // the game's pose (the face looks the way the chest faces)
@@ -594,12 +673,17 @@ void BodyIK::SolveUpperBody(ue::FTransform* pose, const Transform& meshToWorld, 
     const glm::dvec3 headUpLocal = glm::normalize(glm::inverse(animatedHeadRot) * (at(m_headEnd) - at(m_head)));
     if (!m_headForwardLocal)
     {
+        const glm::dvec3 chestUp = glm::normalize(at(m_neck) - at(m_spine2));
+        const glm::dvec3 across = at(m_arms[1].upper) - at(m_arms[0].upper);
+        const glm::dvec3 chestForward = glm::cross(glm::normalize(across - chestUp * glm::dot(across, chestUp)), chestUp);
         const glm::dvec3 f = glm::inverse(animatedHeadRot) * chestForward;
         m_headForwardLocal = glm::normalize(f - headUpLocal * glm::dot(f, headUpLocal));
     }
     // The head turns with the headset, and goes where Snake's eyes are at the camera
     const glm::dquat headRot = AlignPair(*m_headForwardLocal, headUpLocal, hmdForward, hmdUp);
-    const glm::dvec3 headJoint = eyes - (hmdUp * HeadPivotDown + hmdForward * HeadPivotBack) * scale / CmToM;
+    const glm::dvec3 headToEyes = m_eyesLocal ? headRot * *m_eyesLocal
+        : (hmdUp * HeadPivotDown + hmdForward * HeadPivotBack) * scale / CmToM;
+    const glm::dvec3 headJoint = eyes - headToEyes;
 
     // ---- torso yaw: where the hands and head have the chest face (chasm's torso.rs) ----
     const glm::dvec3 forwardIK = ToIK(hmdForward), upIK = ToIK(hmdUp);
@@ -617,62 +701,69 @@ void BodyIK::SolveUpperBody(ue::FTransform* pose, const Transform& meshToWorld, 
     }
     const double torsoYaw = m_torso->Update(m_torsoParams, dt, scale, ToIK(eyes * CmToM), ToIK(headJoint * CmToM), headYaw, handsIK);
 
-    const glm::dvec3 chestForwardIK = ToIK(chestForward);
-    const double twist = ik::WrapAngle(torsoYaw - std::atan2(chestForwardIK.x, chestForwardIK.z));
-
-    // ---- the chain: BaseBody_Spine, Spine1, Spine2, Neck, Head ----
-    const int32_t bones[5] = { m_spine, m_spine1, m_spine2, m_neck, m_head };
-    Transform chain[5];
-    for (int k = 0; k < 5; k++)
-        chain[k] = ToTransform(pose[bones[k]]);
-    // Turns the chain from joint k up, rigidly about joint k
-    auto rotateFrom = [&chain](int k, const glm::dquat& q) {
-        for (int j = k; j < 5; j++)
-        {
-            if (j > k)
-                chain[j].translation = chain[k].translation + q * (chain[j].translation - chain[k].translation);
-            chain[j].rotation = glm::normalize(q * chain[j].rotation);
-        }
-    };
-
-    // The torso's twist, spread up the spine (the hips keep the game's)
-    for (int k = 0; k < 3; k++)
-        rotateFrom(k, glm::angleAxis(twist * SpineTwistShare[k], up));
-
-    // Bend the spine and neck to bring the head joint under the headset (cyclic coordinate descent,
-    // each joint taking a share of what's left, within its limit)
-    glm::dquat bent[4] = { { 1, 0, 0, 0 }, { 1, 0, 0, 0 }, { 1, 0, 0, 0 }, { 1, 0, 0, 0 } };
-    for (int pass = 0; pass < SpineBendPasses; pass++)
+    // ---- root yaw: the hips trail the torso, in the world (the mesh turns with the pawn) ----
+    const glm::dvec3 meshForward = meshToWorld.rotation * glm::dvec3{ 1, 0, 0 };
+    const double meshYaw = std::atan2(meshForward.y, meshForward.x);
+    if (m_lastEyes && dt > 0.0)
     {
-        for (int k = 3; k >= 0; k--)
-        {
-            const glm::dvec3 current = chain[4].translation - chain[k].translation;
-            const glm::dvec3 wanted = headJoint - chain[k].translation;
-            if (glm::length(current) < 1.0 || glm::length(wanted) < 1.0)
-                continue;
-            glm::dquat q = glm::slerp(glm::dquat{ 1, 0, 0, 0 }, glm::rotation(glm::normalize(current), glm::normalize(wanted)), SpineBendShare);
-            // Within the joint's limit, counting what it already bent
-            const double limit = glm::radians(SpineBendLimitDeg[k]);
-            const glm::dquat total = glm::normalize(q * bent[k]);
-            const double angle = glm::angle(total);
-            if (angle > limit)
-            {
-                const double already = glm::angle(bent[k]);
-                const double qAngle = glm::angle(q);
-                const double allowed = std::max(limit - already, 0.0);
-                q = qAngle > 1e-6 ? glm::slerp(glm::dquat{ 1, 0, 0, 0 }, q, std::min(allowed / qAngle, 1.0)) : glm::dquat{ 1, 0, 0, 0 };
-            }
-            bent[k] = glm::normalize(q * bent[k]);
-            rotateFrom(k, q);
-        }
+        const glm::dvec3 moved = hmdWorld.translation - *m_lastEyes;
+        const double speed = std::hypot(moved.x, moved.y) * CmToM / dt;
+        m_eyesSpeed += (speed - m_eyesSpeed) * ik::Smoothing(dt, VelocityTau);
     }
+    m_lastEyes = hmdWorld.translation;
+    if (!m_root)
+        m_root.emplace(torsoYaw + meshYaw);
+    const double rootYaw = m_root->Update(dt, torsoYaw + meshYaw, m_eyesSpeed > MovingSpeed) - meshYaw;
 
-    chain[4].rotation = headRot;
+    // ---- the chain, with Snake's own lengths ----
+    ik::SpineSkeleton skel;
+    for (int k = 0; k < 4; k++)
+        skel.spine[k] = glm::distance(at(bones[k]), at(bones[k + 1])) * CmToM;
+    skel.neck = glm::distance(at(m_neck), at(m_head)) * CmToM;
+    skel.scale = scale;
 
-    BoneOverride overrides[5];
+    // ---- pitch: how far and how the head has dropped. The neck's drop, not the eyes': nodding swings
+    // the eyes about the neck without the body going anywhere. ----
+    const double eyesUp = m_eyesLocal ? glm::dot(*m_eyesLocal, headUpLocal) * CmToM : HeadPivotDown * scale;
+    const double levelEyes = headJoint.z * CmToM + eyesUp; // the floor is at the mesh's origin
+    // Standing straight: the legs all but straight, the chain upright from the hips to the eyes
+    double leg = 0.0, hipDown = 0.0;
+    for (int i = 0; i < 2; i++)
+    {
+        leg += 0.5 * (glm::distance(at(m_upLegs[i]), at(m_legs[i])) + glm::distance(at(m_legs[i]), at(m_feet[i]))) * CmToM;
+        hipDown += 0.5 * glm::distance(at(m_upLegs[i]), at(m_hips)) * CmToM;
+    }
+    const double standingEyes = AnkleHeight * scale + leg * LegSlack + hipDown + skel.spine[0] + skel.spine[1] + skel.spine[2]
+        + skel.spine[3] + skel.neck * std::cos(ik::NeckLean) + eyesUp;
+    const double headPitch = std::asin(std::clamp(-forwardIK.y, -1.0, 1.0));
+    m_pitch.Step(ik::TargetPitch(m_spineParams, skel, levelEyes, standingEyes, headPitch) - m_pitch.value, dt, m_spineParams.tau);
+
+    ik::ChainInput input;
+    input.headJoint = ToIK(headJoint * CmToM);
+    input.headRot = ik::FrameYZ(upIK, forwardIK, forwardIK);
+    input.torsoYaw = torsoYaw;
+    input.rootYaw = rootYaw;
+    input.pitch = m_pitch.value;
+    const ik::Chain chain = ik::BuildChain(skel, input);
+
+    // Each chain bone onto its solved segment: its way up along it, the body's right as near as it goes
+    BoneOverride overrides[8];
     for (int k = 0; k < 5; k++)
-        overrides[k] = { bones[k], chain[k].rotation, chain[k].translation };
-    WriteSubtree(pose, m_spineSubtree, overrides, std::size(overrides));
+    {
+        const auto& axes = (*m_segmentAxes)[k];
+        const glm::dvec3 up = FromIK(chain.rot[k] * glm::dvec3{ 0, 1, 0 });
+        const glm::dvec3 right = FromIK(chain.rot[k] * glm::dvec3{ 1, 0, 0 });
+        overrides[k] = { bones[k], AlignPair(axes.up, axes.right, up, right), FromIK(chain.pos[k]) / CmToM };
+    }
+    overrides[5] = { m_head, headRot, FromIK(chain.pos[5]) / CmToM };
+    // For now the legs keep the game's pose, carried along by the hip joints
+    const glm::dquat hipsRot = ToGlm(pose[m_hips].Rotation);
+    for (int i = 0; i < 2; i++)
+    {
+        const glm::dvec3 local = glm::inverse(hipsRot) * (at(m_upLegs[i]) - at(m_hips));
+        overrides[6 + i] = { m_upLegs[i], ToGlm(pose[m_upLegs[i]].Rotation), overrides[0].translation + overrides[0].rotation * local };
+    }
+    WriteSubtree(pose, m_hipsSubtree, overrides, std::size(overrides));
 }
 
 std::optional<BodyIK::Transform> BodyIK::TargetHand(Arm& arm) const

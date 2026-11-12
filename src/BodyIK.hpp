@@ -6,10 +6,11 @@
 // frame, its pose is overwritten here, in that component's component-space bone transforms,
 // so every follower mesh follows.
 //
-// The head goes under the headset (Snake's eyes where the camera is), the spine twists and bends to
-// bring it there from the hips, and the arms reach for the VR hands (the Lua hands on the motion
-// controllers, which are copies of Snake's arm mesh placed with the profile's hand offsets).
-// The hips and legs keep the game's animation.
+// The head goes under the headset (Snake's eyes where the camera is), the spine hangs from it down to
+// the hips, and the arms reach for the VR hands (the Lua hands on the motion controllers, which are
+// copies of Snake's arm mesh placed with the profile's hand offsets). The legs keep the game's
+// animation, carried along by the hips.
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <optional>
@@ -18,6 +19,7 @@
 #include "uevr/API.hpp"
 #include "ue/Reflection.hpp"
 #include "ik/ArmIK.hpp"
+#include "ik/SpineIK.hpp"
 #include "ik/TorsoIK.hpp"
 
 class HookManager;
@@ -87,6 +89,7 @@ private:
     void KeepBodyVisible(ue::UObject* pawn, bool bodyShown);
     // Gives the body's parts back to the model parts controller
     void ReleaseBodyParts();
+    void FindEyes(ue::UObject* pawn);
     // UEVR places the controllers and the headset from the camera's origin when the view is computed,
     // after Snake's animation: during it they still hang from last frame's origin. This moves a
     // transform from last frame's origin to this frame's.
@@ -94,8 +97,8 @@ private:
     // Where the VR hand's hand bone is in the world, placed from the controller
     std::optional<Transform> TargetHand(Arm& arm) const;
     void ApplyPose();
-    // The spine and head, in mesh space. hands: the hand targets [left, right], when tracked.
-    void SolveUpperBody(ue::FTransform* pose, const Transform& meshToWorld, const std::optional<Transform> hands[2], double scale, double dt);
+    // The hips, spine and head, in mesh space. hands: the hand targets [left, right], when tracked.
+    void SolveSpine(ue::FTransform* pose, const Transform& meshToWorld, const std::optional<Transform> hands[2], double scale, double dt);
     void SolveArm(Arm& arm, ue::FTransform* pose, const ik::ChestFrame& chest, const Transform& target, double dt);
     // Spreads the hand's roll about the forearm over the forearm's twist bones
     void TwistForearm(Arm& arm, ue::FTransform* pose, const glm::dquat& animLowerRot, const glm::dquat& animHandRot);
@@ -119,15 +122,32 @@ private:
     struct { double distances[2]; int32_t indices[2]; } m_lastMismatch{}; // for the error message
 
     Arm m_arms[2]; // [left, right]
-    // BaseBody_Spine, Spine1, Spine2, Neck, Head: the chain bent to bring the head under the headset
-    int32_t m_spine = -1, m_spine1 = -1, m_spine2 = -1, m_neck = -1, m_head = -1;
+    // BaseBody_Hips, Spine, Spine1, Spine2, Neck, Head: the chain hung from the headset
+    int32_t m_hips = -1, m_spine = -1, m_spine1 = -1, m_spine2 = -1, m_neck = -1, m_head = -1;
     int32_t m_headEnd = -1;
-    std::vector<int32_t> m_spineSubtree; // BaseBody_Spine and every bone above it
+    int32_t m_upLegs[2] = { -1, -1 }, m_legs[2] = { -1, -1 }, m_feet[2] = { -1, -1 }; // [left, right]
+    std::vector<int32_t> m_hipsSubtree; // BaseBody_Hips and every bone below it
     ue::WeakObject m_hmd;
-    std::optional<ik::TorsoYaw> m_torso; // while the headset is followed
+    // While the headset is followed: the torso's yaw (mesh space), the hips' (world), the spine's pitch
+    std::optional<ik::TorsoYaw> m_torso;
+    std::optional<ik::RootYaw> m_root;
+    ik::Follow m_pitch;
+    // How fast the eyes go over the ground (m/s, smoothed), from where they were last frame (world)
+    double m_eyesSpeed = 0.0;
+    std::optional<glm::dvec3> m_lastEyes;
+    // Taken once from the game's pose, in each chain bone's frame (Hips to Neck): the way up to the
+    // next joint and the body's right
+    struct SegmentAxes { glm::dvec3 up, right; };
+    std::optional<std::array<SegmentAxes, 5>> m_segmentAxes;
     std::optional<glm::dvec3> m_headForwardLocal; // the way the face looks, in the head bone's frame
+    ue::FName m_headName;
+    // Between Snake's eyes, in the head bone's frame (cm), from his facial mesh. Without it, chasm's
+    // average head pivot is used.
+    std::optional<glm::dvec3> m_eyesLocal;
+    bool m_eyesSearched = false;
     ik::ArmParams m_armParams;
     ik::TorsoParams m_torsoParams;
+    ik::SpineParams m_spineParams;
     std::chrono::steady_clock::time_point m_lastSolve{};
 
     // The VR camera's origin, this frame and last frame

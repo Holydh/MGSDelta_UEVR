@@ -39,6 +39,22 @@ double WrapAngle(double a) {
     return w <= -Pi ? w + 2.0 * Pi : w;
 }
 
+double Smoothing(double dt, double tau) {
+    return tau <= 0.0 ? 1.0 : 1.0 - std::exp(-dt / tau);
+}
+
+RootYaw::RootYaw(double yaw) : m_yaw(yaw), m_deadZone(DeadZoneStandingDeg * Deg) {}
+
+double RootYaw::Update(double dt, double torsoYaw, bool moving) {
+    const double target = (moving ? DeadZoneMovingDeg : DeadZoneStandingDeg) * Deg;
+    // VRIK blends between its moving and standing limits over 0.2 s
+    m_deadZone += (target - m_deadZone) * Smoothing(dt, 0.2);
+    const double off = WrapAngle(torsoYaw - m_yaw);
+    if (std::abs(off) > m_deadZone)
+        m_yaw = WrapAngle(m_yaw + off - std::copysign(m_deadZone, off));
+    return m_yaw;
+}
+
 double Follow::Step(double error, double dt, double tau) {
     if (tau <= 0.0) {
         value += error;

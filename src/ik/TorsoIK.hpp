@@ -53,7 +53,24 @@ private:
     bool m_flipped = false;
 };
 
+// The feet and hips' heading: it trails the torso's past a dead zone, narrower while moving (VRIK)
+class RootYaw {
+public:
+    explicit RootYaw(double yaw = 0.0);
+    double Update(double dt, double torsoYaw, bool moving);
+    double Yaw() const { return m_yaw; }
+
+    static constexpr double DeadZoneStandingDeg = 25.0;
+    static constexpr double DeadZoneMovingDeg = 10.0;
+
+private:
+    double m_yaw;
+    double m_deadZone; // radians
+};
+
 double WrapAngle(double a);
+// 1 - e^(-dt/tau): a first-order filter's step, frame rate independent
+double Smoothing(double dt, double tau);
 // Yaw of a direction: 0 along +z, positive towards +x
 inline double YawOf(const glm::dvec3& v) { return std::atan2(v.x, v.z); }
 
