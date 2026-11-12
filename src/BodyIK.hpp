@@ -166,6 +166,10 @@ private:
     bool m_crawling = false;
     bool m_playerControlled = false;
     std::vector<bool> m_isVirtual; // the skeleton's virtual bones ("VB ..."), which the game derives from others
+    // The game's animation is set aside, except under these bones: everything below them keeps it,
+    // relative to its parent (the fingers, for now)
+    static constexpr const wchar_t* AnimatedBoneRoots[] = { L"BaseBody_LeftHand", L"BaseBody_RightHand" };
+    std::vector<bool> m_keepAnimated;
     std::optional<glm::dvec3> m_headForwardLocal; // the way the face looks, in the head bone's frame
     glm::dvec3 m_headUpLocal{};                   // up to the top of the head, in the head bone's frame
     std::vector<Transform> m_refPose;             // the skeleton's reference pose (component space)

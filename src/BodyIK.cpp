@@ -584,6 +584,16 @@ bool BodyIK::Bind(ue::UObject* mesh)
     m_isVirtual.assign(m_numBones, false);
     for (int32_t i = 0; i < m_numBones; i++)
         m_isVirtual[i] = names[i].ToString().rfind("VB ", 0) == 0;
+    // The bones under these keep the game's animation (the root itself is placed by the IK, or not)
+    m_keepAnimated.assign(m_numBones, false);
+    for (const wchar_t* root : AnimatedBoneRoots)
+    {
+        const int32_t index = boneIndex(root);
+        if (index < 0)
+            continue;
+        for (const int32_t bone : Subtree(m_parents, index))
+            m_keepAnimated[bone] = bone != index;
+    }
 
     m_scratch.resize(m_numBones);
     Logger::DebugPrint("BodyIK: bound to %d bones", m_numBones);
@@ -689,14 +699,23 @@ void BodyIK::ApplyPose()
     const Transform animatedHead = ToTransform(pose[m_head]);
 
     // The game's animation is set aside: every bone starts from the reference pose, and the IK places
-    // the body from there (the virtual bones aside: the game derives them from the others)
+    // the body from there. The bones that keep the game's animation (AnimatedBoneRoots) keep it
+    // relative to their parent; the virtual bones are left as they are (the game derives them from others).
+    for (int32_t bone = 0; bone < m_numBones; bone++)
+        m_scratch[bone] = pose[bone];
     for (int32_t bone = 0; bone < m_numBones; bone++)
     {
         if (m_isVirtual[bone])
             continue;
-        pose[bone].Rotation = ToUe(m_refPose[bone].rotation);
-        pose[bone].Translation = ToUe(m_refPose[bone].translation);
-        pose[bone].Scale3D = ToUe(m_refPose[bone].scale);
+        Transform t = m_refPose[bone];
+        if (m_keepAnimated[bone])
+        {
+            const int32_t parent = m_parents[bone];
+            t = Compose(Relative(ToTransform(m_scratch[bone]), ToTransform(m_scratch[parent])), ToTransform(pose[parent]));
+        }
+        pose[bone].Rotation = ToUe(t.rotation);
+        pose[bone].Translation = ToUe(t.translation);
+        pose[bone].Scale3D = ToUe(t.scale);
     }
 
     // The VR hands' hand bones, in Snake's mesh space: where Snake's hands go, and how they're turned
