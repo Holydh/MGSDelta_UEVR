@@ -24,11 +24,11 @@ enableTwoHandsRealisticRecoil=true
 disableThermalVisionScanline=true
 ------ Cutscenes Settings ------
 enableImmersiveMode=false
-blackBarsSize=5.000000
+blackBarsSize=6.000000
 smoothCameraMovementsInImmersiveCutscenes=true
 cutsceneCameraPositionLerp=6.000000
 cutsceneCameraRotationLerp=7.000000
 ------ Rendering Settings ------
 enable3DCutscenes=true
-enable3DRadio=false
+enable3DRadio=true
 enable3DSurvivalView=true
