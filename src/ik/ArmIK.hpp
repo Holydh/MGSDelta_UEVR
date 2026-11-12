@@ -51,6 +51,10 @@ struct ArmParams {
     double swivelTau = 0.06;     // elbow swivel smoothing (s); the hand is never smoothed
     double armStretch = 1.0;     // bones never stretch: Snake's mesh would stretch with them
     double trackingLoss = 2.25;  // a hand further than this many arm lengths is tracking loss
+    // How far the shoulder goes towards a hand past the arm's reach (m at reference size): forward or
+    // across the chest, back, up, down, out
+    double shoulderReach[5] = { 0.15, 0.05, 0.10, 0.04, 0.03 };
+    double armEase = 0.02;       // over this share of the arm's reach either side of full, the shoulder takes over
 };
 
 struct ArmSkeleton {
@@ -62,7 +66,9 @@ struct ArmSkeleton {
 };
 
 struct ArmState {
-    std::optional<glm::dvec3> pole; // smoothed elbow direction, chest-local
+    std::optional<glm::dvec3> pole;   // smoothed elbow direction, chest-local
+    std::optional<glm::dvec3> upper;  // the upper arm's direction last frame, chest-local with +X outward
+    std::optional<glm::dvec2> girdle; // the shoulder girdle's lift and swing forward (radians), smoothed
 };
 
 struct ArmPose {
@@ -75,6 +81,12 @@ struct ArmPose {
 };
 
 // Solves one arm. shoulder: the shoulder joint, which doesn't move. Returns nothing on tracking loss.
+// Where the shoulder joint goes, about the clavicle's root from where it rests: lifted and swung
+// with the way the upper arm pointed last frame (the shoulder girdle), and towards a hand near or
+// past the arm's reach. The clavicle keeps its length.
+glm::dvec3 PlaceShoulder(const ArmParams& p, const ArmSkeleton& skel, double dt, ArmState& state, Side side,
+                         const ChestFrame& chest, const glm::dvec3& clavicleRoot, const glm::dvec3& restShoulder, const glm::dvec3& wrist);
+
 std::optional<ArmPose> SolveArm(const ArmParams& p, const ArmSkeleton& skel, double dt, ArmState& state, Side side,
                                 const ChestFrame& chest, const glm::dvec3& shoulder, const HandTarget& target);
 

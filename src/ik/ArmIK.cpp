@@ -1,6 +1,5 @@
 // Port of chasm's VR framework arm solver (crates/ik/src/arm.rs, MIT, see ArmIK.hpp).
-// Not ported yet: the shoulder girdle and shoulder reach (they come with the torso), the learned
-// prior, and tracked elbows.
+// Not ported: the learned prior and tracked elbows.
 #include "ik/ArmIK.hpp"
 
 #include <algorithm>
@@ -254,7 +253,83 @@ glm::dvec3 SwivelTarget(const ArmSkeleton& skel, const SwivelFrame& frame, doubl
     return frame.Dir(best);
 }
 
+// The shoulder girdle's lift scaled down from the skin-marker measurements it comes from: bone pins
+// show the clavicle rising less than markers on the skin over it (Ludewig 2009)
+constexpr double GirdleRise = 0.7;
+// The shoulder girdle follows the arm this quickly (s; the research's 50-80 ms)
+constexpr double GirdleTau = 0.06;
+
+// How the shoulder girdle turns about the sternoclavicular joint for an upper arm pointing dir (upper
+// chest space, +X outward on either side): its lift (the shoulder end up) and swing forward (back is
+// negative), in radians. Klopčar & Lenarčič 2006, Ludewig 2009: see chasm's arm.rs.
+glm::dvec2 Girdle(const glm::dvec3& dir) {
+    const glm::dvec3 d = NormalizeOr(dir, { 0, -1, 0 });
+    const double raised = std::acos(std::clamp(-d.y, -1.0, 1.0)) / Deg;
+    const double horizontal = std::sqrt(d.x * d.x + d.z * d.z);
+    // The plane it's raised in: 0 out to the side, 90 forward, past that across the body
+    const double plane = std::atan2(d.z, d.x) / Deg;
+    double lift = raised > 30.0 ? 0.36 * raised - 10.8 : 0.0;
+    double forth = raised > 70.0 ? -0.22 * raised + 15.4 : 0.0;
+    forth += 7.5 * std::clamp((plane - 35.0) / 55.0, -1.0, 1.0) * Smoothstep(30.0, 120.0, raised);
+    if (plane > 35.0)
+        forth += std::min(0.25 * (plane - 35.0), 20.0) * horizontal;
+    const double behind = std::asin(std::max(-d.z, 0.0)) / Deg;
+    lift += 0.3 * behind;
+    forth -= 0.35 * behind;
+    return { std::clamp(lift * GirdleRise, 0.0, 40.0) * Deg, std::clamp(forth, -25.0, 25.0) * Deg };
+}
+
+// How far from the shoulder an arm length long bends as if the hand were, reaching d: d, until ease
+// short of full reach; from there it eases onto full reach, ease past it, and stays there. The
+// shoulder goes the rest of the way.
+double EasedReach(double d, double length, double ease) {
+    if (ease > 0.0 && d > length - ease) {
+        const double u = std::min(d - (length - ease), 2.0 * ease);
+        return length - ease + u - u * u / (4.0 * ease);
+    }
+    return std::min(d, length);
+}
+
 } // namespace
+
+glm::dvec3 PlaceShoulder(const ArmParams& p, const ArmSkeleton& skel, double dt, ArmState& state, Side side,
+                         const ChestFrame& chest, const glm::dvec3& clavicleRoot, const glm::dvec3& restShoulder, const glm::dvec3& wrist) {
+    const double sign = side == Side::Left ? -1.0 : 1.0;
+    // Chest space with +X outward on either side
+    auto mirror = [sign](const glm::dvec3& v) { return glm::dvec3{ v.x * sign, v.y, v.z }; };
+    const double arm = skel.ArmLength();
+
+    // The girdle turns the shoulder about the clavicle's root as the arm last pointed (a frame's lag,
+    // under its own smoothing), or as the hand is the first time round
+    const glm::dvec3 pointing = state.upper ? *state.upper : mirror(chest.ToLocal(wrist - restShoulder));
+    const glm::dvec2 target = Girdle(pointing);
+    glm::dvec2 girdle = target;
+    if (state.girdle)
+        girdle = dt <= 0.0 ? *state.girdle : *state.girdle + (target - *state.girdle) * Smoothing(dt, GirdleTau);
+    state.girdle = girdle;
+    const glm::dvec3 clavicle = mirror(chest.ToLocal(restShoulder - clavicleRoot));
+    const glm::dquat turn = glm::angleAxis(-girdle.y, glm::dvec3{ 0, 1, 0 }) * glm::angleAxis(girdle.x, glm::dvec3{ 0, 0, 1 });
+    const glm::dvec3 girdled = clavicleRoot + chest.ToWorld(mirror(turn * clavicle));
+
+    // Near full reach and past it, the shoulder goes the hand's way as a shoulder blade does (forward
+    // or across the chest most, up in a shrug, back and down less, out least), taking a growing share
+    // of the reaching so the elbow straightens at a steady rate rather than snapping straight
+    const glm::dvec3 toHand = wrist - girdled;
+    const double reaching = glm::length(toHand);
+    const double bendAt = EasedReach(reaching, arm, std::clamp(p.armEase * arm, 0.0, 0.25 * arm));
+    double slide = 0.0;
+    if (reaching > bendAt) {
+        const glm::dvec3 l = mirror(chest.ToLocal(toHand / reaching));
+        auto sq = [](double v) { return v * v; };
+        const auto& r = p.shoulderReach; // forward, back, up, down, out
+        const double reach = skel.scale * (sq(std::max(l.z, 0.0)) * r[0] + sq(std::min(l.x, 0.0)) * r[0] + sq(std::min(l.z, 0.0)) * r[1]
+            + sq(std::max(l.y, 0.0)) * r[2] + sq(std::min(l.y, 0.0)) * r[3] + sq(std::max(l.x, 0.0)) * r[4]);
+        slide = std::min(reaching - bendAt, reach);
+    }
+    const glm::dvec3 shoulder = girdled + NormalizeOr(toHand, {}) * slide;
+    // Snake's clavicle keeps its length: the shoulder goes as far round its root as that takes it
+    return clavicleRoot + NormalizeOr(shoulder - clavicleRoot, girdled - clavicleRoot) * glm::length(clavicle);
+}
 
 std::optional<ArmPose> SolveArm(const ArmParams& p, const ArmSkeleton& skel, double dt, ArmState& state, Side side,
                                 const ChestFrame& chest, const glm::dvec3& shoulder, const HandTarget& target) {
@@ -298,6 +373,7 @@ std::optional<ArmPose> SolveArm(const ArmParams& p, const ArmSkeleton& skel, dou
     const TwoBoneResult solved = TwoBone(shoulder, wrist, lengths, pole, flex, p.armStretch, -up);
     ArmPose pose;
     pose.upperDir = NormalizeOr(solved.elbow - shoulder, -up);
+    state.upper = chest.ToLocal(pose.upperDir) * glm::dvec3{ sign, 1.0, 1.0 };
     pose.forearmDir = solved.forearm;
     pose.fold = solved.fold;
     // Snake's bones keep their length: the elbow and wrist are placed along the solved directions

@@ -38,6 +38,8 @@ public:
     void Cleanup();
 
     static void DrawMenu();
+    // Where UEVR renders an eye from, once the headset is applied: shown against Snake's eyes in the menu
+    void OnViewComputed(int viewIndex, const glm::dvec3& position, const glm::dvec3& rotation);
 
     // A point attached to Snake's head (e.g. a component on its head socket), moved to where it would
     // be on the head as the game animated it. The camera is placed from that head: read from the
@@ -45,6 +47,8 @@ public:
     static ue::FVector ToAnimatedHead(const ue::FVector& worldPoint);
 
     bool Enabled = false;
+    // Snake's eyes from the camera, in the headset's frame: forward, right, up (cm)
+    float HeadOffset[3] = { 16.3f, 0.0f, -4.8f };
 
     // Rotation, translation and scale, composed like the engine's FTransform
     struct Transform {
@@ -56,8 +60,10 @@ public:
 private:
     struct Arm {
         ik::Side side = ik::Side::Right;
+        int32_t clavicle = -1;                       // BaseBody_*Shoulder
         int32_t upper = -1, lower = -1, hand = -1;   // BaseBody_*Arm, *ForeArm, *Hand
         int32_t index = -1, middle = -1, pinky = -1; // first finger joints: give the hand's axes
+        std::vector<int32_t> clavicleSubtree;        // the clavicle and every bone below it
         std::vector<int32_t> subtree;                // the upper arm and every bone below it
         int32_t roll[2] = { -1, -1 };                // forearm twist bones (*ForeArmRoll1, *ForeArmRoll2)
         std::vector<int32_t> rollSubtree[2];
@@ -135,11 +141,13 @@ private:
     // How fast the eyes go over the ground (m/s, smoothed), from where they were last frame (world)
     double m_eyesSpeed = 0.0;
     std::optional<glm::dvec3> m_lastEyes;
-    // Taken once from the game's pose, in each chain bone's frame (Hips to Neck): the way up to the
-    // next joint and the body's right
+    // From the reference pose, in each chain bone's frame (Hips to Neck): the way up to the next joint
+    // and the body's right
     struct SegmentAxes { glm::dvec3 up, right; };
     std::optional<std::array<SegmentAxes, 5>> m_segmentAxes;
     std::optional<glm::dvec3> m_headForwardLocal; // the way the face looks, in the head bone's frame
+    glm::dvec3 m_headUpLocal{};                   // up to the top of the head, in the head bone's frame
+    std::vector<Transform> m_refPose;             // the skeleton's reference pose (component space)
     ue::FName m_headName;
     // Between Snake's eyes, in the head bone's frame (cm), from his facial mesh. Without it, chasm's
     // average head pivot is used.
@@ -162,4 +170,7 @@ private:
     // Snake's head as animated and as solved, last frame (world): for ToAnimatedHead
     Transform m_headAnimated, m_headSolved;
     std::chrono::steady_clock::time_point m_headSolvedTime{};
+    glm::dvec3 m_hmdSolved{};     // the headset as the last solve had it (world)
+    glm::dvec3 m_views[2]{};      // the rendered eyes' positions (world)
+    glm::dvec3 m_viewRotation{};  // pitch, yaw, roll (degrees)
 };

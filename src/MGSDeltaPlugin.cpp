@@ -685,6 +685,14 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 	}
 	else
 		cameraController.ViewRotation = { rotation->pitch, rotation->yaw, rotation->roll };
+	const auto& view = cameraController.ViewRotation;
+	if (is_double)
+	{
+		const auto* pos = (UEVR_Vector3d*)position;
+		bodyIK.OnViewComputed(view_index, { pos->x, pos->y, pos->z }, { view.Pitch, view.Yaw, view.Roll });
+	}
+	else
+		bodyIK.OnViewComputed(view_index, { position->x, position->y, position->z }, { view.Pitch, view.Yaw, view.Roll });
 
 	//we need to override uevr attachement controls so we're running this later
 	if (playerManager.IsPlayerControlled && playerManager.SecondHandAttachedToWeapon && ranOnce)
