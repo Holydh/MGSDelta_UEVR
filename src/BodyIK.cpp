@@ -84,12 +84,116 @@ glm::dquat AlignPair(const glm::dvec3& a1, const glm::dvec3& b1, const glm::dvec
     return glm::normalize(glm::quat_cast(basis(a2, b2) * glm::transpose(basis(a1, b1))));
 }
 
+// The engine's FRotator::Quaternion (degrees)
+glm::dquat RotatorToQuat(double pitch, double yaw, double roll) {
+    const double half = glm::radians(1.0) * 0.5;
+    const double sp = std::sin(pitch * half), cp = std::cos(pitch * half);
+    const double sy = std::sin(yaw * half), cy = std::cos(yaw * half);
+    const double sr = std::sin(roll * half), cr = std::cos(roll * half);
+    return { cr * cp * cy + sr * sp * sy,    // w
+             cr * sp * sy - sr * cp * cy,    // x
+             -cr * sp * cy - sr * cp * sy,   // y
+             cr * cp * sy - sr * sp * cy };  // z
+}
+
+// Signed angle from a to b around axis (a and b are projected onto the plane normal to axis)
+double SignedAngle(const glm::dvec3& a, const glm::dvec3& b, const glm::dvec3& axis) {
+    const glm::dvec3 n = glm::normalize(axis);
+    const glm::dvec3 pa = a - n * glm::dot(a, n), pb = b - n * glm::dot(b, n);
+    return std::atan2(glm::dot(glm::cross(pa, pb), n), glm::dot(pa, pb));
+}
+
+// Turns a subtree rigidly about an axis through its root bone
+void RotateSubtree(ue::FTransform* pose, const std::vector<int32_t>& subtree, const glm::dquat& rotation) {
+    if (subtree.empty())
+        return;
+    const glm::dvec3 pivot = ToGlm(pose[subtree.front()].Translation);
+    for (const int32_t bone : subtree)
+    {
+        auto& t = pose[bone];
+        t.Translation = ToUe(pivot + rotation * (ToGlm(t.Translation) - pivot));
+        t.Rotation = ToUe(glm::normalize(rotation * ToGlm(t.Rotation)));
+    }
+}
+
+// The bones of the subtree rooted at root, parents before children
+std::vector<int32_t> Subtree(const std::vector<int32_t>& parents, int32_t root) {
+    std::vector<int32_t> subtree;
+    std::vector<bool> inSubtree(parents.size(), false);
+    for (int32_t b = root; b >= 0 && b < static_cast<int32_t>(parents.size()); b++)
+    {
+        inSubtree[b] = b == root || (parents[b] >= 0 && inSubtree[parents[b]]);
+        if (inSubtree[b])
+            subtree.push_back(b);
+    }
+    return subtree;
+}
+
+// Mesh space (the engine's axes: x forward, y right, z up) to the IK's convention (x right, y up, z forward)
+glm::dvec3 ToIK(const glm::dvec3& v) { return { v.y, v.z, v.x }; }
+
+// The head joint (the neck's pivot) behind and below the eyes, in the head's frame: down, back (m at
+// reference size; Parger et al. 2018, chasm's head_pivot)
+constexpr double HeadPivotDown = 0.046;
+constexpr double HeadPivotBack = 0.087;
+// Share of the torso's twist each spine joint takes, from the hips up (BaseBody_Spine, Spine1, Spine2)
+constexpr double SpineTwistShare[3] = { 0.35, 0.35, 0.3 };
+// How far each joint of the chain (Spine, Spine1, Spine2, Neck) may bend to bring the head under the
+// headset (degrees), and the share of the remaining bend it takes per pass
+constexpr double SpineBendLimitDeg[4] = { 35.0, 30.0, 30.0, 30.0 };
+constexpr double SpineBendShare = 0.5;
+constexpr int SpineBendPasses = 4;
+// The head mapping (ToAnimatedHead) stays in use this long after the last solve
+constexpr double HeadMapLifetime = 0.25;
+
 } // namespace
 
-void BodyIK::Update(HookManager& hookManager, const PlayerManager& playerManager)
+ue::FVector BodyIK::ToAnimatedHead(const ue::FVector& worldPoint)
+{
+    auto* self = s_instance;
+    if (self == nullptr || !self->Enabled || std::chrono::duration<double>(std::chrono::steady_clock::now() - self->m_headSolvedTime).count() > HeadMapLifetime)
+        return worldPoint;
+    const Transform local = Relative(Transform{ {}, ToGlm(worldPoint), { 1, 1, 1 } }, self->m_headSolved);
+    return ToUe(Compose(local, self->m_headAnimated).translation);
+}
+
+BodyIK::Transform BodyIK::FollowCamera(const Transform& world) const
+{
+    return Compose(Relative(world, m_previousCameraOrigin), m_cameraOrigin);
+}
+
+void BodyIK::KeepBodyVisible(ue::UObject* pawn)
+{
+    const auto request = ue::call<ue::EGsrPlayerCameraRequestModelVisibility>(pawn, L"GetCurrentCameraModelVisibility");
+    const bool firstPerson = request >= ue::EGsrPlayerCameraRequestModelVisibility::Subjective;
+    m_visibleInNormalView.resize(std::size(PlayerManager::BodyMeshNames), false);
+    for (size_t i = 0; i < std::size(PlayerManager::BodyMeshNames); i++)
+    {
+        auto* mesh = ue::get<ue::UObject*>(pawn, PlayerManager::BodyMeshNames[i]);
+        if (mesh == nullptr)
+            continue;
+        const bool visible = ue::get<bool>(mesh, L"bVisible");
+        // Only what the game shows in its normal view comes back: what Snake doesn't wear stays hidden
+        if (!firstPerson)
+            m_visibleInNormalView[i] = visible;
+        else if (m_visibleInNormalView[i] && !visible)
+            ue::call(mesh, L"SetVisibility", true, false);
+    }
+}
+
+void BodyIK::Update(HookManager& hookManager, const PlayerManager& playerManager, ue::UObject* hmdActor,
+                    const UEVR_Vector3d& cameraPosition, const UEVR_Rotatord& cameraRotation)
 {
     if (!Enabled)
         return;
+    m_hmd = hmdActor;
+
+    // The camera origin only drives UEVR while the player has control (MGSDeltaPlugin::on_early_calculate_stereo_view_offset)
+    const Transform origin{ RotatorToQuat(cameraRotation.pitch, cameraRotation.yaw, cameraRotation.roll),
+                            { cameraPosition.x, cameraPosition.y, cameraPosition.z }, { 1, 1, 1 } };
+    m_previousCameraOrigin = m_hasCameraOrigin && playerManager.IsPlayerControlled ? m_cameraOrigin : origin;
+    m_cameraOrigin = origin;
+    m_hasCameraOrigin = playerManager.IsPlayerControlled;
 
     auto pawn = uevr::API::get()->get_local_pawn(0);
     // ACharacter::Mesh. The game's name table spells this property in lowercase.
@@ -144,6 +248,9 @@ void BodyIK::Update(HookManager& hookManager, const PlayerManager& playerManager
 
     UpdateTarget(m_arms[0], playerManager.LeftHandMesh, playerManager.LeftController);
     UpdateTarget(m_arms[1], playerManager.RightHandMesh, playerManager.RightController);
+
+    if (playerManager.BodyMeshesVisible && playerManager.IsPlayerControlled)
+        KeepBodyVisible(pawn);
 }
 
 void BodyIK::UpdateTarget(Arm& arm, ue::UObject* handMesh, ue::UObject* controller)
@@ -154,6 +261,10 @@ void BodyIK::UpdateTarget(Arm& arm, ue::UObject* handMesh, ue::UObject* controll
     arm.controller = controller;
     arm.handOnController.reset();
     arm.state = {};
+    // The controllers move after Snake's animation is evaluated (measured in game), which would leave
+    // his hands a frame behind them: his mesh ticks after them instead
+    if (controller != nullptr)
+        ue::call(m_mesh.get(), L"AddTickPrerequisiteComponent", controller);
     // GetBoneIndex returns -1 (INDEX_NONE) for a bone the mesh doesn't have
     arm.targetHasHand = handMesh != nullptr && ue::call<int32_t>(handMesh, L"GetBoneIndex", arm.handName) >= 0;
     if (handMesh != nullptr && !arm.targetHasHand)
@@ -165,6 +276,9 @@ void BodyIK::Cleanup()
     m_mesh.reset();
     m_failedMesh.reset();
     m_animInstance.reset();
+    m_hmd.reset();
+    m_torso.reset();
+    m_headForwardLocal.reset();
     for (auto& arm : m_arms)
     {
         arm.target.reset();
@@ -211,9 +325,17 @@ bool BodyIK::Bind(ue::UObject* mesh)
             uevr::API::get()->log_error("[MGSDelta] BodyIK: bone %ls not found", name);
         return it != indexByName.end() ? it->second : -1;
     };
+    m_spine = boneIndex(L"BaseBody_Spine");
+    m_spine1 = boneIndex(L"BaseBody_Spine1");
     m_spine2 = boneIndex(L"BaseBody_Spine2");
     m_neck = boneIndex(L"BaseBody_Neck");
-    bool found = m_spine2 >= 0 && m_neck >= 0;
+    m_head = boneIndex(L"BaseBody_Head");
+    m_headEnd = boneIndex(L"BaseBody_HeadEnd");
+    bool found = m_spine >= 0 && m_spine1 >= 0 && m_spine2 >= 0 && m_neck >= 0 && m_head >= 0 && m_headEnd >= 0;
+    if (found)
+        m_spineSubtree = Subtree(m_parents, m_spine);
+    m_torso.reset();
+    m_headForwardLocal.reset();
     for (int i = 0; i < 2; i++)
     {
         auto& arm = m_arms[i];
@@ -226,18 +348,16 @@ bool BodyIK::Bind(ue::UObject* mesh)
         arm.middle = boneIndex((L"BaseBody_" + side + L"HandMiddle1").c_str());
         arm.pinky = boneIndex((L"BaseBody_" + side + L"HandPinky1").c_str());
         arm.handName = arm.hand >= 0 ? names[arm.hand] : ue::FName{};
-        found = found && arm.upper >= 0 && arm.lower >= 0 && arm.hand >= 0 && arm.index >= 0 && arm.middle >= 0 && arm.pinky >= 0;
+        arm.roll[0] = boneIndex((L"BaseBody_" + side + L"ForeArmRoll1").c_str());
+        arm.roll[1] = boneIndex((L"BaseBody_" + side + L"ForeArmRoll2").c_str());
+        found = found && arm.upper >= 0 && arm.lower >= 0 && arm.hand >= 0 && arm.index >= 0 && arm.middle >= 0 && arm.pinky >= 0 &&
+            arm.roll[0] >= 0 && arm.roll[1] >= 0;
         if (!found)
             continue;
 
-        std::vector<bool> inSubtree(m_numBones, false);
-        arm.subtree.clear();
-        for (int32_t b = arm.upper; b < m_numBones; b++)
-        {
-            inSubtree[b] = b == arm.upper || inSubtree[m_parents[b]];
-            if (inSubtree[b])
-                arm.subtree.push_back(b);
-        }
+        arm.subtree = Subtree(m_parents, arm.upper);
+        for (int r = 0; r < 2; r++)
+            arm.rollSubtree[r] = Subtree(m_parents, arm.roll[r]);
         // Targets and filters belong to the previous mesh
         arm.target.reset();
         arm.targetHasHand = false;
@@ -347,8 +467,24 @@ void BodyIK::ApplyPose()
         : std::clamp(std::chrono::duration<double>(now - m_lastSolve).count(), 0.0, MaxDeltaTime);
     m_lastSolve = now;
 
+    const Transform meshToWorld = ToTransform(ue::call<ue::FTransform>(mesh, L"K2_GetComponentToWorld"));
+    const Transform animatedHead = ToTransform(pose[m_head]);
+
+    // The VR hands' hand bones, in Snake's mesh space: where Snake's hands go, and how they're turned
+    std::optional<Transform> hands[2];
+    for (int i = 0; i < 2; i++)
+    {
+        if (const auto world = TargetHand(m_arms[i]))
+            hands[i] = Relative(*world, meshToWorld);
+    }
+
     auto at = [pose](int32_t bone) { return ToGlm(pose[bone].Translation) * CmToM; };
-    // The upper chest, from Snake's own pose: up the spine, right across the shoulders
+    auto armLength = [&](const Arm& arm) { return glm::distance(at(arm.upper), at(arm.lower)) + glm::distance(at(arm.lower), at(arm.hand)); };
+    const double scale = 0.5 * (armLength(m_arms[0]) + armLength(m_arms[1])) / ReferenceArmLength;
+
+    SolveUpperBody(pose, meshToWorld, hands, scale, dt);
+
+    // The upper chest as the spine now has it: up the spine, right across the shoulders
     ik::ChestFrame chest;
     chest.pos = at(m_spine2);
     chest.up = glm::normalize(at(m_neck) - chest.pos);
@@ -356,9 +492,127 @@ void BodyIK::ApplyPose()
     chest.right = glm::normalize(across - chest.up * glm::dot(across, chest.up));
     chest.forward = glm::cross(chest.right, chest.up);
 
-    const auto meshToWorld = ue::call<ue::FTransform>(mesh, L"K2_GetComponentToWorld");
-    for (auto& arm : m_arms)
-        SolveArm(arm, pose, chest, meshToWorld, dt);
+    for (int i = 0; i < 2; i++)
+    {
+        if (hands[i])
+            SolveArm(m_arms[i], pose, chest, *hands[i], dt);
+    }
+
+    m_headAnimated = Compose(animatedHead, meshToWorld);
+    m_headSolved = Compose(ToTransform(pose[m_head]), meshToWorld);
+    m_headSolvedTime = now;
+}
+
+void BodyIK::SolveUpperBody(ue::FTransform* pose, const Transform& meshToWorld, const std::optional<Transform> hands[2], double scale, double dt)
+{
+    auto* hmdActor = m_hmd.get();
+    auto* hmdRoot = hmdActor != nullptr ? ue::get<ue::UObject*>(hmdActor, L"RootComponent") : nullptr;
+    if (hmdRoot == nullptr)
+    {
+        m_torso.reset();
+        return;
+    }
+
+    // The headset in mesh space (cm): UEVR moves this actor with it. Its x looks forward, z up.
+    const Transform hmd = Relative(FollowCamera(ToTransform(ue::call<ue::FTransform>(hmdRoot, L"K2_GetComponentToWorld"))), meshToWorld);
+    const glm::dvec3 hmdForward = hmd.rotation * glm::dvec3{ 1, 0, 0 };
+    const glm::dvec3 hmdUp = hmd.rotation * glm::dvec3{ 0, 0, 1 };
+    const glm::dvec3 eyes = hmd.translation;
+
+    auto at = [pose](int32_t bone) { return ToGlm(pose[bone].Translation); };
+    const glm::dvec3 up{ 0, 0, 1 };
+
+    // The chest as the game animated it
+    const glm::dvec3 chestUp = glm::normalize(at(m_neck) - at(m_spine2));
+    const glm::dvec3 across = at(m_arms[1].upper) - at(m_arms[0].upper);
+    const glm::dvec3 chestRight = glm::normalize(across - chestUp * glm::dot(across, chestUp));
+    const glm::dvec3 chestForward = glm::cross(chestRight, chestUp);
+
+    // The head bone's own axes: up to the top of the head, and the way the face looks, taken once from
+    // the game's pose (the face looks the way the chest faces)
+    const glm::dquat animatedHeadRot = ToGlm(pose[m_head].Rotation);
+    const glm::dvec3 headUpLocal = glm::normalize(glm::inverse(animatedHeadRot) * (at(m_headEnd) - at(m_head)));
+    if (!m_headForwardLocal)
+    {
+        const glm::dvec3 f = glm::inverse(animatedHeadRot) * chestForward;
+        m_headForwardLocal = glm::normalize(f - headUpLocal * glm::dot(f, headUpLocal));
+    }
+    // The head turns with the headset, and goes where Snake's eyes are at the camera
+    const glm::dquat headRot = AlignPair(*m_headForwardLocal, headUpLocal, hmdForward, hmdUp);
+    const glm::dvec3 headJoint = eyes - (hmdUp * HeadPivotDown + hmdForward * HeadPivotBack) * scale / CmToM;
+
+    // ---- torso yaw: where the hands and head have the chest face (chasm's torso.rs) ----
+    const glm::dvec3 forwardIK = ToIK(hmdForward), upIK = ToIK(hmdUp);
+    // Looking straight down, the top of the head still points the way you face
+    glm::dvec3 facing = forwardIK - upIK * forwardIK.y;
+    facing.y = 0.0;
+    const double headYaw = glm::length(facing) > 1e-4 ? ik::YawOf(facing) : (m_torso ? m_torso->Yaw() : 0.0);
+    if (!m_torso)
+        m_torso.emplace(headYaw);
+    std::optional<glm::dvec3> handsIK[2];
+    for (int i = 0; i < 2; i++)
+    {
+        if (hands[i])
+            handsIK[i] = ToIK(hands[i]->translation * CmToM);
+    }
+    const double torsoYaw = m_torso->Update(m_torsoParams, dt, scale, ToIK(eyes * CmToM), ToIK(headJoint * CmToM), headYaw, handsIK);
+
+    const glm::dvec3 chestForwardIK = ToIK(chestForward);
+    const double twist = ik::WrapAngle(torsoYaw - std::atan2(chestForwardIK.x, chestForwardIK.z));
+
+    // ---- the chain: BaseBody_Spine, Spine1, Spine2, Neck, Head ----
+    const int32_t bones[5] = { m_spine, m_spine1, m_spine2, m_neck, m_head };
+    Transform chain[5];
+    for (int k = 0; k < 5; k++)
+        chain[k] = ToTransform(pose[bones[k]]);
+    // Turns the chain from joint k up, rigidly about joint k
+    auto rotateFrom = [&chain](int k, const glm::dquat& q) {
+        for (int j = k; j < 5; j++)
+        {
+            if (j > k)
+                chain[j].translation = chain[k].translation + q * (chain[j].translation - chain[k].translation);
+            chain[j].rotation = glm::normalize(q * chain[j].rotation);
+        }
+    };
+
+    // The torso's twist, spread up the spine (the hips keep the game's)
+    for (int k = 0; k < 3; k++)
+        rotateFrom(k, glm::angleAxis(twist * SpineTwistShare[k], up));
+
+    // Bend the spine and neck to bring the head joint under the headset (cyclic coordinate descent,
+    // each joint taking a share of what's left, within its limit)
+    glm::dquat bent[4] = { { 1, 0, 0, 0 }, { 1, 0, 0, 0 }, { 1, 0, 0, 0 }, { 1, 0, 0, 0 } };
+    for (int pass = 0; pass < SpineBendPasses; pass++)
+    {
+        for (int k = 3; k >= 0; k--)
+        {
+            const glm::dvec3 current = chain[4].translation - chain[k].translation;
+            const glm::dvec3 wanted = headJoint - chain[k].translation;
+            if (glm::length(current) < 1.0 || glm::length(wanted) < 1.0)
+                continue;
+            glm::dquat q = glm::slerp(glm::dquat{ 1, 0, 0, 0 }, glm::rotation(glm::normalize(current), glm::normalize(wanted)), SpineBendShare);
+            // Within the joint's limit, counting what it already bent
+            const double limit = glm::radians(SpineBendLimitDeg[k]);
+            const glm::dquat total = glm::normalize(q * bent[k]);
+            const double angle = glm::angle(total);
+            if (angle > limit)
+            {
+                const double already = glm::angle(bent[k]);
+                const double qAngle = glm::angle(q);
+                const double allowed = std::max(limit - already, 0.0);
+                q = qAngle > 1e-6 ? glm::slerp(glm::dquat{ 1, 0, 0, 0 }, q, std::min(allowed / qAngle, 1.0)) : glm::dquat{ 1, 0, 0, 0 };
+            }
+            bent[k] = glm::normalize(q * bent[k]);
+            rotateFrom(k, q);
+        }
+    }
+
+    chain[4].rotation = headRot;
+
+    BoneOverride overrides[5];
+    for (int k = 0; k < 5; k++)
+        overrides[k] = { bones[k], chain[k].rotation, chain[k].translation };
+    WriteSubtree(pose, m_spineSubtree, overrides, std::size(overrides));
 }
 
 std::optional<BodyIK::Transform> BodyIK::TargetHand(Arm& arm) const
@@ -371,19 +625,14 @@ std::optional<BodyIK::Transform> BodyIK::TargetHand(Arm& arm) const
     const Transform controllerWorld = ToTransform(ue::call<ue::FTransform>(controller, L"K2_GetComponentToWorld"));
     if (ue::call<ue::UObject*>(handMesh, L"GetAttachParent") == controller)
         arm.handOnController = Relative(ToTransform(ue::call<ue::FTransform>(handMesh, L"K2_GetComponentToWorld")), controllerWorld);
-    const Transform handMeshWorld = Compose(arm.handOnController.value_or(DefaultHandOnController), controllerWorld);
+    const Transform handMeshWorld = Compose(arm.handOnController.value_or(DefaultHandOnController), FollowCamera(controllerWorld));
     const Transform bone = ToTransform(ue::call<ue::FTransform>(handMesh, L"GetBoneTransform", arm.handName,
         ue::ERelativeTransformSpace::RTS_Component));
     return Compose(bone, handMeshWorld);
 }
 
-void BodyIK::SolveArm(Arm& arm, ue::FTransform* pose, const ik::ChestFrame& chest, const ue::FTransform& meshToWorld, double dt)
+void BodyIK::SolveArm(Arm& arm, ue::FTransform* pose, const ik::ChestFrame& chest, const Transform& target, double dt)
 {
-    // The VR hand's hand bone, in Snake's mesh space: where Snake's hand goes, and how it's turned
-    const auto targetWorld = TargetHand(arm);
-    if (!targetWorld)
-        return;
-    const Transform target = Relative(*targetWorld, ToTransform(meshToWorld));
     const glm::dvec3 targetPos = target.translation;
     const glm::dquat targetRot = target.rotation;
 
@@ -432,6 +681,31 @@ void BodyIK::SolveArm(Arm& arm, ue::FTransform* pose, const ik::ChestFrame& ches
         { arm.hand, targetRot, solved->wrist / CmToM },
     };
     WriteSubtree(pose, arm.subtree, overrides, std::size(overrides));
+    TwistForearm(arm, pose, lowerRot, handRot);
+}
+
+void BodyIK::TwistForearm(Arm& arm, ue::FTransform* pose, const glm::dquat& animLowerRot, const glm::dquat& animHandRot)
+{
+    // The forearm keeps the game's twist and the hand takes the controller's: the roll between them,
+    // measured against the game's pose, is spread along the forearm by where each twist bone sits
+    // (the radius turning about the ulna), so the skin doesn't wring at the wrist.
+    auto at = [pose](int32_t bone) { return ToGlm(pose[bone].Translation); };
+    const glm::dquat lowerRot = ToGlm(pose[arm.lower].Rotation);
+    const glm::dquat handRot = ToGlm(pose[arm.hand].Rotation);
+    const glm::dvec3 forearm = at(arm.hand) - at(arm.lower);
+    const double length = glm::length(forearm);
+    if (length < 1.0)
+        return;
+    const glm::dvec3 axis = forearm / length;
+    const glm::dvec3 thumbLocal = glm::inverse(handRot) * (at(arm.index) - at(arm.pinky));
+    const glm::dvec3 animatedThumb = glm::inverse(animLowerRot) * (animHandRot * thumbLocal);
+    const glm::dvec3 solvedThumb = glm::inverse(lowerRot) * (handRot * thumbLocal);
+    const double roll = SignedAngle(animatedThumb, solvedThumb, glm::inverse(lowerRot) * axis);
+    for (int r = 0; r < 2; r++)
+    {
+        const double share = std::clamp(glm::dot(at(arm.roll[r]) - at(arm.lower), axis) / length, 0.0, 1.0);
+        RotateSubtree(pose, arm.rollSubtree[r], glm::angleAxis(roll * share, axis));
+    }
 }
 
 void BodyIK::WriteSubtree(ue::FTransform* pose, const std::vector<int32_t>& subtree, const BoneOverride* overrides, size_t count)

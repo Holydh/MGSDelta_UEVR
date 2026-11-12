@@ -1,4 +1,5 @@
 #include "CameraController.hpp"
+#include "BodyIK.hpp"
 
 void CameraController::ToggleCameraWobblingController(bool enabled) {
 	//static auto pawn = uevr::API::get()->get_local_pawn(0);
@@ -258,7 +259,9 @@ void CameraController::ProcessCamera(float deltaTime)
 		//Logger::DebugPrint("Pawn Position : %f, %f, %f", pawnPosition.x, pawnPosition.y, pawnPosition.z);
 		auto grassVolumeCollisionHead = ue::get<ue::UObject*>(pawn, L"GrassVolumeCollisionHead");
 
-		const auto headLocation = ue::call<ue::FVector>(grassVolumeCollisionHead, L"K2_GetComponentLocation");
+		// The collider is on Snake's head socket. With full body IK that head is under the headset: the camera is
+		// placed from the head as the game animated it, or it would follow the headset and push itself away.
+		const auto headLocation = BodyIK::ToAnimatedHead(ue::call<ue::FVector>(grassVolumeCollisionHead, L"K2_GetComponentLocation"));
 		headColliderPosition = { headLocation.X, headLocation.Y, headLocation.Z };
 		//Logger::DebugPrint("headColliderPosition : %f, %f, %f", headColliderPosition.x, headColliderPosition.y, headColliderPosition.z);
 

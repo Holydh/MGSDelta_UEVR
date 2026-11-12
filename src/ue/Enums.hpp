@@ -162,6 +162,17 @@ enum class EGsrPlayerCameraControllerCameraMode : uint8_t
     EGsrPlayerCameraControllerCameraMode_MAX = 5,
 };
 // from Gsr_structs.hpp
+enum class EGsrPlayerCameraRequestModelVisibility : uint8_t
+{
+    None                                       = 0,
+    Normal                                     = 1,
+    Subjective                                 = 2,
+    SubjectiveHold                             = 3,
+    SubjectiveMelee                            = 4,
+    SubjectiveScope                            = 5,
+    EGsrPlayerCameraRequestModelVisibility_MAX = 6,
+};
+// from Gsr_structs.hpp
 enum class EGsrPlayerStance : uint8_t
 {
     Stand                = 0,

@@ -39,20 +39,6 @@ void PlayerManager::ToggleMeshesVisibility(bool bodyVisible, bool headVisible)
 		L"SkeletalMesh_Hat",
 		L"SkeletalMesh_EyePatch",
 	};
-	static constexpr const wchar_t* playerBodyMeshes[] = {
-		L"SkeletalMesh_Hand",
-		L"SkeletalMesh_Arm",
-		L"SkeletalMesh_Body",
-		L"SkeletalMesh_Backpack",
-		L"SkeletalMesh_Lightning_Leg",
-		L"SkeletalMesh_Lightning_Arm",
-		L"SkeletalMesh_BeltLink",
-		L"SkeletalMesh_WaterBottle",
-		L"SkeletalMesh_KnifeScabbard",
-		L"SkeletalMesh_Knife",
-		L"SkeletalMesh_CqcKnifeScabbard",
-		L"SkeletalMesh_CqcKnife",
-	};
 
 	// SetOnlyOwnerSee(true) hides a mesh from the VR view
 	auto setVisible = [pawn](const wchar_t* meshName, bool visible)
@@ -62,7 +48,7 @@ void PlayerManager::ToggleMeshesVisibility(bool bodyVisible, bool headVisible)
 	};
 	for (const auto* meshName : playerHeadMeshes)
 		setVisible(meshName, headVisible);
-	for (const auto* meshName : playerBodyMeshes)
+	for (const auto* meshName : BodyMeshNames)
 		setVisible(meshName, bodyVisible);
 
 	if (auto halfMK22 = ue::get<ue::UObject*>(pawn, L"S_mk22_half"))

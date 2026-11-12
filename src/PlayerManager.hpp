@@ -11,6 +11,20 @@ public:
 	// Head meshes: the head and everything worn on it. Body meshes: the rest of Snake.
 	void ToggleMeshesVisibility(bool bodyVisible, bool headVisible);
 	bool BodyMeshesVisible = true;
+	static constexpr const wchar_t* BodyMeshNames[] = {
+		L"SkeletalMesh_Hand",
+		L"SkeletalMesh_Arm",
+		L"SkeletalMesh_Body",
+		L"SkeletalMesh_Backpack",
+		L"SkeletalMesh_Lightning_Leg",
+		L"SkeletalMesh_Lightning_Arm",
+		L"SkeletalMesh_BeltLink",
+		L"SkeletalMesh_WaterBottle",
+		L"SkeletalMesh_KnifeScabbard",
+		L"SkeletalMesh_Knife",
+		L"SkeletalMesh_CqcKnifeScabbard",
+		L"SkeletalMesh_CqcKnife",
+	};
 	void ToggleReticleVisibility(bool visible);
 
 	bool WasPlayerControlled = false;
