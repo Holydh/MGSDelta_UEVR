@@ -4,6 +4,7 @@ WeaponManager* HookManager::s_weaponManager = nullptr;
 CameraController* HookManager::s_cameraController = nullptr;
 PlayerManager* HookManager::s_playerManager = nullptr;
 VRHands* HookManager::s_vrHands = nullptr;
+Locomotion* HookManager::s_locomotion = nullptr;
 
 void HookManager::Initialize()
 {
@@ -11,6 +12,7 @@ void HookManager::Initialize()
 	s_cameraController = cameraController;
 	s_playerManager = playerManager;
 	s_vrHands = vrHands;
+	s_locomotion = locomotion;
 }
 
 
@@ -89,7 +91,7 @@ void HookManager::HookSetEnableWallCollision() {
 }
 
 void HookManager::OnSetEnableWallCollision(uevr::API::UObject* character, bool enable) {
-	m_set_enable_wall_collision_fn(character, s_playerManager->FilterWallCollision(character, enable));
+	m_set_enable_wall_collision_fn(character, s_locomotion->FilterWallCollision(character, enable));
 }
 
 void* HookManager::OnFireModded(uevr::API::UObject* equipController, void* fireRequest) {
@@ -185,13 +187,13 @@ bool HookManager::mod_CobraLevelSequence_OnCameraCut_post(uevr::API::UFunction* 
 
 bool HookManager::mod_IcsActorActionModule_OnOverrideRootMotionVelocity_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	if (result == nullptr || obj == nullptr || obj != s_playerManager->BasicAction.get() || !s_playerManager->LinearLocomotionActive)
+	if (result == nullptr || obj == nullptr || obj != s_locomotion->BasicAction.get() || !s_locomotion->LinearLocomotionActive)
 		return true;
 
 	// Z kept from the game (root motion is horizontal while walking)
 	auto velocity = static_cast<ue::FVector*>(result);
-	velocity->X = s_playerManager->LinearLocomotionVelocity.X;
-	velocity->Y = s_playerManager->LinearLocomotionVelocity.Y;
+	velocity->X = s_locomotion->LinearLocomotionVelocity.X;
+	velocity->Y = s_locomotion->LinearLocomotionVelocity.Y;
 	return true;
 }
 

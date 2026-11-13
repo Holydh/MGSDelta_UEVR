@@ -9,8 +9,9 @@ MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&gameState, &settingsManager, &weap
 cameraController(&gameState, &playerManager, &settingsManager),
 cutsceneManager(&gameState, &settingsManager),
 weaponManager(&gameState, &settingsManager, &playerManager, &vrHands, &cameraController),
-hookManager(&weaponManager, &cameraController, &playerManager, &vrHands), 
-playerManager(&gameState) {}; //Constructor
+hookManager(&weaponManager, &cameraController, &playerManager, &vrHands, &locomotion), 
+playerManager(&gameState),
+locomotion(&gameState) {}; //Constructor
 MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
 
 void MGSDeltaPlugin::on_detach(HMODULE hmod)
@@ -260,14 +261,14 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		weaponManager.FetchWeaponMeshAimData();
 		weaponManager.SetAimDirection();
 
-		playerManager.UpdateLinearLocomotion(settingsManager.Settings.linearLocomotion, settingsManager.Settings.gameTakesMovementControl,
+		locomotion.UpdateLinearLocomotion(settingsManager.Settings.linearLocomotion, settingsManager.Settings.gameTakesMovementControl,
 			cameraController.ViewRotation.Yaw, delta);
-		playerManager.UpdateCompactCollision(settingsManager.Settings.linearLocomotion, delta);
+		locomotion.UpdateCompactCollision(settingsManager.Settings.linearLocomotion, delta);
 
 		static Tracked<bool> collisionLogKeyPressed = false;
 		collisionLogKeyPressed = g_DebugEnabled && Inputs::IsKeyPressed(VK_F9);
 		if (collisionLogKeyPressed.Rose())
-			playerManager.LogCollisionAndRotation(cameraController.ViewRotation.Yaw);
+			locomotion.LogCollisionAndRotation(cameraController.ViewRotation.Yaw);
 		collisionLogKeyPressed.Commit();
 
 		playerManager.UpdateStanceChange(delta);
@@ -281,9 +282,9 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	else
 	{
 		uevr::API::UObjectHook::remove_all_motion_controller_states();
-		playerManager.LinearLocomotionActive = false;
+		locomotion.LinearLocomotionActive = false;
 		// Cutscenes and menus get the game's own collision back
-		playerManager.UpdateCompactCollision(false, delta);
+		locomotion.UpdateCompactCollision(false, delta);
 
 		if (gameState.IsPlayerControlled.Previous())
 		{
@@ -412,8 +413,8 @@ void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, 
 
 	Inputs::LeftGripInputPressed = (state->Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0;
 
-	playerManager.MoveStickX = (float)state->Gamepad.sThumbLX / 32768.0f;
-	playerManager.MoveStickY = (float)state->Gamepad.sThumbLY / 32768.0f;
+	locomotion.MoveStickX = (float)state->Gamepad.sThumbLX / 32768.0f;
+	locomotion.MoveStickY = (float)state->Gamepad.sThumbLY / 32768.0f;
 }
 
 void MGSDeltaPlugin::on_xinput_set_state(uint32_t* retval, uint32_t user_index, XINPUT_VIBRATION* vibration)
