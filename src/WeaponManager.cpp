@@ -1,5 +1,8 @@
 #include "WeaponManager.hpp"
 
+using ue::EGsrEquipId;
+using enum ue::EGsrEquipId;
+
 namespace {
 constinit ue::ClassRef SkeletalMeshComponent_c{ L"Class /Script/Engine.SkeletalMeshComponent" };
 constinit ue::ClassRef StaticMeshComponent_c{ L"Class /Script/Engine.StaticMeshComponent" };
@@ -138,46 +141,7 @@ void WeaponManager::SendHandStateToLua()
 	}
 }
 
-inline const char* WeaponManager::WeaponIdToKey(EGsrEquipId id)
-{
-	switch (id)
-	{
-	case WP_Knife:				LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_Knife";
-	case WP_Fork:				LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_Fork";
-	case WP_CigarPistol:		LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_CigarPistol";
-	case WP_Handkerchief:		LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_Handkerchief";
-	case WP_Mk22:				LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = true;			mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = true;		return "WP_Mk22";
-	case WP_Gove:				LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = true;			mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = true;		return "WP_Gove";
-	case WP_EasyGun:			LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = true;			mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = true;		return "WP_EasyGun";
-	case WP_SAArmy:				LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_SAArmy";
-	case WP_PatriotPostol:		LeftHandWeaponGrabOffset = -4.68f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;		holdCQCKnifeInLeftHand = false;		return "WP_PatriotPostol";
-	case WP_Scorpion:			LeftHandWeaponGrabOffset = -1.75f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;		holdCQCKnifeInLeftHand = false;		return "WP_Scorpion";
-	case WP_M16a1:				LeftHandWeaponGrabOffset = -4.90f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;		holdCQCKnifeInLeftHand = false;		return "WP_M16a1";
-	case WP_Akm:				LeftHandWeaponGrabOffset = -3.94f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;		holdCQCKnifeInLeftHand = false;		return "WP_Akm";
-	case WP_M63:				LeftHandWeaponGrabOffset = -3.59f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;		holdCQCKnifeInLeftHand = false;		return "WP_M63";
-	case WP_Ithaca:				LeftHandWeaponGrabOffset = 1.91f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;		holdCQCKnifeInLeftHand = false;		return "WP_Ithaca";
-	case WP_Dragnov:			LeftHandWeaponGrabOffset = -3.22f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;		holdCQCKnifeInLeftHand = false;		return "WP_Dragnov";
-	case WP_MosinNagant:		LeftHandWeaponGrabOffset = -3.32f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = true;		holdCQCKnifeInLeftHand = false;		return "WP_MosinNagant";
-	case WP_Rpg:				LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = true;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_Rpg";
-	case WP_Torch:				LeftHandWeaponGrabOffset = 0.0f; 		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_Torch";
-	case WP_Grenade:			LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_Grenade";
-	case WP_FireGrenade:		LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_FireGrenade";
-	case WP_StunGrenade:		LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_StunGrenade";
-	case WP_ChaffGrenade:		LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_ChaffGrenade";
-	case WP_SmokeGrenade:		LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = true;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_SmokeGrenade";
-	case WP_Magazine:			LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_Magazine";
-	case WP_Tnt:				LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = true;			mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_Tnt";
-	case WP_C3:					LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_C3";
-	case WP_Claymore:			LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_Claymore";
-	case WP_Book:				LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_Book";
-	case WP_RatTrap:			LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_RatTrap";
-	case WP_Microphone:			LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_Microphone";
-	case WP_MAX_PLAYER_WEAPONS:	LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return "WP_MAX_PLAYER_WEAPONS";
-	default:					LeftHandWeaponGrabOffset = 0.0f;		hasObjectInLeftHand = false;		mainHandShouldAttachToWeapon = false;	canBeTwoHanded = false;		twoHandedPivot = false;		holdCQCKnifeInLeftHand = false;		return nullptr;
-	}
-}
-
-void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot, ue::FRotator& outRightHandRotationOffset, ue::FVector& outLeftHandLocationOffset, ue::FRotator& outLeftHandRotationOffset)
+void WeaponManager::FetchWeaponOffsets(ue::EGsrEquipId currentWeapon, glm::fvec3& outPos, glm::fquat& outRot, ue::FRotator& outRightHandRotationOffset, ue::FVector& outLeftHandLocationOffset, ue::FRotator& outLeftHandRotationOffset)
 {
 	// Weapons without a config get the default offsets, not the previous weapon's ones
 	const WeaponConfig defaults{};
@@ -187,15 +151,11 @@ void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& ou
 	outLeftHandLocationOffset = defaults.left_hand_location_offset;
 	outLeftHandRotationOffset = defaults.left_hand_rotation_offset;
 
-	const char* key = WeaponIdToKey(currentWeapon);
-	if (!key)
-	{
-		Logger::DebugPrint("No valid weapon key found for ID: %d", currentWeapon);
-		return;
-	}
-
+	// Weapon config files are named after the weapon ID
+	static_assert(magic_enum::enum_name(WP_MAX_PLAYER_WEAPONS) == "WP_MAX_PLAYER_WEAPONS");
+	const std::string key{ magic_enum::enum_name(currentWeapon) };
     auto it = settingsManager->g_weaponConfigs.find(key);
-	Logger::DebugPrint("Fetching weapon config for key: %s", key);
+	Logger::DebugPrint("Fetching weapon config for key: %s", key.c_str());
     if (it == settingsManager->g_weaponConfigs.end()) return;
 
 	const WeaponConfig& cfg = it->second;
@@ -269,7 +229,7 @@ void WeaponManager::ToggleDummyCQCKnifeMeshVisibility()
 
 	// While the left hand holds the weapon, the dummy knife (attached to the VR left hand)
 	// replaces the game's left hand CQC knife.
-	const bool showDummyKnife = holdCQCKnifeInLeftHand && playerManager->SecondHandAttachedToWeapon && playerManager->LeftHandMesh;
+	const bool showDummyKnife = currentWeaponTraits().holdCQCKnifeInLeftHand && playerManager->SecondHandAttachedToWeapon && playerManager->LeftHandMesh;
 
 	if (showDummyKnife && LeftHandWeaponRoot && !ue::is_valid(DummyCqcKnifeMesh))
 	{
@@ -281,13 +241,13 @@ void WeaponManager::ToggleDummyCQCKnifeMeshVisibility()
 	// leaving first person view), and the new one used to stay visible next to the dummy (two knives).
 	if (ue::is_valid(DummyCqcKnifeMesh))
 		setHidden(DummyCqcKnifeMesh, !showDummyKnife);
-	if (holdCQCKnifeInLeftHand && LeftHandWeaponRoot)
+	if (currentWeaponTraits().holdCQCKnifeInLeftHand && LeftHandWeaponRoot)
 		setHidden(LeftHandWeaponRoot, showDummyKnife);
 }
 
 void WeaponManager::ProcessTwoHandsGrabWeapon()
 {
-	if (!canBeTwoHanded)
+	if (!currentWeaponTraits().canBeTwoHanded)
 		return;
 
 	if (Inputs::SecondHandGripTriggeredBeforeDelay && !secondHandShouldAttachToWeapon)
@@ -306,13 +266,13 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 void WeaponManager::ProcessTwoHandsGrabWeaponLocationAndRotation()
 {
 	// Pivot disabled: the weapon stays held by the right hand only (UEVR attachment)
-	if (twoHandedPivot && settingsManager->Settings.enableTwoHandsPivot && WeaponRoot) {
+	if (currentWeaponTraits().twoHandedPivot && settingsManager->Settings.enableTwoHandsPivot && WeaponRoot) {
 		auto rightCtrlPos = ue::call<ue::FVector>(playerManager->RightController, L"K2_GetComponentLocation");
 		auto leftCtrlPos = ue::call<ue::FVector>(playerManager->LeftController, L"K2_GetComponentLocation");
 
 		auto weaponUpVector = ue::call<ue::FVector>(CurrentWeapon, L"GetActorUpVector");
 
-		ue::FVector adjustedLeftPos = leftCtrlPos + (weaponUpVector * LeftHandWeaponGrabOffset);
+		ue::FVector adjustedLeftPos = leftCtrlPos + (weaponUpVector * currentWeaponTraits().leftHandWeaponGrabOffset);
 
 		ue::FVector directionVec = adjustedLeftPos - rightCtrlPos;
 		directionVec.Normalize();
@@ -403,7 +363,8 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	auto weaponId = ue::call<EGsrEquipId>(EquipController, L"GetCurrentWeaponId");
 
-	if (weaponId >= 31)
+	// Food and other items share one ID
+	if (weaponId >= EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
 	{
 		weaponId = EGsrEquipId::WP_MAX_PLAYER_WEAPONS;
 	}
@@ -421,8 +382,7 @@ void WeaponManager::ProcessWeapon(float delta)
 	// Also set up again if the weapon's root was freed: a respawned weapon can get the address of the previous one
 	if (CurrentWeapon != currentWeapon || WeaponRoot.expired())
 	{
-		const auto previousWeaponID = CurrentWeaponID.Previous();
-		if (previousWeaponID == EGsrEquipId::WP_Dragnov || previousWeaponID == EGsrEquipId::WP_MosinNagant || previousWeaponID == EGsrEquipId::WP_Rpg)
+		if (GetWeaponTraits(CurrentWeaponID.Previous()).hasScope)
 			ue::call(ReceiverMesh, L"SetVisibility", false, false);
 
 		ReceiverMesh = nullptr;
@@ -483,7 +443,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		{
 			SwitchScopeState(false);
 
-			if (CurrentWeaponID == EGsrEquipId::WP_Dragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant || CurrentWeaponID == EGsrEquipId::WP_Rpg)
+			if (currentWeaponTraits().hasScope)
 			{
 				if (!ReceiverMesh)
 				{
@@ -512,7 +472,7 @@ void WeaponManager::ProcessWeapon(float delta)
 			return;
 		}
 
-		if (mainHandShouldAttachToWeapon)
+		if (currentWeaponTraits().mainHandShouldAttachToWeapon)
 			AttachHandNextFrame = true;
 	}
 
@@ -658,7 +618,7 @@ void WeaponManager::ProcessWeapon(float delta)
 	if (LeftHandWeaponRoot && !ue::is_valid(LeftHandWeaponRoot))
 		LeftHandWeaponRoot = nullptr;
 
-	if (!LeftHandWeaponRoot && hasObjectInLeftHand)
+	if (!LeftHandWeaponRoot && currentWeaponTraits().hasObjectInLeftHand)
 	{
 		auto leftHandSocketFname = CurrentWeaponID == EGsrEquipId::WP_Tnt ? tntSocketFname : cqcKnifeSocketFname;
 
@@ -722,7 +682,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (!settingsManager->Settings.enableWeaponsScopes)
 			return;
 
-		if (CurrentWeaponID == EGsrEquipId::WP_Dragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant || CurrentWeaponID == EGsrEquipId::WP_Rpg)
+		if (currentWeaponTraits().hasScope)
 		{
 			if (!ue::call<bool>(ReceiverMesh, L"IsVisible"))
 				ue::call(ReceiverMesh, L"SetVisibility", true, true);
@@ -771,7 +731,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 void WeaponManager::AttachMainHandToWeapon()
 {
-	if (!mainHandShouldAttachToWeapon)
+	if (!currentWeaponTraits().mainHandShouldAttachToWeapon)
 	{
 		AttachHandNextFrame = false;
 		return;
@@ -782,7 +742,7 @@ void WeaponManager::AttachMainHandToWeapon()
 		return;
 	}
 
-	if (!playerManager->MainHandAttachedToWeapon && mainHandShouldAttachToWeapon)
+	if (!playerManager->MainHandAttachedToWeapon && currentWeaponTraits().mainHandShouldAttachToWeapon)
 	{
 		Logger::DebugPrint("attach Main Hand to weapon");
 		ue::call(playerManager->RightHandMesh, L"DetachFromParent", true, false);
@@ -839,7 +799,7 @@ void WeaponManager::AttachSecondHandToWeapon()
 		return;
 	}
 
-	if (secondHandShouldAttachToWeapon && !canBeTwoHanded)
+	if (secondHandShouldAttachToWeapon && !currentWeaponTraits().canBeTwoHanded)
 	{
 		secondHandShouldAttachToWeapon = false;
 		return;
@@ -990,7 +950,7 @@ void WeaponManager::SpawnScope()
 {
 	if (!ReceiverMesh)
 		return;
-	if (CurrentWeaponID == EGsrEquipId::WP_Dragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant || CurrentWeaponID == EGsrEquipId::WP_Rpg)
+	if (currentWeaponTraits().hasScope)
 	{
 		spawnScope();
 		attachScopeToWeapon();
