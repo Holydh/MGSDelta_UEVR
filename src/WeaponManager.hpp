@@ -19,6 +19,7 @@
 #include "WeaponRecoil.hpp"
 #include "FoodHandling.hpp"
 #include "VRHands.hpp"
+#include "ItemManager.hpp"
 
 class WeaponManager {
 private:
@@ -26,9 +27,9 @@ private:
 	SettingsManager* const settingsManager;
 	PlayerManager* const playerManager;
 	VRHands* const hands;
+	const ItemManager* const items;
 	CameraController* const cameraController;
 
-	ue::WeakObject playerCameraManager; // BP_PlayerCameraManager_C
 
 
 	ue::FName tntSocketFname;
@@ -39,7 +40,7 @@ private:
 	
 
 public:
-	WeaponManager(const GameState* gs, SettingsManager* sm, PlayerManager* pm, VRHands* vh, CameraController* cc) : gameState(gs), settingsManager(sm), playerManager(pm), hands(vh), cameraController(cc), Scope(gs, sm), Recoil(sm) {};
+	WeaponManager(const GameState* gs, SettingsManager* sm, PlayerManager* pm, VRHands* vh, const ItemManager* im, CameraController* cc) : gameState(gs), settingsManager(sm), playerManager(pm), hands(vh), items(im), cameraController(cc), Scope(gs, sm), Recoil(sm) {};
 
 	void InitWeaponManager();
 
@@ -49,9 +50,6 @@ public:
 	ue::WeakObject LeftHandWeaponRoot;
 	ue::WeakObject ReceiverMesh; // USkeletalMeshComponent
 
-	ue::WeakObject ItemController; // UGsrItemController
-	ue::WeakObject CurrentItem; // UObject
-	Tracked<ue::EGsrItemId> CurrentItemID = ue::EGsrItemId::IT_None;
 
 	float ZoomInput = 0.0f;
 	ScopeSystem Scope;
@@ -106,10 +104,6 @@ public:
 	// Commits this frame's tracked values: call last in the frame
 	void EndFrame();
 
-	void ToggleThermalVisionScanline();
-	bool ToggleThermalVisionScanlineNextFrame = false;
-
-	void ProcessItem();
 	void SendHandStateToLua();
 	void AttachMainHandToWeapon();
 	void AttachSecondHandToWeapon();

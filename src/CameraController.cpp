@@ -303,13 +303,13 @@ void CameraController::ProcessCamera(float deltaTime)
 
 		else
 		{
-			tempPosition = settingsManager->Settings.attachCameraToSnakeHead || CardBoardEquipped || (gameState->IsFirstPersonView && !settingsManager->Settings.enableRoomscaleProneAndCrouch) ?
+			tempPosition = settingsManager->Settings.attachCameraToSnakeHead || items->IsCardboardBoxEquipped() || (gameState->IsFirstPersonView && !settingsManager->Settings.enableRoomscaleProneAndCrouch) ?
 				glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
 				glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
 			// prevent camera yeeting into orbit on low fps
 			float speedXY = 11.25f * remappedLerpXYMultiplier;
 			float alphaXY = 1.0f - expf(-speedXY * deltaTime);
-			float speedZ = (CardBoardEquipped ? 5.0f : 2.25f) * remappedLerpZMultiplier;
+			float speedZ = (items->IsCardboardBoxEquipped() ? 5.0f : 2.25f) * remappedLerpZMultiplier;
 			float alphaZ = 1.0f - expf(-speedZ * deltaTime);
 			newPosition = settingsManager->Settings.smoothCameraPosition ?
 				glm::fvec3(
@@ -342,7 +342,7 @@ void CameraController::ProcessCamera(float deltaTime)
 			glm::mix(LastCameraRotation.yaw, ActualYaw, alpha) :
 			ActualYaw;
 
-		if (CurrentItemID == ue::EGsrItemId::IT_Scope)
+		if (items->IsScopeEquipped())
 		{
 			// if fpv is enabled, we need to push the camera forward based on the FOV to prevent it from being too zoomed out
 			float forwardOffset = 0.0f;

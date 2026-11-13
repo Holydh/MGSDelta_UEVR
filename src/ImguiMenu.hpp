@@ -27,6 +27,7 @@ private:
 	const GameState* const gameState;
     SettingsManager* const settingsManager;
     WeaponManager* const weaponManager;
+	ItemManager* const itemManager;
 	CameraController* const cameraController;
 	CutsceneManager* const cutsceneManager;
 	PerformanceManager* const performanceManager;
@@ -46,7 +47,7 @@ private:
 	bool imguiSettingsInitialized = false;
 
 public:
-    ImGuiMenu(const GameState* gs, SettingsManager* sm, WeaponManager* wm, CameraController* cm, CutsceneManager* csm, PerformanceManager* perf, PerformanceMonitor* perfMonitor) : gameState(gs), settingsManager(sm), weaponManager(wm), cameraController(cm), cutsceneManager(csm), performanceManager(perf), performanceMonitor(perfMonitor) {};
+    ImGuiMenu(const GameState* gs, SettingsManager* sm, WeaponManager* wm, ItemManager* im, CameraController* cm, CutsceneManager* csm, PerformanceManager* perf, PerformanceMonitor* perfMonitor) : gameState(gs), settingsManager(sm), weaponManager(wm), itemManager(im), cameraController(cm), cutsceneManager(csm), performanceManager(perf), performanceMonitor(perfMonitor) {};
 
     void RenderImGuiFrame();
     void onDeviceReset();

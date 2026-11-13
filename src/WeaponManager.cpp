@@ -6,7 +6,6 @@ using enum ue::EGsrEquipId;
 namespace {
 constinit ue::ClassRef SkeletalMeshComponent_c{ L"Class /Script/Engine.SkeletalMeshComponent" };
 constinit ue::ClassRef GsrGun_c{ L"Class /Script/Gsr.GsrGun" };
-constinit ue::ClassRef PlayerCameraManagerBP_c{ L"BlueprintGeneratedClass /Game/Blueprints/Camera/BP_PlayerCameraManager.BP_PlayerCameraManager_C" };
 constinit ue::SingletonRef GsrPlayerCameraController_c{ L"Class /Script/Gsr.GsrPlayerCameraController" };
 
 }
@@ -16,61 +15,6 @@ void WeaponManager::InitWeaponManager()
 	tntSocketFname = ue::FName(L"TntTriggerSocket_LeftHand");
 	cqcKnifeSocketFname = ue::FName(L"BaseBody_LeftHand_MTPA");
 	DummyCqcKnifeMeshActor = nullptr;
-}
-
-void WeaponManager::ProcessItem()
-{
-	if (ItemController == NULL)
-	{
-		CurrentItemID = ue::EGsrItemId::IT_None;
-		return;
-	}
-
-	auto newItemID = ue::call<ue::EGsrItemId>(ItemController, L"GetItemId");
-	if (CurrentItemID != newItemID)
-	{
-		CurrentItemID = newItemID;
-		cameraController->CurrentItemID = CurrentItemID;
-		Logger::DebugPrint("Item changed. New Item ID : %d", (int)CurrentItemID.Get());
-
-		CurrentItem = ue::get<ue::UObject*>(ItemController, L"m_currentItem");
-		if (CurrentItem)
-			Logger::DebugPrint(CurrentItem->get_full_name());
-
-		if (CurrentItemID == ue::EGsrItemId::IT_NightVision)
-		{
-			ue::call(ue::get<ue::UObject*>(CurrentItem, L"SKM_nvgo_dmo_hd"), L"SetOnlyOwnerSee", true);
-
-		}
-		if (CurrentItemID == ue::EGsrItemId::IT_Thermal)
-		{
-			ue::call(ue::get<ue::UObject*>(CurrentItem, L"SKM_thgo_dmo_hd"), L"SetOnlyOwnerSee", true);
-			playerCameraManager = Utilities::FirstObjectOf(PlayerCameraManagerBP_c);
-			if (playerCameraManager == nullptr)
-			{
-				Logger::DebugPrint("No player camera manager found");
-				return;
-			}
-			ToggleThermalVisionScanlineNextFrame = true;
-		}
-
-		if (CurrentItemID.Entered(ue::EGsrItemId::IT_Stealth))
-		{
-			hands->ApplyPawnHandMaterial();
-		}
-		if (CurrentItemID.Left(ue::EGsrItemId::IT_Stealth))
-		{
-			hands->ApplyPawnHandMaterial();
-		}
-
-		cameraController->CardBoardEquipped = CurrentItemID == ue::EGsrItemId::IT_CBoxA || CurrentItemID == ue::EGsrItemId::IT_CBoxB ||
-			CurrentItemID == ue::EGsrItemId::IT_CBoxC || CurrentItemID == ue::EGsrItemId::IT_CBoxD;
-	}
-	if (CurrentItemID == ue::EGsrItemId::IT_Scope)
-	{
-		uevr::API::UObjectHook::remove_motion_controller_state(LeftHandWeaponRoot);
-		uevr::API::UObjectHook::remove_motion_controller_state(WeaponRoot);
-	}
 }
 
 void WeaponManager::SendHandStateToLua()
@@ -122,12 +66,6 @@ void WeaponManager::FetchEquipController()
 	if (EquipController == NULL)
 	{
 		Logger::DebugPrint("No equipController found");
-	}
-
-	ItemController = ue::call<ue::UObject*>(pawn, L"GetItemControllerBP");
-	if (ItemController == NULL)
-	{
-		Logger::DebugPrint("No itemController found");
 	}
 }
 
@@ -283,6 +221,12 @@ void WeaponManager::RemoveUobjectHookFromHand(Hand handSide)
 
 void WeaponManager::ProcessWeapon(float delta)
 {
+	if (items->IsScopeEquipped())
+	{
+		uevr::API::UObjectHook::remove_motion_controller_state(LeftHandWeaponRoot);
+		uevr::API::UObjectHook::remove_motion_controller_state(WeaponRoot);
+	}
+
 	if (AttachSecondHandNextFrame && !playerManager->MeleeAttackRunning)
 	{
 		AttachSecondHandToWeapon();
@@ -295,11 +239,6 @@ void WeaponManager::ProcessWeapon(float delta)
 		AttachSecondHandNextFrame = true;
 		SendHandStateToLua();
 		NextFrame = false;
-	}
-
-	if (ToggleThermalVisionScanlineNextFrame)
-	{
-		ToggleThermalVisionScanline();
 	}
 
 	//Get weapon ID
@@ -413,7 +352,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	// The weapon is detached from the hand during melee attacks, while carrying, with the scope item, and
 	// while the player has no control (menus, radio, cutscenes): put it back once none of these applies.
-	if (WeaponRoot && !playerManager->MeleeAttackRunning && !playerManager->IsCarrying && CurrentItemID != ue::EGsrItemId::IT_Scope &&
+	if (WeaponRoot && !playerManager->MeleeAttackRunning && !playerManager->IsCarrying && !items->IsScopeEquipped() &&
 		uevr::API::UObjectHook::get_motion_controller_state(WeaponRoot) == nullptr)
 	{
 		AttachWeaponRootToHand();
@@ -594,7 +533,7 @@ void WeaponManager::FetchWeaponMeshAimData()
 
 void WeaponManager::SetAimDirection()
 {
-	if (CurrentItemID == ue::EGsrItemId::IT_Scope)
+	if (items->IsScopeEquipped())
 		return;
 	//Will be used to control the grenades throw direction
 	//This controls only the aim when the camera controller is disabled. When cc enabled, it controls the camera rotation but the inputs are conflicting.
@@ -625,7 +564,6 @@ void WeaponManager::SpawnScope()
 
 void WeaponManager::EndFrame()
 {
-	CurrentItemID.Commit();
 	CurrentWeaponID.Commit();
 	if (AttachHandNextFrame)
 		NextFrame = true;
@@ -644,24 +582,6 @@ void WeaponManager::Cleanup()
 	CurrentWeapon = nullptr;
 	WeaponRoot = nullptr;
 	ReceiverMesh = nullptr;
-	playerCameraManager = nullptr;
-}
-
-void WeaponManager::ToggleThermalVisionScanline()
-{
-	if (playerCameraManager == nullptr)
-	{
-		Logger::DebugPrint("No player camera manager found");
-		return;
-	}
-	auto thermalPostProcessActor = ue::get<ue::UObject*>(playerCameraManager, L"ThermalPostProcessActor");
-	if (thermalPostProcessActor == nullptr)
-	{
-		return;
-	}
-	Logger::DebugPrint("Toggle Thermal Vision Scanline");
-	ue::call(ue::get<ue::UObject*>(thermalPostProcessActor, L"Scanline"), L"SetVisibility", !settingsManager->Settings.disableThermalVisionScanline, true);
-	ToggleThermalVisionScanlineNextFrame = false;
 }
 
 void WeaponManager::ApplyRecoil(float delta)

@@ -5,13 +5,14 @@ using namespace uevr;
 
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&gameState, &settingsManager, &weaponManager, &cameraController, &cutsceneManager, &performanceManager, &performanceMonitor),
-cameraController(&gameState, &playerManager, &settingsManager),
+MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&gameState, &settingsManager, &weaponManager, &itemManager, &cameraController, &cutsceneManager, &performanceManager, &performanceMonitor),
+cameraController(&gameState, &playerManager, &itemManager, &settingsManager),
 cutsceneManager(&gameState, &settingsManager),
-weaponManager(&gameState, &settingsManager, &playerManager, &vrHands, &cameraController),
+weaponManager(&gameState, &settingsManager, &playerManager, &vrHands, &itemManager, &cameraController),
 hookManager(&weaponManager, &cameraController, &playerManager, &vrHands, &locomotion), 
 playerManager(&gameState),
-locomotion(&gameState) {}; //Constructor
+locomotion(&gameState),
+itemManager(&gameState, &settingsManager, &vrHands) {}; //Constructor
 MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
 
 void MGSDeltaPlugin::on_detach(HMODULE hmod)
@@ -163,11 +164,11 @@ void MGSDeltaPlugin::UpdateVRModValues()
 	const auto& settings = settingsManager.Settings;
 	const bool playerControlled = gameState.IsPlayerControlled;
 	const bool cutscene = !playerControlled && gameState.CutscenePlaying();
-	const bool scope = playerControlled && weaponManager.CurrentItemID == ue::EGsrItemId::IT_Scope;
+	const bool scope = playerControlled && itemManager.IsScopeEquipped();
 
 	// Off while the game moves the view around Snake (peeking, CQC grab, cardboard box)
 	if (playerControlled)
-		vrRoomscaleMovement.Set(!(playerManager.IsPeepingInternal || playerManager.IsCqcGrab || cameraController.CardBoardEquipped));
+		vrRoomscaleMovement.Set(!(playerManager.IsPeepingInternal || playerManager.IsCqcGrab || itemManager.IsCardboardBoxEquipped()));
 
 	// 0: the world is rendered flat
 	float worldScale = 1.0f;
@@ -186,7 +187,7 @@ void MGSDeltaPlugin::UpdateVRModValues()
 // The only sender of HideHands: the VR hands are hidden while scoping, during melee attacks and while carrying
 void MGSDeltaPlugin::UpdateLuaHandsVisibility()
 {
-	const bool hideHands = weaponManager.CurrentItemID == ue::EGsrItemId::IT_Scope || playerManager.MeleeAttackRunning || playerManager.IsCarrying;
+	const bool hideHands = itemManager.IsScopeEquipped() || playerManager.MeleeAttackRunning || playerManager.IsCarrying;
 	if (sentHideHands == hideHands)
 		return;
 	API::get()->dispatch_lua_event("HideHands", hideHands ? "1" : "0");
@@ -232,6 +233,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		Toggle6DOF(false);
 		cutsceneManager.DestroyCustom2DScreen();
 		weaponManager.Cleanup();
+		itemManager.Cleanup();
 		vrHands.Cleanup();
 		// Turns 6DOF back on below if the player still has control in the new level
 		gameState.IsPlayerControlled.SetPrevious(false);
@@ -256,7 +258,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		Inputs::CheckSecondHandGrip(delta);
 		playerManager.UpdateForkAndKnifeMeleeState(delta);
 		weaponManager.FetchEquipController();
-		weaponManager.ProcessItem();
+		itemManager.Update();
 		weaponManager.ProcessWeapon(delta);
 		weaponManager.FetchWeaponMeshAimData();
 		weaponManager.SetAimDirection();
@@ -313,6 +315,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	gameState.EndFrame();
 	playerManager.EndFrame();
 	weaponManager.EndFrame();
+	itemManager.EndFrame();
 	Inputs::EndFrame();
 	ranOnce = false;
 	performanceMonitor.OnPreEngineTickEnd();

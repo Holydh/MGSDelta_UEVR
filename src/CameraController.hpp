@@ -7,19 +7,21 @@
 
 #include "GameState.hpp"
 #include "PlayerManager.hpp"
+#include "ItemManager.hpp"
 #include "SettingsManager.hpp"
 
 class CameraController {
 private:
 	const GameState* const gameState;
 	PlayerManager* const playerManager;
+	const ItemManager* const items;
 	SettingsManager* const settingsManager;
 
 	UEVR_Vector3d headColliderPosition{};
 	float crawlOffset = 55.0f;
 
 public:
-	CameraController(const GameState* gs, PlayerManager* pm, SettingsManager* sm) : gameState(gs), playerManager(pm), settingsManager(sm){};
+	CameraController(const GameState* gs, PlayerManager* pm, const ItemManager* im, SettingsManager* sm) : gameState(gs), playerManager(pm), items(im), settingsManager(sm){};
 
 	void ToggleCameraWobblingController(bool enabled);
 
@@ -43,12 +45,9 @@ public:
 	void CalculateForwardOffset(const ue::FVector& location, const ue::FRotator& rotation, float fov, float& forwardOffset, glm::fvec3& forward);
 
 	void ProcessCamera(float deltaTime);
-	ue::EGsrItemId CurrentItemID = ue::EGsrItemId::IT_None;
 	float InstantCameraPositionTimer = 0.25f;
 	bool InstantCameraPositionNeeded = false;
 	void ProcessCameraResetTimer(float delta);
 
 	void ProcessRoomscaleStance();
-
-	bool CardBoardEquipped = false;
 };
