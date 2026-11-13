@@ -280,7 +280,7 @@ void ImGuiMenu::internalFrame()
 			{
 				settingsManager->SettingsModified = true;
 				if (!settingsManager->Settings.enableWeaponsScopes)
-					weaponManager->DestroyScope();
+					weaponManager->Scope.DestroyScope();
 				else if (gameState->IsPlayerControlled)
 					weaponManager->SpawnScope();
 			}
@@ -305,7 +305,7 @@ void ImGuiMenu::internalFrame()
 
 						if (gameState->IsPlayerControlled && settingsManager->Settings.enableWeaponsScopes)
 						{
-							weaponManager->DestroyScope();
+							weaponManager->Scope.DestroyScope();
 							weaponManager->SpawnScope();
 						}
 					}

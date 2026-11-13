@@ -29,5 +29,7 @@ public:
 	static uevr::API::UObject* SpawnActor(UEVR_Vector3d Position, uevr::API::UObject* Owner);
 	static uevr::API::UObject* SpawnMesh(const ue::FTransform& worldTransform, std::wstring_view meshFullName, uevr::API::UObject*& outMeshComponent);
 
+	static ue::UObject* FirstObjectOf(ue::ClassRef& cls);
+
 	static float Remap(float value, float inMin, float inMax, float outMin, float outMax);
 };

@@ -15,6 +15,7 @@
 #include "Inputs.hpp"
 #include "Tracked.hpp"
 #include "WeaponTraits.hpp"
+#include "ScopeSystem.hpp"
 
 class WeaponManager {
 private:
@@ -26,12 +27,6 @@ private:
 	ue::WeakObject playerCameraManager; // BP_PlayerCameraManager_C
 
 	float randomRange(float min, float max);
-	void spawnScope();
-	void getRenderTarget(uevr::API::UObject* world);
-	void spawnScopeStaticMeshComponent();
-	void spawnSceneCaptureComponent();
-	void spawnScopeWidget();
-	void attachScopeToWeapon();
 
 	ue::FName tntSocketFname;
 	ue::FName cqcKnifeSocketFname;
@@ -41,7 +36,7 @@ private:
 	
 
 public:
-	WeaponManager(const GameState* gs, SettingsManager* sm, PlayerManager* pm, CameraController* cc) : gameState(gs), settingsManager(sm), playerManager(pm), cameraController(cc) {};
+	WeaponManager(const GameState* gs, SettingsManager* sm, PlayerManager* pm, CameraController* cc) : gameState(gs), settingsManager(sm), playerManager(pm), cameraController(cc), Scope(gs, sm) {};
 
 	void InitWeaponManager();
 
@@ -59,19 +54,7 @@ public:
 	Tracked<ue::EGsrItemId> CurrentItemID = ue::EGsrItemId::IT_None;
 
 	float ZoomInput = 0.0f;
-	ue::WeakObject ScopeActor; // AActor
-	ue::WeakObject SourceDragnovScopeWidget; // UUserWidget
-	ue::WeakObject DragnovScopeWidget; // UWidgetComponent
-	ue::WeakObject SourceMosinScopeWidget; // UUserWidget
-	ue::WeakObject MosinScopeWidget; // UWidgetComponent
-	ue::WeakObject SourceRpgScopeWidget; // UUserWidget
-	ue::WeakObject RpgScopeWidget; // UWidgetComponent
-
-	ue::WeakObject ScopeStaticMeshComponent; // UStaticMeshComponent
-	ue::WeakObject SceneCaptureComponent; // USceneCaptureComponent2D
-	ue::WeakObject SceneCaptureUStaticMeshComponent; // UStaticMeshComponent
-
-	ue::WeakObject ScopeRenderTarget; // UTextureRenderTarget2D
+	ScopeSystem Scope;
 
 
 	glm::fquat DefaultUevrHookWeaponRotation{};
@@ -125,9 +108,8 @@ public:
 
 	void SetAimDirection();
 
-	void SwitchScopeState(bool enable);
+	// Sets up the scope of the current weapon, if it has one
 	void SpawnScope();
-	void DestroyScope();
 
 	void Cleanup();
 	// Commits this frame's tracked values: call last in the frame

@@ -156,6 +156,11 @@ uevr::API::UObject* Utilities::SpawnMesh(const ue::FTransform& worldTransform, s
 	return actor;
 }
 
+ue::UObject* Utilities::FirstObjectOf(ue::ClassRef& cls)
+{
+	return cls.get() ? cls.get()->get_first_object_matching(false) : nullptr;
+}
+
 float Utilities::Remap(float value, float inMin, float inMax, float outMin, float outMax)
 {
     float t = glm::clamp((value - inMin) / (inMax - inMin), 0.0f, 1.0f);
