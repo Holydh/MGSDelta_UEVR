@@ -5,8 +5,9 @@ using namespace uevr;
 
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&gameState, &settingsManager, &weaponManager, &cameraController, &performanceManager, &performanceMonitor),
+MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&gameState, &settingsManager, &weaponManager, &cameraController, &cutsceneManager, &performanceManager, &performanceMonitor),
 cameraController(&gameState, &playerManager, &settingsManager),
+cutsceneManager(&gameState, &settingsManager),
 weaponManager(&gameState, &settingsManager, &playerManager, &cameraController),
 hookManager(&weaponManager, &cameraController, &playerManager), 
 playerManager(&gameState) {}; //Constructor
@@ -149,7 +150,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.DetachCameraFromAttachementActor();
 		cameraController.DestroyCameraAttachementActor();
 		API::get()->dispatch_lua_event("PlayerTookControl", "0");
-		cameraController.DestroyCustom2DScreen();
+		cutsceneManager.DestroyCustom2DScreen();
 
 		vr_enabled = enable;
 	}
@@ -228,7 +229,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		// Everything from the previous world is already destroyed by now: forget it (weak references
 		// make any leftover call a no-op) and start again from a clean state.
 		Toggle6DOF(false);
-		cameraController.DestroyCustom2DScreen();
+		cutsceneManager.DestroyCustom2DScreen();
 		weaponManager.Cleanup();
 		playerManager.Cleanup();
 		// Turns 6DOF back on below if the player still has control in the new level
@@ -290,12 +291,12 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 			weaponManager.DetachSecondHandFromWeapon();
 		}
 
-		cameraController.ApplyCutsceneSettings();
+		cutsceneManager.ApplyCutsceneSettings();
 
 		if (gameState.CurrentMenuType.Entered(ue::EGsrUIMenuType::Radio))
-			cameraController.FixRadioMenuRendering();
+			MenuFixes::FixRadioMenuRendering();
 		if (gameState.CurrentMenuType.Entered(ue::EGsrUIMenuType::SV))
-			cameraController.FixSurvivalViewerMenuRendering();
+			MenuFixes::FixSurvivalViewerMenuRendering();
 	}
 
 	weaponManager.ToggleDummyCQCKnifeMeshVisibility();

@@ -14,6 +14,8 @@
 #include "GameState.hpp"
 #include "ImguiMenu.hpp"
 #include "CameraController.hpp"
+#include "CutsceneManager.hpp"
+#include "MenuFixes.hpp"
 #include "WeaponManager.hpp"
 #include "MemoryManager.hpp"
 #include "HookManager.hpp"
@@ -55,6 +57,7 @@ public:
 	GameState gameState;
     ImGuiMenu imGuiMenu;
     CameraController cameraController;
+	CutsceneManager cutsceneManager;
 	WeaponManager weaponManager;
 	MemoryManager memoryManager;
 	HookManager hookManager;

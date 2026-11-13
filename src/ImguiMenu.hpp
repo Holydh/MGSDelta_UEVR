@@ -6,6 +6,7 @@
 #include "SettingsManager.hpp"
 #include "WeaponManager.hpp"
 #include "CameraController.hpp"
+#include "CutsceneManager.hpp"
 #include "PerformanceManager.hpp"
 #include "PerformanceMonitor.hpp"
 
@@ -27,6 +28,7 @@ private:
     SettingsManager* const settingsManager;
     WeaponManager* const weaponManager;
 	CameraController* const cameraController;
+	CutsceneManager* const cutsceneManager;
 	PerformanceManager* const performanceManager;
 	PerformanceMonitor* const performanceMonitor;
 
@@ -44,7 +46,7 @@ private:
 	bool imguiSettingsInitialized = false;
 
 public:
-    ImGuiMenu(const GameState* gs, SettingsManager* sm, WeaponManager* wm, CameraController* cm, PerformanceManager* perf, PerformanceMonitor* perfMonitor) : gameState(gs), settingsManager(sm), weaponManager(wm), cameraController(cm), performanceManager(perf), performanceMonitor(perfMonitor) {};
+    ImGuiMenu(const GameState* gs, SettingsManager* sm, WeaponManager* wm, CameraController* cm, CutsceneManager* csm, PerformanceManager* perf, PerformanceMonitor* perfMonitor) : gameState(gs), settingsManager(sm), weaponManager(wm), cameraController(cm), cutsceneManager(csm), performanceManager(perf), performanceMonitor(perfMonitor) {};
 
     void RenderImGuiFrame();
     void onDeviceReset();

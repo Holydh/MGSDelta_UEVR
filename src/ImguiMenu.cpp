@@ -363,11 +363,11 @@ void ImGuiMenu::internalFrame()
 				{
 					cameraController->InstantCameraPositionNeeded = true;
 					cameraController->InstantCameraPositionTimer = 0.25f;
-					cameraController->DestroyCustom2DScreen();
+					cutsceneManager->DestroyCustom2DScreen();
 				}
 
 				else
-					cameraController->SpawnCustom2DScreen();
+					cutsceneManager->SpawnCustom2DScreen();
 				settingsManager->SettingsModified = true;
 			}
 			if (ImGui::IsItemHovered())
@@ -384,7 +384,7 @@ void ImGuiMenu::internalFrame()
 				if (ImGui::SliderFloat("Black Bars Size", &settingsManager->Settings.blackBarsSize, 1.0f, 10.0f, "%.1f"))
 				{
 					if (gameState->CutscenePlaying())
-						cameraController->ResizeBlackBars();
+						cutsceneManager->ResizeBlackBars();
 					settingsManager->SettingsModified = true;
 				}
 					
