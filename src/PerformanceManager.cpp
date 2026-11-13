@@ -87,11 +87,15 @@ void PerformanceManager::apply(CVarOverride& o)
 		}
 	}
 
+	// UEVR's set() uses SetByHotfix (0x08000000) in this engine build: UE silently ignores it on cvars
+	// the game set with Code/Console priority (e.g. ScreenTraces). SetByConsole is the highest.
+	constexpr uint32_t SetByConsole = 0x0B000000;
+
 	const float current = o.isInt ? (float)o.cvar->get_int() : o.cvar->get_float();
 	if (!o.enabled)
 	{
-		if (o.isInt) o.cvar->set((int)std::lround(o.original));
-		else o.cvar->set(o.original);
+		if (o.isInt) o.cvar->set_ex(std::to_wstring((int)std::lround(o.original)), SetByConsole);
+		else o.cvar->set_ex(std::to_wstring(o.original), SetByConsole);
 		o.hasOriginal = false;
 		Logger::DebugPrint("%ls restored to %g", o.name, o.original);
 		return;
@@ -105,8 +109,8 @@ void PerformanceManager::apply(CVarOverride& o)
 	const float target = o.isInt ? std::round(o.value) : o.value;
 	if (std::fabs(current - target) > 0.001f)
 	{
-		if (o.isInt) o.cvar->set((int)target);
-		else o.cvar->set(target);
+		if (o.isInt) o.cvar->set_ex(std::to_wstring((int)target), SetByConsole);
+		else o.cvar->set_ex(std::to_wstring(target), SetByConsole);
 		Logger::DebugPrint("%ls set to %g (was %g)", o.name, target, current);
 	}
 }
