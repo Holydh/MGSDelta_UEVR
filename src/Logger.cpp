@@ -1,4 +1,3 @@
-#pragma once
 #include "Logger.hpp"
 
 #define MAX_DEBUG_MESSAGE_SIZE 2048

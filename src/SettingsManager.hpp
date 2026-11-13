@@ -69,13 +69,15 @@ struct PluginSettings
 	bool enable3DCutscenes = true;
 	bool enable3DRadio = false;
 	bool enable3DSurvivalView = true;
+
+	bool operator==(const PluginSettings&) const = default;
 };
 
 class SettingsManager {
 public:
 	PluginSettings Settings;
-	// Set by the menu when a setting changes, saved once the edit ends
-	bool SettingsModified = false;
+	// Changed since the last Load or Save
+	bool HasUnsavedChanges() const { return Settings != savedSettings; }
 
 	// Reads MGSDelta_config.txt from the profile folder. Written with the defaults if it's missing,
 	// or lacks settings added since it was created.
@@ -88,4 +90,5 @@ public:
 
 private:
 	std::filesystem::path configFilePath;
+	PluginSettings savedSettings;
 };

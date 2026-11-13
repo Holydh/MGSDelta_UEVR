@@ -63,7 +63,7 @@ void WeaponManager::FetchEquipController()
 {
 	auto pawn = gameState->Pawn;
 	EquipController = ue::call<ue::UObject*>(pawn, L"GetEquipControllerBP");
-	if (EquipController == NULL)
+	if (EquipController == nullptr)
 	{
 		Logger::DebugPrint("No equipController found");
 	}
@@ -242,7 +242,7 @@ void WeaponManager::ProcessWeapon(float delta)
 	}
 
 	//Get weapon ID
-	if (EquipController == NULL)
+	if (EquipController == nullptr)
 	{
 		CurrentWeaponID = WP_None;
 		Logger::DebugPrint("No equipController found");
@@ -427,7 +427,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 
 		//Apply recoil if one handed, two handed is processed later in frame
-		if (CurrentWeapon != NULL && !hands->SecondHandAttachedToWeapon())
+		if (CurrentWeapon != nullptr && !hands->SecondHandAttachedToWeapon())
 			ApplyRecoil(delta);
 
 		if (!settingsManager->Settings.enableWeaponsScopes)

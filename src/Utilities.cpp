@@ -1,8 +1,5 @@
 #include "Utilities.hpp"
 
-uevr::API::UClass* Utilities::ActorClass = nullptr;
-uevr::API::UClass* Utilities::SceneComponentClass = nullptr;
-
 void Utilities::InitHelperClasses()
 {
 	static auto actor_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.Actor");

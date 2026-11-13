@@ -1,4 +1,4 @@
-#include "ImGuiMenu.hpp"
+#include "ImguiMenu.hpp"
 
 void ImGuiMenu::RenderImGuiFrame()
 {
@@ -158,27 +158,23 @@ void ImGuiMenu::internalFrame()
 		{
 			ImGui::SeparatorText("Rotation");
 
-			if (ImGui::SliderFloat("Rotation speed", &settingsManager->Settings.cameraRotationSpeed, 0.1f, 50.0f))
-				settingsManager->SettingsModified = true;
+			ImGui::SliderFloat("Rotation speed", &settingsManager->Settings.cameraRotationSpeed, 0.1f, 50.0f);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Controls how fast the camera rotates when turning");
 
-			if (ImGui::SliderFloat("Rotation deadzone", &settingsManager->Settings.cameraRotationDeadZone, 0.0f, 1.0f))
-				settingsManager->SettingsModified = true;
+			ImGui::SliderFloat("Rotation deadzone", &settingsManager->Settings.cameraRotationDeadZone, 0.0f, 1.0f);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Thumbstick input below this threshold will be ignored");
 
 			ImGui::Dummy(ImVec2(0.0f, 10.0f));
 			ImGui::SeparatorText("Movement smoothing");
 
-			if (ImGui::Checkbox("Smooth camera rotation", &settingsManager->Settings.smoothCameraRotation))
-				settingsManager->SettingsModified = true;
+			ImGui::Checkbox("Smooth camera rotation", &settingsManager->Settings.smoothCameraRotation);
 
 			ImGui::BeginDisabled(!settingsManager->Settings.smoothCameraRotation);
 			{
 				ImGui::Indent();
-				if (ImGui::SliderFloat("Rotation smoothness", &settingsManager->Settings.cameraYawLerp, 0.0f, 10.0f))
-					settingsManager->SettingsModified = true;
+				ImGui::SliderFloat("Rotation smoothness", &settingsManager->Settings.cameraYawLerp, 0.0f, 10.0f);
 				if (ImGui::IsItemHovered()) {
 					ImGui::BeginTooltip();
 					ImGui::Text("Higher values = smoother but slower rotation");
@@ -189,14 +185,12 @@ void ImGuiMenu::internalFrame()
 			}
 			ImGui::EndDisabled();
 
-			if (ImGui::Checkbox("Smooth camera position", &settingsManager->Settings.smoothCameraPosition))
-				settingsManager->SettingsModified = true;
+			ImGui::Checkbox("Smooth camera position", &settingsManager->Settings.smoothCameraPosition);
 
 			ImGui::BeginDisabled(!settingsManager->Settings.smoothCameraPosition);
 			{
 				ImGui::Indent();
-				if (ImGui::SliderFloat("Horizontal smoothness (X&Y Axis)", &settingsManager->Settings.cameraPositionXYLerp, 0.0f, 10.0f))
-					settingsManager->SettingsModified = true;
+				ImGui::SliderFloat("Horizontal smoothness (X&Y Axis)", &settingsManager->Settings.cameraPositionXYLerp, 0.0f, 10.0f);
 				if (ImGui::IsItemHovered()) {
 					ImGui::BeginTooltip();
 					ImGui::Text("Higher values = smoother but slower movement");
@@ -204,8 +198,7 @@ void ImGuiMenu::internalFrame()
 					ImGui::EndTooltip();
 				}
 
-				if (ImGui::SliderFloat("Vertical smoothness (Z Axis)", &settingsManager->Settings.cameraPositionZLerp, 0.0f, 10.0f))
-					settingsManager->SettingsModified = true;
+				ImGui::SliderFloat("Vertical smoothness (Z Axis)", &settingsManager->Settings.cameraPositionZLerp, 0.0f, 10.0f);
 				if (ImGui::IsItemHovered()) {
 					ImGui::BeginTooltip();
 					ImGui::Text("Higher values = smoother but slower movement");
@@ -217,8 +210,7 @@ void ImGuiMenu::internalFrame()
 				ImGui::Dummy(ImVec2(0.0f, 10.0f));
 				ImGui::SeparatorText("Misc.");
 
-				if (ImGui::Checkbox("Attach camera to snake head", &settingsManager->Settings.attachCameraToSnakeHead))
-					settingsManager->SettingsModified = true;
+				ImGui::Checkbox("Attach camera to snake head", &settingsManager->Settings.attachCameraToSnakeHead);
 				if (ImGui::IsItemHovered())
 					ImGui::SetTooltip("Not recommended for comfort");
 
@@ -230,20 +222,17 @@ void ImGuiMenu::internalFrame()
 		if (ImGui::CollapsingHeader("Gameplay"))
 		{
 			ImGui::SeparatorText("Locomotion");
-			if (ImGui::Checkbox("Linear head-relative locomotion (experimental)", &settingsManager->Settings.linearLocomotion))
-				settingsManager->SettingsModified = true;
+			ImGui::Checkbox("Linear head-relative locomotion (experimental)", &settingsManager->Settings.linearLocomotion);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Constant speed in the direction of your head, instead of following Snake's animations.");
 			ImGui::BeginDisabled(!settingsManager->Settings.linearLocomotion);
-			if (ImGui::Checkbox("Let the game take control of Snake's movement", &settingsManager->Settings.gameTakesMovementControl))
-				settingsManager->SettingsModified = true;
+			ImGui::Checkbox("Let the game take control of Snake's movement", &settingsManager->Settings.gameTakesMovementControl);
 			if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
 				ImGui::SetTooltip("Area transitions and scripted moves use the game's own movement.\nDisabled: Snake always follows your stick.");
 			ImGui::EndDisabled();
 
 			ImGui::SeparatorText("RoomScale");
-			if (ImGui::Checkbox("Enable RoomScale Prone And Crouch", &settingsManager->Settings.enableRoomscaleProneAndCrouch))
-				settingsManager->SettingsModified = true;
+			ImGui::Checkbox("Enable RoomScale Prone And Crouch", &settingsManager->Settings.enableRoomscaleProneAndCrouch);
 			if (ImGui::IsItemHovered()) {
 				ImGui::BeginTooltip();
 				ImGui::Text("Allows the game to set Snake's Stance from your own IRL stance");
@@ -253,8 +242,7 @@ void ImGuiMenu::internalFrame()
 			ImGui::BeginDisabled(!settingsManager->Settings.enableRoomscaleProneAndCrouch);
 			{
 				ImGui::Indent();
-				if (ImGui::SliderFloat("Squat under this value", &settingsManager->Settings.squatUnderThisValue, -1.0f, 0.0f))
-					settingsManager->SettingsModified = true;
+				ImGui::SliderFloat("Squat under this value", &settingsManager->Settings.squatUnderThisValue, -1.0f, 0.0f);
 				if (ImGui::IsItemHovered()) {
 					ImGui::BeginTooltip();
 					ImGui::Text("In meter. The hmd's own height after recentering is at 0.");
@@ -262,8 +250,7 @@ void ImGuiMenu::internalFrame()
 					ImGui::EndTooltip();
 				}
 
-				if (ImGui::SliderFloat("Crawl under this value", &settingsManager->Settings.crawlUnderThisValue, -2.0f, 0.0f))
-					settingsManager->SettingsModified = true;
+				ImGui::SliderFloat("Crawl under this value", &settingsManager->Settings.crawlUnderThisValue, -2.0f, 0.0f);
 				if (ImGui::IsItemHovered()) {
 					ImGui::BeginTooltip();
 					ImGui::Text("In meter. The hmd's own height after recentering is at 0.");
@@ -278,7 +265,6 @@ void ImGuiMenu::internalFrame()
 			ImGui::SeparatorText("Weapons");
 			if (ImGui::Checkbox("Enable VR scopes", &settingsManager->Settings.enableWeaponsScopes))
 			{
-				settingsManager->SettingsModified = true;
 				if (!settingsManager->Settings.enableWeaponsScopes)
 					weaponManager->Scope.DestroyScope();
 				else if (gameState->IsPlayerControlled)
@@ -301,7 +287,6 @@ void ImGuiMenu::internalFrame()
 					if (newResolution != settingsManager->Settings.scopeResolution)
 					{
 						settingsManager->Settings.scopeResolution = newResolution;
-						settingsManager->SettingsModified = true;
 
 						if (gameState->IsPlayerControlled && settingsManager->Settings.enableWeaponsScopes)
 						{
@@ -322,24 +307,15 @@ void ImGuiMenu::internalFrame()
 			ImGui::EndDisabled();
 
 
-			if (ImGui::Checkbox("Disable all recoil", &settingsManager->Settings.disableAllRecoil))
-			{
-				settingsManager->SettingsModified = true;
-			}
+			ImGui::Checkbox("Disable all recoil", &settingsManager->Settings.disableAllRecoil);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Disable recoil for all weapons");
 
-			if (ImGui::Checkbox("Enable two handed grip pivot", &settingsManager->Settings.enableTwoHandsPivot))
-			{
-				settingsManager->SettingsModified = true;
-			}
+			ImGui::Checkbox("Enable two handed grip pivot", &settingsManager->Settings.enableTwoHandsPivot);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Allow the weapon to align with both hands when gripped");
 
-			if (ImGui::Checkbox("Enable two handed realistic recoil", &settingsManager->Settings.enableTwoHandsRealisticRecoil))
-			{
-				settingsManager->SettingsModified = true;
-			}
+			ImGui::Checkbox("Enable two handed realistic recoil", &settingsManager->Settings.enableTwoHandsRealisticRecoil);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Weapon recoil will be stronger when gripped with single hand. Lighter when gripped with both hands.");
 
@@ -347,7 +323,6 @@ void ImGuiMenu::internalFrame()
 			ImGui::SeparatorText("Items");
 			if (ImGui::Checkbox("Disable thermal goggles scanline effect", &settingsManager->Settings.disableThermalVisionScanline))
 			{
-				settingsManager->SettingsModified = true;
 				itemManager->ApplyThermalVisionScanlineSetting();
 			}
 			if (ImGui::IsItemHovered())
@@ -368,7 +343,6 @@ void ImGuiMenu::internalFrame()
 
 				else
 					cutsceneManager->SpawnCustom2DScreen();
-				settingsManager->SettingsModified = true;
 			}
 			if (ImGui::IsItemHovered())
 			{
@@ -385,7 +359,6 @@ void ImGuiMenu::internalFrame()
 				{
 					if (gameState->CutscenePlaying())
 						cutsceneManager->ResizeBlackBars();
-					settingsManager->SettingsModified = true;
 				}
 					
 				if (ImGui::IsItemHovered()) {
@@ -400,23 +373,19 @@ void ImGuiMenu::internalFrame()
 			ImGui::BeginDisabled(!settingsManager->Settings.enableImmersiveMode);
 			{
 				ImGui::Indent();
-				if (ImGui::Checkbox("Smooth Camera Movements", &settingsManager->Settings.smoothCameraMovementsInImmersiveCutscenes)) {
-					settingsManager->SettingsModified = true;
-				}
+				ImGui::Checkbox("Smooth Camera Movements", &settingsManager->Settings.smoothCameraMovementsInImmersiveCutscenes);
 
 				ImGui::BeginDisabled(!settingsManager->Settings.smoothCameraMovementsInImmersiveCutscenes);
 				{
 					ImGui::Indent();
-					if (ImGui::SliderFloat("Position Smoothness", &settingsManager->Settings.cutsceneCameraPositionLerp, 0.0f, 10.0f))
-						settingsManager->SettingsModified = true;
+					ImGui::SliderFloat("Position Smoothness", &settingsManager->Settings.cutsceneCameraPositionLerp, 0.0f, 10.0f);
 					if (ImGui::IsItemHovered()) {
 						ImGui::BeginTooltip();
 						ImGui::Text("Higher values = smoother but slower movement");
 						ImGui::Text("Lower values = snappier but less smooth");
 						ImGui::EndTooltip();
 					}
-					if (ImGui::SliderFloat("Rotation Smoothness", &settingsManager->Settings.cutsceneCameraRotationLerp, 0.0f, 10.0f))
-						settingsManager->SettingsModified = true;
+					ImGui::SliderFloat("Rotation Smoothness", &settingsManager->Settings.cutsceneCameraRotationLerp, 0.0f, 10.0f);
 					if (ImGui::IsItemHovered()) {
 						ImGui::BeginTooltip();
 						ImGui::Text("Higher values = smoother but slower movement");
@@ -433,16 +402,13 @@ void ImGuiMenu::internalFrame()
 			ImGui::Dummy(ImVec2(0.0f, 10.0f));
 			ImGui::SeparatorText("3D Rendering");
 
-			if (ImGui::Checkbox("Enable 3D in Cutscenes", &settingsManager->Settings.enable3DCutscenes))
-				settingsManager->SettingsModified = true;
+			ImGui::Checkbox("Enable 3D in Cutscenes", &settingsManager->Settings.enable3DCutscenes);
 
-			if (ImGui::Checkbox("Enable 3D in Radio window", &settingsManager->Settings.enable3DRadio))
-				settingsManager->SettingsModified = true;
+			ImGui::Checkbox("Enable 3D in Radio window", &settingsManager->Settings.enable3DRadio);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Can make text more difficult to read, disabled by default");
 
-			if (ImGui::Checkbox("Enable 3D in Survival Menu", &settingsManager->Settings.enable3DSurvivalView))
-				settingsManager->SettingsModified = true;
+			ImGui::Checkbox("Enable 3D in Survival Menu", &settingsManager->Settings.enable3DSurvivalView);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Works perfectly, enabled by default");
 		}
@@ -528,11 +494,8 @@ void ImGuiMenu::internalFrame()
 	ImGui::End();
 
 	// Saved once the edit ends, not on every frame of a slider drag
-	if (settingsManager->SettingsModified && !ImGui::IsAnyItemActive())
-	{
+	if (settingsManager->HasUnsavedChanges() && !ImGui::IsAnyItemActive())
 		settingsManager->Save();
-		settingsManager->SettingsModified = false;
-	}
 }
 
 bool ImGuiMenu::initializeImGui() {

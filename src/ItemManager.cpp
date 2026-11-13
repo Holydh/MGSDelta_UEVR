@@ -9,7 +9,7 @@ constinit ue::ClassRef PlayerCameraManagerBP_c{ L"BlueprintGeneratedClass /Game/
 void ItemManager::Update()
 {
 	ItemController = ue::call<ue::UObject*>(gameState->Pawn, L"GetItemControllerBP");
-	if (ItemController == NULL)
+	if (ItemController == nullptr)
 	{
 		Logger::DebugPrint("No itemController found");
 	}
@@ -24,7 +24,7 @@ void ItemManager::Update()
 
 void ItemManager::processItem()
 {
-	if (ItemController == NULL)
+	if (ItemController == nullptr)
 	{
 		CurrentItemID = ue::EGsrItemId::IT_None;
 		return;

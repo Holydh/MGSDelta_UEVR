@@ -27,8 +27,6 @@
 #include "ue/Reflection.hpp"
 #include "ModValue.hpp"
 
-#define _CRT_SECURE_NO_WARNINGS 1
-
 // Global accessor for our plugin.
 class MGSDeltaPlugin;
 extern std::unique_ptr<MGSDeltaPlugin> g_plugin;
@@ -91,9 +89,9 @@ public:
     void on_pre_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters,
         UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double) override;
     void on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDeviceHandle, int view_index, float world_to_meters,
-        UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double);
-    void on_pre_viewport_client_draw(UEVR_UGameViewportClientHandle viewport_client, UEVR_FViewportHandle viewport, UEVR_FCanvasHandle canvas);
-    void on_post_viewport_client_draw(UEVR_UGameViewportClientHandle viewport_client, UEVR_FViewportHandle viewport, UEVR_FCanvasHandle canvas);
+        UEVR_Vector3f* position, UEVR_Rotatorf* rotation, bool is_double) override;
+    void on_pre_viewport_client_draw(UEVR_UGameViewportClientHandle viewport_client, UEVR_FViewportHandle viewport, UEVR_FCanvasHandle canvas) override;
+    void on_post_viewport_client_draw(UEVR_UGameViewportClientHandle viewport_client, UEVR_FViewportHandle viewport, UEVR_FCanvasHandle canvas) override;
 
 	void on_xinput_get_state(uint32_t* retval, uint32_t user_index, XINPUT_STATE* state) override;
 	void on_xinput_set_state(uint32_t* retval, uint32_t user_index, XINPUT_VIBRATION* vibration) override;

@@ -204,6 +204,7 @@ void SettingsManager::Load()
 			Logger::DebugPrint("Invalid value for %s.%s in MGSDelta_config.txt: %s", field.category, field.key, it->second.c_str());
 	}
 
+	savedSettings = Settings;
 	// First start, settings added by a plugin update (written with their defaults), or old key format
 	if (!complete)
 		Save();
@@ -211,6 +212,7 @@ void SettingsManager::Load()
 
 void SettingsManager::Save()
 {
+	savedSettings = Settings; // not retried if the file can't be written
 	std::ofstream file(configFilePath, std::ios::trunc);
 	if (!file.is_open())
 	{
