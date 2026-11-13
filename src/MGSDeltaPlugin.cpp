@@ -39,9 +39,8 @@ void MGSDeltaPlugin::on_initialize() {
 
 	Utilities::InitHelperClasses();
 	weaponManager.InitWeaponManager();
-	settingsManager.InitSettingsManager();
-	settingsManager.GetOrCreateConfigFile();
-	settingsManager.LoadAllConfigs(weaponConfigsDir);
+	settingsManager.Load();
+	settingsManager.LoadWeaponConfigs(weaponConfigsDir);
 	performanceManager.Init();
 	performanceMonitor.Start();
 	playerManager.ConvertAllRequiredStringToFnames();
@@ -239,9 +238,9 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		weaponManager.FetchWeaponMeshAimData();
 		weaponManager.SetAimDirection();
 
-		playerManager.UpdateLinearLocomotion(*settingsManager.LinearLocomotionPtr, *settingsManager.GameTakesMovementControlPtr,
+		playerManager.UpdateLinearLocomotion(settingsManager.Settings.linearLocomotion, settingsManager.Settings.gameTakesMovementControl,
 			cameraController.ViewRotation.Yaw, delta);
-		playerManager.UpdateCompactCollision(*settingsManager.LinearLocomotionPtr, delta);
+		playerManager.UpdateCompactCollision(settingsManager.Settings.linearLocomotion, delta);
 
 		static bool wasCollisionLogKeyPressed = false;
 		const bool collisionLogKeyPressed = g_DebugEnabled && Inputs::IsKeyPressed(VK_F9);
@@ -277,12 +276,12 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		if (playerManager.CurrentMenuType == ue::EGsrUIMenuType::Radio && playerManager.PreviousMenuType != ue::EGsrUIMenuType::Radio)
 		{
 			cameraController.FixRadioMenuRendering();
-			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DRadioPtr ? 1.0f : 0.0f);
+			API::VR::set_mod_value("VR_WorldScale", settingsManager.Settings.enable3DRadio ? 1.0f : 0.0f);
 		}
 		if (playerManager.CurrentMenuType == ue::EGsrUIMenuType::SV && playerManager.PreviousMenuType != ue::EGsrUIMenuType::SV)
 		{
 			cameraController.FixSurvivalViewerMenuRendering();
-			API::VR::set_mod_value("VR_WorldScale", *settingsManager.Enable3DSurvivalViewPtr ? 1.0f : 0.0f);
+			API::VR::set_mod_value("VR_WorldScale", settingsManager.Settings.enable3DSurvivalView ? 1.0f : 0.0f);
 		}
 	}
 
@@ -329,7 +328,7 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 	static ue::SingletonRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
 	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get(); // may be null: ue::get then returns false
 	if (playerManager.IsPlayerControlled ||
-		(cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D && (*settingsManager.EnableImmersiveModePtr || ue::get<bool>(cobraCutsceneCameraCtrlMngr, L"bIsFpv"))))
+		(cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D && (settingsManager.Settings.enableImmersiveMode || ue::get<bool>(cobraCutsceneCameraCtrlMngr, L"bIsFpv"))))
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
@@ -398,7 +397,7 @@ void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, 
 	Inputs::FixNestedXInputCall(retval, user_index, state);
 
 	float rawRightXInput = (float)state->Gamepad.sThumbRX / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
-	cameraController.YawInput = rawRightXInput > *settingsManager.CameraRotationDeadZonePtr || rawRightXInput < -*settingsManager.CameraRotationDeadZonePtr ? rawRightXInput : 0.0f;
+	cameraController.YawInput = rawRightXInput > settingsManager.Settings.cameraRotationDeadZone || rawRightXInput < -settingsManager.Settings.cameraRotationDeadZone ? rawRightXInput : 0.0f;
 
 	float rawRightYInput = (float)state->Gamepad.sThumbRY / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
 	weaponManager.ZoomInput = rawRightYInput > 0.5f || rawRightYInput < -0.5f ? rawRightYInput : 0.0f;

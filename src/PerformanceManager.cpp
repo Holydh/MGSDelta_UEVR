@@ -8,42 +8,42 @@
 
 PerformanceManager::PerformanceManager()
 {
-	// group, cvar, tooltip, isInt, min, max, value forced when enabled
+	// group, cvar, tooltip, isInt, min, max, value forced when enabled, enabled by default
 	Overrides = {
 		{ "Anti-aliasing", L"r.AntiAliasingMethod",
-			"0 = none, 1 = FXAA, 2 = TAA, 4 = TSR (3 = MSAA, unsupported here).\nTSR works at the headset's full output resolution, which is huge in VR", true, 0.0f, 4.0f, 0.0f },
+			"0 = none, 1 = FXAA, 2 = TAA, 4 = TSR (3 = MSAA, unsupported here).\nTSR works at the headset's full output resolution, which is huge in VR", true, 0.0f, 4.0f, 4.0f, false },
 
 		{ "Level of detail", L"r.Nanite.MaxPixelsPerEdge",
-			"Most of the world is made of Nanite meshes, which ignore the LOD settings below.\nHigher = bigger triangles = less GPU work. Game default: 1", false, 1.0f, 8.0f, 2.0f },
+			"Most of the world is made of Nanite meshes, which ignore the LOD settings below.\nHigher = bigger triangles = less GPU work. Game default: 1", false, 1.0f, 8.0f, 3.0f, false },
 		{ "Level of detail", L"r.StaticMeshLODDistanceScale",
-			"Non-Nanite static meshes switch to their lower LODs sooner.\n2 = at half the usual distance. Game default: 1", false, 1.0f, 4.0f, 2.0f },
+			"Non-Nanite static meshes switch to their lower LODs sooner.\n2 = at half the usual distance. Game default: 1", false, 1.0f, 4.0f, 2.0f, true },
 		{ "Level of detail", L"r.SkeletalMeshLODBias",
-			"Characters and other animated meshes skip their most detailed LODs.\nAlso affects the VR hands and held weapons. Game default: 0", true, 0.0f, 3.0f, 1.0f },
+			"Characters and other animated meshes skip their most detailed LODs.\nAlso affects the VR hands and held weapons. Game default: 0", true, 0.0f, 3.0f, 0.0f, false },
 		{ "Level of detail", L"foliage.LODDistanceScale",
-			"Foliage switches to its lower LODs sooner when lower. Game default: 1", false, 0.1f, 2.0f, 0.6f },
+			"Foliage switches to its lower LODs sooner when lower. Game default: 1", false, 0.1f, 2.0f, 1.0f, false },
 		{ "Level of detail", L"r.ViewDistanceScale",
-			"Objects with a cull distance disappear sooner when lower. Game default: 1", false, 0.2f, 1.5f, 0.7f },
+			"Objects with a cull distance disappear sooner when lower. Game default: 1", false, 0.2f, 1.5f, 0.5f, false },
 
 		{ "Global illumination (Lumen)", L"r.Lumen.DiffuseIndirect.Allow",
-			"0 turns Lumen global illumination off: biggest GPU saving,\nbut changes the lighting a lot (darker interiors)", true, 0.0f, 1.0f, 0.0f },
+			"0 turns Lumen global illumination off: biggest GPU saving,\nbut changes the lighting a lot (darker interiors)", true, 0.0f, 1.0f, 1.0f, true },
 		{ "Global illumination (Lumen)", L"r.Lumen.ScreenProbeGather.DownsampleFactor",
-			"Lumen computes lighting at fewer points on screen.\nHigher = cheaper, blurrier indirect lighting. Game default: 16", true, 16.0f, 64.0f, 32.0f },
+			"Lumen computes lighting at fewer points on screen.\nHigher = cheaper, blurrier indirect lighting. Game default: 16", true, 16.0f, 64.0f, 16.0f, true },
 		{ "Global illumination (Lumen)", L"r.Lumen.ScreenProbeGather.ShortRangeAO",
-			"Lumen short range ambient occlusion. 0 = off. The game also changes it per level", true, 0.0f, 1.0f, 0.0f },
+			"Lumen short range ambient occlusion. 0 = off. The game also changes it per level", true, 0.0f, 1.0f, 0.0f, true },
 		{ "Global illumination (Lumen)", L"r.Lumen.ScreenProbeGather.ScreenTraces",
-			"Lumen screen-space traces. Each eye traces its own image, so foliage\ncan be lit differently per eye. 0 = off (eyes match better). Game default: 1", true, 0.0f, 1.0f, 0.0f },
+			"Lumen screen-space traces. Each eye traces its own image, so foliage\ncan be lit differently per eye. 0 = off (eyes match better). Game default: 1", true, 0.0f, 1.0f, 0.0f, true },
 
 		{ "Shadows", L"r.Shadow.CSM.MaxCascades",
-			"Number of sun shadow cascades. Fewer = cheaper, blurrier distant shadows", true, 1.0f, 10.0f, 2.0f },
+			"Number of sun shadow cascades. Fewer = cheaper, blurrier distant shadows", true, 1.0f, 10.0f, 1.0f, true },
 		{ "Shadows", L"r.Shadow.DistanceScale",
-			"Sun shadows end sooner when lower. Default: 1", false, 0.1f, 2.0f, 0.6f },
+			"Sun shadows end sooner when lower. Default: 1", false, 0.1f, 2.0f, 2.0f, false },
 		{ "Shadows", L"r.Shadow.MaxResolution",
-			"Maximum shadow map resolution", true, 256.0f, 4096.0f, 1024.0f },
+			"Maximum shadow map resolution", true, 256.0f, 4096.0f, 256.0f, true },
 
 		{ "Effects", L"r.SeparateTranslucencyScreenPercentage",
-			"Resolution of translucent effects (smoke, fire, water).\nThe game also changes it per level", false, 25.0f, 100.0f, 50.0f },
+			"Resolution of translucent effects (smoke, fire, water).\nThe game also changes it per level", false, 25.0f, 100.0f, 25.0f, false },
 		{ "Effects", L"r.VolumetricFog",
-			"0 turns volumetric fog off", true, 0.0f, 1.0f, 0.0f },
+			"0 turns volumetric fog off", true, 0.0f, 1.0f, 0.0f, false },
 	};
 }
 

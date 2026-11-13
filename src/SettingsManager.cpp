@@ -1,9 +1,9 @@
 #include "SettingsManager.hpp"
 
 #include <algorithm>
-#include <iomanip>
-#include <optional>
-#include <sstream>
+#include <charconv>
+#include <cstring>
+#include <variant>
 
 std::unordered_map<std::string, WeaponConfig> SettingsManager::g_weaponConfigs{};
 
@@ -74,9 +74,8 @@ bool SettingsManager::LoadWeaponConfigFromFile(const fs::path& path, WeaponConfi
     return true;
 }
 
-void SettingsManager::LoadAllConfigs(const std::filesystem::path& dir)
+void SettingsManager::LoadWeaponConfigs(const std::filesystem::path& dir)
 {
-	FetchPluginSettings();
     g_weaponConfigs.clear();
 
     if (!std::filesystem::exists(dir) || !std::filesystem::is_directory(dir))
@@ -100,377 +99,146 @@ void SettingsManager::LoadAllConfigs(const std::filesystem::path& dir)
     }
 }
 
-void SettingsManager::InitSettingsManager()
+namespace {
+using SettingMember = std::variant<bool PluginSettings::*, int PluginSettings::*, float PluginSettings::*>;
+
+// Saved as "category.key=value", sorted by category: a new setting can go anywhere in the table
+struct SettingField
 {
-	pluginConfigFilePath = GetConfigFilePath();
-	Logger::DebugPrint("%s", pluginConfigFilePath.c_str());
+	const char* category;
+	const char* key;
+	SettingMember member;
+};
 
-	AttachCameraToSnakeHeadPtr = &attachCameraToSnakeHead;
-	CameraRotationSpeedPtr = &cameraRotationSpeed;
-	CameraRotationDeadZonePtr = &cameraRotationDeadZone;
-	SmoothCameraRotationPtr = &smoothCameraRotation;
-	CameraYawLerpPtr = &cameraYawLerp;
-	SmoothCameraPositionPtr = &smoothCameraPosition;
-	CameraPositionXYLerpPtr = &cameraPositionXYLerp;
-	CameraPositionZLerpPtr = &cameraPositionZLerp;
+const SettingField settingFields[] = {
+	{ "Camera", "attachCameraToSnakeHead", &PluginSettings::attachCameraToSnakeHead },
+	{ "Camera", "cameraRotationSpeed", &PluginSettings::cameraRotationSpeed },
+	{ "Camera", "cameraRotationDeadZone", &PluginSettings::cameraRotationDeadZone },
+	{ "Camera", "smoothCameraRotation", &PluginSettings::smoothCameraRotation },
+	{ "Camera", "cameraYawLerp", &PluginSettings::cameraYawLerp },
+	{ "Camera", "smoothCameraPosition", &PluginSettings::smoothCameraPosition },
+	{ "Camera", "cameraPositionXYLerp", &PluginSettings::cameraPositionXYLerp },
+	{ "Camera", "cameraPositionZLerp", &PluginSettings::cameraPositionZLerp },
 
-	EnableRoomscaleProneAndCrouchPtr = &enableRoomscaleProneAndCrouch;
-	LinearLocomotionPtr = &linearLocomotion;
-	GameTakesMovementControlPtr = &gameTakesMovementControl;
-	SquatUnderThisValuePtr = &squatUnderThisValue;
-	CrawlUnderThisValuePtr = &crawlUnderThisValue;
+	{ "Gameplay", "enableRoomscaleProneAndCrouch", &PluginSettings::enableRoomscaleProneAndCrouch },
+	{ "Gameplay", "linearLocomotion", &PluginSettings::linearLocomotion },
+	{ "Gameplay", "gameTakesMovementControl", &PluginSettings::gameTakesMovementControl },
+	{ "Gameplay", "squatUnderThisValue", &PluginSettings::squatUnderThisValue },
+	{ "Gameplay", "crawlUnderThisValue", &PluginSettings::crawlUnderThisValue },
 
-	EnableWeaponsScopesPtr = &enableWeaponsScopes;
-	ScopeResolutionSliderIndexPtr = &scopeResolutionSliderIndex;
-	ScopeResolutionPtr = &scopeResolution;
-	DisableAllRecoilPtr = &disableAllRecoil;
-	EnableTwoHandsPivotPtr = &enableTwoHandsPivot;
-	EnableTwoHandsRealisticRecoilPtr = &enableTwoHandsRealisticRecoil;
+	{ "Weapons", "enableWeaponsScopes", &PluginSettings::enableWeaponsScopes },
+	{ "Weapons", "scopeResolution", &PluginSettings::scopeResolution },
+	{ "Weapons", "disableAllRecoil", &PluginSettings::disableAllRecoil },
+	{ "Weapons", "enableTwoHandsPivot", &PluginSettings::enableTwoHandsPivot },
+	{ "Weapons", "enableTwoHandsRealisticRecoil", &PluginSettings::enableTwoHandsRealisticRecoil },
 
-	DisableThermalVisionScanlinePtr = &disableThermalVisionScanline;
+	{ "Items", "disableThermalVisionScanline", &PluginSettings::disableThermalVisionScanline },
 
-	EnableImmersiveModePtr = &enableImmersiveMode;
-	BlackBarsSizePtr = &blackBarsSize;
-	SmoothCameraMovementsInImmersiveCutscenesPtr = &smoothCameraMovementsInImmersiveCutscenes;
-	CutsceneCameraPositionLerpPtr = &cutsceneCameraPositionLerp;
-	CutsceneCameraRotationLerpPtr = &cutsceneCameraRotationLerp;
+	{ "Cutscenes", "enableImmersiveMode", &PluginSettings::enableImmersiveMode },
+	{ "Cutscenes", "blackBarsSize", &PluginSettings::blackBarsSize },
+	{ "Cutscenes", "smoothCameraMovementsInImmersiveCutscenes", &PluginSettings::smoothCameraMovementsInImmersiveCutscenes },
+	{ "Cutscenes", "cutsceneCameraPositionLerp", &PluginSettings::cutsceneCameraPositionLerp },
+	{ "Cutscenes", "cutsceneCameraRotationLerp", &PluginSettings::cutsceneCameraRotationLerp },
 
-	Enable3DCutscenesPtr = &enable3DCutscenes;
-	Enable3DRadioPtr = &enable3DRadio;
-	Enable3DSurvivalViewPtr = &enable3DSurvivalView;
+	{ "Rendering", "enable3DCutscenes", &PluginSettings::enable3DCutscenes },
+	{ "Rendering", "enable3DRadio", &PluginSettings::enable3DRadio },
+	{ "Rendering", "enable3DSurvivalView", &PluginSettings::enable3DSurvivalView },
+};
+
+std::string trim(const std::string& text)
+{
+	const size_t first = text.find_first_not_of(" \t");
+	if (first == std::string::npos)
+		return {};
+	return text.substr(first, text.find_last_not_of(" \t") - first + 1);
 }
 
-void SettingsManager::FetchPluginSettings()
+bool parseValue(const std::string& text, bool& out)
 {
-	attachCameraToSnakeHead = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "attachCameraToSnakeHead", false);
-	cameraRotationSpeed = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraRotationSpeed", 10.0f);
-	cameraRotationDeadZone = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraRotationDeadZone", 0.2f);
-	smoothCameraRotation = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraRotation", true);
-	cameraYawLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraYawLerp", 5.0f);
-	smoothCameraPosition = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraPosition", true);
-	cameraPositionXYLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraPositionXYLerp", 5.0f);
-	cameraPositionZLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraPositionZLerp", 5.0f);
-
-	enableRoomscaleProneAndCrouch = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableRoomscaleProneAndCrouch", false);
-	linearLocomotion = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "linearLocomotion", true);
-	gameTakesMovementControl = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "gameTakesMovementControl", true);
-	squatUnderThisValue = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "squatUnderThisValue", -0.4f);
-	crawlUnderThisValue = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "crawlUnderThisValue", -0.8f);
-
-	enableWeaponsScopes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableWeaponsScopes", true);
-	scopeResolution = SettingsManager::GetIntValueFromFile(pluginConfigFilePath, "scopeResolution", 1024);
-	SyncScopeSliderWithResolution();
-	
-	disableAllRecoil = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "disableAllRecoil", false);
-	enableTwoHandsPivot = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableTwoHandsPivot", true);
-	enableTwoHandsRealisticRecoil = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableTwoHandsRealisticRecoil", true);
-
-	disableThermalVisionScanline = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "disableThermalVisionScanline", true);
-
-	enableImmersiveMode = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableImmersiveMode", false);
-	blackBarsSize = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "blackBarsSize", 1.0f);
-	smoothCameraMovementsInImmersiveCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraMovementsInImmersiveCutscenes", true);
-	cutsceneCameraPositionLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cutsceneCameraPositionLerp", 5.0f);
-	cutsceneCameraRotationLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cutsceneCameraRotationLerp", 8.0f);
-	
-	enable3DCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DCutscenes", true);
-	enable3DRadio = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DRadio", false);
-	enable3DSurvivalView = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DSurvivalView", true);
-
-
+	if (_stricmp(text.c_str(), "true") == 0) { out = true; return true; }
+	if (_stricmp(text.c_str(), "false") == 0) { out = false; return true; }
+	return false;
 }
 
-void SettingsManager::SyncScopeSliderWithResolution()
+// int and float: the whole text must be a number
+template <typename T>
+bool parseValue(const std::string& text, T& out)
 {
-    if (ScopeResolutionSliderIndexPtr && ScopeResolutionPtr)
-    {
-        int resolution = *ScopeResolutionPtr;
-        int newIndex = resolution / 64; // Assuming step is 64
-        *ScopeResolutionSliderIndexPtr = newIndex;
-    }
+	const char* end = text.data() + text.size();
+	const auto [ptr, error] = std::from_chars(text.data(), end, out);
+	return error == std::errc{} && ptr == end;
+}
 }
 
-
-void SettingsManager::WriteSettingsToPluginConfigFile()
+void SettingsManager::Load()
 {
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "attachCameraToSnakeHead", attachCameraToSnakeHead);
-	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraRotationSpeed", cameraRotationSpeed);
-	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraRotationDeadZone", cameraRotationDeadZone);
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraRotation", smoothCameraRotation);
-	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraYawLerp", cameraYawLerp);
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraPosition", smoothCameraPosition);
-	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraPositionXYLerp", cameraPositionXYLerp);
-	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraPositionZLerp", cameraPositionZLerp);
+	configFilePath = uevr::API::get()->get_persistent_dir() / "MGSDelta_config.txt";
+	Logger::DebugPrint("%s", configFilePath.string().c_str());
 
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableRoomscaleProneAndCrouch", enableRoomscaleProneAndCrouch);
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "linearLocomotion", linearLocomotion);
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "gameTakesMovementControl", gameTakesMovementControl);
-	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "squatUnderThisValue", squatUnderThisValue);
-	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "crawlUnderThisValue", crawlUnderThisValue);
+	// key -> value text
+	std::unordered_map<std::string, std::string> values;
+	std::ifstream file(configFilePath);
+	std::string line;
+	while (std::getline(file, line))
+	{
+		const size_t equalPos = line.find('=');
+		if (line.empty() || line[0] == '#' || equalPos == std::string::npos)
+			continue;
+		values[trim(line.substr(0, equalPos))] = trim(line.substr(equalPos + 1));
+	}
 
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableWeaponsScopes", enableWeaponsScopes);
-	SettingsManager::SetIntValueToFile(pluginConfigFilePath, "scopeResolution", scopeResolution);
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "disableAllRecoil", disableAllRecoil);
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableTwoHandsPivot", enableTwoHandsPivot);
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableTwoHandsRealisticRecoil", enableTwoHandsRealisticRecoil);
+	bool complete = true;
+	for (const auto& field : settingFields)
+	{
+		auto it = values.find(std::string{ field.category } + '.' + field.key);
+		if (it == values.end())
+		{
+			complete = false;
+			// Files written before the keys had their category
+			it = values.find(field.key);
+			if (it == values.end())
+				continue;
+		}
+		const bool valid = std::visit([&](auto member) { return parseValue(it->second, Settings.*member); }, field.member);
+		if (!valid)
+			Logger::DebugPrint("Invalid value for %s.%s in MGSDelta_config.txt: %s", field.category, field.key, it->second.c_str());
+	}
 
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "disableThermalVisionScanline", disableThermalVisionScanline);
-	
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableImmersiveMode", enableImmersiveMode);
-	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "blackBarsSize", blackBarsSize);
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraMovementsInImmersiveCutscenes", smoothCameraMovementsInImmersiveCutscenes);
-	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cutsceneCameraPositionLerp", cutsceneCameraPositionLerp);
-	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cutsceneCameraRotationLerp", cutsceneCameraRotationLerp);
-	
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DCutscenes", enable3DCutscenes);
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DRadio", enable3DRadio);
-	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DSurvivalView", enable3DSurvivalView);
+	// First start, settings added by a plugin update (written with their defaults), or old key format
+	if (!complete)
+		Save();
+}
 
+void SettingsManager::Save()
+{
+	std::ofstream file(configFilePath, std::ios::trunc);
+	if (!file.is_open())
+	{
+		Logger::DebugPrint("Failed to write %s", configFilePath.string().c_str());
+		return;
+	}
+
+	// Sorted by category, settings of a category in table order
+	std::vector<const SettingField*> fields;
+	for (const auto& field : settingFields)
+		fields.push_back(&field);
+	std::stable_sort(fields.begin(), fields.end(),
+		[](const SettingField* a, const SettingField* b) { return std::strcmp(a->category, b->category) < 0; });
+
+	file << "# MGSDelta Plugin Configuration File\n"
+		"# This file is auto-generated. It saves the mgs plugin menu settings you set ingame.\n"
+		<< std::boolalpha;
+	const char* category = "";
+	for (const auto* field : fields)
+	{
+		if (std::strcmp(field->category, category) != 0)
+		{
+			category = field->category;
+			file << '\n';
+		}
+		file << field->category << '.' << field->key << '=';
+		std::visit([&](auto member) { file << Settings.*member; }, field->member);
+		file << '\n';
+	}
 	Logger::DebugPrint("Config change saved in MGSDelta_config.txt");
 }
-
-
-void SettingsManager::GetOrCreateConfigFile()
-{
-	HANDLE hFile = CreateFileA(pluginConfigFilePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hFile == INVALID_HANDLE_VALUE)
-	{
-		// File does not exist, create it with default values
-		Logger::DebugPrint("File not found: %s. Creating default config.", pluginConfigFilePath.c_str());
-
-		std::string defaultContent = "# MGSDelta Plugin Configuration File\n"
-			"# This file is auto-generated. It saves the mgs plugin menu settings you set ingame.\n"
-			"------ Camera Settings ------\n"
-			"attachCameraToSnakeHead=false\n"
-			"cameraRotationSpeed=25.0\n"
-			"cameraRotationDeadZone=0.2\n"
-			"smoothCameraRotation=false\n"
-			"cameraYawLerp=5.0\n"
-			"smoothCameraPosition=true\n"
-			"cameraPositionXYLerp=3.5\n"
-			"cameraPositionZLerp=5.0\n"
-			"------ Gameplay Settings ------\n"
-			"enableRoomscaleProneAndCrouch=false\n"
-			"linearLocomotion=true\n"
-			"gameTakesMovementControl=true\n"
-			"squatUnderThisValue=-0.4\n"
-			"crawlUnderThisValue=-0.8\n"
-			"------ Weapons Settings ------\n"
-			"enableWeaponsScopes=true\n"
-			"scopeResolution=1024\n"
-			"disableAllRecoil=false\n"
-			"enableTwoHandsPivot=true\n"
-			"enableTwoHandsRealisticRecoil=true\n"
-			"------ Items Settings ------\n"
-			"disableThermalVisionScanline=true\n"
-			"------ Cutscenes Settings ------\n"
-			"enableImmersiveMode=false\n"
-			"blackBarsSize=1.0\n"
-			"smoothCameraMovementsInImmersiveCutscenes=true\n"
-			"cutsceneCameraPositionLerp=5.0\n"
-			"cutsceneCameraRotationLerp=8.0\n"
-			"------ Rendering Settings ------\n"
-			"enable3DCutscenes=true\n"
-			"enable3DRadio=false\n"
-			"enable3DSurvivalView=true\n";
-
-		HANDLE hCreateFile = CreateFileA(pluginConfigFilePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (hCreateFile != INVALID_HANDLE_VALUE)
-		{
-			DWORD bytesWritten;
-			WriteFile(hCreateFile, defaultContent.c_str(), static_cast<DWORD>(defaultContent.size()), &bytesWritten, NULL);
-			CloseHandle(hCreateFile);
-			Logger::DebugPrint("Default config created at: %s", pluginConfigFilePath.c_str());
-		}
-		else
-		{
-			Logger::DebugPrint("Failed to create default config at: %s", pluginConfigFilePath.c_str());
-		}
-		return;
-	}
-
-	CloseHandle(hFile);
-	return;
-}
-
-namespace {
-std::optional<std::string> readFile(const std::string& filePath)
-{
-	std::ifstream file(filePath, std::ios::binary);
-	if (!file.is_open())
-	{
-		Logger::DebugPrint("Failed to open %s", filePath.c_str());
-		return std::nullopt;
-	}
-	return std::string{ std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
-}
-
-// Position of the '=' of the line "key=value". The key must be a whole name at the start of a line:
-// a plain search would also find it inside another key.
-size_t findKeyEquals(const std::string& contents, const std::string& key)
-{
-	for (size_t lineStart = 0; lineStart < contents.size();)
-	{
-		const size_t lineEnd = std::min(contents.find_first_of("\r\n", lineStart), contents.size());
-		if (contents.compare(lineStart, key.size(), key) == 0)
-		{
-			const size_t equalPos = contents.find_first_not_of(" \t", lineStart + key.size());
-			if (equalPos < lineEnd && contents[equalPos] == '=')
-				return equalPos;
-		}
-		lineStart = lineEnd + 1;
-	}
-	return std::string::npos;
-}
-
-// Value of the key without surrounding spaces, nullopt if the file or the key is missing
-std::optional<std::string> readValue(const std::string& filePath, const std::string& key)
-{
-	const auto contents = readFile(filePath);
-	if (!contents)
-		return std::nullopt;
-	const size_t equalPos = findKeyEquals(*contents, key);
-	if (equalPos == std::string::npos)
-		return std::nullopt;
-	const size_t lineEnd = std::min(contents->find_first_of("\r\n", equalPos), contents->size());
-	std::string value = contents->substr(equalPos + 1, lineEnd - equalPos - 1);
-	value.erase(0, value.find_first_not_of(" \t"));
-	value.erase(value.find_last_not_of(" \t") + 1);
-	return value;
-}
-
-// Replaces the key's value. Appended if missing: config files created before a plugin update don't have the new settings.
-void writeValue(const std::string& filePath, const std::string& key, const std::string& value)
-{
-	auto contents = readFile(filePath);
-	if (!contents)
-		return;
-	const size_t equalPos = findKeyEquals(*contents, key);
-	if (equalPos != std::string::npos)
-	{
-		const size_t lineEnd = std::min(contents->find_first_of("\r\n", equalPos), contents->size());
-		contents->replace(equalPos + 1, lineEnd - equalPos - 1, value);
-	}
-	else
-	{
-		if (!contents->empty() && contents->back() != '\n')
-			*contents += '\n';
-		*contents += key + '=' + value + '\n';
-	}
-
-	std::ofstream file(filePath, std::ios::binary | std::ios::trunc);
-	if (!file.is_open())
-	{
-		Logger::DebugPrint("Failed to open %s for writing", filePath.c_str());
-		return;
-	}
-	file << *contents;
-}
-}
-
-void SettingsManager::SetBoolValueToFile(const std::string& filePath, const std::string& key, bool value)
-{
-	writeValue(filePath, key, value ? "true" : "false");
-}
-
-bool SettingsManager::GetBoolValueFromFile(const std::string& filePath, const std::string& key, bool defaultValue)
-{
-	auto valueStr = readValue(filePath, key);
-	if (!valueStr)
-		return defaultValue;
-
-	std::transform(valueStr->begin(), valueStr->end(), valueStr->begin(), ::tolower);
-	if (*valueStr == "true") return true;
-	if (*valueStr == "false") return false;
-
-	Logger::DebugPrint("Error: Invalid bool value for key: %s", key.c_str());
-	return defaultValue;
-}
-
-void SettingsManager::SetFloatValueToFile(const std::string& filePath, const std::string& key, float value)
-{
-	// Limited precision keeps the float clean
-	std::ostringstream oss;
-	oss << std::fixed << std::setprecision(6) << value;
-	writeValue(filePath, key, oss.str());
-}
-
-float SettingsManager::GetFloatValueFromFile(const std::string& filePath, const std::string& key, float defaultValue)
-{
-	const auto valueStr = readValue(filePath, key);
-	if (!valueStr)
-		return defaultValue;
-	try
-	{
-		return std::stof(*valueStr);
-	}
-	catch (const std::logic_error&) // invalid_argument or out_of_range
-	{
-		Logger::DebugPrint("Error: Invalid float value for key: %s", key.c_str());
-		return defaultValue;
-	}
-}
-
-void SettingsManager::SetIntValueToFile(const std::string& filePath, const std::string& key, int value)
-{
-	writeValue(filePath, key, std::to_string(value));
-}
-
-int SettingsManager::GetIntValueFromFile(const std::string& filePath, const std::string& key, int defaultValue)
-{
-	const auto valueStr = readValue(filePath, key);
-	if (!valueStr)
-		return defaultValue;
-	try
-	{
-		return std::stoi(*valueStr);
-	}
-	catch (const std::logic_error&) // invalid_argument or out_of_range
-	{
-		Logger::DebugPrint("Error: Invalid int value for key: %s", key.c_str());
-		return defaultValue;
-	}
-}
-
-std::string GetDLLDirectory()
-{
-	char path[MAX_PATH];
-	HMODULE hModule = GetModuleHandleA("MGSDelta_Plugin.dll"); // Get handle to the loaded DLL
-
-	if (hModule)
-	{
-		GetModuleFileNameA(hModule, path, MAX_PATH); // Get full DLL path
-		std::string fullPath = path;
-
-		// Remove the DLL filename to get the directory
-		size_t pos = fullPath.find_last_of("\\/");
-		if (pos != std::string::npos)
-		{
-			return fullPath.substr(0, pos + 1); // Keep the trailing slash
-		}
-	}
-	else
-		Logger::DebugPrint("Failed to get module handle for MGSDelta_Plugin.dll");
-
-	return "Unknown";
-}
-
-// In the profile folder (the DLL is in its plugins subfolder)
-std::string SettingsManager::GetConfigFilePath()
-{
-	std::string fullPath = GetDLLDirectory();
-
-	size_t pos = fullPath.find_last_of("\\/");
-	if (pos != std::string::npos)
-	{
-		fullPath = fullPath.substr(0, pos); // Remove the trailing slash
-		pos = fullPath.find_last_of("\\/");
-		if (pos != std::string::npos)
-		{
-			fullPath = fullPath.substr(0, pos + 1); // Remove "plugins"
-		}
-	}
-
-	return fullPath + pluginSettingsFileName;
-}
-

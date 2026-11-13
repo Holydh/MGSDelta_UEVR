@@ -27,100 +27,65 @@ struct WeaponConfig
 	ue::FRotator left_hand_rotation_offset{};
 };
 
-class SettingsManager {
-public:
-	bool SettingsModified = false;
-
-	void InitSettingsManager();
-	void GetOrCreateConfigFile();
-	void WriteSettingsToPluginConfigFile();
-
-	static std::unordered_map<std::string, WeaponConfig> g_weaponConfigs;
-	bool LoadWeaponConfigFromFile(const fs::path& path, WeaponConfig& outCfg);
-	void LoadAllConfigs(const std::filesystem::path& baseDir);
-
-	bool* AttachCameraToSnakeHeadPtr;
-	float* CameraRotationSpeedPtr;
-	float* CameraRotationDeadZonePtr;
-	bool* SmoothCameraRotationPtr;
-	float* CameraYawLerpPtr;
-	bool* SmoothCameraPositionPtr;
-	float* CameraPositionXYLerpPtr;
-	float* CameraPositionZLerpPtr;
-
-	bool* EnableRoomscaleProneAndCrouchPtr;
-	bool* LinearLocomotionPtr;
-	bool* GameTakesMovementControlPtr;
-	float* SquatUnderThisValuePtr;
-	float* CrawlUnderThisValuePtr;
-
-	bool* EnableWeaponsScopesPtr;
-	int* ScopeResolutionSliderIndexPtr;
-	int* ScopeResolutionPtr;
-	bool* DisableAllRecoilPtr;
-	bool* EnableTwoHandsPivotPtr;
-	bool* EnableTwoHandsRealisticRecoilPtr;
-
-	bool* DisableThermalVisionScanlinePtr;
-
-	bool* EnableImmersiveModePtr;
-	float* BlackBarsSizePtr;
-	bool* SmoothCameraMovementsInImmersiveCutscenesPtr;
-	float* CutsceneCameraPositionLerpPtr;
-	float* CutsceneCameraRotationLerpPtr;
-
-	bool* Enable3DCutscenesPtr;
-	bool* Enable3DRadioPtr;
-	bool* Enable3DSurvivalViewPtr;
-	
-private:
+// Plugin menu settings, saved in MGSDelta_config.txt. A new setting goes here (its default is the
+// initializer) and in the field table of SettingsManager.cpp.
+struct PluginSettings
+{
+	// Camera
 	bool attachCameraToSnakeHead = false;
-	float cameraRotationSpeed = 10.0f;
+	float cameraRotationSpeed = 25.0f;
 	float cameraRotationDeadZone = 0.2f;
-	bool smoothCameraRotation = true;
+	bool smoothCameraRotation = false;
 	float cameraYawLerp = 5.0f;
 	bool smoothCameraPosition = true;
-	float cameraPositionXYLerp = 5.0f;
+	float cameraPositionXYLerp = 3.5f;
 	float cameraPositionZLerp = 5.0f;
 
+	// Gameplay
 	bool enableRoomscaleProneAndCrouch = false;
 	bool linearLocomotion = true;
 	bool gameTakesMovementControl = true;
 	float squatUnderThisValue = -0.4f;
 	float crawlUnderThisValue = -0.8f;
 
+	// Weapons
 	bool enableWeaponsScopes = true;
-	int scopeResolutionSliderIndex = 0;
 	int scopeResolution = 1024;
 	bool disableAllRecoil = false;
 	bool enableTwoHandsPivot = true;
 	bool enableTwoHandsRealisticRecoil = true;
 
+	// Items
 	bool disableThermalVisionScanline = true;
 
-	bool enableImmersiveMode = false;
-	float blackBarsSize = 1.0f;
+	// Cutscenes
+	bool enableImmersiveMode = true;
+	float blackBarsSize = 6.0f;
 	bool smoothCameraMovementsInImmersiveCutscenes = true;
-	float cutsceneCameraPositionLerp = 5.0f;
-	float cutsceneCameraRotationLerp = 8.0f;
+	float cutsceneCameraPositionLerp = 6.0f;
+	float cutsceneCameraRotationLerp = 7.0f;
 
+	// Rendering
 	bool enable3DCutscenes = true;
 	bool enable3DRadio = false;
 	bool enable3DSurvivalView = true;
+};
 
-	std::string GetConfigFilePath();
-	std::string pluginSettingsFileName = "MGSDelta_config.txt";
+class SettingsManager {
+public:
+	PluginSettings Settings;
+	// Set by the menu when a setting changes, saved once the edit ends
+	bool SettingsModified = false;
 
-	std::string pluginConfigFilePath;
+	// Reads MGSDelta_config.txt from the profile folder. Written with the defaults if it's missing,
+	// or lacks settings added since it was created.
+	void Load();
+	void Save();
 
-	//Would need some rework if lots of config values to read. Now it opens the config.txt file each time we call these :
-	void SetFloatValueToFile(const std::string& filePath, const std::string& key, float value);
-	float GetFloatValueFromFile(const std::string& filePath, const std::string& key, float defaultValue);
-	bool GetBoolValueFromFile(const std::string& filePath, const std::string& key, bool defaultValue);
-	void SetBoolValueToFile(const std::string& filePath, const std::string& key, bool value);
-	int GetIntValueFromFile(const std::string& filePath, const std::string& key, int defaultValue);
-	void SetIntValueToFile(const std::string& filePath, const std::string& key, int value);
+	static std::unordered_map<std::string, WeaponConfig> g_weaponConfigs;
+	bool LoadWeaponConfigFromFile(const fs::path& path, WeaponConfig& outCfg);
+	void LoadWeaponConfigs(const std::filesystem::path& dir);
 
-	void FetchPluginSettings();
-	void SyncScopeSliderWithResolution();
+private:
+	std::filesystem::path configFilePath;
 };

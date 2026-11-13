@@ -79,8 +79,8 @@ void CameraController::ProcessCamera(float deltaTime)
 	glm::fvec3 tempPosition;
 	glm::fvec3 newPosition;
 	glm::fvec3 newRotation;
-	float remappedLerpXYMultiplier = Utilities::Remap(*settingsManager->CameraPositionXYLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
-	float remappedLerpZMultiplier = Utilities::Remap(*settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
+	float remappedLerpXYMultiplier = Utilities::Remap(settingsManager->Settings.cameraPositionXYLerp, 0.0f, 10.0f, 4.0f, 0.1f);
+	float remappedLerpZMultiplier = Utilities::Remap(settingsManager->Settings.cameraPositionZLerp, 0.0f, 10.0f, 4.0f, 0.1f);
 
 	static ue::SingletonRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
 	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get(); // may be null: ue::get then returns false
@@ -130,17 +130,17 @@ void CameraController::ProcessCamera(float deltaTime)
 			return;
 		}
 
-		if (*settingsManager->EnableImmersiveModePtr)
+		if (settingsManager->Settings.enableImmersiveMode)
 		{
-			if (*settingsManager->SmoothCameraMovementsInImmersiveCutscenesPtr)
+			if (settingsManager->Settings.smoothCameraMovementsInImmersiveCutscenes)
 			{
 				// prevent camera yeeting into orbit on low fps
-				float remappedCutscenePositionLerpMultiplier = Utilities::Remap(*settingsManager->CutsceneCameraPositionLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
+				float remappedCutscenePositionLerpMultiplier = Utilities::Remap(settingsManager->Settings.cutsceneCameraPositionLerp, 0.0f, 10.0f, 4.0f, 0.1f);
 				float speedXY = 11.25f * remappedCutscenePositionLerpMultiplier;
 				float alphaXY = 1.0f - expf(-speedXY * deltaTime);
 				float speedZ = 2.25f * remappedCutscenePositionLerpMultiplier;
 				float alphaZ = 1.0f - expf(-speedZ * deltaTime);
-				newPosition = *settingsManager->SmoothCameraMovementsInImmersiveCutscenesPtr ?
+				newPosition = settingsManager->Settings.smoothCameraMovementsInImmersiveCutscenes ?
 					glm::fvec3(
 						glm::mix(LastCameraPosition.x, originalCamLocation.x, alphaXY),
 						glm::mix(LastCameraPosition.y, originalCamLocation.y, alphaXY),
@@ -150,7 +150,7 @@ void CameraController::ProcessCamera(float deltaTime)
 				NewCameraPosition = { newPosition.x, newPosition.y, newPosition.z };
 				LastCameraPosition = newPosition;
 
-				float remappedRotationLerpMultiplier = Utilities::Remap(*settingsManager->CutsceneCameraRotationLerpPtr, 0.0f, 10.0f, 2.0f, 0.1f);
+				float remappedRotationLerpMultiplier = Utilities::Remap(settingsManager->Settings.cutsceneCameraRotationLerp, 0.0f, 10.0f, 2.0f, 0.1f);
 				float speed = 10.25f * remappedRotationLerpMultiplier;
 				float alpha = 1.0f - expf(-speed * deltaTime);
 
@@ -227,7 +227,7 @@ void CameraController::ProcessCamera(float deltaTime)
 			return;
 		}
 
-		if (!*settingsManager->EnableRoomscaleProneAndCrouchPtr)
+		if (!settingsManager->Settings.enableRoomscaleProneAndCrouch)
 		{
 			switch (playerManager->CurrentStance)
 			{
@@ -273,19 +273,19 @@ void CameraController::ProcessCamera(float deltaTime)
 
 		if (playerManager->IsPeepingInternal) // initial peep movement
 		{
-			tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr ?
+			tempPosition = settingsManager->Settings.attachCameraToSnakeHead ?
 				glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
 				glm::fvec3(headColliderPosition.x, headColliderPosition.y, pawnPosition.z + CameraHeightOffset);
 			// prevent camera yeeting into orbit on low fps
 			constexpr float speed = 3.0f;
 			float alpha = 1.0f - expf(-speed * deltaTime);
-			newPosition = *settingsManager->SmoothCameraPositionPtr ?
+			newPosition = settingsManager->Settings.smoothCameraPosition ?
 				glm::mix(LastCameraPosition, tempPosition, alpha) :
 				tempPosition;
 		}
 		else if (playerManager->IsPeeping) // stops peeping
 		{
-			tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr ?
+			tempPosition = settingsManager->Settings.attachCameraToSnakeHead ?
 				glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
 				glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
 			// prevent camera yeeting into orbit on low fps
@@ -293,7 +293,7 @@ void CameraController::ProcessCamera(float deltaTime)
 			float alphaXY = 1.0f - expf(-speedXY * deltaTime);
 			float speedZ = 2.25f * remappedLerpZMultiplier;
 			float alphaZ = 1.0f - expf(-speedZ * deltaTime);
-			newPosition = *settingsManager->SmoothCameraPositionPtr ?
+			newPosition = settingsManager->Settings.smoothCameraPosition ?
 				glm::fvec3(
 					glm::mix(LastCameraPosition.x, tempPosition.x, alphaXY),
 					glm::mix(LastCameraPosition.y, tempPosition.y, alphaXY),
@@ -303,7 +303,7 @@ void CameraController::ProcessCamera(float deltaTime)
 
 		else
 		{
-			tempPosition = *settingsManager->AttachCameraToSnakeHeadPtr || CardBoardEquipped || (playerManager->IsFirstPersonView && !*settingsManager->EnableRoomscaleProneAndCrouchPtr) ?
+			tempPosition = settingsManager->Settings.attachCameraToSnakeHead || CardBoardEquipped || (playerManager->IsFirstPersonView && !settingsManager->Settings.enableRoomscaleProneAndCrouch) ?
 				glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
 				glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
 			// prevent camera yeeting into orbit on low fps
@@ -311,7 +311,7 @@ void CameraController::ProcessCamera(float deltaTime)
 			float alphaXY = 1.0f - expf(-speedXY * deltaTime);
 			float speedZ = (CardBoardEquipped ? 5.0f : 2.25f) * remappedLerpZMultiplier;
 			float alphaZ = 1.0f - expf(-speedZ * deltaTime);
-			newPosition = *settingsManager->SmoothCameraPositionPtr ?
+			newPosition = settingsManager->Settings.smoothCameraPosition ?
 				glm::fvec3(
 					glm::mix(LastCameraPosition.x, tempPosition.x, alphaXY),
 					glm::mix(LastCameraPosition.y, tempPosition.y, alphaXY),
@@ -326,7 +326,7 @@ void CameraController::ProcessCamera(float deltaTime)
 
 		if (playerManager->CurrentMenuType == ue::EGsrUIMenuType::None)
 		{
-			YawProcessed = YawInput * 3.0f * *settingsManager->CameraRotationSpeedPtr * deltaTime;
+			YawProcessed = YawInput * 3.0f * settingsManager->Settings.cameraRotationSpeed * deltaTime;
 			if (YawInput != 0.0)
 				ActualYaw += YawProcessed;
 		}
@@ -334,11 +334,11 @@ void CameraController::ProcessCamera(float deltaTime)
 		/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
 
 		//The Imgui menu shows the smoothness "quantity", not the lerp factor. We need the inverse for the calculation. Makes more sense for users.
-		float remappedRotationLerpMultiplier = Utilities::Remap(*settingsManager->CameraYawLerpPtr, 0.0f, 10.0f, 2.0f, 0.1f);
+		float remappedRotationLerpMultiplier = Utilities::Remap(settingsManager->Settings.cameraYawLerp, 0.0f, 10.0f, 2.0f, 0.1f);
 		// prevent camera yeeting into orbit on low fps
 		float speed = 10.25f * remappedRotationLerpMultiplier;
 		float alpha = 1.0f - expf(-speed * deltaTime);
-		NewCameraRotation.yaw = *settingsManager->SmoothCameraRotationPtr ?
+		NewCameraRotation.yaw = settingsManager->Settings.smoothCameraRotation ?
 			glm::mix(LastCameraRotation.yaw, ActualYaw, alpha) :
 			ActualYaw;
 
@@ -378,7 +378,7 @@ void CameraController::ProcessCameraResetTimer(float delta)
 
 void CameraController::ProcessRoomscaleStance()
 {
-	if (!*settingsManager->EnableRoomscaleProneAndCrouchPtr)
+	if (!settingsManager->Settings.enableRoomscaleProneAndCrouch)
 		return;
 
 	if (!CameraAttachementActor)
@@ -390,16 +390,16 @@ void CameraController::ProcessRoomscaleStance()
 	uevr::API::get()->param()->vr->get_transform(uevr::API::VR::get_hmd_index(), &hmdTransform);
 	auto hmdHeight = hmdTransform.m[3][1];
 
-	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Stand && hmdHeight <= *settingsManager->SquatUnderThisValuePtr)
+	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Stand && hmdHeight <= settingsManager->Settings.squatUnderThisValue)
 		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Squat);
 
-	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Squat && hmdHeight <= *settingsManager->CrawlUnderThisValuePtr)
+	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Squat && hmdHeight <= settingsManager->Settings.crawlUnderThisValue)
 		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Crawl);
 
-	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Squat && hmdHeight >= *settingsManager->SquatUnderThisValuePtr)
+	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Squat && hmdHeight >= settingsManager->Settings.squatUnderThisValue)
 		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Stand);
 
-	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Crawl && hmdHeight >= *settingsManager->CrawlUnderThisValuePtr)
+	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Crawl && hmdHeight >= settingsManager->Settings.crawlUnderThisValue)
 		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Squat);
 }
 
@@ -517,14 +517,14 @@ void CameraController::ApplyCutsceneSettings()
 	if (CutsceneStarts())
 	{
 		uevr::API::VR::recenter_view();
-		if (ActualCutsceneState == CameraController::CutsceneState::Playing3D && !*settingsManager->EnableImmersiveModePtr)
+		if (ActualCutsceneState == CameraController::CutsceneState::Playing3D && !settingsManager->Settings.enableImmersiveMode)
 		{
 			SpawnCustom2DScreen();
 		}
 		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)).c_str());
 		uevr::API::VR::set_mod_value("VR_2DScreenMode", ActualCutsceneState == CameraController::CutsceneState::Playing2D ?	true : false);
-		uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesPtr ? 1.0f : 0.0f);
-		uevr::API::VR::set_mod_value("VR_DecoupledPitch", *settingsManager->EnableImmersiveModePtr);
+		uevr::API::VR::set_mod_value("VR_WorldScale", settingsManager->Settings.enable3DCutscenes ? 1.0f : 0.0f);
+		uevr::API::VR::set_mod_value("VR_DecoupledPitch", settingsManager->Settings.enableImmersiveMode);
 	}
 	if (CutsceneStops())
 	{
@@ -550,7 +550,7 @@ void CameraController::ApplyCutsceneSettings()
 			return;
 		}
 
-		if (!*settingsManager->EnableImmersiveModePtr)
+		if (!settingsManager->Settings.enableImmersiveMode)
 		{
 			if (ue::get<bool>(cobraCutsceneCameraCtrlMngr, L"bIsFpv"))
 				DestroyCustom2DScreen();
@@ -753,7 +753,7 @@ void CameraController::ResizeBlackBars()
     
     float planeUnit = 100.0f;
 	auto root = ue::call<ue::UObject*>(Custom2DScreen, L"K2_GetRootComponent");
-	ue::call(root, L"K2_SetRelativeLocation", ue::FVector{*settingsManager->BlackBarsSizePtr * 100.0f -1000.0f , 0.0f, 0.0f }, false, nullptr, true);
+	ue::call(root, L"K2_SetRelativeLocation", ue::FVector{settingsManager->Settings.blackBarsSize * 100.0f -1000.0f , 0.0f, 0.0f }, false, nullptr, true);
 
     auto children = ue::get_ptr<ue::TArray<ue::UObject*>>(root, L"AttachChildren");
     for (int i = 0; children && i < children->count; i++)

@@ -317,7 +317,7 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 void WeaponManager::ProcessTwoHandsGrabWeaponLocationAndRotation()
 {
 	// Pivot disabled: the weapon stays held by the right hand only (UEVR attachment)
-	if (twoHandedPivot && *settingsManager->EnableTwoHandsPivotPtr && WeaponRoot) {
+	if (twoHandedPivot && settingsManager->Settings.enableTwoHandsPivot && WeaponRoot) {
 		auto rightCtrlPos = ue::call<ue::FVector>(playerManager->RightController, L"K2_GetComponentLocation");
 		auto leftCtrlPos = ue::call<ue::FVector>(playerManager->LeftController, L"K2_GetComponentLocation");
 
@@ -489,7 +489,7 @@ void WeaponManager::ProcessWeapon(float delta)
 			}
 		}
 
-		if (*settingsManager->EnableWeaponsScopesPtr)
+		if (settingsManager->Settings.enableWeaponsScopes)
 		{
 			SwitchScopeState(false);
 
@@ -729,7 +729,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		if (CurrentWeapon != NULL && !playerManager->SecondHandAttachedToWeapon)
 			ApplyRecoil(delta);
 
-		if (!*settingsManager->EnableWeaponsScopesPtr)
+		if (!settingsManager->Settings.enableWeaponsScopes)
 			return;
 
 		if (CurrentWeaponID == EGsrEquipId::WP_Dragnov || CurrentWeaponID == EGsrEquipId::WP_MosinNagant || CurrentWeaponID == EGsrEquipId::WP_Rpg)
@@ -1061,13 +1061,13 @@ void WeaponManager::ToggleThermalVisionScanline()
 		return;
 	}
 	Logger::DebugPrint("Toggle Thermal Vision Scanline");
-	ue::call(ue::get<ue::UObject*>(thermalPostProcessActor, L"Scanline"), L"SetVisibility", !*settingsManager->DisableThermalVisionScanlinePtr, true);
+	ue::call(ue::get<ue::UObject*>(thermalPostProcessActor, L"Scanline"), L"SetVisibility", !settingsManager->Settings.disableThermalVisionScanline, true);
 	ToggleThermalVisionScanlineNextFrame = false;
 }
 
 void WeaponManager::ApplyRecoil(float delta)
 {
-	if (*settingsManager->DisableAllRecoilPtr)
+	if (settingsManager->Settings.disableAllRecoil)
 		return;
 
 	glm::fvec3 positionRecoilForce = { 0.0f, 0.0f, 0.0f };
@@ -1075,7 +1075,7 @@ void WeaponManager::ApplyRecoil(float delta)
 	float recoilPositionRecoverySpeed = 10.0f;
 	float recoilRotationRecoverySpeed = 8.0f;
 
-	bool twoHandsRecoil = playerManager->SecondHandAttachedToWeapon || !*settingsManager->EnableTwoHandsRealisticRecoilPtr;
+	bool twoHandsRecoil = playerManager->SecondHandAttachedToWeapon || !settingsManager->Settings.enableTwoHandsRealisticRecoil;
 
 	switch (CurrentWeaponID)
 	{
@@ -1160,7 +1160,7 @@ void WeaponManager::ApplyRecoil(float delta)
 	ue::FHitResult outHit;
 	if (IsShooting)
 	{
-		if (!playerManager->SecondHandAttachedToWeapon && *settingsManager->EnableTwoHandsRealisticRecoilPtr)
+		if (!playerManager->SecondHandAttachedToWeapon && settingsManager->Settings.enableTwoHandsRealisticRecoil)
 		{
 			positionRecoilForce *= 2.0f;
 			rotationRecoilForceEuler *= 2.0f;
@@ -1175,7 +1175,7 @@ void WeaponManager::ApplyRecoil(float delta)
 	}
 	else
 	{
-		if (!playerManager->SecondHandAttachedToWeapon && *settingsManager->EnableTwoHandsRealisticRecoilPtr)
+		if (!playerManager->SecondHandAttachedToWeapon && settingsManager->Settings.enableTwoHandsRealisticRecoil)
 		{
 			recoilPositionRecoverySpeed *= 0.75f;
 			recoilRotationRecoverySpeed *= 0.75f;
@@ -1235,7 +1235,7 @@ void WeaponManager::getRenderTarget(uevr::API::UObject* world)
 	if (!ScopeRenderTarget)
 	{
 		ScopeRenderTarget = ue::call_static<ue::UObject*>(ue::lib::KismetRendering, L"CreateRenderTarget2D",
-			world, *settingsManager->ScopeResolutionPtr, *settingsManager->ScopeResolutionPtr,
+			world, settingsManager->Settings.scopeResolution, settingsManager->Settings.scopeResolution,
 			ue::ETextureRenderTargetFormat::RTF_RGBA16f, linearColor, false, false);
 		if (ScopeRenderTarget)
 			Logger::DebugPrint(L"Render target created : " + ScopeRenderTarget->get_full_name());

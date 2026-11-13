@@ -1,35 +1,35 @@
 # MGSDelta Plugin Configuration File
 # This file is auto-generated. It saves the mgs plugin menu settings you set ingame.
------- Camera Settings ------
-attachCameraToSnakeHead=false
-cameraRotationSpeed=25.000000
-cameraRotationDeadZone=0.200000
-smoothCameraRotation=false
-cameraYawLerp=5.000000
-smoothCameraPosition=true
-cameraPositionXYLerp=3.500000
-cameraPositionZLerp=5.000000
------- Gameplay Settings ------
-enableRoomscaleProneAndCrouch=false
-linearLocomotion=true
-gameTakesMovementControl=true
-squatUnderThisValue=-0.400000
-crawlUnderThisValue=-0.800000
------- Weapons Settings ------
-enableWeaponsScopes=true
-scopeResolution=1024
-disableAllRecoil=false
-enableTwoHandsPivot=true
-enableTwoHandsRealisticRecoil=true
------- Items Settings ------
-disableThermalVisionScanline=true
------- Cutscenes Settings ------
-enableImmersiveMode=true
-blackBarsSize=6.000000
-smoothCameraMovementsInImmersiveCutscenes=true
-cutsceneCameraPositionLerp=6.000000
-cutsceneCameraRotationLerp=7.000000
------- Rendering Settings ------
-enable3DCutscenes=true
-enable3DRadio=true
-enable3DSurvivalView=true
+
+Camera.attachCameraToSnakeHead=false
+Camera.cameraRotationSpeed=25
+Camera.cameraRotationDeadZone=0.2
+Camera.smoothCameraRotation=false
+Camera.cameraYawLerp=5
+Camera.smoothCameraPosition=true
+Camera.cameraPositionXYLerp=3.5
+Camera.cameraPositionZLerp=5
+
+Cutscenes.enableImmersiveMode=false
+Cutscenes.blackBarsSize=6
+Cutscenes.smoothCameraMovementsInImmersiveCutscenes=true
+Cutscenes.cutsceneCameraPositionLerp=5
+Cutscenes.cutsceneCameraRotationLerp=8
+
+Gameplay.enableRoomscaleProneAndCrouch=false
+Gameplay.linearLocomotion=true
+Gameplay.gameTakesMovementControl=true
+Gameplay.squatUnderThisValue=-0.4
+Gameplay.crawlUnderThisValue=-0.8
+
+Items.disableThermalVisionScanline=true
+
+Rendering.enable3DCutscenes=true
+Rendering.enable3DRadio=false
+Rendering.enable3DSurvivalView=true
+
+Weapons.enableWeaponsScopes=true
+Weapons.scopeResolution=1024
+Weapons.disableAllRecoil=false
+Weapons.enableTwoHandsPivot=true
+Weapons.enableTwoHandsRealisticRecoil=true
