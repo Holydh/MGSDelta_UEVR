@@ -68,3 +68,9 @@ instead of crashing.
 Fetched at configure time: [kananlib](https://github.com/cursey/kananlib),
 [spdlog](https://github.com/gabime/spdlog), [bddisasm](https://github.com/bitdefender/bddisasm),
 [glm](https://github.com/g-truc/glm).
+
+## Credits & Special thanks to :
+Praydog for the UEVR injector
+Jbusfield and his UEVR lua library used for the animated hands.
+DJ for all the UEVR modding shared knowledge, for the reverse engineering of the fire function and help digging the sdk dump.
+LetMeIn50 for playtesting.
