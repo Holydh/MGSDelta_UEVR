@@ -357,8 +357,7 @@ void PlayerManager::FindBasicAction(float deltaTime)
 			BasicAction = action;
 			Logger::DebugPrint(L"Found player basic action: " + action->get_full_name());
 			Logger::DebugPrint("Root motion override callback enabled by the game: %d",
-				ue::call<bool>(action, L"IsSetOverrideRootMotionVelocityCallbackState"));
-			return;
+				ue::call<bool>(action, L"IsSetOverrideRootMotionVelocityCallbackState"));			return;
 		}
 	}
 }
@@ -488,22 +487,25 @@ void PlayerManager::UpdateLinearLocomotion(bool enabled, double viewYaw, float d
 		return;
 
 	// Wall-hugging, climbing, rolling... are other action modules, and falling, swimming or ladders
-	// aren't ground movement: the game keeps its own motion there
+	// aren't ground movement: the game keeps its own motion there. Scripted scenes move Snake with
+	// another controller.
 	auto pawn = uevr::API::get()->get_local_pawn(0);
 	auto movement = ue::get<ue::UObject*>(pawn, L"CharacterMovement");
-	if (!ue::call<bool>(BasicAction, L"IsActive") || !ue::call<bool>(movement, L"IsMovingOnGround"))
+	if (!ue::call<bool>(pawn, L"IsPlayerControlled") || !ue::call<bool>(BasicAction, L"IsActive") ||
+		!ue::call<bool>(movement, L"IsMovingOnGround"))
 		return;
 
 	// Body faces the view, like in FPV: melee, CQC and throws start from the actor's facing
 	ue::call<bool>(pawn, L"K2_SetActorRotation", ue::FRotator{ 0.0, viewYaw, 0.0 }, false);
 
-	// Top speeds of the game's own TPS locomotion, measured in cm/s
+	// Top speeds of the game's own locomotion, measured in cm/s. FPV keeps its speeds while stalking.
+	const bool stalking = ue::call<bool>(ue::call<ue::UObject*>(pawn, L"GetInputContainerBP"), L"IsStalking");
 	double maxSpeed;
 	switch (CurrentStance)
 	{
-	case ue::EGsrPlayerStance::Stand: maxSpeed = 390.0; break;
-	case ue::EGsrPlayerStance::Squat: maxSpeed = 320.0; break;
-	case ue::EGsrPlayerStance::Crawl: maxSpeed = 122.0; break;
+	case ue::EGsrPlayerStance::Stand: maxSpeed = IsFirstPersonView ? 121.0 : stalking ? 70.0 : 390.0; break;
+	case ue::EGsrPlayerStance::Squat: maxSpeed = IsFirstPersonView ? 72.0 : stalking ? 70.0 : 320.0; break;
+	case ue::EGsrPlayerStance::Crawl: maxSpeed = IsFirstPersonView ? 110.0 : stalking ? 70.0 : 122.0; break;
 	default: return;
 	}
 
