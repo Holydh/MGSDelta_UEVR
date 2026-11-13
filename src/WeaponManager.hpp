@@ -17,6 +17,7 @@
 #include "WeaponTraits.hpp"
 #include "ScopeSystem.hpp"
 #include "WeaponRecoil.hpp"
+#include "FoodHandling.hpp"
 
 class WeaponManager {
 private:
@@ -71,12 +72,7 @@ public:
 
 	bool secondHandShouldAttachToWeapon = false;
 
-	float ActualFoodRotation = 0.0f;
-	glm::vec3 FoodIdleStart = {0.0f, 0.0f, 0.0f};
-	glm::vec3 FoodIdlePosition = {0.0f, 0.0f, 0.0f};
-	glm::fquat FoodCurrentLocalRotation = {1.0, 0.0, 0.0, 0.0};
-	glm::quat FoodGrabRelativeRotation = {};
-	glm::vec3 FoodGrabRelativePosition = {};
+	FoodHandling Food;
 
 	Tracked<ue::EGsrEquipId> CurrentWeaponID = ue::EGsrEquipId::WP_None;
 	

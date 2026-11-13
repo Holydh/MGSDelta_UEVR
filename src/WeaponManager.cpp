@@ -5,7 +5,6 @@ using enum ue::EGsrEquipId;
 
 namespace {
 constinit ue::ClassRef SkeletalMeshComponent_c{ L"Class /Script/Engine.SkeletalMeshComponent" };
-constinit ue::ClassRef StaticMeshComponent_c{ L"Class /Script/Engine.StaticMeshComponent" };
 constinit ue::ClassRef GsrGun_c{ L"Class /Script/Gsr.GsrGun" };
 constinit ue::ClassRef PlayerCameraManagerBP_c{ L"BlueprintGeneratedClass /Game/Blueprints/Camera/BP_PlayerCameraManager.BP_PlayerCameraManager_C" };
 constinit ue::SingletonRef GsrPlayerCameraController_c{ L"Class /Script/Gsr.GsrPlayerCameraController" };
@@ -447,130 +446,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	if (CurrentWeaponID == EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
 	{
-		//Food floating animation
-		ue::UObject* foodMesh = nullptr;
-		for (auto child : ue::array_snapshot(WeaponRoot, L"AttachChildren"))
-		{
-			if (!child) continue;
-			if (ue::is_a(child, StaticMeshComponent_c)) {
-				const std::wstring meshName = child->get_fname()->to_string();
-				if (meshName.find(L"ThrowableStaticMesh") != std::wstring::npos)
-				{
-					foodMesh = child;
-					break;
-				}
-			}
-		}
-
-		if (!foodMesh)
-		{
-			Logger::DebugPrint("No food mesh found");
-			return;
-		}
-
-		ue::FHitResult hitResult;
-
-		if (Inputs::LeftGripInputPressed.Fell())
-		{
-			// Re-sync to current world rotation
-			auto loc = ue::call<ue::FVector>(foodMesh, L"K2_GetComponentLocation");
-			FoodIdleStart = glm::vec3(loc.X, loc.Y, loc.Z);
-			FoodIdlePosition = FoodIdleStart;
-
-			auto rotQuat = ue::call<ue::FTransform>(foodMesh, L"K2_GetComponentToWorld").Rotation;
-			auto rot = ue::call<ue::FRotator>(foodMesh, L"K2_GetComponentRotation");
-			FoodCurrentLocalRotation = {(float)rotQuat.W, (float)rotQuat.X, (float)rotQuat.Y, (float)rotQuat.Z};
-			ActualFoodRotation = rot.Yaw;
-		}
-
-		if (Inputs::LeftGripInputPressed.Rose())
-		{
-			auto foodT = ue::call<ue::FTransform>(foodMesh, L"K2_GetComponentToWorld");
-			auto handT = ue::call<ue::FTransform>(playerManager->LeftHandMesh, L"K2_GetComponentToWorld");
-
-			glm::quat foodRot(foodT.Rotation.W, foodT.Rotation.X, foodT.Rotation.Y, foodT.Rotation.Z);
-			glm::quat handRot(handT.Rotation.W, handT.Rotation.X, handT.Rotation.Y, handT.Rotation.Z);
-
-			glm::vec3 foodPos(foodT.Translation.X, foodT.Translation.Y, foodT.Translation.Z);
-			glm::vec3 handPos(handT.Translation.X, handT.Translation.Y, handT.Translation.Z);
-
-			glm::quat handRotInv = glm::inverse(handRot);
-
-			FoodGrabRelativeRotation = handRotInv * foodRot;
-			FoodGrabRelativePosition = handRotInv * (foodPos - handPos);
-		}
-
-		if (!Inputs::LeftGripInputPressed)
-		{
-
-			ActualFoodRotation -= delta * 20.0f;
-			if (ActualFoodRotation <= -360.0f)
-				ActualFoodRotation += 360.0f;
-
-			ActualFoodRotation += cameraController->YawProcessed;
-
-			float radians = glm::radians(ActualFoodRotation);
-
-			// Apply the float
-			float positionOffset = sinf(radians * 2.0f) * 0.01f; // frequency * amplitude
-			auto rotationOffset = sinf(radians * 4.0f) * 2.0f;
-
-			// Build target rotation properly
-			glm::vec3 targetEulerDeg(-rotationOffset, -rotationOffset, ActualFoodRotation);
-			glm::vec3 targetRad = glm::radians(targetEulerDeg);
-
-			glm::quat qTarget = glm::quat(glm::mat3(
-				glm::rotate(glm::mat4(1.0f), targetRad.y, glm::vec3(0, 1, 0)) * // Yaw
-				glm::rotate(glm::mat4(1.0f), targetRad.x, glm::vec3(1, 0, 0)) * // Pitch
-				glm::rotate(glm::mat4(1.0f), targetRad.z, glm::vec3(0, 0, 1))   // Roll
-			));
-
-
-			// slerp from our *previous* smoothed value
-			FoodCurrentLocalRotation = glm::slerp(FoodCurrentLocalRotation, qTarget, delta * 2.0f);
-
-			// Target idle pos
-			auto weaponRootPos = ue::call<ue::FVector>(WeaponRoot, L"K2_GetComponentLocation");
-			glm::vec3 targetPos(
-				weaponRootPos.X,
-				weaponRootPos.Y,
-				weaponRootPos.Z + positionOffset
-			);
-
-
-			auto test = ue::call<ue::FVector>(foodMesh, L"K2_GetComponentLocation");
-			FoodIdlePosition = glm::mix({test.X, test.Y, test.Z}, targetPos, delta * 8.0f);
-
-			// apply
-			ue::FTransform finalTsf = {};
-			finalTsf.Rotation = {FoodCurrentLocalRotation.x, FoodCurrentLocalRotation.y, FoodCurrentLocalRotation.z, FoodCurrentLocalRotation.w};
-			finalTsf.Translation = {FoodIdlePosition.x, FoodIdlePosition.y, FoodIdlePosition.z};
-			finalTsf.Scale3D = ue::call<ue::FVector>(foodMesh, L"K2_GetComponentScale");
-
-			
-
-			ue::call(foodMesh, L"K2_SetWorldTransform", finalTsf, false, &hitResult, false);
-		}
-		else
-		{
-			// Follow left hand position 
-			auto handT = ue::call<ue::FTransform>(playerManager->LeftHandMesh, L"K2_GetComponentToWorld");
-
-			glm::quat handRot(handT.Rotation.W, handT.Rotation.X, handT.Rotation.Y, handT.Rotation.Z);
-			glm::vec3 handPos(handT.Translation.X, handT.Translation.Y, handT.Translation.Z);
-
-			// world transform reconstruction with the offset
-			glm::quat newFoodRot = handRot * FoodGrabRelativeRotation;
-			glm::vec3 newFoodPos = handPos + (handRot * FoodGrabRelativePosition);
-
-			ue::FTransform out;
-			out.Rotation = { newFoodRot.x, newFoodRot.y, newFoodRot.z, newFoodRot.w };
-			out.Translation = { newFoodPos.x, newFoodPos.y, newFoodPos.z };
-			out.Scale3D = ue::call<ue::FVector>(foodMesh, L"K2_GetComponentScale");
-
-			ue::call(foodMesh, L"K2_SetWorldTransform", out, false, &hitResult, false);
-		}
-
+		Food.Update(WeaponRoot, playerManager->LeftHandMesh, cameraController->YawProcessed, delta);
 		return;
 	}
 		
