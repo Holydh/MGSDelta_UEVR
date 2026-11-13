@@ -111,22 +111,11 @@ void WeaponManager::ProcessItem()
 			ApplyHandMaterialToVRHands();
 		}
 
-		if (CurrentItemID.Entered(ue::EGsrItemId::IT_Scope))
-		{
-			uevr::API::VR::set_decoupled_pitch_enabled(false);
-		}
-		if (CurrentItemID.Left(ue::EGsrItemId::IT_Scope))
-		{
-			uevr::API::get()->dispatch_lua_event("HideHands", "0");
-			uevr::API::VR::set_decoupled_pitch_enabled(true);
-		}
-
 		cameraController->CardBoardEquipped = CurrentItemID == ue::EGsrItemId::IT_CBoxA || CurrentItemID == ue::EGsrItemId::IT_CBoxB ||
 			CurrentItemID == ue::EGsrItemId::IT_CBoxC || CurrentItemID == ue::EGsrItemId::IT_CBoxD;
 	}
 	if (CurrentItemID == ue::EGsrItemId::IT_Scope)
 	{
-		uevr::API::get()->dispatch_lua_event("HideHands", "1");
 		uevr::API::UObjectHook::remove_motion_controller_state(LeftHandWeaponRoot);
 		uevr::API::UObjectHook::remove_motion_controller_state(WeaponRoot);
 	}
@@ -873,8 +862,7 @@ void WeaponManager::AttachSecondHandToWeapon()
 		ue::call(playerManager->LeftHandMesh, L"K2_SetRelativeRotation", LeftHandRotationOffset, false, &outHit, false);
 		ue::call(playerManager->RightHandMesh, L"SetVisibility", true, true);
 		ue::call(playerManager->LeftHandMesh, L"SetVisibility", true, true);
-		uevr::API::get()->dispatch_lua_event("TwoHandsHandling", "1");
-		playerManager->SecondHandAttachedToWeapon = true;
+		playerManager->SetSecondHandAttachedToWeapon(true);
 		AttachSecondHandNextFrame = false;
 	}
 }
@@ -896,10 +884,9 @@ bool WeaponManager::DetachSecondHandFromWeapon()
 		ue::FHitResult outHit;
 		ue::call(playerManager->LeftHandMesh, L"K2_SetRelativeLocation", ue::FVector{ 0.0f,0.0f,0.0f }, false, &outHit, false);
 		ue::call(playerManager->LeftHandMesh, L"K2_SetRelativeRotation", ue::FRotator{ 0.0f,-90.0f,0.0f }, false, &outHit, false);
-		playerManager->SecondHandAttachedToWeapon = false;
 		ue::call(playerManager->RightHandMesh, L"SetVisibility", true, true);
 		ue::call(playerManager->LeftHandMesh, L"SetVisibility", true, true);
-		uevr::API::get()->dispatch_lua_event("TwoHandsHandling", "0");
+		playerManager->SetSecondHandAttachedToWeapon(false);
 		return true;
 	}
 	return false;

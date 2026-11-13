@@ -244,20 +244,25 @@ void PlayerManager::FetchMotionControllers()
 	}
 }
 
-void PlayerManager::ToggleVRHandsVisibility(bool enable)
+void PlayerManager::ToggleGameHandsVisibility(bool visible)
 {
-	bool visibility = enable;
-	auto pawn = gameState->Pawn;
-	if (auto handsSkeletalMesh = ue::get<ue::UObject*>(pawn, L"SkeletalMesh_Hand")) {
-		ue::call(handsSkeletalMesh, L"SetOnlyOwnerSee", visibility);
-	}
-	uevr::API::get()->dispatch_lua_event("HideHands", !visibility ? "1" : "0");
+	if (auto handsSkeletalMesh = ue::get<ue::UObject*>(gameState->Pawn, L"SkeletalMesh_Hand"))
+		ue::call(handsSkeletalMesh, L"SetOnlyOwnerSee", !visible);
 }
 
-void PlayerManager::ProcessVRHandsVisibility()
+void PlayerManager::ProcessGameHandsVisibility()
 {
+	// The game's hands replace the VR hands (hidden meanwhile) during melee attacks and while carrying
 	if (MeleeAttackRunning.Changed() || IsCarrying.Changed())
-		ToggleVRHandsVisibility(MeleeAttackRunning || IsCarrying ? false : true);
+		ToggleGameHandsVisibility(MeleeAttackRunning || IsCarrying);
+}
+
+void PlayerManager::SetSecondHandAttachedToWeapon(bool attached)
+{
+	if (SecondHandAttachedToWeapon == attached)
+		return;
+	SecondHandAttachedToWeapon = attached;
+	uevr::API::get()->dispatch_lua_event("TwoHandsHandling", attached ? "1" : "0");
 }
 
 void PlayerManager::FindBasicAction(float deltaTime)
@@ -496,7 +501,5 @@ void PlayerManager::Cleanup()
 	RightController = nullptr;
 	RightHandMesh = nullptr;
 	MainHandAttachedToWeapon = false;
-	if (SecondHandAttachedToWeapon)
-		uevr::API::get()->dispatch_lua_event("TwoHandsHandling", "0");
-	SecondHandAttachedToWeapon = false;
+	SetSecondHandAttachedToWeapon(false);
 }

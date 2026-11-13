@@ -20,6 +20,7 @@
 #include "PlayerManager.hpp"
 #include "Logger.hpp"
 #include "ue/Reflection.hpp"
+#include "ModValue.hpp"
 
 #define _CRT_SECURE_NO_WARNINGS 1
 
@@ -30,8 +31,13 @@ extern std::unique_ptr<MGSDeltaPlugin> g_plugin;
 class MGSDeltaPlugin : public uevr::Plugin {
 private:
 	void Toggle6DOF(bool enable);
-	void UpdateRoomscaleMovement();
-	std::optional<bool> appliedRoomscaleMovement; // last value written to VR_RoomscaleMovement
+	void UpdateVRModValues();
+	ModValue<bool> vrRoomscaleMovement{ "VR_RoomscaleMovement" };
+	ModValue<float> vrWorldScale{ "VR_WorldScale" };
+	ModValue<bool> vr2DScreenMode{ "VR_2DScreenMode" };
+	ModValue<bool> vrDecoupledPitch{ "VR_DecoupledPitch" };
+	void UpdateLuaHandsVisibility();
+	std::optional<bool> sentHideHands; // last value sent with the HideHands Lua event
     void CheckLevelChange();
 	ue::WeakObject currentWorld;
 	ue::WeakObject currentLevel;

@@ -482,17 +482,11 @@ void CameraController::ApplyCutsceneSettings()
 			SpawnCustom2DScreen();
 		}
 		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(gameState->CurrentCutsceneState.Get())).c_str());
-		uevr::API::VR::set_mod_value("VR_2DScreenMode", gameState->CurrentCutsceneState == GameState::Playing2D ?	true : false);
-		uevr::API::VR::set_mod_value("VR_WorldScale", settingsManager->Settings.enable3DCutscenes ? 1.0f : 0.0f);
-		uevr::API::VR::set_mod_value("VR_DecoupledPitch", settingsManager->Settings.enableImmersiveMode);
 	}
 	if (gameState->CutsceneStops())
 	{
 		DestroyCustom2DScreen();
 		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(gameState->CurrentCutsceneState.Get())).c_str());
-		uevr::API::VR::set_mod_value("VR_DecoupledPitch", true);
-		uevr::API::VR::set_mod_value("VR_2DScreenMode", false);
-		uevr::API::VR::set_mod_value("VR_WorldScale", 1.0f);
 	}
 
 	if (gameState->CurrentCutsceneState == GameState::Playing2D)

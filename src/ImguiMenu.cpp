@@ -368,7 +368,6 @@ void ImGuiMenu::internalFrame()
 
 				else
 					cameraController->SpawnCustom2DScreen();
-				uevr::API::VR::set_mod_value("VR_DecoupledPitch", settingsManager->Settings.enableImmersiveMode);
 				settingsManager->SettingsModified = true;
 			}
 			if (ImGui::IsItemHovered())
@@ -435,29 +434,15 @@ void ImGuiMenu::internalFrame()
 			ImGui::SeparatorText("3D Rendering");
 
 			if (ImGui::Checkbox("Enable 3D in Cutscenes", &settingsManager->Settings.enable3DCutscenes))
-			{
 				settingsManager->SettingsModified = true;
-				if (gameState->CutscenePlaying())
-					uevr::API::VR::set_mod_value("VR_WorldScale", settingsManager->Settings.enable3DCutscenes ? 1.0f : 0.0f);
-			}
 
 			if (ImGui::Checkbox("Enable 3D in Radio window", &settingsManager->Settings.enable3DRadio))
-			{
 				settingsManager->SettingsModified = true;
-				if (gameState->CurrentMenuType == ue::EGsrUIMenuType::Radio)
-				{
-					uevr::API::VR::set_mod_value("VR_WorldScale", settingsManager->Settings.enable3DRadio ? 1.0f : 0.0f);
-				}
-			}
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Can make text more difficult to read, disabled by default");
 
 			if (ImGui::Checkbox("Enable 3D in Survival Menu", &settingsManager->Settings.enable3DSurvivalView))
-			{
 				settingsManager->SettingsModified = true;
-				if (gameState->CurrentMenuType == ue::EGsrUIMenuType::SV)
-					uevr::API::VR::set_mod_value("VR_WorldScale", settingsManager->Settings.enable3DSurvivalView ? 1.0f : 0.0f);
-			}
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Works perfectly, enabled by default");
 		}

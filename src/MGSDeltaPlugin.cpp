@@ -101,6 +101,7 @@ void MGSDeltaPlugin::on_custom_event(const char* event_name, const char* event_d
 		if (strcmp(event_data, "1") == 0)
 		{
 			playerManager.FetchMotionControllers();
+			sentHideHands.reset(); // sent again to the new hands
 			weaponManager.SendHandStateToLua();
 			weaponManager.AttachHandNextFrame = true;
 			weaponManager.ApplyHandMaterialToVRHands();
@@ -125,15 +126,17 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 {
 	if (enable && !vr_enabled)
 	{
-		appliedRoomscaleMovement.reset(); // written again by UpdateRoomscaleMovement
+		// Written again by UpdateVRModValues
+		vrRoomscaleMovement.Reset();
+		vrWorldScale.Reset();
+		vr2DScreenMode.Reset();
+		vrDecoupledPitch.Reset();
 		cameraController.ToggleCameraWobblingController(false);
 		playerManager.ToggleMeshesVisibility(false);
 		playerManager.ToggleReticleVisibility(false);
 		if (!cameraController.SpawnCameraAttachementActor())
 			return;
 		cameraController.AttachCameraToAttachementActor();
-		API::VR::set_mod_value("VR_2DScreenMode", false);
-		API::VR::set_mod_value("VR_WorldScale", 1.0f);
 		API::get()->dispatch_lua_event("PlayerTookControl", "1");
 		vr_enabled = enable;
 	}
@@ -152,15 +155,40 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 	}
 }
 
-// The only writer of VR_RoomscaleMovement: off while the game moves the view around Snake (peeking,
-// CQC grab, cardboard box). Written only when it changes, so the UEVR menu value isn't fought every frame.
-void MGSDeltaPlugin::UpdateRoomscaleMovement()
+// The only writer of the UEVR mod values the plugin drives
+void MGSDeltaPlugin::UpdateVRModValues()
 {
-	const bool roomscale = !(playerManager.IsPeepingInternal || playerManager.IsCqcGrab || cameraController.CardBoardEquipped);
-	if (appliedRoomscaleMovement == roomscale)
+	const auto& settings = settingsManager.Settings;
+	const bool playerControlled = gameState.IsPlayerControlled;
+	const bool cutscene = !playerControlled && gameState.CutscenePlaying();
+	const bool scope = playerControlled && weaponManager.CurrentItemID == ue::EGsrItemId::IT_Scope;
+
+	// Off while the game moves the view around Snake (peeking, CQC grab, cardboard box)
+	if (playerControlled)
+		vrRoomscaleMovement.Set(!(playerManager.IsPeepingInternal || playerManager.IsCqcGrab || cameraController.CardBoardEquipped));
+
+	// 0: the world is rendered flat
+	float worldScale = 1.0f;
+	if (gameState.CurrentMenuType == ue::EGsrUIMenuType::Radio)
+		worldScale = settings.enable3DRadio ? 1.0f : 0.0f;
+	else if (gameState.CurrentMenuType == ue::EGsrUIMenuType::SV)
+		worldScale = settings.enable3DSurvivalView ? 1.0f : 0.0f;
+	else if (cutscene)
+		worldScale = settings.enable3DCutscenes ? 1.0f : 0.0f;
+	vrWorldScale.Set(worldScale);
+
+	vr2DScreenMode.Set(cutscene && gameState.CurrentCutsceneState == GameState::Playing2D);
+	vrDecoupledPitch.Set(scope ? false : cutscene ? settings.enableImmersiveMode : true);
+}
+
+// The only sender of HideHands: the VR hands are hidden while scoping, during melee attacks and while carrying
+void MGSDeltaPlugin::UpdateLuaHandsVisibility()
+{
+	const bool hideHands = weaponManager.CurrentItemID == ue::EGsrItemId::IT_Scope || playerManager.MeleeAttackRunning || playerManager.IsCarrying;
+	if (sentHideHands == hideHands)
 		return;
-	API::VR::set_mod_value("VR_RoomscaleMovement", roomscale);
-	appliedRoomscaleMovement = roomscale;
+	API::get()->dispatch_lua_event("HideHands", hideHands ? "1" : "0");
+	sentHideHands = hideHands;
 }
 
 void MGSDeltaPlugin::CheckLevelChange()
@@ -243,12 +271,11 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 		playerManager.UpdateStanceChange(delta);
 		playerManager.UpdatePeepingAndCqcGrabState(delta);
-		playerManager.ProcessVRHandsVisibility();
+		playerManager.ProcessGameHandsVisibility();
+		UpdateLuaHandsVisibility();
 		cameraController.ProcessRoomscaleStance();
 
 		weaponManager.ProcessTwoHandsGrabWeapon();
-
-		UpdateRoomscaleMovement();
 	}
 	else
 	{
@@ -266,15 +293,9 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		cameraController.ApplyCutsceneSettings();
 
 		if (gameState.CurrentMenuType.Entered(ue::EGsrUIMenuType::Radio))
-		{
 			cameraController.FixRadioMenuRendering();
-			API::VR::set_mod_value("VR_WorldScale", settingsManager.Settings.enable3DRadio ? 1.0f : 0.0f);
-		}
 		if (gameState.CurrentMenuType.Entered(ue::EGsrUIMenuType::SV))
-		{
 			cameraController.FixSurvivalViewerMenuRendering();
-			API::VR::set_mod_value("VR_WorldScale", settingsManager.Settings.enable3DSurvivalView ? 1.0f : 0.0f);
-		}
 	}
 
 	weaponManager.ToggleDummyCQCKnifeMeshVisibility();
@@ -284,6 +305,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	cameraController.ProcessCameraResetTimer(delta);
 
 	imGuiMenu.ProcessImGui();
+	UpdateVRModValues();
 
 	// Last: the tracked values become last frame's values
 	gameState.EndFrame();

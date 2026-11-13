@@ -45,9 +45,11 @@ public:
 	void FetchMotionControllers();
 	bool MainHandAttachedToWeapon = false;
 	bool SecondHandAttachedToWeapon = false;
+	// The only writer of SecondHandAttachedToWeapon: also tells the Lua hands script (TwoHandsHandling)
+	void SetSecondHandAttachedToWeapon(bool attached);
 
-	void ToggleVRHandsVisibility(bool enable);
-	void ProcessVRHandsVisibility();
+	void ToggleGameHandsVisibility(bool visible);
+	void ProcessGameHandsVisibility();
 	void UpdateForkAndKnifeMeleeState(float delta);
 
 	void SetPlayerStance(ue::EGsrPlayerStance NewStance);
