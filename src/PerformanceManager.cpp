@@ -30,6 +30,8 @@ PerformanceManager::PerformanceManager()
 			"Lumen computes lighting at fewer points on screen.\nHigher = cheaper, blurrier indirect lighting. Game default: 16", true, 16.0f, 64.0f, 32.0f },
 		{ "Global illumination (Lumen)", L"r.Lumen.ScreenProbeGather.ShortRangeAO",
 			"Lumen short range ambient occlusion. 0 = off. The game also changes it per level", true, 0.0f, 1.0f, 0.0f },
+		{ "Global illumination (Lumen)", L"r.Lumen.ScreenProbeGather.ScreenTraces",
+			"Lumen screen-space traces. Each eye traces its own image, so foliage\ncan be lit differently per eye. 0 = off (eyes match better). Game default: 1", true, 0.0f, 1.0f, 0.0f },
 
 		{ "Shadows", L"r.Shadow.CSM.MaxCascades",
 			"Number of sun shadow cascades. Fewer = cheaper, blurrier distant shadows", true, 1.0f, 10.0f, 2.0f },
