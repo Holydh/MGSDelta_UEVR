@@ -12,6 +12,7 @@ cameraPositionZLerp=5.000000
 ------ Gameplay Settings ------
 enableRoomscaleProneAndCrouch=false
 linearLocomotion=true
+gameTakesMovementControl=true
 squatUnderThisValue=-0.400000
 crawlUnderThisValue=-0.800000
 ------ Weapons Settings ------

@@ -96,7 +96,8 @@ public:
 	ue::WeakObject BasicAction; // the local player's GsrPlayerBasicAction
 	bool LinearLocomotionActive = false;
 	ue::FVector LinearLocomotionVelocity{};
-	void UpdateLinearLocomotion(bool enabled, double viewYaw, float deltaTime);
+	// gameTakesControl: the game's own motion is kept while it drives Snake (area transitions, scripted moves)
+	void UpdateLinearLocomotion(bool enabled, bool gameTakesControl, double viewYaw, float deltaTime);
 	// Only the root capsule collides (close to the compact collision of the game's FPV) instead of the
 	// whole body and the wall capsule. Every frame; enabled = false gives the game's collision back.
 	void UpdateCompactCollision(bool enabled, float deltaTime);
@@ -112,6 +113,9 @@ private:
 	ue::WeakObject subCollisionController; // the local player's IcsSubCollisionController
 	bool compactCollisionApplied = false; // wall capsule kept off
 	bool bodyCollisionOff = false;
+	bool GameDrivesMoveInput(ue::UObject* pawn, float deltaTime);
+	float gameInputMismatchTime = 0.0f;
+	bool gameDrivingMoveInput = false;
 	ue::FVector lastPawnLocation{};
 	float lastDeltaTime = 0.0f;
 	double lastRequestedSpeed = 0.0;

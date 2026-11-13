@@ -395,20 +395,6 @@ void PlayerManager::UpdateCompactCollision(bool enabled, float deltaTime)
 	if (!subCollisionController)
 		subCollisionController = ue::call<ue::UObject*>(pawn, L"GetSubCollisionController");
 
-	// Investigation: Snake moved without any input (pushed out when stopping next to a wall).
-	// The states logged are the ones the game left during its last tick, before ours below.
-	const double moved = std::sqrt(movedX * movedX + movedY * movedY);
-	if (enabled && LinearLocomotionActive && lastRequestedSpeed < 1.0 && LinearLocomotionVelocity.X == 0.0 &&
-		LinearLocomotionVelocity.Y == 0.0 && moved > 1.0 && moved < 100.0)
-	{
-		auto capsule = ue::get<ue::UObject*>(pawn, L"CapsuleComponent");
-		Logger::DebugPrint("[Push] %.1f cm without input | state %s | capsule radius %.1f, half height %.1f | wall collision enabled %d, radius %.1f | sub-collisions active %d | compact %d",
-			moved, ue::call<ue::FName>(BasicAction, L"GetCurrentStateName").ToString().c_str(),
-			ue::call<float>(capsule, L"GetUnscaledCapsuleRadius"), ue::call<float>(capsule, L"GetUnscaledCapsuleHalfHeight"),
-			ue::call<bool>(pawn, L"IsEnableWallCollision"), ue::call<float>(pawn, L"GetWallCollisionRadius"),
-			ue::call<bool>(subCollisionController, L"IsActive"), compactCollisionApplied);
-	}
-
 	lastPawnLocation = location;
 	lastDeltaTime = deltaTime;
 	lastRequestedSpeed = LinearLocomotionActive ?
@@ -454,16 +440,10 @@ bool PlayerManager::FilterWallCollision(ue::UObject* character, bool enable)
 
 	// Kept for when the game's collision comes back
 	wallCollisionWantedByGame = enable;
-
-	// Investigation: confirms the game's calls go through this hook (first occurrences only)
-	static int hookLogs = 0;
-	if (enable && hookLogs++ < 10)
-		Logger::DebugPrint("[Push] game turned the wall collision on (state %s): kept off",
-			ue::call<ue::FName>(BasicAction, L"GetCurrentStateName").ToString().c_str());
 	return false;
 }
 
-void PlayerManager::UpdateLinearLocomotion(bool enabled, double viewYaw, float deltaTime)
+void PlayerManager::UpdateLinearLocomotion(bool enabled, bool gameTakesControl, double viewYaw, float deltaTime)
 {
 	LinearLocomotionActive = false;
 	FindBasicAction(deltaTime);
@@ -487,12 +467,13 @@ void PlayerManager::UpdateLinearLocomotion(bool enabled, double viewYaw, float d
 		return;
 
 	// Wall-hugging, climbing, rolling... are other action modules, and falling, swimming or ladders
-	// aren't ground movement: the game keeps its own motion there. Scripted scenes move Snake with
-	// another controller.
+	// aren't ground movement: the game keeps its own motion there. The game also walks Snake itself
+	// through the area transitions and other scripted moves, unless the player disabled it.
 	auto pawn = uevr::API::get()->get_local_pawn(0);
 	auto movement = ue::get<ue::UObject*>(pawn, L"CharacterMovement");
-	if (!ue::call<bool>(pawn, L"IsPlayerControlled") || !ue::call<bool>(BasicAction, L"IsActive") ||
-		!ue::call<bool>(movement, L"IsMovingOnGround"))
+	const bool gameDrivesInput = gameTakesControl && (GameDrivesMoveInput(pawn, deltaTime) ||
+		ue::call<bool>(ue::get<ue::UObject*>(BasicAction, L"m_actionDesc"), L"IsForceMoveBetweenAreaState"));
+	if (!ue::call<bool>(BasicAction, L"IsActive") || !ue::call<bool>(movement, L"IsMovingOnGround") || gameDrivesInput)
 		return;
 
 	// Body faces the view, like in FPV: melee, CQC and throws start from the actor's facing
@@ -523,6 +504,30 @@ void PlayerManager::UpdateLinearLocomotion(bool enabled, double viewYaw, float d
 
 	LinearLocomotionVelocity = direction * (rate * maxSpeed);
 	LinearLocomotionActive = true;
+}
+
+bool PlayerManager::GameDrivesMoveInput(ue::UObject* pawn, float deltaTime)
+{
+	// In normal play the game's move input follows the stick. When the game takes control it feeds its
+	// own: Snake moves with the stick released, or keeps a direction the stick doesn't point to.
+	auto input = ue::call<ue::UObject*>(pawn, L"GetInputContainerBP");
+	const double stick = std::sqrt(MoveStickX * MoveStickX + MoveStickY * MoveStickY);
+	const float gameRate = ue::call<float>(input, L"GetMoveSpeedRawRate");
+	bool mismatch = gameRate > 0.5f && stick < 0.2;
+	if (gameRate > 0.5f && stick > 0.5)
+	{
+		const double stickAngle = glm::degrees(std::atan2(MoveStickX, MoveStickY));
+		mismatch = std::abs(std::remainder(stickAngle - ue::call<float>(input, L"GetInputDirectionDegree"), 360.0)) > 45.0;
+	}
+
+	// The game's input can lag a frame or two behind a fast stick move
+	constexpr float holdTime = 0.2f;
+	gameInputMismatchTime = mismatch ? gameInputMismatchTime + deltaTime : 0.0f;
+	const bool drives = gameInputMismatchTime >= holdTime;
+	if (drives != gameDrivingMoveInput)
+		Logger::DebugPrint("Linear locomotion: %s", drives ? "the game drives Snake, its own motion kept" : "back to the player's input");
+	gameDrivingMoveInput = drives;
+	return drives;
 }
 
 void PlayerManager::LogCollisionAndRotation(double viewYaw)

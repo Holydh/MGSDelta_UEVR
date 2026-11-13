@@ -370,6 +370,12 @@ void ImGuiMenu::internalFrame()
 				settingsManager->SettingsModifiedThisFrame = true;
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Constant speed in the direction of your head, instead of following Snake's animations.");
+			ImGui::BeginDisabled(!*settingsManager->LinearLocomotionPtr);
+			if (ImGui::Checkbox("Let the game take control of Snake's movement", settingsManager->GameTakesMovementControlPtr))
+				settingsManager->SettingsModifiedThisFrame = true;
+			if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+				ImGui::SetTooltip("Area transitions and scripted moves use the game's own movement.\nDisabled: Snake always follows your stick.");
+			ImGui::EndDisabled();
 
 			ImGui::SeparatorText("RoomScale");
 			if (ImGui::Checkbox("Enable RoomScale Prone And Crouch", settingsManager->EnableRoomscaleProneAndCrouchPtr))

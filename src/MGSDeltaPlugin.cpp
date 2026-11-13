@@ -490,7 +490,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		
 		weaponManager.SetAimDirection();
 
-		playerManager.UpdateLinearLocomotion(*settingsManager.LinearLocomotionPtr, cameraController.ViewRotation.Yaw, delta);
+		playerManager.UpdateLinearLocomotion(*settingsManager.LinearLocomotionPtr, *settingsManager.GameTakesMovementControlPtr,
+			cameraController.ViewRotation.Yaw, delta);
 		playerManager.UpdateCompactCollision(*settingsManager.LinearLocomotionPtr, delta);
 
 		static bool wasCollisionLogKeyPressed = false;

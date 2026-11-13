@@ -53,6 +53,7 @@ public:
 
 	bool* EnableRoomscaleProneAndCrouchPtr;
 	bool* LinearLocomotionPtr;
+	bool* GameTakesMovementControlPtr;
 	float* SquatUnderThisValuePtr;
 	float* CrawlUnderThisValuePtr;
 
@@ -88,6 +89,7 @@ private:
 
 	bool enableRoomscaleProneAndCrouch = false;
 	bool linearLocomotion = true;
+	bool gameTakesMovementControl = true;
 	float squatUnderThisValue = -0.4f;
 	float crawlUnderThisValue = -0.8f;
 
