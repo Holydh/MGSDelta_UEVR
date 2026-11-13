@@ -9,6 +9,7 @@
 
 #include "ue/Reflection.hpp"
 
+#include "GameState.hpp"
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
 #include "Inputs.hpp"
@@ -16,6 +17,7 @@
 
 class WeaponManager {
 private:
+	const GameState* const gameState;
 	SettingsManager* const settingsManager;
 	PlayerManager* const playerManager;
 	CameraController* const cameraController;
@@ -36,7 +38,7 @@ private:
 	
 
 public:
-	WeaponManager(SettingsManager* sm, PlayerManager* pm, CameraController* cc) : settingsManager(sm), playerManager(pm), cameraController(cc) {};
+	WeaponManager(const GameState* gs, SettingsManager* sm, PlayerManager* pm, CameraController* cc) : gameState(gs), settingsManager(sm), playerManager(pm), cameraController(cc) {};
 
 	void InitWeaponManager();
 

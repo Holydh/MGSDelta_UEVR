@@ -219,7 +219,7 @@ void WeaponManager::FetchWeaponOffsets(EGsrEquipId currentWeapon, glm::fvec3& ou
 
 void WeaponManager::FetchEquipController()
 {
-	auto pawn = uevr::API::get()->get_local_pawn(0);
+	auto pawn = gameState->Pawn;
 	EquipController = ue::call<ue::UObject*>(pawn, L"GetEquipControllerBP");
 	if (EquipController == NULL)
 	{
@@ -272,7 +272,7 @@ void WeaponManager::ToggleDummyCQCKnifeMeshVisibility()
 		DummyCqcKnifeMeshActor = nullptr;
 	};
 
-	if (!playerManager->IsPlayerControlled)
+	if (!gameState->IsPlayerControlled)
 	{
 		destroyDummyKnife();
 		return;
@@ -738,11 +738,10 @@ void WeaponManager::ProcessWeapon(float delta)
 			if (!ue::call<bool>(ReceiverMesh, L"IsVisible"))
 				ue::call(ReceiverMesh, L"SetVisibility", true, true);
 
-			SwitchScopeState(playerManager->IsAiming);
+			SwitchScopeState(gameState->IsAiming);
 
 
-			auto pawn = uevr::API::get()->get_local_pawn(0);
-			auto scopeMagnification = ue::call<float>(pawn, L"GetScopeMagnification");
+			auto scopeMagnification = ue::call<float>(gameState->Pawn, L"GetScopeMagnification");
 			float scopeFov = scopeMagnification == 3.0f ? 10.0f : 3.0f;
 			scopeFov = CurrentWeaponID == EGsrEquipId::WP_Rpg ? 16.0f : scopeFov;
 			ue::set(SceneCaptureComponent, L"FOVAngle", scopeFov);
@@ -777,7 +776,7 @@ void WeaponManager::ProcessWeapon(float delta)
 	}
 
 	//left hand object gets deleted when in fps view, need to trigger the refetch every frames
-	if (playerManager->IsFirstPersonView)
+	if (gameState->IsFirstPersonView)
 		LeftHandWeaponRoot = nullptr;
 }
 

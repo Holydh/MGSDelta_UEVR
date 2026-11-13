@@ -11,6 +11,7 @@
 #include "uevr/API.hpp"
 #include "uevr/Plugin.hpp"
 
+#include "GameState.hpp"
 #include "ImguiMenu.hpp"
 #include "CameraController.hpp"
 #include "WeaponManager.hpp"
@@ -45,6 +46,7 @@ public:
     MGSDeltaPlugin();
     virtual ~MGSDeltaPlugin();
 
+	GameState gameState;
     ImGuiMenu imGuiMenu;
     CameraController cameraController;
 	WeaponManager weaponManager;

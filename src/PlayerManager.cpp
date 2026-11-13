@@ -24,7 +24,7 @@ void PlayerManager::ConvertAllRequiredStringToFnames()
 
 void PlayerManager::ToggleMeshesVisibility(bool visible)
 {
-	auto pawn = uevr::API::get()->get_local_pawn(0);
+	auto pawn = gameState->Pawn;
 	if (!pawn)
 		return;
 
@@ -82,49 +82,11 @@ void PlayerManager::ToggleReticleVisibility(bool visible)
 	Logger::DebugPrint("Crosshair visibility set to : %d", visible);
 }
 
-void PlayerManager::FetchGameState()
-{
-	static ue::SingletonRef gsrGameStateSubsystem_c{ L"Class /Script/Gsr.GsrGameStateSubsystem" };
-	auto gsrGameStateSubsystem = gsrGameStateSubsystem_c.get();
-	IsPlayerControlled = ue::call<bool>(gsrGameStateSubsystem, L"CheckGameStatus", CurrentGameStatus);
-
-	// Some scripted sequences (e.g. the intro backpack drop) hide the player body, play a stand-in Snake and park
-	// the hidden pawn underground while still reporting player control: hand the camera to the game meanwhile.
-	// The plugin never hides the body this way (it uses SetOnlyOwnerSee); the game also hides it in first person view.
-	if (IsPlayerControlled)
-	{
-		auto pawn = uevr::API::get()->get_local_pawn(0);
-		auto body = ue::get<ue::UObject*>(pawn, L"SkeletalMesh_Body");
-		IsPlayerControlled = ue::get<bool>(body, L"bVisible", true) ||
-			ue::call<ue::EGsrPlayerCameraControllerCameraMode>(pawn, L"GetCameraMode") == ue::EGsrPlayerCameraControllerCameraMode::Subjective;
-	}
-
-	CurrentMenuType = ue::call<ue::EGsrUIMenuType>(gsrGameStateSubsystem, L"GetUIMenuType");
-}
-
-bool PlayerManager::PlayerGotControl()
-{
-	return IsPlayerControlled.Rose();
-}
-
-bool PlayerManager::PlayerLostControl()
-{
-	return IsPlayerControlled.Fell();
-}
-
 void PlayerManager::EndFrame()
 {
-	IsPlayerControlled.Commit();
-	CurrentMenuType.Commit();
 	IsPeepingInternal.Commit();
 	MeleeAttackRunning.Commit();
 	IsCarrying.Commit();
-	CurrentStance.Commit();
-}
-
-bool PlayerManager::IngameUI()
-{
-	return CurrentMenuType == ue::EGsrUIMenuType::None || (int)CurrentMenuType.Get() >= 4;
 }
 
 void PlayerManager::UpdatePeepingAndCqcGrabState(float deltaTime)
@@ -148,19 +110,9 @@ void PlayerManager::UpdatePeepingAndCqcGrabState(float deltaTime)
 	}
 }
 
-void PlayerManager::GetCurrentPlayerStance(float deltaTime)
+void PlayerManager::UpdateStanceChange(float deltaTime)
 {
-	// World->OwningGameInstance->LocalPlayers[0]->PlayerController->AcknowledgedPawn
-	auto world = ue::get<ue::UObject*>(ue::get<ue::UObject*>(uevr::API::get()->get_engine(), L"GameViewport"), L"World");
-	auto localPlayers = ue::get_ptr<ue::TArray<ue::UObject*>>(ue::get<ue::UObject*>(world, L"OwningGameInstance"), L"LocalPlayers");
-	if (!localPlayers || localPlayers->empty())
-		return;
-	auto playerController = ue::get<ue::UObject*>(localPlayers->data[0], L"PlayerController");
-	auto gsrPlayer = ue::get<ue::UObject*>(playerController, L"AcknowledgedPawn");
-	if (!gsrPlayer)
-		return;
-	CurrentStance = ue::call<ue::EGsrPlayerStance>(gsrPlayer, L"GetCurrentStance");
-	if (CurrentStance.Changed())
+	if (gameState->CurrentStance.Changed())
 	{
 		ChangeStanceTimer = 0.0f;
 		IsChangingStance = true;
@@ -202,7 +154,7 @@ void PlayerManager::ProcessPlayerCharacterState(const ue::FName& StateName, cons
 	else
 		IsCarrying = false;
 
-	if (MeleeAttackRunning && IsKnifeOrFork && IsAiming)
+	if (MeleeAttackRunning && IsKnifeOrFork && gameState->IsAiming)
 	{
 		MeleeAttackRunning = StateMachineName == fNameMain && StateName == fNameHold ? false : true;
 		IsKnifeOrFork = MeleeAttackRunning ? true : false;
@@ -230,7 +182,7 @@ void PlayerManager::ProcessPlayerCharacterState(const ue::FName& StateName, cons
 
 void PlayerManager::UpdateForkAndKnifeMeleeState(float delta)
 {
-	if (MeleeAttackRunning && IsKnifeOrFork && IsFirstPersonView && !IsAiming)
+	if (MeleeAttackRunning && IsKnifeOrFork && gameState->IsFirstPersonView && !gameState->IsAiming)
 	{
 		forkAndKnifeTimer += delta;
 		if (forkAndKnifeTimer >= forkAndKnifeDuration) //give some time to finish the attack animation
@@ -247,19 +199,6 @@ void PlayerManager::SetPlayerStance(ue::EGsrPlayerStance NewStance)
 	static ue::ClassRef gsrPlayerActionCore_C{ L"Class /Script/Gsr.GsrPlayerActionCore" };
 	auto gsrPlayerActionCore = gsrPlayerActionCore_C.get() ? gsrPlayerActionCore_C.get()->get_first_object_matching(false) : nullptr;
 	ue::call(gsrPlayerActionCore, L"RequestChangeStance", NewStance);
-}
-
-void PlayerManager::GetCurrentAimStateAndCameraMode()
-{
-	auto player = uevr::API::get()->get_local_pawn(0);
-	if (!player)
-		return;
-	CurrentCameraMode = ue::call<ue::EGsrPlayerCameraControllerCameraMode>(player, L"GetCameraMode");
-	IsFirstPersonView = CurrentCameraMode == ue::EGsrPlayerCameraControllerCameraMode::Subjective;
-
-	auto snakeStatus = ue::call<ue::UObject*>(player, L"GetSnakeStatus");
-	CurrentAimingStatus = ue::call<ue::EAimingStatus>(snakeStatus, L"GetAimingStatus");
-	IsAiming = CurrentAimingStatus == ue::EAimingStatus::Aiming_None ? false : true;
 }
 
 void PlayerManager::FetchMotionControllers()
@@ -308,7 +247,7 @@ void PlayerManager::FetchMotionControllers()
 void PlayerManager::ToggleVRHandsVisibility(bool enable)
 {
 	bool visibility = enable;
-	auto pawn = uevr::API::get()->get_local_pawn(0);
+	auto pawn = gameState->Pawn;
 	if (auto handsSkeletalMesh = ue::get<ue::UObject*>(pawn, L"SkeletalMesh_Hand")) {
 		ue::call(handsSkeletalMesh, L"SetOnlyOwnerSee", visibility);
 	}
@@ -323,7 +262,7 @@ void PlayerManager::ProcessVRHandsVisibility()
 
 void PlayerManager::FindBasicAction(float deltaTime)
 {
-	auto pawn = uevr::API::get()->get_local_pawn(0);
+	auto pawn = gameState->Pawn;
 	if (BasicAction && ue::call<ue::UObject*>(BasicAction, L"GetOwnerActor") == pawn)
 		return;
 
@@ -358,7 +297,7 @@ void PlayerManager::UpdateCompactCollision(bool enabled, float deltaTime)
 	constexpr float blockedDelay = 0.5f;       // s pushing before the body collision comes back
 	constexpr float fullBodyHoldTime = 1.0f;   // s moving freely before going compact again
 
-	auto pawn = uevr::API::get()->get_local_pawn(0);
+	auto pawn = gameState->Pawn;
 	const auto location = ue::call<ue::FVector>(pawn, L"K2_GetActorLocation");
 	const double movedX = location.X - lastPawnLocation.X;
 	const double movedY = location.Y - lastPawnLocation.Y;
@@ -366,7 +305,7 @@ void PlayerManager::UpdateCompactCollision(bool enabled, float deltaTime)
 	const bool blocked = lastRequestedSpeed > minRequestedSpeed && actualSpeed < lastRequestedSpeed * blockedSpeedRatio;
 
 	// Prone always stays compact, even against walls
-	const bool prone = CurrentStance == ue::EGsrPlayerStance::Crawl;
+	const bool prone = gameState->CurrentStance == ue::EGsrPlayerStance::Crawl;
 	blockedTime = blocked && !prone ? blockedTime + deltaTime : 0.0f;
 	if (blockedTime >= blockedDelay)
 	{
@@ -387,7 +326,7 @@ void PlayerManager::UpdateCompactCollision(bool enabled, float deltaTime)
 
 	// Standing and crouched: every action (wall-hug, ladders...). Prone: only the prone locomotion,
 	// the prone actions keep the game's collision. FPV sets its own compact collision.
-	const bool compact = enabled && !IsFirstPersonView && (!prone || ue::call<bool>(BasicAction, L"IsActive"));
+	const bool compact = enabled && !gameState->IsFirstPersonView && (!prone || ue::call<bool>(BasicAction, L"IsActive"));
 	// The body spheres come back while pushing into something (wall-hug, step over), never the
 	// 40 cm wall capsule: it would push Snake away from the wall as the wall-hug starts.
 	const bool bodyCompact = compact && fullBodyCollisionTimer <= 0.0f;
@@ -448,13 +387,13 @@ void PlayerManager::UpdateLinearLocomotion(bool enabled, bool gameTakesControl, 
 		rootMotionCallbackEnabledByUs = false;
 	}
 
-	if (!enabled || CurrentMenuType != ue::EGsrUIMenuType::None)
+	if (!enabled || gameState->CurrentMenuType != ue::EGsrUIMenuType::None)
 		return;
 
 	// Wall-hugging, climbing, rolling... are other action modules, and falling, swimming or ladders
 	// aren't ground movement: the game keeps its own motion there. The game also walks Snake itself
 	// through the area transitions and other scripted moves, unless the player disabled it.
-	auto pawn = uevr::API::get()->get_local_pawn(0);
+	auto pawn = gameState->Pawn;
 	auto movement = ue::get<ue::UObject*>(pawn, L"CharacterMovement");
 	const bool gameDrivesInput = gameTakesControl && (GameDrivesMoveInput(pawn, deltaTime) ||
 		ue::call<bool>(ue::get<ue::UObject*>(BasicAction, L"m_actionDesc"), L"IsForceMoveBetweenAreaState"));
@@ -467,11 +406,11 @@ void PlayerManager::UpdateLinearLocomotion(bool enabled, bool gameTakesControl, 
 	// Top speeds of the game's own locomotion, measured in cm/s. FPV keeps its speeds while stalking.
 	const bool stalking = ue::call<bool>(ue::call<ue::UObject*>(pawn, L"GetInputContainerBP"), L"IsStalking");
 	double maxSpeed;
-	switch (CurrentStance)
+	switch (gameState->CurrentStance)
 	{
-	case ue::EGsrPlayerStance::Stand: maxSpeed = IsFirstPersonView ? 121.0 : stalking ? 70.0 : 390.0; break;
-	case ue::EGsrPlayerStance::Squat: maxSpeed = IsFirstPersonView ? 72.0 : stalking ? 70.0 : 320.0; break;
-	case ue::EGsrPlayerStance::Crawl: maxSpeed = IsFirstPersonView ? 110.0 : stalking ? 70.0 : 122.0; break;
+	case ue::EGsrPlayerStance::Stand: maxSpeed = gameState->IsFirstPersonView ? 121.0 : stalking ? 70.0 : 390.0; break;
+	case ue::EGsrPlayerStance::Squat: maxSpeed = gameState->IsFirstPersonView ? 72.0 : stalking ? 70.0 : 320.0; break;
+	case ue::EGsrPlayerStance::Crawl: maxSpeed = gameState->IsFirstPersonView ? 110.0 : stalking ? 70.0 : 122.0; break;
 	default: return;
 	}
 
@@ -517,13 +456,13 @@ bool PlayerManager::GameDrivesMoveInput(ue::UObject* pawn, float deltaTime)
 
 void PlayerManager::LogCollisionAndRotation(double viewYaw)
 {
-	auto pawn = uevr::API::get()->get_local_pawn(0);
+	auto pawn = gameState->Pawn;
 	if (!pawn)
 		return;
 
 	auto capsule = ue::get<ue::UObject*>(pawn, L"CapsuleComponent");
 	Logger::DebugPrint("[Collision] camera mode %d, stance %d | capsule radius %.1f, half height %.1f | actor yaw %.1f, view yaw %.1f",
-		(int)CurrentCameraMode, (int)CurrentStance.Get(),
+		(int)gameState->CurrentCameraMode, (int)gameState->CurrentStance.Get(),
 		ue::call<float>(capsule, L"GetScaledCapsuleRadius"), ue::call<float>(capsule, L"GetScaledCapsuleHalfHeight"),
 		ue::call<ue::FRotator>(pawn, L"K2_GetActorRotation").Yaw, viewYaw);
 	Logger::DebugPrint("[Collision] wall collision enabled %d, radius %.1f, half height %.1f",

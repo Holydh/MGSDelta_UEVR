@@ -281,7 +281,7 @@ void ImGuiMenu::internalFrame()
 				settingsManager->SettingsModified = true;
 				if (!settingsManager->Settings.enableWeaponsScopes)
 					weaponManager->DestroyScope();
-				else if (playerManager->IsPlayerControlled)
+				else if (gameState->IsPlayerControlled)
 					weaponManager->SpawnScope();
 			}
 			if (ImGui::IsItemHovered())
@@ -303,7 +303,7 @@ void ImGuiMenu::internalFrame()
 						settingsManager->Settings.scopeResolution = newResolution;
 						settingsManager->SettingsModified = true;
 
-						if (playerManager->IsPlayerControlled && settingsManager->Settings.enableWeaponsScopes)
+						if (gameState->IsPlayerControlled && settingsManager->Settings.enableWeaponsScopes)
 						{
 							weaponManager->DestroyScope();
 							weaponManager->SpawnScope();
@@ -384,7 +384,7 @@ void ImGuiMenu::internalFrame()
 				ImGui::Indent();
 				if (ImGui::SliderFloat("Black Bars Size", &settingsManager->Settings.blackBarsSize, 1.0f, 10.0f, "%.1f"))
 				{
-					if (cameraController->CutscenePlaying())
+					if (gameState->CutscenePlaying())
 						cameraController->ResizeBlackBars();
 					settingsManager->SettingsModified = true;
 				}
@@ -437,14 +437,14 @@ void ImGuiMenu::internalFrame()
 			if (ImGui::Checkbox("Enable 3D in Cutscenes", &settingsManager->Settings.enable3DCutscenes))
 			{
 				settingsManager->SettingsModified = true;
-				if (cameraController->CutscenePlaying())
+				if (gameState->CutscenePlaying())
 					uevr::API::VR::set_mod_value("VR_WorldScale", settingsManager->Settings.enable3DCutscenes ? 1.0f : 0.0f);
 			}
 
 			if (ImGui::Checkbox("Enable 3D in Radio window", &settingsManager->Settings.enable3DRadio))
 			{
 				settingsManager->SettingsModified = true;
-				if (playerManager->CurrentMenuType == ue::EGsrUIMenuType::Radio)
+				if (gameState->CurrentMenuType == ue::EGsrUIMenuType::Radio)
 				{
 					uevr::API::VR::set_mod_value("VR_WorldScale", settingsManager->Settings.enable3DRadio ? 1.0f : 0.0f);
 				}
@@ -455,7 +455,7 @@ void ImGuiMenu::internalFrame()
 			if (ImGui::Checkbox("Enable 3D in Survival Menu", &settingsManager->Settings.enable3DSurvivalView))
 			{
 				settingsManager->SettingsModified = true;
-				if (playerManager->CurrentMenuType == ue::EGsrUIMenuType::SV)
+				if (gameState->CurrentMenuType == ue::EGsrUIMenuType::SV)
 					uevr::API::VR::set_mod_value("VR_WorldScale", settingsManager->Settings.enable3DSurvivalView ? 1.0f : 0.0f);
 			}
 			if (ImGui::IsItemHovered())

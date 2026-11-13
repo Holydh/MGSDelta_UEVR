@@ -68,7 +68,7 @@ void CameraController::CalculateForwardOffset(const ue::FVector& location, const
 	// tan(fov/2) ratio relative to a baseline FOV (e.g. 90°)
 	float baseFOV = 68.0f;
 	float zoomFactor = tan(glm::radians(baseFOV * 0.5f)) / tan(glm::radians(fov * 0.5f));
-	float scale = ActualCutsceneState == CutsceneState::Playing3D ? 60.0f : 120.0f;
+	float scale = gameState->CurrentCutsceneState == GameState::Playing3D ? 60.0f : 120.0f;
 	forwardOffset = (zoomFactor - 1.0f) * scale; // 100.0f = scale, tune this
 }
 
@@ -103,7 +103,7 @@ void CameraController::ProcessCamera(float deltaTime)
 
 	float actualFOV = pov.get<float>(L"FOV");
 
-	if (ActualCutsceneState == CutsceneState::Playing3D)
+	if (gameState->CurrentCutsceneState == GameState::Playing3D)
 	{
 		if (ue::get<bool>(cobraCutsceneCameraCtrlMngr, L"bIsFpv"))
 		{
@@ -204,7 +204,7 @@ void CameraController::ProcessCamera(float deltaTime)
 	}
 	else
 	{
-		auto pawn = uevr::API::get()->get_local_pawn(0);
+		auto pawn = gameState->Pawn;
 		if (!pawn)
 			return;
 		const auto pawnLocation = ue::call<ue::FVector>(pawn, L"K2_GetActorLocation");
@@ -229,7 +229,7 @@ void CameraController::ProcessCamera(float deltaTime)
 
 		if (!settingsManager->Settings.enableRoomscaleProneAndCrouch)
 		{
-			switch (playerManager->CurrentStance)
+			switch (gameState->CurrentStance)
 			{
 			case ue::EGsrPlayerStance::Stand:
 				CameraHeightOffset = 83.0f; //-85.0f
@@ -250,7 +250,7 @@ void CameraController::ProcessCamera(float deltaTime)
 		}
 		else
 		{
-			switch (playerManager->CurrentStance)
+			switch (gameState->CurrentStance)
 			{
 			case ue::EGsrPlayerStance::Stand:
 				CameraHeightOffset = 83.0f; //-85.0f
@@ -260,7 +260,7 @@ void CameraController::ProcessCamera(float deltaTime)
 				break;
 			case ue::EGsrPlayerStance::Crawl:
 				// playerPosition.Z actualise one frame after change stance, we need to compensate for that or it results in a sudden camera jump
-				CameraHeightOffset = playerManager->CurrentStance.Previous() == ue::EGsrPlayerStance::Squat ? 83.0f : 83.0f + crawlOffset;
+				CameraHeightOffset = gameState->CurrentStance.Previous() == ue::EGsrPlayerStance::Squat ? 83.0f : 83.0f + crawlOffset;
 				break;
 			default:
 				break;
@@ -303,7 +303,7 @@ void CameraController::ProcessCamera(float deltaTime)
 
 		else
 		{
-			tempPosition = settingsManager->Settings.attachCameraToSnakeHead || CardBoardEquipped || (playerManager->IsFirstPersonView && !settingsManager->Settings.enableRoomscaleProneAndCrouch) ?
+			tempPosition = settingsManager->Settings.attachCameraToSnakeHead || CardBoardEquipped || (gameState->IsFirstPersonView && !settingsManager->Settings.enableRoomscaleProneAndCrouch) ?
 				glm::fvec3(headColliderPosition.x, headColliderPosition.y, headColliderPosition.z) :
 				glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
 			// prevent camera yeeting into orbit on low fps
@@ -324,7 +324,7 @@ void CameraController::ProcessCamera(float deltaTime)
 		NewCameraPosition.y = newPosition.y;
 		NewCameraPosition.z = newPosition.z;
 
-		if (playerManager->CurrentMenuType == ue::EGsrUIMenuType::None)
+		if (gameState->CurrentMenuType == ue::EGsrUIMenuType::None)
 		{
 			YawProcessed = YawInput * 3.0f * settingsManager->Settings.cameraRotationSpeed * deltaTime;
 			if (YawInput != 0.0)
@@ -364,7 +364,7 @@ void CameraController::ProcessCamera(float deltaTime)
 
 void CameraController::ProcessCameraResetTimer(float delta)
 {
-	if (playerManager->PlayerGotControl())
+	if (gameState->PlayerGotControl())
 	{
 		InstantCameraPositionTimer = 0.25f;
 		InstantCameraPositionNeeded = true;
@@ -390,16 +390,16 @@ void CameraController::ProcessRoomscaleStance()
 	uevr::API::get()->param()->vr->get_transform(uevr::API::VR::get_hmd_index(), &hmdTransform);
 	auto hmdHeight = hmdTransform.m[3][1];
 
-	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Stand && hmdHeight <= settingsManager->Settings.squatUnderThisValue)
+	if (gameState->CurrentStance == ue::EGsrPlayerStance::Stand && hmdHeight <= settingsManager->Settings.squatUnderThisValue)
 		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Squat);
 
-	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Squat && hmdHeight <= settingsManager->Settings.crawlUnderThisValue)
+	if (gameState->CurrentStance == ue::EGsrPlayerStance::Squat && hmdHeight <= settingsManager->Settings.crawlUnderThisValue)
 		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Crawl);
 
-	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Squat && hmdHeight >= settingsManager->Settings.squatUnderThisValue)
+	if (gameState->CurrentStance == ue::EGsrPlayerStance::Squat && hmdHeight >= settingsManager->Settings.squatUnderThisValue)
 		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Stand);
 
-	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Crawl && hmdHeight >= settingsManager->Settings.crawlUnderThisValue)
+	if (gameState->CurrentStance == ue::EGsrPlayerStance::Crawl && hmdHeight >= settingsManager->Settings.crawlUnderThisValue)
 		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Squat);
 }
 
@@ -472,78 +472,35 @@ void CameraController::FixRadioMenuRendering()
 	ue::call(ue::get<ue::UObject*>(mainWidget, L"ModelBg"), L"SetVisibility", ue::ESlateVisibility::Hidden);
 }
 
-void CameraController::CheckCutscenePlaying()
-{
-	static ue::SingletonRef gameStateSubsystem_c{ L"Class /Script/Gsr.GsrGameStateSubsystem" };
-	auto gameStateSubsystem = gameStateSubsystem_c.get();
-	bool cutscene = false;
-	bool movie = false;
-
-	if (gameStateSubsystem)
-	{
-		cutscene = ue::call<bool>(gameStateSubsystem, L"CheckGameStatus", ue::EGsrGameStatus::Cutscene);
-		movie = ue::call<bool>(gameStateSubsystem, L"CheckGameStatus", ue::EGsrGameStatus::Movie);
-	}
-
-	if (cutscene || movie)
-	{
-		ActualCutsceneState = cutscene ? CutsceneState::Playing3D : CutsceneState::Playing2D;
-	}
-	else
-	{
-		ActualCutsceneState = CutsceneState::NotPlaying;
-	}
-}
-
-void CameraController::EndFrame()
-{
-	ActualCutsceneState.Commit();
-}
-
-bool CameraController::CutsceneStarts()
-{
-	return ActualCutsceneState.Previous() == CutsceneState::NotPlaying && CutscenePlaying();
-}
-
-bool CameraController::CutscenePlaying()
-{
-	return ActualCutsceneState == CutsceneState::Playing3D || ActualCutsceneState == CutsceneState::Playing2D;
-}
-
-bool CameraController::CutsceneStops()
-{
-	return ActualCutsceneState == CutsceneState::NotPlaying && ActualCutsceneState.Previous() != CutsceneState::NotPlaying;
-}
-
 void CameraController::ApplyCutsceneSettings()
 {
-	if (CutsceneStarts())
+	if (gameState->CutsceneStarts())
 	{
 		uevr::API::VR::recenter_view();
-		if (ActualCutsceneState == CameraController::CutsceneState::Playing3D && !settingsManager->Settings.enableImmersiveMode)
+		if (gameState->CurrentCutsceneState == GameState::Playing3D && !settingsManager->Settings.enableImmersiveMode)
 		{
 			SpawnCustom2DScreen();
 		}
-		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState.Get())).c_str());
-		uevr::API::VR::set_mod_value("VR_2DScreenMode", ActualCutsceneState == CameraController::CutsceneState::Playing2D ?	true : false);
+		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(gameState->CurrentCutsceneState.Get())).c_str());
+		uevr::API::VR::set_mod_value("VR_2DScreenMode", gameState->CurrentCutsceneState == GameState::Playing2D ?	true : false);
 		uevr::API::VR::set_mod_value("VR_WorldScale", settingsManager->Settings.enable3DCutscenes ? 1.0f : 0.0f);
 		uevr::API::VR::set_mod_value("VR_DecoupledPitch", settingsManager->Settings.enableImmersiveMode);
 	}
-	if (CutsceneStops())
+	if (gameState->CutsceneStops())
 	{
 		DestroyCustom2DScreen();
-		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState.Get())).c_str());
+		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(gameState->CurrentCutsceneState.Get())).c_str());
 		uevr::API::VR::set_mod_value("VR_DecoupledPitch", true);
 		uevr::API::VR::set_mod_value("VR_2DScreenMode", false);
 		uevr::API::VR::set_mod_value("VR_WorldScale", 1.0f);
 	}
 
-	if (ActualCutsceneState == CutsceneState::Playing2D)
+	if (gameState->CurrentCutsceneState == GameState::Playing2D)
 		ShowMovieOnUI();
 	else
 		HideMovieUI();
 
-	if (CutscenePlaying())
+	if (gameState->CutscenePlaying())
 	{
 		static ue::SingletonRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
 		auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get();
@@ -633,7 +590,7 @@ void CameraController::HideMovieUI()
 
 void CameraController::SpawnCustom2DScreen()
 {
-	if (!CutscenePlaying() || Custom2DScreen != nullptr)
+	if (!gameState->CutscenePlaying() || Custom2DScreen != nullptr)
 		return;
 
 	static ue::ClassRef staticMesh_c{ L"Class /Script/Engine.StaticMesh" };

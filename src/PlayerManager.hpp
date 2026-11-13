@@ -4,25 +4,20 @@
 #include "Utilities.hpp"
 #include "ue/Reflection.hpp"
 #include "Tracked.hpp"
+#include "GameState.hpp"
 
 
 class PlayerManager {
+private:
+	const GameState* const gameState;
 public:
+	PlayerManager(const GameState* gs) : gameState(gs) {};
 	void ConvertAllRequiredStringToFnames();
 	void ToggleMeshesVisibility(bool visible);
 	void ToggleReticleVisibility(bool visible);
 
-    Tracked<bool> IsPlayerControlled = false;
-    void FetchGameState();
     // Commits this frame's tracked values: call last in the frame
     void EndFrame();
-
-	bool PlayerGotControl();
-	bool PlayerLostControl();
-
-	ue::EGsrGameStatus CurrentGameStatus = ue::EGsrGameStatus::InGame;
-	Tracked<ue::EGsrUIMenuType> CurrentMenuType = ue::EGsrUIMenuType::None;
-	bool IngameUI();
 
 	Tracked<bool> IsPeepingInternal = false;
 	bool IsPeeping = false;
@@ -32,22 +27,15 @@ public:
 	bool IsHanging = false;
 	bool IsChangingStance = false;
 	bool IsRolling = false;
-	bool IsAiming = false;
-	bool IsFirstPersonView = false;
 	Tracked<bool> MeleeAttackRunning = false;
 	bool IsKnifeOrFork = false;
 	bool IsCqcGrab = false;
 	Tracked<bool> IsCarrying = false;
 
-	Tracked<ue::EGsrPlayerStance> CurrentStance = ue::EGsrPlayerStance::Stand;
 	float ChangeStanceTimer = 0.0f;
 
-	void GetCurrentPlayerStance(float deltaTime);
+	void UpdateStanceChange(float deltaTime);
 	void ProcessPlayerCharacterState(const ue::FName& StateName, const ue::FName& StateMachineName);
-	void GetCurrentAimStateAndCameraMode();
-
-	ue::EGsrPlayerCameraControllerCameraMode CurrentCameraMode = ue::EGsrPlayerCameraControllerCameraMode::Around;
-	ue::EAimingStatus CurrentAimingStatus = ue::EAimingStatus::Aiming_None;
 
 	ue::WeakObject LeftController;  // MotionControllerComponent
 	ue::WeakObject LeftHandMesh;    // PoseableMeshComponent

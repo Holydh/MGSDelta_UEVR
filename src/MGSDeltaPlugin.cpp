@@ -5,11 +5,11 @@ using namespace uevr;
 
 std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 
-MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&settingsManager, &weaponManager, &cameraController, &playerManager, &performanceManager, &performanceMonitor),
-cameraController(&playerManager, &settingsManager),
-weaponManager(&settingsManager, &playerManager, &cameraController),
+MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&gameState, &settingsManager, &weaponManager, &cameraController, &performanceManager, &performanceMonitor),
+cameraController(&gameState, &playerManager, &settingsManager),
+weaponManager(&gameState, &settingsManager, &playerManager, &cameraController),
 hookManager(&weaponManager, &cameraController, &playerManager), 
-playerManager() {}; //Constructor
+playerManager(&gameState) {}; //Constructor
 MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
 
 void MGSDeltaPlugin::on_detach(HMODULE hmod)
@@ -165,7 +165,7 @@ void MGSDeltaPlugin::UpdateRoomscaleMovement()
 
 void MGSDeltaPlugin::CheckLevelChange()
 {
-	auto world = ue::get_world();
+	auto world = gameState.World;
 	// A new world can be allocated at the address (and object slot) of the previous one, e.g. when
 	// the same map is reloaded: its clock restarting from zero catches that case.
 	const double worldTime = world ? ue::call_static<double>(ue::lib::GameplayStatics, L"GetRealTimeSeconds", world) : 0.0;
@@ -191,6 +191,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	performanceMonitor.OnPreEngineTickStart();
 	deltaTime = delta;
 	performanceManager.Update(delta);
+	gameState.Update();
 	CheckLevelChange();
 
 	if (levelChanged)
@@ -203,35 +204,27 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		weaponManager.Cleanup();
 		playerManager.Cleanup();
 		// Turns 6DOF back on below if the player still has control in the new level
-		playerManager.IsPlayerControlled.SetPrevious(false);
+		gameState.IsPlayerControlled.SetPrevious(false);
 		// Blueprint classes that weren't loaded at startup (or were reloaded) can be hooked now
 		hookManager.RetryFailedHooks();
 	}
 
-	playerManager.FetchGameState();
-
-	if (!playerManager.IngameUI())
-	{
-		playerManager.IsPlayerControlled = false;
-	}
-
-	if (playerManager.PlayerGotControl())
+	if (gameState.PlayerGotControl())
 	{
 		Toggle6DOF(true);
 		Logger::DebugPrint("Player took control");
 	}
 
-	if (playerManager.PlayerLostControl())
+	if (gameState.PlayerLostControl())
 	{
 		Toggle6DOF(false);
 		Logger::DebugPrint("Player lost control");
 	}
 
-	if (playerManager.IsPlayerControlled)
+	if (gameState.IsPlayerControlled)
 	{
 		Inputs::CheckSecondHandGrip(delta);
 		playerManager.UpdateForkAndKnifeMeleeState(delta);
-		playerManager.GetCurrentAimStateAndCameraMode();
 		weaponManager.FetchEquipController();
 		weaponManager.ProcessItem();
 		weaponManager.ProcessWeapon(delta);
@@ -248,7 +241,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 			playerManager.LogCollisionAndRotation(cameraController.ViewRotation.Yaw);
 		collisionLogKeyPressed.Commit();
 
-		playerManager.GetCurrentPlayerStance(delta);
+		playerManager.UpdateStanceChange(delta);
 		playerManager.UpdatePeepingAndCqcGrabState(delta);
 		playerManager.ProcessVRHandsVisibility();
 		cameraController.ProcessRoomscaleStance();
@@ -264,8 +257,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		// Cutscenes and menus get the game's own collision back
 		playerManager.UpdateCompactCollision(false, delta);
 
-		cameraController.CheckCutscenePlaying();
-		if (playerManager.IsPlayerControlled.Previous())
+		if (gameState.IsPlayerControlled.Previous())
 		{
 			weaponManager.DetachHandFromWeapon();
 			weaponManager.DetachSecondHandFromWeapon();
@@ -273,12 +265,12 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 		cameraController.ApplyCutsceneSettings();
 
-		if (playerManager.CurrentMenuType.Entered(ue::EGsrUIMenuType::Radio))
+		if (gameState.CurrentMenuType.Entered(ue::EGsrUIMenuType::Radio))
 		{
 			cameraController.FixRadioMenuRendering();
 			API::VR::set_mod_value("VR_WorldScale", settingsManager.Settings.enable3DRadio ? 1.0f : 0.0f);
 		}
-		if (playerManager.CurrentMenuType.Entered(ue::EGsrUIMenuType::SV))
+		if (gameState.CurrentMenuType.Entered(ue::EGsrUIMenuType::SV))
 		{
 			cameraController.FixSurvivalViewerMenuRendering();
 			API::VR::set_mod_value("VR_WorldScale", settingsManager.Settings.enable3DSurvivalView ? 1.0f : 0.0f);
@@ -287,16 +279,16 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 	weaponManager.ToggleDummyCQCKnifeMeshVisibility();
 
-	if (playerManager.IsPlayerControlled || cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D)
+	if (gameState.IsPlayerControlled || gameState.CurrentCutsceneState == GameState::Playing3D)
 		cameraController.ProcessCamera(delta);
 	cameraController.ProcessCameraResetTimer(delta);
 
 	imGuiMenu.ProcessImGui();
 
 	// Last: the tracked values become last frame's values
+	gameState.EndFrame();
 	playerManager.EndFrame();
 	weaponManager.EndFrame();
-	cameraController.EndFrame();
 	Inputs::EndFrame();
 	ranOnce = false;
 	performanceMonitor.OnPreEngineTickEnd();
@@ -320,8 +312,8 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
 	static ue::SingletonRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
 	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get(); // may be null: ue::get then returns false
-	if (playerManager.IsPlayerControlled ||
-		(cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D && (settingsManager.Settings.enableImmersiveMode || ue::get<bool>(cobraCutsceneCameraCtrlMngr, L"bIsFpv"))))
+	if (gameState.IsPlayerControlled ||
+		(gameState.CurrentCutsceneState == GameState::Playing3D && (settingsManager.Settings.enableImmersiveMode || ue::get<bool>(cobraCutsceneCameraCtrlMngr, L"bIsFpv"))))
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
@@ -334,7 +326,7 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 	}
 
 	//sv_main
-	if (playerManager.CurrentMenuType == ue::EGsrUIMenuType::SV)
+	if (gameState.CurrentMenuType == ue::EGsrUIMenuType::SV)
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
 		UEVR_Rotatord* rot = (UEVR_Rotatord*)rotation;
@@ -365,7 +357,7 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 		cameraController.ViewRotation = { rotation->pitch, rotation->yaw, rotation->roll };
 
 	//we need to override uevr attachement controls so we're running this later
-	if (playerManager.IsPlayerControlled && playerManager.SecondHandAttachedToWeapon && ranOnce)
+	if (gameState.IsPlayerControlled && playerManager.SecondHandAttachedToWeapon && ranOnce)
 	{
 		weaponManager.ApplyRecoil(deltaTime);
 		weaponManager.ProcessTwoHandsGrabWeaponLocationAndRotation();

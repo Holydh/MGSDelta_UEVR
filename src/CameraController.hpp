@@ -4,13 +4,14 @@
 #include "Logger.hpp"
 #include "magic_enum/magic_enum.hpp"
 #include "ue/Reflection.hpp"
-#include "Tracked.hpp"
 
+#include "GameState.hpp"
 #include "PlayerManager.hpp"
 #include "SettingsManager.hpp"
 
 class CameraController {
 private:
+	const GameState* const gameState;
 	PlayerManager* const playerManager;
 	SettingsManager* const settingsManager;
 
@@ -18,7 +19,7 @@ private:
 	float crawlOffset = 55.0f;
 
 public:
-	CameraController(PlayerManager* pm, SettingsManager* sm) : playerManager(pm), settingsManager(sm){};
+	CameraController(const GameState* gs, PlayerManager* pm, SettingsManager* sm) : gameState(gs), playerManager(pm), settingsManager(sm){};
 
 	void ToggleCameraWobblingController(bool enabled);
 
@@ -46,26 +47,12 @@ public:
 	float InstantCameraPositionTimer = 0.25f;
 	bool InstantCameraPositionNeeded = false;
 	void ProcessCameraResetTimer(float delta);
-	// Commits this frame's tracked values: call last in the frame
-	void EndFrame();
 
 	void ProcessRoomscaleStance();
 
 	void FixSurvivalViewerMenuRendering();
 	void FixRadioMenuRendering();
 
-	enum CutsceneState
-	{
-		NotPlaying,
-		Playing3D,
-		Playing2D
-	};
-
-	Tracked<CutsceneState> ActualCutsceneState = NotPlaying;
-	void CheckCutscenePlaying();
-	bool CutsceneStarts();
-	bool CutscenePlaying();
-	bool CutsceneStops();
 	void ApplyCutsceneSettings();
 	void ShowMovieOnUI();
 	void HideMovieUI();

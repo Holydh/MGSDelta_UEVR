@@ -2,6 +2,7 @@
 #include "Logger.hpp"
 #include "uevr/API.hpp"
 #include "Inputs.hpp"
+#include "GameState.hpp"
 #include "SettingsManager.hpp"
 #include "WeaponManager.hpp"
 #include "CameraController.hpp"
@@ -22,10 +23,10 @@
 
 class ImGuiMenu {
 private:
+	const GameState* const gameState;
     SettingsManager* const settingsManager;
     WeaponManager* const weaponManager;
 	CameraController* const cameraController;
-	PlayerManager* const playerManager;
 	PerformanceManager* const performanceManager;
 	PerformanceMonitor* const performanceMonitor;
 
@@ -43,7 +44,7 @@ private:
 	bool imguiSettingsInitialized = false;
 
 public:
-    ImGuiMenu(SettingsManager* sm, WeaponManager* wm, CameraController* cm, PlayerManager* pm, PerformanceManager* perf, PerformanceMonitor* perfMonitor) : settingsManager(sm), weaponManager(wm), cameraController(cm), playerManager(pm), performanceManager(perf), performanceMonitor(perfMonitor) {};
+    ImGuiMenu(const GameState* gs, SettingsManager* sm, WeaponManager* wm, CameraController* cm, PerformanceManager* perf, PerformanceMonitor* perfMonitor) : gameState(gs), settingsManager(sm), weaponManager(wm), cameraController(cm), performanceManager(perf), performanceMonitor(perfMonitor) {};
 
     void RenderImGuiFrame();
     void onDeviceReset();
