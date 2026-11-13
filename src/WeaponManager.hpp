@@ -89,7 +89,7 @@ public:
 
 	void FetchEquipController();
 	void SpawnDummyCqcKnifeMesh();
-	void ToggleDummyCQCKnifeMeshVisibility();
+	void UpdateDummyCqcKnife();
 	void AttachWeaponRootToHand();
 	void RemoveUobjectHookFromHand(Hand handSide);
 	void ProcessWeapon(float delta);

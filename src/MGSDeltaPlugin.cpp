@@ -19,7 +19,7 @@ void MGSDeltaPlugin::on_detach(HMODULE hmod)
 {
 	// Runs from DllMain (process exit, loader lock held): the engine and UEVR may already be torn
 	// down, so no game or UEVR calls here. Only restore the patched game code.
-	memoryManager.ToggleFrameOffsetCutsceneFixMemoryInstructions(true);
+	memoryManager.SetFrameOffsetCutsceneFixEnabled(false);
 }
 
 void MGSDeltaPlugin::on_initialize() {
@@ -57,7 +57,7 @@ void MGSDeltaPlugin::on_initialize() {
 	hookManager.hook_bp_fn(L"Class /Script/Ics.IcsActorActionModule", L"OnOverrideRootMotionVelocityBP", NULL, (UEVR_UFunction_NativePostFn)HookManager::mod_IcsActorActionModule_OnOverrideRootMotionVelocity_post, true);
 
 	memoryManager.InitMemoryManager();
-	memoryManager.ToggleFrameOffsetCutsceneFixMemoryInstructions(false);
+	memoryManager.SetFrameOffsetCutsceneFixEnabled(true);
 	hookManager.HookFireFunction();
 	hookManager.HookSetEnableWallCollision();
 }
@@ -125,7 +125,7 @@ void MGSDeltaPlugin::dispatch_lua_event(const char* event_name, const char* even
 	API::get()->dispatch_lua_event(event_name, event_data);
 }
 
-void MGSDeltaPlugin::Toggle6DOF(bool enable)
+void MGSDeltaPlugin::Set6DOFEnabled(bool enable)
 {
 	if (enable && !vr_enabled)
 	{
@@ -134,23 +134,23 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		vrWorldScale.Reset();
 		vr2DScreenMode.Reset();
 		vrDecoupledPitch.Reset();
-		cameraController.ToggleCameraWobblingController(false);
-		playerManager.ToggleMeshesVisibility(false);
-		playerManager.ToggleReticleVisibility(false);
-		if (!cameraController.SpawnCameraAttachementActor())
+		cameraController.SetCameraWobblingControllerEnabled(false);
+		playerManager.SetMeshesVisible(false);
+		playerManager.SetReticleVisible(false);
+		if (!cameraController.SpawnCameraAttachmentActor())
 			return;
-		cameraController.AttachCameraToAttachementActor();
+		cameraController.AttachCameraToAttachmentActor();
 		API::get()->dispatch_lua_event("PlayerTookControl", "1");
 		vr_enabled = enable;
 	}
 
 	if(!enable && vr_enabled)
 	{
-		cameraController.ToggleCameraWobblingController(true);
-		playerManager.ToggleMeshesVisibility(true);
-		playerManager.ToggleReticleVisibility(true);
-		cameraController.DetachCameraFromAttachementActor();
-		cameraController.DestroyCameraAttachementActor();
+		cameraController.SetCameraWobblingControllerEnabled(true);
+		playerManager.SetMeshesVisible(true);
+		playerManager.SetReticleVisible(true);
+		cameraController.DetachCameraFromAttachmentActor();
+		cameraController.DestroyCameraAttachmentActor();
 		API::get()->dispatch_lua_event("PlayerTookControl", "0");
 		cutsceneManager.DestroyCustom2DScreen();
 
@@ -230,7 +230,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		levelChanged = false;
 		// Everything from the previous world is already destroyed by now: forget it (weak references
 		// make any leftover call a no-op) and start again from a clean state.
-		Toggle6DOF(false);
+		Set6DOFEnabled(false);
 		cutsceneManager.DestroyCustom2DScreen();
 		weaponManager.Cleanup();
 		itemManager.Cleanup();
@@ -243,13 +243,13 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 	if (gameState.PlayerGotControl())
 	{
-		Toggle6DOF(true);
+		Set6DOFEnabled(true);
 		Logger::DebugPrint("Player took control");
 	}
 
 	if (gameState.PlayerLostControl())
 	{
-		Toggle6DOF(false);
+		Set6DOFEnabled(false);
 		Logger::DebugPrint("Player lost control");
 	}
 
@@ -302,7 +302,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 			MenuFixes::FixSurvivalViewerMenuRendering();
 	}
 
-	weaponManager.ToggleDummyCQCKnifeMeshVisibility();
+	weaponManager.UpdateDummyCqcKnife();
 
 	if (gameState.IsPlayerControlled || gameState.CurrentCutsceneState == GameState::Playing3D)
 		cameraController.ProcessCamera(delta);
@@ -383,7 +383,7 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 	else
 		cameraController.ViewRotation = { rotation->pitch, rotation->yaw, rotation->roll };
 
-	//we need to override uevr attachement controls so we're running this later
+	//we need to override uevr attachment controls so we're running this later
 	if (gameState.IsPlayerControlled && vrHands.SecondHandAttachedToWeapon() && ranOnce)
 	{
 		weaponManager.ApplyRecoil(deltaTime);

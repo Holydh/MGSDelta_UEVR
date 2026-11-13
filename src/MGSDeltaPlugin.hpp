@@ -35,7 +35,7 @@ extern std::unique_ptr<MGSDeltaPlugin> g_plugin;
 
 class MGSDeltaPlugin : public uevr::Plugin {
 private:
-	void Toggle6DOF(bool enable);
+	void Set6DOFEnabled(bool enable);
 	void UpdateVRModValues();
 	ModValue<bool> vrRoomscaleMovement{ "VR_RoomscaleMovement" };
 	ModValue<float> vrWorldScale{ "VR_WorldScale" };

@@ -348,7 +348,7 @@ void ImGuiMenu::internalFrame()
 			if (ImGui::Checkbox("Disable thermal goggles scanline effect", &settingsManager->Settings.disableThermalVisionScanline))
 			{
 				settingsManager->SettingsModified = true;
-				itemManager->ToggleThermalVisionScanline();
+				itemManager->ApplyThermalVisionScanlineSetting();
 			}
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Removes the aggressive scanline effect from the thermal vision");

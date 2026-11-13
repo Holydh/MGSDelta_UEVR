@@ -8,7 +8,7 @@
 // held, the left VR hand holds it instead
 class FoodHandling {
 private:
-	float ActualFoodRotation = 0.0f;
+	float CurrentFoodRotation = 0.0f;
 	glm::vec3 FoodIdleStart = {0.0f, 0.0f, 0.0f};
 	glm::vec3 FoodIdlePosition = {0.0f, 0.0f, 0.0f};
 	glm::fquat FoodCurrentLocalRotation = {1.0, 0.0, 0.0, 0.0};

@@ -28,6 +28,7 @@ private:
 public:
 	void InitMemoryManager();
 
-	void ToggleFrameOffsetCutsceneFixMemoryInstructions(bool enableOriginalInstructions);
+	// enabled: the game instructions are NOPed, disabled: the original ones are restored
+	void SetFrameOffsetCutsceneFixEnabled(bool enabled);
 	bool FrameOffsetCutsceneFixInstructionsNoped = false;
 };

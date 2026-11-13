@@ -92,7 +92,7 @@ void WeaponManager::SpawnDummyCqcKnifeMesh()
 	}
 }
 
-void WeaponManager::ToggleDummyCQCKnifeMeshVisibility()
+void WeaponManager::UpdateDummyCqcKnife()
 {
 	// SetOnlyOwnerSee(true) hides a mesh from the VR view. Only call the engine when it differs.
 	auto setHidden = [](ue::UObject* mesh, bool hidden)
@@ -388,7 +388,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	}
 
-	//uevr seems to force uobject attachement each frame when a uobject file is present in uobjecthook folder
+	//uevr seems to force uobject attachment each frame when a uobject file is present in uobjecthook folder
 	//we need to reset the position to 0 each frame because of uevr reattach tentative
 	if (playerManager->MeleeAttackRunning || playerManager->IsCarrying)
 	{

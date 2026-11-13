@@ -41,7 +41,7 @@ void FoodHandling::Update(ue::UObject* weaponRoot, ue::UObject* leftHandMesh, fl
 		auto rotQuat = ue::call<ue::FTransform>(foodMesh, L"K2_GetComponentToWorld").Rotation;
 		auto rot = ue::call<ue::FRotator>(foodMesh, L"K2_GetComponentRotation");
 		FoodCurrentLocalRotation = {(float)rotQuat.W, (float)rotQuat.X, (float)rotQuat.Y, (float)rotQuat.Z};
-		ActualFoodRotation = rot.Yaw;
+		CurrentFoodRotation = rot.Yaw;
 	}
 
 	if (Inputs::LeftGripInputPressed.Rose())
@@ -64,20 +64,20 @@ void FoodHandling::Update(ue::UObject* weaponRoot, ue::UObject* leftHandMesh, fl
 	if (!Inputs::LeftGripInputPressed)
 	{
 
-		ActualFoodRotation -= delta * 20.0f;
-		if (ActualFoodRotation <= -360.0f)
-			ActualFoodRotation += 360.0f;
+		CurrentFoodRotation -= delta * 20.0f;
+		if (CurrentFoodRotation <= -360.0f)
+			CurrentFoodRotation += 360.0f;
 
-		ActualFoodRotation += cameraYawDelta;
+		CurrentFoodRotation += cameraYawDelta;
 
-		float radians = glm::radians(ActualFoodRotation);
+		float radians = glm::radians(CurrentFoodRotation);
 
 		// Apply the float
 		float positionOffset = sinf(radians * 2.0f) * 0.01f; // frequency * amplitude
 		auto rotationOffset = sinf(radians * 4.0f) * 2.0f;
 
 		// Build target rotation properly
-		glm::vec3 targetEulerDeg(-rotationOffset, -rotationOffset, ActualFoodRotation);
+		glm::vec3 targetEulerDeg(-rotationOffset, -rotationOffset, CurrentFoodRotation);
 		glm::vec3 targetRad = glm::radians(targetEulerDeg);
 
 		glm::quat qTarget = glm::quat(glm::mat3(

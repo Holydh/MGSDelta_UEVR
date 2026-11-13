@@ -20,7 +20,7 @@ private:
 	Tracked<ue::EGsrItemId> CurrentItemID = ue::EGsrItemId::IT_None;
 	ue::WeakObject playerCameraManager; // BP_PlayerCameraManager_C
 	// Retried every frame until the goggles' post process actor exists
-	bool ToggleThermalVisionScanlineNextFrame = false;
+	bool thermalScanlinePending = false;
 
 public:
 	ItemManager(const GameState* gs, SettingsManager* sm, VRHands* vh) : gameState(gs), settingsManager(sm), hands(vh) {};
@@ -29,7 +29,7 @@ public:
 	void Update();
 	bool IsScopeEquipped() const;
 	bool IsCardboardBoxEquipped() const;
-	void ToggleThermalVisionScanline();
+	void ApplyThermalVisionScanlineSetting();
 
 	// Commits this frame's tracked values: call last in the frame
 	void EndFrame();

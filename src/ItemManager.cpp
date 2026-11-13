@@ -16,9 +16,9 @@ void ItemManager::Update()
 
 	processItem();
 
-	if (ToggleThermalVisionScanlineNextFrame)
+	if (thermalScanlinePending)
 	{
-		ToggleThermalVisionScanline();
+		ApplyThermalVisionScanlineSetting();
 	}
 }
 
@@ -54,7 +54,7 @@ void ItemManager::processItem()
 				Logger::DebugPrint("No player camera manager found");
 				return;
 			}
-			ToggleThermalVisionScanlineNextFrame = true;
+			thermalScanlinePending = true;
 		}
 
 		if (CurrentItemID.Entered(ue::EGsrItemId::IT_Stealth))
@@ -89,7 +89,7 @@ void ItemManager::Cleanup()
 	playerCameraManager = nullptr;
 }
 
-void ItemManager::ToggleThermalVisionScanline()
+void ItemManager::ApplyThermalVisionScanlineSetting()
 {
 	if (playerCameraManager == nullptr)
 	{
@@ -103,5 +103,5 @@ void ItemManager::ToggleThermalVisionScanline()
 	}
 	Logger::DebugPrint("Toggle Thermal Vision Scanline");
 	ue::call(ue::get<ue::UObject*>(thermalPostProcessActor, L"Scanline"), L"SetVisibility", !settingsManager->Settings.disableThermalVisionScanline, true);
-	ToggleThermalVisionScanlineNextFrame = false;
+	thermalScanlinePending = false;
 }

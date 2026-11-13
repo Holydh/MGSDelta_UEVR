@@ -13,8 +13,8 @@ private:
 public:
 	PlayerManager(const GameState* gs) : gameState(gs) {};
 	void ConvertAllRequiredStringToFnames();
-	void ToggleMeshesVisibility(bool visible);
-	void ToggleReticleVisibility(bool visible);
+	void SetMeshesVisible(bool visible);
+	void SetReticleVisible(bool visible);
 
     // Commits this frame's tracked values: call last in the frame
     void EndFrame();
@@ -37,7 +37,7 @@ public:
 	void UpdateStanceChange(float deltaTime);
 	void ProcessPlayerCharacterState(const ue::FName& StateName, const ue::FName& StateMachineName);
 
-	void ToggleGameHandsVisibility(bool visible);
+	void SetGameHandsVisible(bool visible);
 	void ProcessGameHandsVisibility();
 	void UpdateForkAndKnifeMeleeState(float delta);
 

@@ -1,6 +1,6 @@
 #include "CameraController.hpp"
 
-void CameraController::ToggleCameraWobblingController(bool enabled) {
+void CameraController::SetCameraWobblingControllerEnabled(bool enabled) {
 	static ue::ClassRef wobblingController_c{ L"Class /Script/Gsr.GsrWobblingController" };
 	auto wobblingController = wobblingController_c.get() ? wobblingController_c.get()->get_first_object_matching(false) : nullptr;
 	if (!wobblingController)
@@ -8,26 +8,26 @@ void CameraController::ToggleCameraWobblingController(bool enabled) {
 	ue::call(wobblingController, L"SetEnabled", enabled);
 }
 
-bool CameraController::SpawnCameraAttachementActor()
+bool CameraController::SpawnCameraAttachmentActor()
 {
-	CameraAttachementActor = Utilities::SpawnActor(UEVR_Vector3d{ LastCameraPosition.x, LastCameraPosition.y, LastCameraPosition.z }, nullptr);
-	return CameraAttachementActor != nullptr;
+	CameraAttachmentActor = Utilities::SpawnActor(UEVR_Vector3d{ LastCameraPosition.x, LastCameraPosition.y, LastCameraPosition.z }, nullptr);
+	return CameraAttachmentActor != nullptr;
 }
 
-void CameraController::DestroyCameraAttachementActor()
+void CameraController::DestroyCameraAttachmentActor()
 {
-	if (CameraAttachementActor != nullptr) {
-		ue::call(CameraAttachementActor, L"K2_DestroyActor");
-		Logger::DebugPrint("Camera Attachement Actor Destroyed");
+	if (CameraAttachmentActor != nullptr) {
+		ue::call(CameraAttachmentActor, L"K2_DestroyActor");
+		Logger::DebugPrint("Camera Attachment Actor Destroyed");
 	}
 	// Also when the actor is already gone (destroyed with its level)
-	CameraAttachementActor = nullptr;
+	CameraAttachmentActor = nullptr;
 }
 
-void CameraController::AttachCameraToAttachementActor()
+void CameraController::AttachCameraToAttachmentActor()
 {
-	if (!CameraAttachementActor) return;
-	auto rootComponent = ue::get<ue::UObject*>(CameraAttachementActor, L"RootComponent");
+	if (!CameraAttachmentActor) return;
+	auto rootComponent = ue::get<ue::UObject*>(CameraAttachmentActor, L"RootComponent");
 	if (rootComponent) {
 		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(rootComponent);
 		motionState->set_hand(2);
@@ -36,18 +36,18 @@ void CameraController::AttachCameraToAttachementActor()
 	}
 	else
 	{
-		Logger::DebugPrint("AttachCameraToAttachementActor: RootComponent is null");
+		Logger::DebugPrint("AttachCameraToAttachmentActor: RootComponent is null");
 	}
 }
 
-void CameraController::DetachCameraFromAttachementActor()
+void CameraController::DetachCameraFromAttachmentActor()
 {
-	if (!CameraAttachementActor) return;
-	auto rootComponent = ue::get<ue::UObject*>(CameraAttachementActor, L"RootComponent");
+	if (!CameraAttachmentActor) return;
+	auto rootComponent = ue::get<ue::UObject*>(CameraAttachmentActor, L"RootComponent");
     if (rootComponent) {
         uevr::API::UObjectHook::remove_motion_controller_state(rootComponent);
     } else {
-        Logger::DebugPrint("DetachCameraFromAttachementActor: RootComponent is null");
+        Logger::DebugPrint("DetachCameraFromAttachmentActor: RootComponent is null");
     }
 }
 
@@ -221,9 +221,9 @@ void CameraController::ProcessCamera(float deltaTime)
 			NewCameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
 
 			const auto pawnRotation = ue::call<ue::FRotator>(pawn, L"K2_GetActorRotation");
-			ActualYaw = pawnRotation.Yaw;
-			LastCameraRotation.yaw = ActualYaw;
-			NewCameraRotation.yaw = ActualYaw;
+			CurrentYaw = pawnRotation.Yaw;
+			LastCameraRotation.yaw = CurrentYaw;
+			NewCameraRotation.yaw = CurrentYaw;
 			return;
 		}
 
@@ -328,7 +328,7 @@ void CameraController::ProcessCamera(float deltaTime)
 		{
 			YawProcessed = YawInput * 3.0f * settingsManager->Settings.cameraRotationSpeed * deltaTime;
 			if (YawInput != 0.0)
-				ActualYaw += YawProcessed;
+				CurrentYaw += YawProcessed;
 		}
 
 		/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
@@ -339,15 +339,15 @@ void CameraController::ProcessCamera(float deltaTime)
 		float speed = 10.25f * remappedRotationLerpMultiplier;
 		float alpha = 1.0f - expf(-speed * deltaTime);
 		NewCameraRotation.yaw = settingsManager->Settings.smoothCameraRotation ?
-			glm::mix(LastCameraRotation.yaw, ActualYaw, alpha) :
-			ActualYaw;
+			glm::mix(LastCameraRotation.yaw, CurrentYaw, alpha) :
+			CurrentYaw;
 
 		if (items->IsScopeEquipped())
 		{
 			// if fpv is enabled, we need to push the camera forward based on the FOV to prevent it from being too zoomed out
 			float forwardOffset = 0.0f;
 			glm::fvec3 forward{};
-			const auto hmdRotation = ue::call<ue::FRotator>(CameraAttachementActor, L"K2_GetActorRotation");
+			const auto hmdRotation = ue::call<ue::FRotator>(CameraAttachmentActor, L"K2_GetActorRotation");
 			CalculateForwardOffset({newPosition.x, newPosition.y, newPosition.z}, hmdRotation, actualFOV, forwardOffset, forward);
 			// if fpv is enabled, we need to push the camera forward based on the FOV to prevent it from being too zoomed out
 			NewCameraPosition = {
@@ -381,9 +381,9 @@ void CameraController::ProcessRoomscaleStance()
 	if (!settingsManager->Settings.enableRoomscaleProneAndCrouch)
 		return;
 
-	if (!CameraAttachementActor)
+	if (!CameraAttachmentActor)
 	{
-		Logger::DebugPrint("ProcessRoomscaleStance: CameraAttachementActor is null");
+		Logger::DebugPrint("ProcessRoomscaleStance: CameraAttachmentActor is null");
 		return;
 	}
 	UEVR_Matrix4x4f hmdTransform{};

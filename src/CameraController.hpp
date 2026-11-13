@@ -23,9 +23,9 @@ private:
 public:
 	CameraController(const GameState* gs, PlayerManager* pm, const ItemManager* im, SettingsManager* sm) : gameState(gs), playerManager(pm), items(im), settingsManager(sm){};
 
-	void ToggleCameraWobblingController(bool enabled);
+	void SetCameraWobblingControllerEnabled(bool enabled);
 
-	double ActualYaw = 0.0f;
+	double CurrentYaw = 0.0f;
 	
 	float YawInput = 0.0f;
 	float YawProcessed = 0.0f;
@@ -36,11 +36,11 @@ public:
 	UEVR_Rotatord LastCameraRotation = { 0.0f, 0.0f, 0.0f };
 	ue::FRotator ViewRotation{}; // rotation of the VR view rendered last frame
 
-	ue::WeakObject CameraAttachementActor;
-	bool SpawnCameraAttachementActor();
-	void DestroyCameraAttachementActor();
-	void AttachCameraToAttachementActor();
-	void DetachCameraFromAttachementActor();
+	ue::WeakObject CameraAttachmentActor;
+	bool SpawnCameraAttachmentActor();
+	void DestroyCameraAttachmentActor();
+	void AttachCameraToAttachmentActor();
+	void DetachCameraFromAttachmentActor();
 
 	void CalculateForwardOffset(const ue::FVector& location, const ue::FRotator& rotation, float fov, float& forwardOffset, glm::fvec3& forward);
 

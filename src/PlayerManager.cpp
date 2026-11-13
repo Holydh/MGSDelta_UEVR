@@ -22,7 +22,7 @@ void PlayerManager::ConvertAllRequiredStringToFnames()
 	fNameCarry = ue::FName(L"CARRY");
 }
 
-void PlayerManager::ToggleMeshesVisibility(bool visible)
+void PlayerManager::SetMeshesVisible(bool visible)
 {
 	auto pawn = gameState->Pawn;
 	if (!pawn)
@@ -64,7 +64,7 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 	}
 }
 
-void PlayerManager::ToggleReticleVisibility(bool visible)
+void PlayerManager::SetReticleVisible(bool visible)
 {
 	auto bp_GsrTpsSightWidget_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrTpsSightWidget");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
 	if (bp_GsrTpsSightWidget_c == nullptr)
@@ -201,7 +201,7 @@ void PlayerManager::SetPlayerStance(ue::EGsrPlayerStance NewStance)
 	ue::call(gsrPlayerActionCore, L"RequestChangeStance", NewStance);
 }
 
-void PlayerManager::ToggleGameHandsVisibility(bool visible)
+void PlayerManager::SetGameHandsVisible(bool visible)
 {
 	if (auto handsSkeletalMesh = ue::get<ue::UObject*>(gameState->Pawn, L"SkeletalMesh_Hand"))
 		ue::call(handsSkeletalMesh, L"SetOnlyOwnerSee", !visible);
@@ -211,5 +211,5 @@ void PlayerManager::ProcessGameHandsVisibility()
 {
 	// The game's hands replace the VR hands (hidden meanwhile) during melee attacks and while carrying
 	if (MeleeAttackRunning.Changed() || IsCarrying.Changed())
-		ToggleGameHandsVisibility(MeleeAttackRunning || IsCarrying);
+		SetGameHandsVisible(MeleeAttackRunning || IsCarrying);
 }

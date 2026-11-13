@@ -20,18 +20,18 @@ void MemoryManager::InitMemoryManager()
 
 }
 
-void MemoryManager::ToggleFrameOffsetCutsceneFixMemoryInstructions(bool enableOriginalInstructions)
+void MemoryManager::SetFrameOffsetCutsceneFixEnabled(bool enabled)
 {
-	if (!enableOriginalInstructions && !FrameOffsetCutsceneFixInstructionsNoped)
+	if (enabled && !FrameOffsetCutsceneFixInstructionsNoped)
 	{
 		NopMemory(frameOffsetCutsceneFixInstructionsAddresses);
-		FrameOffsetCutsceneFixInstructionsNoped = !enableOriginalInstructions;
+		FrameOffsetCutsceneFixInstructionsNoped = enabled;
 		Logger::DebugPrint("Memory successfully modified");
 	}
-	if (enableOriginalInstructions && FrameOffsetCutsceneFixInstructionsNoped)
+	if (!enabled && FrameOffsetCutsceneFixInstructionsNoped)
 	{
 		RestoreMemory(frameOffsetCutsceneFixInstructionsAddresses);
-		FrameOffsetCutsceneFixInstructionsNoped = !enableOriginalInstructions;
+		FrameOffsetCutsceneFixInstructionsNoped = enabled;
 		Logger::DebugPrint("Memory successfully restored");
 	}
 }
