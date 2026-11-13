@@ -29,13 +29,10 @@ struct WeaponConfig
 
 class SettingsManager {
 public:
-	bool debugMod = false;
-
 	bool SettingsModified = false;
 
 	void InitSettingsManager();
 	void GetOrCreateConfigFile();
-	void GetAllConfigFilePaths();
 	void WriteSettingsToPluginConfigFile();
 
 	static std::unordered_map<std::string, WeaponConfig> g_weaponConfigs;
@@ -71,7 +68,6 @@ public:
 	bool* SmoothCameraMovementsInImmersiveCutscenesPtr;
 	float* CutsceneCameraPositionLerpPtr;
 	float* CutsceneCameraRotationLerpPtr;
-	//bool* EnableCutoutScreenForCutscenesPtr;
 
 	bool* Enable3DCutscenesPtr;
 	bool* Enable3DRadioPtr;
@@ -107,21 +103,15 @@ private:
 	bool smoothCameraMovementsInImmersiveCutscenes = true;
 	float cutsceneCameraPositionLerp = 5.0f;
 	float cutsceneCameraRotationLerp = 8.0f;
-	//bool enableCutoutScreenForCutscenes = true;
 
 	bool enable3DCutscenes = true;
 	bool enable3DRadio = false;
 	bool enable3DSurvivalView = true;
 
-	std::string GetConfigFilePath(bool uevr);
-	std::string uevrSettingsFileName = "config.txt";
+	std::string GetConfigFilePath();
 	std::string pluginSettingsFileName = "MGSDelta_config.txt";
 
-	std::string uevrConfigFilePath;
-	FILETIME uevrLastWriteTime;
-	bool uevrConfigWroteByPlugin = false;
 	std::string pluginConfigFilePath;
-	FILETIME pluginLastWriteTime;
 
 	//Would need some rework if lots of config values to read. Now it opens the config.txt file each time we call these :
 	void SetFloatValueToFile(const std::string& filePath, const std::string& key, float value);
@@ -131,8 +121,6 @@ private:
 	int GetIntValueFromFile(const std::string& filePath, const std::string& key, int defaultValue);
 	void SetIntValueToFile(const std::string& filePath, const std::string& key, int value);
 
-	void FetchUevrSettings(bool writeToPlugin);
 	void FetchPluginSettings();
 	void SyncScopeSliderWithResolution();
-	void WriteChangedSettingsToPluginConfigFile();
 };

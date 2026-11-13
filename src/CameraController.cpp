@@ -1,29 +1,17 @@
 #include "CameraController.hpp"
 
 void CameraController::ToggleCameraWobblingController(bool enabled) {
-	//static auto pawn = uevr::API::get()->get_local_pawn(0);
-	//Logger::DebugPrint("Camera Recoil : " + enabled);
 	static ue::ClassRef wobblingController_c{ L"Class /Script/Gsr.GsrWobblingController" };
 	auto wobblingController = wobblingController_c.get() ? wobblingController_c.get()->get_first_object_matching(false) : nullptr;
 	if (!wobblingController)
 		return;
-	//Logger::DebugPrint(wobblingController->get_full_name());
 	ue::call(wobblingController, L"SetEnabled", enabled);
 }
 
 bool CameraController::SpawnCameraAttachementActor()
 {
 	CameraAttachementActor = Utilities::SpawnActor(UEVR_Vector3d{ LastCameraPosition.x, LastCameraPosition.y, LastCameraPosition.z }, nullptr);
-	if (CameraAttachementActor != nullptr)
-	{
-		CameraAttachementActorAvailable = true;
-		return true;
-	}
-	else
-	{
-		CameraAttachementActorAvailable = false;
-		return false;
-	}
+	return CameraAttachementActor != nullptr;
 }
 
 void CameraController::DestroyCameraAttachementActor()
@@ -34,8 +22,6 @@ void CameraController::DestroyCameraAttachementActor()
 	}
 	// Also when the actor is already gone (destroyed with its level)
 	CameraAttachementActor = nullptr;
-	IsCameraAttachedToAttachementActor = false;
-	CameraAttachementActorAvailable = false;
 }
 
 void CameraController::AttachCameraToAttachementActor()
@@ -44,14 +30,9 @@ void CameraController::AttachCameraToAttachementActor()
 	auto rootComponent = ue::get<ue::UObject*>(CameraAttachementActor, L"RootComponent");
 	if (rootComponent) {
 		auto motionState = uevr::API::UObjectHook::get_or_add_motion_controller_state(rootComponent);
-		//UEVR_Vector3f test = { 0.0, 0.0, 0.0 };
-		//UEVR_Quaternionf testQ = { 0.0, 0.0, 0.0, 1.0 };
-		//motionState->set_location_offset(&test);
-		//motionState->set_rotation_offset(&testQ);
 		motionState->set_hand(2);
 		motionState->set_permanent(true);
 		Logger::DebugPrint("Actor attached to VR Camera");
-		IsCameraAttachedToAttachementActor = true;
 	}
 	else
 	{
@@ -65,30 +46,10 @@ void CameraController::DetachCameraFromAttachementActor()
 	auto rootComponent = ue::get<ue::UObject*>(CameraAttachementActor, L"RootComponent");
     if (rootComponent) {
         uevr::API::UObjectHook::remove_motion_controller_state(rootComponent);
-		IsCameraAttachedToAttachementActor = false;
     } else {
         Logger::DebugPrint("DetachCameraFromAttachementActor: RootComponent is null");
     }
 }
-
-// not needed anymore after delta time capped in camera controller ?
-//bool CameraController::CameraAttachementActorPositionSafeguard()
-//{
-//	if (!CameraAttachementActor) return false;
-//	UEVR_Vector3d actorPosition;
-//	CameraAttachementActor->call_function(L"K2_GetActorLocation", &actorPosition);
-//	float distance = glm::distance(glm::fvec3{ (float)actorPosition.x, (float)actorPosition.y, (float)actorPosition.z }, LastCameraPosition);
-//	//Logger::DebugPrint("Camera Attachement Actor Position Safeguard Check. Distance: %f", distance);
-//	if (distance > 200.0f && IsCameraAttachedToAttachementActor)
-//	{
-//		Logger::DebugPrint("Camera Attachement Actor Position Safeguard Activated. Distance: %f", distance);
-//		return true;
-//	}
-//	else
-//	{
-//		return false;
-//	}
-//}
 
 void CameraController::CalculateForwardOffset(const ue::FVector& location, const ue::FRotator& rotation, float fov, float &forwardOffset, glm::fvec3 &forward)
 {
@@ -246,23 +207,17 @@ void CameraController::ProcessCamera(float deltaTime)
 		auto pawn = uevr::API::get()->get_local_pawn(0);
 		if (!pawn)
 			return;
-		//UEVR_Vector3d floorPosition;
-		//pawn->call_function(L"GetFloorPosition", &floorPosition);
-		//Logger::DebugPrint("GetFloorPosition : %f, %f, %f", floorPosition.x, floorPosition.y, floorPosition.z);
 		const auto pawnLocation = ue::call<ue::FVector>(pawn, L"K2_GetActorLocation");
 		UEVR_Vector3d pawnPosition{ pawnLocation.X, pawnLocation.Y, pawnLocation.Z };
-		//Logger::DebugPrint("Pawn Position : %f, %f, %f", pawnPosition.x, pawnPosition.y, pawnPosition.z);
 		auto grassVolumeCollisionHead = ue::get<ue::UObject*>(pawn, L"GrassVolumeCollisionHead");
 
 		const auto headLocation = ue::call<ue::FVector>(grassVolumeCollisionHead, L"K2_GetComponentLocation");
 		headColliderPosition = { headLocation.X, headLocation.Y, headLocation.Z };
-		//Logger::DebugPrint("headColliderPosition : %f, %f, %f", headColliderPosition.x, headColliderPosition.y, headColliderPosition.z);
 
 		// Reset camera position and rotation when player respawn or teleport
 		if (InstantCameraPositionNeeded)
 		{
 			LastCameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
-			//CameraHeightOffset = pawnPosition.z - headColliderPosition.z;
 			NewCameraPosition = { pawnPosition.x, pawnPosition.y, (float)headColliderPosition.z };
 
 			const auto pawnRotation = ue::call<ue::FRotator>(pawn, L"K2_GetActorRotation");
@@ -271,13 +226,6 @@ void CameraController::ProcessCamera(float deltaTime)
 			NewCameraRotation.yaw = ActualYaw;
 			return;
 		}
-		//Logger::DebugPrint("Actual Yaw : %f", ActualYaw);
-		//Logger::DebugPrint("State Machine Name : %s ", playerManager->debugParamsTest.StateMachineName.ToString().c_str());
-		//Logger::DebugPrint("Next State Name : %s ", playerManager->debugParamsTest.NextStateName.ToString().c_str());
-		//Logger::DebugPrint("Prev State Name : %s ", playerManager->debugParamsTest.PrevStateName.ToString().c_str());
-		//CameraHeightOffset = headColliderPosition.z - pawnPosition.z;
-		//Logger::DebugPrint("stance : %i", playerManager->CurrentStance);
-		//Logger::DebugPrint("pawnPosition.z : %f", pawnPosition.z);
 
 		if (!*settingsManager->EnableRoomscaleProneAndCrouchPtr)
 		{
@@ -320,15 +268,6 @@ void CameraController::ProcessCamera(float deltaTime)
 		}
 
 
-
-		//if (playerManager->IsHanging)
-		//{
-		//	tempPosition = UEVR_Vector3d(pawnPosition.x, pawnPosition.y, headColliderPosition.z);
-		//	newPosition = glm::fvec3(
-		//		glm::mix(CameraPosition.x, (float)tempPosition.x, 0.25f),
-		//		glm::mix(CameraPosition.y, (float)tempPosition.y, 0.25f),
-		//		glm::mix(CameraPosition.z, (float)tempPosition.z, 0.05f));
-		//}
 
 
 
@@ -380,11 +319,6 @@ void CameraController::ProcessCamera(float deltaTime)
 				tempPosition;
 		}
 
-		//Logger::DebugPrint("%f", pawnPosition.z + CameraHeightOffset);
-		//Logger::DebugPrint("%f, %f", remappedLerpZMultiplier, 2.25f * remappedLerpZMultiplier * DeltaTime);
-		//Logger::DebugPrint("%f", DeltaTime);
-
-		//Logger::DebugPrint("Camera Height Offset : %f", cameraController.CameraHeightOffset);
 		LastCameraPosition = newPosition;
 		NewCameraPosition.x = newPosition.x;
 		NewCameraPosition.y = newPosition.y;
@@ -397,10 +331,6 @@ void CameraController::ProcessCamera(float deltaTime)
 				ActualYaw += YawProcessed;
 		}
 
-		//if (ActualYaw >= 360.0f)
-		//	ActualYaw -= 360.0f;
-		//else if (ActualYaw < 0.0f)
-		//	ActualYaw += 360.0f;
 		/*Logger::DebugPrint("rotation->yaw: %f", rotation->yaw);*/
 
 		//The Imgui menu shows the smoothness "quantity", not the lerp factor. We need the inverse for the calculation. Makes more sense for users.
@@ -429,8 +359,6 @@ void CameraController::ProcessCamera(float deltaTime)
 		}
 
 		LastCameraRotation = NewCameraRotation;
-		previousPawnPositionZ = pawnPosition.z;
-		/*SetCameraRotation();*/
 	}
 }
 
@@ -448,23 +376,6 @@ void CameraController::ProcessCameraResetTimer(float delta)
 	InstantCameraPositionTimer -= delta;
 }
 
-//Need more tests
-//void CameraController::DisableGrassFading()
-//{
-//	Logger::DebugPrint("DisableGrassFading");
-//	static ue::ClassRef cameraFadingComponent_c{ L"Class /Script/Cobra.CameraFadingComponent" };
-//	if (!cameraFadingComponent_c.get())
-//		return;
-//	for (auto component : cameraFadingComponent_c.get()->get_objects_matching())
-//	{
-//		Logger::DebugPrint(component->get_full_name());
-//		ue::set(component, L"bAutoActivate", false);
-//		ue::set(component, L"GrassFadingRadius", 0.0f);
-//		ue::call(component, L"ClearCache");
-//		ue::call(component, L"Deactivate");
-//	}
-//}
-
 void CameraController::ProcessRoomscaleStance()
 {
 	if (!*settingsManager->EnableRoomscaleProneAndCrouchPtr)
@@ -475,16 +386,9 @@ void CameraController::ProcessRoomscaleStance()
 		Logger::DebugPrint("ProcessRoomscaleStance: CameraAttachementActor is null");
 		return;
 	}
-	auto cameraAttachementPosition = ue::call<ue::FVector>(CameraAttachementActor, L"K2_GetActorLocation");
-	//Logger::DebugPrint("cameraAttachementPosition : %f", cameraAttachementPosition.Z);
-	//Logger::DebugPrint("headColliderPosition : %f", headColliderPosition.z);
-	auto difference = cameraAttachementPosition.Z - headColliderPosition.z;
-	//Logger::DebugPrint("Head Collider - cameraAttachementPosition Difference : %f", difference);
-
 	UEVR_Matrix4x4f hmdTransform{};
 	uevr::API::get()->param()->vr->get_transform(uevr::API::VR::get_hmd_index(), &hmdTransform);
 	auto hmdHeight = hmdTransform.m[3][1];
-	//Logger::DebugPrint("HMD Transform Z Position : %f", hmdTransform.m[3][1]);
 
 	if (playerManager->CurrentStance == ue::EGsrPlayerStance::Stand && hmdHeight <= *settingsManager->SquatUnderThisValuePtr)
 		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Squat);
@@ -499,15 +403,6 @@ void CameraController::ProcessRoomscaleStance()
 		playerManager->SetPlayerStance(ue::EGsrPlayerStance::Squat);
 }
 
-//void CameraController::SetNearClipPlane(float nearClip)
-//{
-//	static ue::ClassRef playerCameraActor_c{ L"Class /Script/Gsr.GsrPlayerCameraActor" };
-//	auto playerCamera = playerCameraActor_c.get() ? playerCameraActor_c.get()->get_first_object_matching(false) : nullptr;
-//	auto cameraComponent = ue::get<ue::UObject*>(playerCamera, L"CameraComponent");
-//	ue::call(cameraComponent, L"SetOrthoNearClipPlane", nearClip);
-//	Logger::DebugPrint("%f", ue::get<float>(cameraComponent, L"OrthoNearClipPlane"));
-//}
-
 void CameraController::FixSurvivalViewerMenuRendering()
 {
 	static ue::ClassRef sv_main_c{ L"WidgetBlueprintGeneratedClass /CobraUI/Blueprint/sv_main.sv_main_C" };
@@ -516,9 +411,6 @@ void CameraController::FixSurvivalViewerMenuRendering()
 		return;
 
 	ue::call(ue::get<ue::UObject*>(mainWidget, L"ModelCaptureCanvas"), L"SetVisibility", ue::ESlateVisibility::Hidden);
-	//ue::call(ue::get<ue::UObject*>(mainWidget, L"menuBLIcon"), L"SetVisibility", ue::ESlateVisibility::Visible);
-	//ue::call(ue::get<ue::UObject*>(mainWidget, L"Mask"), L"SetVisibility", ue::ESlateVisibility::Hidden);
-	//
 	// Get sub menu type : mainWidget->GetSvStep();
 
 	auto rootWidgetCanvasPanel = ue::get<ue::UObject*>(ue::get<ue::UObject*>(mainWidget, L"WidgetTree"), L"RootWidget");
@@ -774,11 +666,7 @@ void CameraController::SpawnCustom2DScreen()
 	ue::set(translucentMat, L"TwoSided", true);
 	ue::set(translucentMat, L"bDisableDepthTest", true);
 	ue::set(translucentMat, L"BlendMode", ue::EBlendMode::BLEND_Translucent);
-	//ue::set(translucentMat, L"MaterialDomain", ue::EMaterialDomain::MD_Surface);
 	ue::set(translucentMat, L"ShadingModel", ue::EMaterialShadingModel::MSM_Unlit);
-	////Material /Engine/EngineMaterials/DefaultMaterial.DefaultMaterial
-
-	//auto textureUEVR = uevr::API::get()->find_uobject<uevr::API::UObject>(L"Texture2D /CobraUI/Material/HUD/T_GoggleVignette.T_GoggleVignette");
 
 	// create 5 planes for the box
 	for (int i = 0; i < 5; i++)
@@ -833,10 +721,6 @@ void CameraController::SpawnCustom2DScreen()
 			ue::FLinearColor{ 0.0f, 0.0f, 0.0f, 9999.0f }
 		);
 
-		//ue::call(dynamicMaterial, L"SetVectorParameterValue", ue::FName(L"TintColorAndOpacity"), ue::FLinearColor{ 0.0f, 0.0f, 0.0f, 99999.0f });
-		//ue::call(dynamicMaterial, L"SetVectorParameterValue", ue::FName(L"BackColor"), ue::FLinearColor{ 0.0f, 0.0f, 0.0f, 99999.0f });
-		//ue::call(dynamicMaterial, L"SetScalarParameterValue", ue::FName(L"OpacityFromTexture"), 9999.0f);
-		//ue::call(dynamicMaterial, L"SetTextureParameterValue", ue::FName(L"SlateUI"), textureUEVR);
 	}
 
 	Custom2DScreen = actor;
@@ -907,45 +791,9 @@ void CameraController::ResizeBlackBars()
 				ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
 				ue::call(smc, L"SetWorldScale3D", ue::FVector{ (H * 2) / planeUnit, D / planeUnit, 1.0f });
 				break;
-			//case 5: // TOP (Ceiling)
-			//	ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ 0.0f, 0.0f, H }, false, nullptr, true);
-			//	ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
-			//	ue::call(smc, L"SetWorldScale3D", ue::FVector{ D / planeUnit, (W * 2) / planeUnit, 1.0f });
-			//	break;
-
-			//case 6: // BOTTOM (Floor)
-			//	ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ 0.0f, 0.0f, -H }, false, nullptr, true);
-			//	ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 0.0f, 0.0f, 0.0f }, false, nullptr, true);
-			//	ue::call(smc, L"SetWorldScale3D", ue::FVector{ D / planeUnit, (W * 2) / planeUnit, 1.0f });
-			//	break;
-
-			//case 7: // BACK (The wall behind the screen)
-			//	// Move it back by the full depth D
-			//	ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ -D * 0.5f, 0.0f, 0.0f }, false, nullptr, true);
-			//	ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 90.0f, 0.0f, 0.0f }, false, nullptr, true);
-			//	ue::call(smc, L"SetWorldScale3D", ue::FVector{ (H * 2) / planeUnit, (W * 2) / planeUnit, 1.0f });
-			//	break;
-
-			//case 8: // LEFT (Side wall)
-			//	ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ 0.0f, -W, 0.0f }, false, nullptr, true);
-			//	ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
-			//	ue::call(smc, L"SetWorldScale3D", ue::FVector{ (H * 2) / planeUnit, D / planeUnit, 1.0f });
-			//	break;
-
-			//case 9: // RIGHT (Side wall)
-			//	ue::call(smc, L"K2_SetRelativeLocation", ue::FVector{ 0.0f, W, 0.0f }, false, nullptr, true);
-			//	ue::call(smc, L"K2_SetRelativeRotation", ue::FRotator{ 90.0f, 0.0f, 90.0f }, false, nullptr, true);
-			//	ue::call(smc, L"SetWorldScale3D", ue::FVector{ (H * 2) / planeUnit, D / planeUnit, 1.0f });
-			//	break;
 		}
 	}
 }
-
-//void CameraController::ProcessCustom2DScreenPositionAndRotation()
-//{
-//	//grab uevr position and rotation from callback and apply to the custom 2D screen
-//	// need to delete the logic that attach the planes to the camera manager.
-//}
 
 void CameraController::DestroyCustom2DScreen()
 {

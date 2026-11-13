@@ -10,9 +10,6 @@ class Utilities {
 private:
 
 public:
-	static uevr::API::UObject* KismetMathLibrary;
-	static uevr::API::UObject* KismetStringLibrary;
-	static uevr::API::UObject* GameplayStatics;
 	static uevr::API::UClass* ActorClass;
 	static uevr::API::UClass* SceneComponentClass;
 
@@ -28,17 +25,9 @@ public:
 
 	static inline constinit ue::ClassRef GsrPlayerBasicAction_c{ L"Class /Script/Gsr.GsrPlayerBasicAction" };
 
-	//Debug Arrow Actor
-	static uevr::API::UObject* DebugMesh0;
-	static uevr::API::UObject* DebugMesh1;
-
 	static void InitHelperClasses();
 	static uevr::API::UObject* SpawnActor(UEVR_Vector3d Position, uevr::API::UObject* Owner);
 	static uevr::API::UObject* SpawnMesh(const ue::FTransform& worldTransform, std::wstring_view meshFullName, uevr::API::UObject*& outMeshComponent);
-	static void DestroyDebugMeshes();
 
 	static float Remap(float value, float inMin, float inMax, float outMin, float outMax);
-	static glm::quat FRotatorToQuat(const ue::FRotator& rotator);
-	static ue::FRotator QuatToFRotator(glm::quat quaternion);
-	//static glm::fvec3 OffsetLocalPositionFromWorld(glm::fvec3 worldPosition, glm::fvec3 forwardVector, glm::fvec3 upVector, glm::fvec3 rightVector, glm::fvec3 offsets);
 };

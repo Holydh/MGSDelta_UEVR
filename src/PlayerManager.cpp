@@ -8,7 +8,6 @@ void PlayerManager::ConvertAllRequiredStringToFnames()
     fNamePeepEnd = ue::FName(L"PeepEnd");
 	fNameAimStart = ue::FName(L"AimStart");
 	fNameAimLoop = ue::FName(L"AimLoop");
-	fNameBasic = ue::FName(L"Basic");
 	fNameRolling = ue::FName(L"Rolling");
 	fNameElude = ue::FName(L"Elude");
 	fNameCombo = ue::FName(L"Combo");
@@ -68,7 +67,6 @@ void PlayerManager::ToggleMeshesVisibility(bool visible)
 void PlayerManager::ToggleReticleVisibility(bool visible)
 {
 	auto bp_GsrTpsSightWidget_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Gsr.GsrTpsSightWidget");//pawn->get_property<uevr::API::UClass*>(L"WobblingControllerClass");
-	//Logger::DebugPrint(bp_GsrTpsSightWidget_c->get_full_name());
 	if (bp_GsrTpsSightWidget_c == nullptr)
 	{
 		Logger::DebugPrint("GsrTpsSightWidget not found");
@@ -78,7 +76,6 @@ void PlayerManager::ToggleReticleVisibility(bool visible)
 	auto bp_GsrTpsSightWidget = bp_GsrTpsSightWidget_c->get_objects_matching(false); //get_first_object_matching(false);
 	for (size_t i = 0; i < bp_GsrTpsSightWidget.size(); i++)
 	{
-		//Logger::DebugPrint(bp_GsrTpsSightWidget[i]->get_full_name());
 		const auto visibility = visible ? ue::ESlateVisibility::Visible : ue::ESlateVisibility::Hidden;
 		ue::call(bp_GsrTpsSightWidget[i], L"SetVisibility", visibility);
 	}
@@ -103,7 +100,6 @@ void PlayerManager::FetchGameState()
 	}
 
 	CurrentMenuType = ue::call<ue::EGsrUIMenuType>(gsrGameStateSubsystem, L"GetUIMenuType");
-	//Logger::DebugPrint("IsInRadioCall: %d, IsInSurvivalViewer: %d, IsInPauseMenu: %d", isInRadioCall, isInSurvivalViewer, isInPauseMenu);
 }
 
 bool PlayerManager::PlayerGotControl()
@@ -168,7 +164,6 @@ void PlayerManager::GetCurrentPlayerStance(float deltaTime)
 			IsChangingStance = false;
 		}
 	}
-	//Logger::DebugPrint("Current Stance: %d", (int)CurrentStance); //0=Stand, 1=Squat, 2=Crawl
 }
 
 void PlayerManager::ProcessPlayerCharacterState(const ue::FName& StateName, const ue::FName& StateMachineName)
@@ -201,10 +196,6 @@ void PlayerManager::ProcessPlayerCharacterState(const ue::FName& StateName, cons
 	{
 		MeleeAttackRunning = StateMachineName == fNameMain && StateName == fNameHold ? false : true;
 		IsKnifeOrFork = MeleeAttackRunning ? true : false;
-		//if (!MeleeAttackRunning)
-		//{
-		//	Logger::DebugPrint("Fork and knife melee ended");
-		//}
 	}
 	else
 	{
@@ -216,31 +207,25 @@ void PlayerManager::ProcessPlayerCharacterState(const ue::FName& StateName, cons
 		StateName == fNameCombo3 ||
 		StateName == fNameStab1 || 
 		StateName == fNameStab2 ? true : false;
-		//if (!MeleeAttackRunning && WasMeleeAttackRunning)
-		//	Logger::DebugPrint("Melee ended");
 	}
 	if (MeleeAttackRunning && StateMachineName == fNameMain)
 	{
-		//Logger::DebugPrint("Fork and knife melee started");
 		IsKnifeOrFork = true;
 	}
 
 	IsCqcGrab = StateMachineName == fNameEnemyCqc ? true : false; //need check
 
 	
-	//Logger::DebugPrint("StateMachineName: %s, StateName: %s", StateMachineName.ToString().c_str(), StateName.ToString().c_str());
 }
 
 void PlayerManager::UpdateForkAndKnifeMeleeState(float delta)
 {
-	//Logger::DebugPrint("CurrentAimingStatus : %d, IsAiming : %d", CurrentAimingStatus, IsAiming);
 	if (MeleeAttackRunning && IsKnifeOrFork && IsFirstPersonView && !IsAiming)
 	{
 		forkAndKnifeTimer += delta;
 		if (forkAndKnifeTimer >= forkAndKnifeDuration) //give some time to finish the attack animation
 		{
 			forkAndKnifeTimer = 0.0f;
-			//Logger::DebugPrint("stop melee because not aiming. CurrentAimingStatus : %d, IsAiming : %d ", CurrentAimingStatus,IsAiming);
 			MeleeAttackRunning = false;
 			IsKnifeOrFork = false;
 		}

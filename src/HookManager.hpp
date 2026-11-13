@@ -1,9 +1,6 @@
 #pragma once
 #include <fstream>
 #include <utility/Scan.hpp>
-//#include <utility/Module.hpp>
-//#include <utility/String.hpp>
-//#include <utility/PointerHook.hpp>
 #include "magic_enum/magic_enum.hpp"
 
 #include "uevr/API.hpp"
@@ -28,8 +25,6 @@ private:
     static void* OnFire(uevr::API::UObject* equipcontroller, void* FireRequest) {
         return OnFireModded(equipcontroller, FireRequest);
     };
-    bool m_fire_hooked{ false };
-    int32_t m_fire_hook_id{};
     using FireFn = void* (*)(uevr::API::UObject*, void*);
     inline static FireFn m_fire_hook_fn{};
 

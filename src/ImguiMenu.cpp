@@ -1,12 +1,5 @@
 #include "ImGuiMenu.hpp"
 
-void ImGuiMenu::InitializeImGuiSettings()
-{
-	ImGuiStyle& style = ImGui::GetStyle();
-	style.ScaleAllSizes(imguiSize); // Scale padding, spacing, borders, etc.
-	ImGui::GetIO().FontGlobalScale = imguiSize; // Also scale fonts
-}
-
 void ImGuiMenu::RenderImGuiFrame()
 {
 	std::scoped_lock _{ m_imgui_mutex };
@@ -93,7 +86,7 @@ void ImGuiMenu::RenderImGuiVRFrameDX12(ID3D12GraphicsCommandList* command_list, 
 	g_d3d12.render_imgui_vr(command_list, rtv);
 }
 
-void ImGuiMenu::ProcessImGui(float deltaTime)
+void ImGuiMenu::ProcessImGui()
 {
 	if (!m_initialized || !uevr::API::get()->param()->functions->is_drawing_ui())
 	{
@@ -101,10 +94,6 @@ void ImGuiMenu::ProcessImGui(float deltaTime)
 	}
 
 	std::scoped_lock _{ m_imgui_mutex };
-	//ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
-
-	//ImGui::GetIO().MousePos = ImVec2(100, 100);
-	checkMouseFocus(deltaTime);
 
 	ImGui_ImplWin32_NewFrame();
 	handleVRcursor();
@@ -118,134 +107,15 @@ void ImGuiMenu::ProcessImGui(float deltaTime)
 
 void ImGuiMenu::handleVRcursor()
 {
-    // Get VR interface and device indices
-    auto vr = uevr::API::get()->param()->vr;
-    auto rightControllerIndex = vr->get_right_controller_index();
-    auto hmdIndex = vr->get_hmd_index();
-    ImGuiIO& io = ImGui::GetIO();
+	// The cursor position comes from the Lua script (MouseX / MouseY events), the click from the right A button
+	ImGuiIO& io = ImGui::GetIO();
 	io.MouseDrawCursor = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
-	auto test = io.MousePos;
-	///*Logger::DebugPrint("Mouse has focus : %i", MouseHasFocus);*/
-	//if (MouseHasFocus)
-	//	return;
-
- //   // Retrieve controller and HMD transforms
- //   UEVR_Matrix4x4f controllerPoseMatrix;
- //   UEVR_Matrix4x4f hmdPoseMatrix;
- //   vr->get_grip_transform(rightControllerIndex, &controllerPoseMatrix);
- //   vr->get_transform(hmdIndex, &hmdPoseMatrix);
- //   
- //   // Convert to GLM matrices
- //   glm::mat4 controllerMatrix = glm::make_mat4(&controllerPoseMatrix.m[0][0]);
- //   glm::mat4 hmdMatrix = glm::make_mat4(&hmdPoseMatrix.m[0][0]);
- //   
- //   // Extract controller position and calculate pointing direction
- //   glm::vec3 controllerPosition = glm::vec3(controllerMatrix[3]);
- //   glm::vec3 controllerForward = -glm::vec3(controllerMatrix[1]);
- //   glm::vec3 controllerUp = -glm::vec3(controllerMatrix[2]);
- //   glm::vec3 controllerDirection = glm::normalize(controllerForward * 0.5f + controllerUp * 0.3f);
- //   
- //   // Get VR play space origin and rotation
- //   UEVR_Vector3f standingOriginRaw;
- //   UEVR_Quaternionf rotationOffsetRaw;
- //   vr->get_standing_origin(&standingOriginRaw);
- //   vr->get_rotation_offset(&rotationOffsetRaw);
- //   
- //   glm::vec3 playSpaceOrigin(standingOriginRaw.x, standingOriginRaw.y, standingOriginRaw.z);
- //   glm::quat playSpaceRotation(rotationOffsetRaw.w, rotationOffsetRaw.x, 
- //                               rotationOffsetRaw.y, rotationOffsetRaw.z);
- //   
- //   // Calculate UI plane orientation
- //   glm::vec3 uiRightAxis = playSpaceRotation * glm::vec3(1, 0, 0);
- //   glm::vec3 uiUpAxis = playSpaceRotation * glm::vec3(0, 1, 0);
- //   glm::vec3 uiNormalAxis = playSpaceRotation * glm::vec3(0, 0, -1);
- //   
- //   // Position UI plane at configured distance from origin
- //   float uiDistance = uevr::API::VR::get_mod_value<float>(Framework_UI_Distance);
- //   glm::vec3 uiPlaneCenter = playSpaceOrigin + uiNormalAxis * uiDistance;
- //   
- //   // Perform ray-plane intersection
- //   float rayDotNormal = glm::dot(uiNormalAxis, controllerDirection);
- //   
- //   if (fabs(rayDotNormal) > 1e-6f)  // If ray not parallel to plane
- //   {
- //       float intersectionDistance = glm::dot(uiPlaneCenter - controllerPosition, uiNormalAxis) / rayDotNormal;
- //       
- //       if (intersectionDistance > 0.0f)  // Intersection in front of controller
- //       {
- //           // Calculate intersection point
- //           glm::vec3 intersectionPoint = controllerPosition + controllerDirection * intersectionDistance;
- //           
- //           // Project intersection to UI plane local coordinates
- //           glm::vec3 localOffset = intersectionPoint - uiPlaneCenter;
- //           float localX = glm::dot(localOffset, uiRightAxis);
- //           float localY = glm::dot(localOffset, uiUpAxis);
- //           
- //           // Normalize by UI size and apply cursor speed scaling
- //           float uiSize = uevr::API::VR::get_mod_value<float>(Framework_UI_Size);
- //           float normalizedX = (localX / uiSize) * 0.565f;
- //           float normalizedY = localY / uiSize;
- //           
- //           // Convert to ImGui screen coordinates
- //           ImVec2 targetMousePosition(
- //               (normalizedX + 0.5f) * io.DisplaySize.x,
- //               (0.5f - normalizedY) * io.DisplaySize.y
- //           );
- //           
- //           // Initialize last position if needed
- //           if (LastMousePosition.x < 0.0f)
- //           {
- //               LastMousePosition = targetMousePosition;
- //           }
- //           
- //           // Apply smoothing to cursor movement
- //           const float smoothingFactor = 0.2f;
- //           LastMousePosition.x = glm::mix(LastMousePosition.x, targetMousePosition.x, smoothingFactor);
- //           LastMousePosition.y = glm::mix(LastMousePosition.y, targetMousePosition.y, smoothingFactor);
- //           
- //           // Update ImGui input state
-            io.MousePos = LastMousePosition;
-			const bool controllerInput = Inputs::IsActionActive(false, "/actions/default/in/AButtonRight");
-			//io.AddMouseButtonEvent(0, io.MouseClicked);
-			// Only send changes: sending it every frame would release the real mouse button held from on_message
-			if (controllerInput != ControllerInput)
-				io.AddMouseButtonEvent(0, controllerInput);
-			ControllerInput = controllerInput;
-    //    }
-    //}
-}
-
-void ImGuiMenu::checkMouseFocus(float delta)
-{
-	//Logger::DebugPrint("MouseMovedThisFrame : %i", MouseMovedThisFrame);
-	//Logger::DebugPrint("MouseHasFocus : %i", MouseHasFocus);
-	//Logger::DebugPrint("mouseUseTimer : %f", mouseUseTimer);
-	auto io = ImGui::GetIO();
-
-
-	MouseHasFocus = uevr::API::get()->param()->vr->is_hmd_active() ? false : true;
-	return;
-
-	//need rework :
-	if (ControllerInput)
-	{
-		MouseHasFocus = false;
-		return;
-	}
-
-	if (!MouseMovedThisFrame && !io.MouseDown[0])
-	{
-		mouseUseTimer -= delta;
-	}
-	else
-	{
-		mouseUseTimer = mouseUseTime;
-		MouseHasFocus = true;
-	}
-	if (mouseUseTimer <= 0)
-	{
-		MouseHasFocus = false;
-	}
+	io.MousePos = LastMousePosition;
+	const bool controllerInput = Inputs::IsActionActive(false, "/actions/default/in/AButtonRight");
+	// Only send changes: sending it every frame would release the real mouse button held from on_message
+	if (controllerInput != ControllerInput)
+		io.AddMouseButtonEvent(0, controllerInput);
+	ControllerInput = controllerInput;
 }
 
 void ImGuiMenu::onDeviceReset()
@@ -272,7 +142,6 @@ void ImGuiMenu::internalFrame()
 {
 	if (!uevr::API::get()->param()->functions->is_drawing_ui())
 		return;
-	//ImGui::GetIO().WantCaptureMouse = false; //API::get()->param()->functions->is_drawing_ui;
 	
 	if (!imguiSettingsInitialized)
 	{
@@ -287,11 +156,6 @@ void ImGuiMenu::internalFrame()
 		ImGui::PushItemWidth(available * 0.4f);
 		if (ImGui::CollapsingHeader("Camera"))
 		{
-			/*	ImGui::Text("Decoupled pitch: %i", API::VR::is_decoupled_pitch_enabled());
-
-				if (ImGui::Button("Toggle decoupled pitch")) {
-					API::VR::set_decoupled_pitch_enabled(!API::VR::is_decoupled_pitch_enabled());
-				}*/
 			ImGui::SeparatorText("Rotation");
 
 			if (ImGui::SliderFloat("Rotation speed", settingsManager->CameraRotationSpeedPtr, 0.1f, 50.0f))
@@ -565,7 +429,6 @@ void ImGuiMenu::internalFrame()
 				ImGui::BeginDisabled(!*settingsManager->SmoothCameraMovementsInImmersiveCutscenesPtr);
 				{
 					ImGui::Indent();
-					//ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f); // Make sliders a bit shorter
 					if (ImGui::SliderFloat("Position Smoothness", settingsManager->CutsceneCameraPositionLerpPtr, 0.0f, 10.0f))
 						settingsManager->SettingsModified = true;
 					if (ImGui::IsItemHovered()) {
@@ -598,8 +461,6 @@ void ImGuiMenu::internalFrame()
 				if (cameraController->CutscenePlaying())
 					uevr::API::VR::set_mod_value("VR_WorldScale", *settingsManager->Enable3DCutscenesPtr ? 1.0f : 0.0f);
 			}
-			//if (ImGui::IsItemHovered())
-			//	ImGui::SetTooltip("Some link softwares (SteamVR and VD) can have issues when both Cut Out screen and 3D cutscenes are enabled. Disable one or the other if you have back screen or double vision issues.");
 
 			if (ImGui::Checkbox("Enable 3D in Radio window", settingsManager->Enable3DRadioPtr))
 			{
@@ -727,7 +588,6 @@ bool ImGuiMenu::initializeImGui() {
 		static const auto imgui_ini = uevr::API::get()->get_persistent_dir(L"imgui_mgsDeltaVR_plugin.ini").string();
 		ImGui::GetIO().IniFilename = imgui_ini.c_str();
 	}
-	//ImGui::GetIO().MouseDrawCursor = true;
 	const auto renderer_data = uevr::API::get()->param()->renderer;
 
 	DXGI_SWAP_CHAIN_DESC swap_desc{};

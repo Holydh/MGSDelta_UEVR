@@ -23,25 +23,9 @@ public:
 	ue::EGsrUIMenuType PreviousMenuType = ue::EGsrUIMenuType::None;
 	bool IngameUI();
 
-	enum EPlayerAnimState
-	{
-		Default,
-		Stand2Squat,
-		Squat2Crawl,
-		Crawl2Squat,
-		Squat2Stand,
-		StanceChange,
-		//CrawlIdle,
-		PeepStart,
-		PeepLoop,
-		PeepEnd
-	};
-	EPlayerAnimState CurrentAnimState = Default;
-
 	bool IsPeepingInternal = false;
 	bool WasPeepingInternal = false;
 	bool IsPeeping = false;
-	bool WasPeeping = false;
 	float ExtendPeepingStateTimer = 0.0f;
 	void UpdatePeepingAndCqcGrabState(float deltaTime);
 
@@ -49,9 +33,7 @@ public:
 	bool IsChangingStance = false;
 	bool IsRolling = false;
 	bool IsAiming = false;
-	bool WasAiming = false;
 	bool IsFirstPersonView = false;
-	bool WasFirstPersonView = false;
 	bool MeleeAttackRunning = false;
 	bool WasMeleeAttackRunning = false;
 	bool IsKnifeOrFork = false;
@@ -68,7 +50,6 @@ public:
 	void GetCurrentAimStateAndCameraMode();
 
 	ue::EGsrPlayerCameraControllerCameraMode CurrentCameraMode = ue::EGsrPlayerCameraControllerCameraMode::Around;
-	ue::EGsrPlayerCameraControllerCameraMode PreviousCameraMode = ue::EGsrPlayerCameraControllerCameraMode::Around;
 	ue::EAimingStatus CurrentAimingStatus = ue::EAimingStatus::Aiming_None;
 
 	ue::WeakObject LeftController;  // MotionControllerComponent
@@ -79,7 +60,6 @@ public:
 	void FetchMotionControllers();
 	bool MainHandAttachedToWeapon = false;
 	bool SecondHandAttachedToWeapon = false;
-	bool WasSecondHandAttachedToWeapon = false;
 
 	void ToggleVRHandsVisibility(bool enable);
 	void ProcessVRHandsVisibility();
@@ -87,7 +67,6 @@ public:
 
 	void SetPlayerStance(ue::EGsrPlayerStance NewStance);
 	void Cleanup();
-	//EPlayerAnimState GetCurrentPlayerAnimState(const ue::FName& State);
 
 	// Linear head-relative locomotion: replaces the root motion velocity of the basic action
 	float MoveStickX = 0.0f; // left stick, -1..1, written by the XInput callback
@@ -130,8 +109,6 @@ private:
 	ue::FName fNamePeepEnd;
 	ue::FName fNameAimStart;
 	ue::FName fNameAimLoop;
-	//Rolling State Machine Name
-	ue::FName fNameBasic;
 	//Rolling States
 	ue::FName fNameRolling;
 	//Falling from edge State Machine Name

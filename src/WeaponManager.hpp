@@ -1,7 +1,6 @@
 #pragma once
 #include "Utilities.hpp"
 #include "uevr/API.hpp"
-#include "MemoryManager.hpp"
 #include "SettingsManager.hpp"
 #include "Logger.hpp"
 #include "glm/glm.hpp"
@@ -16,7 +15,6 @@
 
 class WeaponManager {
 private:
-	//MemoryManager* const memoryManager;
 	SettingsManager* const settingsManager;
 	PlayerManager* const playerManager;
 	CameraController* const cameraController;
@@ -37,7 +35,7 @@ private:
 	
 
 public:
-	WeaponManager(/*MemoryManager* mm, */SettingsManager* sm, PlayerManager* pm, CameraController* cc) : /*memoryManager(mm), */settingsManager(sm), playerManager(pm), cameraController(cc) {};
+	WeaponManager(SettingsManager* sm, PlayerManager* pm, CameraController* cc) : settingsManager(sm), playerManager(pm), cameraController(cc) {};
 
 	void InitWeaponManager();
 
@@ -46,7 +44,6 @@ public:
 	bool IsShooting = false;
 	ue::WeakObject EquipController;
 	ue::WeakObject CurrentWeapon;
-	uevr::API::UObject* WeaponAttachParent = nullptr; // USceneComponent
 	ue::WeakObject WeaponRoot;
 	ue::WeakObject LeftHandWeaponRoot;
 	ue::WeakObject ReceiverMesh; // USkeletalMeshComponent
@@ -86,7 +83,6 @@ public:
 
 	glm::dvec3 FirePosition{};
 	glm::dvec3 AimPosition{};
-	ue::FRotator CurrentWeaponWorldRotation{};
 
 	ue::WeakObject DummyCqcKnifeMeshActor; // AActor
 	ue::WeakObject DummyCqcKnifeMesh; // USkeletalMeshComponent
@@ -364,7 +360,6 @@ public:
 		ue::FVector& outLeftHandLocationOffset,
 		ue::FRotator& outLeftHandRotationOffset);
 
-	//void Initialize();
 	void FetchEquipController();
 	void SpawnDummyCqcKnifeMesh();
 	void ToggleDummyCQCKnifeMeshVisibility();
@@ -372,7 +367,6 @@ public:
 	void RemoveUobjectHookFromHand(Hand handSide);
 	void ProcessWeapon(float delta);
 	void FetchWeaponMeshAimData();
-	//void ApplyAimDataToMemory();
 
 	void SetAimDirection();
 

@@ -5,8 +5,6 @@
 #include <optional>
 #include <sstream>
 
-bool debugMod = true;
-
 std::unordered_map<std::string, WeaponConfig> SettingsManager::g_weaponConfigs{};
 
 bool SettingsManager::LoadWeaponConfigFromFile(const fs::path& path, WeaponConfig& outCfg)
@@ -104,10 +102,8 @@ void SettingsManager::LoadAllConfigs(const std::filesystem::path& dir)
 
 void SettingsManager::InitSettingsManager()
 {
-	GetAllConfigFilePaths();
-	Logger::DebugPrint("%s", uevrConfigFilePath.c_str());
+	pluginConfigFilePath = GetConfigFilePath();
 	Logger::DebugPrint("%s", pluginConfigFilePath.c_str());
-	//FetchUevrSettings(false);
 
 	AttachCameraToSnakeHeadPtr = &attachCameraToSnakeHead;
 	CameraRotationSpeedPtr = &cameraRotationSpeed;
@@ -138,33 +134,14 @@ void SettingsManager::InitSettingsManager()
 	SmoothCameraMovementsInImmersiveCutscenesPtr = &smoothCameraMovementsInImmersiveCutscenes;
 	CutsceneCameraPositionLerpPtr = &cutsceneCameraPositionLerp;
 	CutsceneCameraRotationLerpPtr = &cutsceneCameraRotationLerp;
-	//EnableCutoutScreenForCutscenesPtr = &enableCutoutScreenForCutscenes;
 
 	Enable3DCutscenesPtr = &enable3DCutscenes;
 	Enable3DRadioPtr = &enable3DRadio;
 	Enable3DSurvivalViewPtr = &enable3DSurvivalView;
 }
 
-void SettingsManager::FetchUevrSettings(bool writeToPlugin)
-{
-	if (debugMod) Logger::DebugPrint("UpdateUevrSettings()");
-	
-	//xAxisSensitivity = SettingsManager::GetFloatValueFromFile(uevrConfigFilePath, "VR_AimSpeed", 125.0f) * 10; //*10 because the base UEVR setting is too low as is 
-	//joystickDeadzone = SettingsManager::GetFloatValueFromFile(uevrConfigFilePath, "VR_JoystickDeadzone", 0.1f);
-	//uevr_DecoupledPitch = SettingsManager::GetBoolValueFromFile(uevrConfigFilePath, "VR_DecoupledPitch", true);
-	//uevr_LerpPitch = SettingsManager::GetBoolValueFromFile(uevrConfigFilePath, "VR_LerpCameraPitch", true);
-	//uevr_LerpRoll = SettingsManager::GetBoolValueFromFile(uevrConfigFilePath, "VR_LerpCameraRoll", true);
-	//uevr_LerpYaw = SettingsManager::GetBoolValueFromFile(uevrConfigFilePath, "VR_LerpCameraYaw", false);
-
-	if (writeToPlugin)
-		WriteChangedSettingsToPluginConfigFile();
-	if (debugMod) Logger::DebugPrint("UEVR Settings Updated");
-}
-
-
 void SettingsManager::FetchPluginSettings()
 {
-	if (debugMod) Logger::DebugPrint("UpdatePluginSettings()");
 	attachCameraToSnakeHead = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "attachCameraToSnakeHead", false);
 	cameraRotationSpeed = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraRotationSpeed", 10.0f);
 	cameraRotationDeadZone = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cameraRotationDeadZone", 0.2f);
@@ -195,14 +172,12 @@ void SettingsManager::FetchPluginSettings()
 	smoothCameraMovementsInImmersiveCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "smoothCameraMovementsInImmersiveCutscenes", true);
 	cutsceneCameraPositionLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cutsceneCameraPositionLerp", 5.0f);
 	cutsceneCameraRotationLerp = SettingsManager::GetFloatValueFromFile(pluginConfigFilePath, "cutsceneCameraRotationLerp", 8.0f);
-	//enableCutoutScreenForCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enableCutoutScreenForCutscenes", true);
 	
 	enable3DCutscenes = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DCutscenes", true);
 	enable3DRadio = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DRadio", false);
 	enable3DSurvivalView = SettingsManager::GetBoolValueFromFile(pluginConfigFilePath, "enable3DSurvivalView", true);
 
 
-	if (debugMod) Logger::DebugPrint("Plugin Settings Updated");
 }
 
 void SettingsManager::SyncScopeSliderWithResolution()
@@ -218,7 +193,6 @@ void SettingsManager::SyncScopeSliderWithResolution()
 
 void SettingsManager::WriteSettingsToPluginConfigFile()
 {
-	if (debugMod) Logger::DebugPrint("WriteSettingsToPluginConfigFile()");
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "attachCameraToSnakeHead", attachCameraToSnakeHead);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraRotationSpeed", cameraRotationSpeed);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cameraRotationDeadZone", cameraRotationDeadZone);
@@ -247,7 +221,6 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "smoothCameraMovementsInImmersiveCutscenes", smoothCameraMovementsInImmersiveCutscenes);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cutsceneCameraPositionLerp", cutsceneCameraPositionLerp);
 	SettingsManager::SetFloatValueToFile(pluginConfigFilePath, "cutsceneCameraRotationLerp", cutsceneCameraRotationLerp);
-	//SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enableCutoutScreenForCutscenes", enableCutoutScreenForCutscenes);
 	
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DCutscenes", enable3DCutscenes);
 	SettingsManager::SetBoolValueToFile(pluginConfigFilePath, "enable3DRadio", enable3DRadio);
@@ -259,8 +232,6 @@ void SettingsManager::WriteSettingsToPluginConfigFile()
 
 void SettingsManager::GetOrCreateConfigFile()
 {
-	if (debugMod) Logger::DebugPrint("CheckSettingsModificationAndUpdate");
-
 	HANDLE hFile = CreateFileA(pluginConfigFilePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
@@ -298,7 +269,6 @@ void SettingsManager::GetOrCreateConfigFile()
 			"smoothCameraMovementsInImmersiveCutscenes=true\n"
 			"cutsceneCameraPositionLerp=5.0\n"
 			"cutsceneCameraRotationLerp=8.0\n"
-			//"enableCutoutScreenForCutscenes=true\n"
 			"------ Rendering Settings ------\n"
 			"enable3DCutscenes=true\n"
 			"enable3DRadio=false\n"
@@ -485,61 +455,22 @@ std::string GetDLLDirectory()
 	return "Unknown";
 }
 
-void SettingsManager::GetAllConfigFilePaths()
+// In the profile folder (the DLL is in its plugins subfolder)
+std::string SettingsManager::GetConfigFilePath()
 {
-	if (debugMod) Logger::DebugPrint("GetAllConfigFilePaths");
-	uevrConfigFilePath = GetConfigFilePath(true);
-	pluginConfigFilePath = GetConfigFilePath(false);
-}
-
-std::string SettingsManager::GetConfigFilePath(bool uevr)
-{
-	if (debugMod) Logger::DebugPrint("GetConfigFilePath()");
-
 	std::string fullPath = GetDLLDirectory();
 
-	// Remove "SanAndreas\plugins\UEVR_GTASADE.dll" part, leaving "SanAndreas"
 	size_t pos = fullPath.find_last_of("\\/");
 	if (pos != std::string::npos)
 	{
-		fullPath = fullPath.substr(0, pos); // Remove "\plugins"
+		fullPath = fullPath.substr(0, pos); // Remove the trailing slash
 		pos = fullPath.find_last_of("\\/");
 		if (pos != std::string::npos)
 		{
-			fullPath = fullPath.substr(0, pos + 1); // Keep "SanAndreas\"
+			fullPath = fullPath.substr(0, pos + 1); // Remove "plugins"
 		}
 	}
 
-	return fullPath + (uevr ? uevrSettingsFileName : pluginSettingsFileName); // Append "config.txt" or "UEVR_GTASADE_config.txt"
+	return fullPath + pluginSettingsFileName;
 }
 
-void SettingsManager::WriteChangedSettingsToPluginConfigFile()
-{
-	//switch (cameraModeSettings)
-	//{
-	//case OnFoot:
-	//	SetBoolValueToFile(pluginConfigFilePath, "OnFoot_DecoupledPitch", uevr_DecoupledPitch);
-	//	SetBoolValueToFile(pluginConfigFilePath, "OnFoot_LerpPitch", uevr_LerpPitch);
-	//	SetBoolValueToFile(pluginConfigFilePath, "OnFoot_LerpRoll", uevr_LerpRoll);
-	//	SetBoolValueToFile(pluginConfigFilePath, "OnFoot_LerpYaw", uevr_LerpYaw);
-	//	break;
-	//case DrivingCar:
-	//	SetBoolValueToFile(pluginConfigFilePath, "DrivingCar_DecoupledPitch", uevr_DecoupledPitch);
-	//	SetBoolValueToFile(pluginConfigFilePath, "DrivingCar_LerpPitch", uevr_LerpPitch);
-	//	SetBoolValueToFile(pluginConfigFilePath, "DrivingCar_LerpRoll", uevr_LerpRoll);
-	//	SetBoolValueToFile(pluginConfigFilePath, "DrivingCar_LerpYaw", uevr_LerpYaw);
-	//	break;
-	//case DrivingBike:
-	//	SetBoolValueToFile(pluginConfigFilePath, "DrivingBike_DecoupledPitch", uevr_DecoupledPitch);
-	//	SetBoolValueToFile(pluginConfigFilePath, "DrivingBike_LerpPitch", uevr_LerpPitch);
-	//	SetBoolValueToFile(pluginConfigFilePath, "DrivingBike_LerpRoll", uevr_LerpRoll);
-	//	SetBoolValueToFile(pluginConfigFilePath, "DrivingBike_LerpYaw", uevr_LerpYaw);
-	//	break;
-	//case Flying:
-	//	SetBoolValueToFile(pluginConfigFilePath, "Flying_DecoupledPitch", uevr_DecoupledPitch);
-	//	SetBoolValueToFile(pluginConfigFilePath, "Flying_LerpPitch", uevr_LerpPitch);
-	//	SetBoolValueToFile(pluginConfigFilePath, "Flying_LerpRoll", uevr_LerpRoll);
-	//	SetBoolValueToFile(pluginConfigFilePath, "Flying_LerpYaw", uevr_LerpYaw);
-	//	break;
-	//}
-}

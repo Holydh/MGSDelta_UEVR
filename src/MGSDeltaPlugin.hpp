@@ -8,11 +8,8 @@
 #include <filesystem>
 #include <optional>
 
-//#include <memory>
 #include "uevr/API.hpp"
 #include "uevr/Plugin.hpp"
-
-//#include <codecvt>
 
 #include "ImguiMenu.hpp"
 #include "CameraController.hpp"
@@ -49,7 +46,6 @@ public:
     virtual ~MGSDeltaPlugin();
 
     ImGuiMenu imGuiMenu;
-    Inputs inputs;
     CameraController cameraController;
 	WeaponManager weaponManager;
 	MemoryManager memoryManager;
@@ -60,20 +56,14 @@ public:
 	PerformanceMonitor performanceMonitor;
 
     void on_initialize() override;
-    //void on_dllmain(HMODULE hmod) override;
 	void on_detach(HMODULE hmod) override;
     void on_present() override;
     void on_device_reset() override;
-    void reset_height();
     void on_post_render_vr_framework_dx11(ID3D11DeviceContext* context, ID3D11Texture2D* texture, ID3D11RenderTargetView* rtv) override;
     void on_post_render_vr_framework_dx12(ID3D12GraphicsCommandList* command_list, ID3D12Resource* rt, D3D12_CPU_DESCRIPTOR_HANDLE* rtv) override;
     bool on_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
     void on_custom_event(const char* event_name, const char* event_data) override;
     void dispatch_lua_event(const char* event_name, const char* event_data) override;
-
-    void print_all_objects();
-    void test_console_manager();
-    void test_engine(uevr::API::UGameEngine* engine);
 
     void on_pre_engine_tick(uevr::API::UGameEngine* engine, float delta) override;
     void on_post_engine_tick(uevr::API::UGameEngine* engine, float delta) override;

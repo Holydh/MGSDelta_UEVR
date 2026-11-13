@@ -1,41 +1,10 @@
 #include "Utilities.hpp"
 
-uevr::API::UObject* Utilities::KismetMathLibrary = nullptr;
-uevr::API::UObject* Utilities::KismetStringLibrary = nullptr;
-uevr::API::UObject* Utilities::GameplayStatics = nullptr;
 uevr::API::UClass* Utilities::ActorClass = nullptr;
 uevr::API::UClass* Utilities::SceneComponentClass = nullptr;
 
-uevr::API::UObject* Utilities::DebugMesh0 = nullptr;
-uevr::API::UObject* Utilities::DebugMesh1 = nullptr;
-
 void Utilities::InitHelperClasses()
 {
-	static auto kismetMathLibrary_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.KismetMathLibrary");
-	if (!kismetMathLibrary_c)
-	{
-		uevr::API::get()->log_error("kismetMathLibrary_c not found");
-		return;
-	}
-	KismetMathLibrary = kismetMathLibrary_c->get_class_default_object();
-
-	static auto kismetStringLibrary_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.KismetStringLibrary");
-	if (!kismetStringLibrary_c)
-	{
-		uevr::API::get()->log_error("kismetStringLibrary_c not found");
-		return;
-	}
-	KismetStringLibrary = kismetStringLibrary_c->get_class_default_object();
-
-	static auto gameplayStatics_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.GameplayStatics");
-	if (!gameplayStatics_c)
-	{
-		uevr::API::get()->log_error("gameplayStatics_c not found");
-		return;
-	}
-	GameplayStatics = gameplayStatics_c->get_class_default_object();
-	//Logger::DebugPrint(GameplayStatics->get_full_name());
-
 	static auto actor_c = uevr::API::get()->find_uobject<uevr::API::UClass>(L"Class /Script/Engine.Actor");
 	if (!actor_c)
 	{
@@ -51,9 +20,6 @@ void Utilities::InitHelperClasses()
 		return;
 	}
 	SceneComponentClass = sceneComponent_c;
-
-	//uevr::API::get()->log_info("KismetMathLibrary: %p", KismetMathLibrary);
-	//Logger::DebugPrint("%s", "KismethMathLibraryFound");
 }
 
 uevr::API::UObject* Utilities::SpawnActor(UEVR_Vector3d Position, uevr::API::UObject* Owner)
@@ -190,56 +156,8 @@ uevr::API::UObject* Utilities::SpawnMesh(const ue::FTransform& worldTransform, s
 	return actor;
 }
 
-void Utilities::DestroyDebugMeshes()
-{
-	if (DebugMesh0)
-	{
-		ue::call(DebugMesh0, L"K2_DestroyActor");
-		DebugMesh0 = nullptr;
-	}
-	if (DebugMesh1)
-	{
-		ue::call(DebugMesh1, L"K2_DestroyActor");
-		DebugMesh1 = nullptr;
-	}
-}
-
 float Utilities::Remap(float value, float inMin, float inMax, float outMin, float outMax)
 {
     float t = glm::clamp((value - inMin) / (inMax - inMin), 0.0f, 1.0f);
     return glm::mix(outMin, outMax, t);
 }
-
-glm::quat Utilities::FRotatorToQuat(const ue::FRotator& rot)
-{
-    float pitch = glm::radians(rot.Pitch);
-    float yaw   = glm::radians(rot.Yaw);
-    float roll  = glm::radians(rot.Roll);
-
-    // Unreal order: Pitch(Y) -> Yaw(Z) -> Roll(X)
-    glm::quat qPitch = glm::angleAxis(pitch, glm::vec3(1, 0, 0));   // Actually X, but matches UE's coordinate handedness when modding
-    glm::quat qYaw   = glm::angleAxis(yaw,   glm::vec3(0, 0, 1));
-    glm::quat qRoll  = glm::angleAxis(roll,  glm::vec3(0, 1, 0));
-
-    // UE applies: Rot = QYaw * QPitch * QRoll
-    return qYaw * qPitch * qRoll;
-}
-
-ue::FRotator Utilities::QuatToFRotator(glm::quat quaternion)
-{
-	glm::vec3 e = glm::eulerAngles(quaternion);  // returns radians
-    ue::FRotator out;
-
-    // Map back to UE Rotator fields
-    out.Pitch = glm::degrees(e.x);
-    out.Yaw   = glm::degrees(e.y);
-    out.Roll  = glm::degrees(e.z);
-
-    return out;
-}
-
-
-//glm::fvec3 Utilities::OffsetLocalPositionFromWorld(glm::fvec3 worldPosition, glm::fvec3 forwardVector, glm::fvec3 upVector, glm::fvec3 rightVector, glm::fvec3 offsets)
-//{
-//	return worldPosition + (forwardVector * offsets.x) + (rightVector * offsets.y) + (upVector * offsets.z);
-//}

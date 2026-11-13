@@ -1,9 +1,5 @@
 #include "HookManager.hpp"
 
-#ifndef CPF_OutParm
-#define CPF_OutParm 0x0000000000000002
-#endif
-
 WeaponManager* HookManager::s_weaponManager = nullptr;
 CameraController* HookManager::s_cameraController = nullptr;
 PlayerManager* HookManager::s_playerManager = nullptr;
@@ -70,7 +66,7 @@ int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* d
 }
 
 void HookManager::HookFireFunction() {
-	m_fire_hook_id = hook_fn(
+	hook_fn(
 		L"Class /Script/Gsr.GsrEquipController",
 		L"Fire",
 		OnFire,
@@ -111,7 +107,6 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, void* fireR
 
 	//Call original function with our replaced parameters
 	auto result = m_fire_hook_fn(equipController, fireRequest);
-	//PLUGIN_LOG_ONCE("Result: 0x%p", result);
 	return result;
 }
 
@@ -129,7 +124,6 @@ void HookManager::ForwardEnteredState(uevr::API::UFunction* fn, void* locals)
 
 bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
-	//Logger::DebugPrint(obj->get_class()->get_full_name());
 	if (ue::is_a(obj, Utilities::ABP_SnakeBasicAction_C) || 
 		ue::is_a(obj, Utilities::ABP_PlayerRollingAction_C) || 
 		ue::is_a(obj, Utilities::ABP_PlayerBehindAction_C) || 

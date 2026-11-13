@@ -24,7 +24,7 @@ enableTwoHandsRealisticRecoil=true
 ------ Items Settings ------
 disableThermalVisionScanline=true
 ------ Cutscenes Settings ------
-enableImmersiveMode=false
+enableImmersiveMode=true
 blackBarsSize=6.000000
 smoothCameraMovementsInImmersiveCutscenes=true
 cutsceneCameraPositionLerp=6.000000

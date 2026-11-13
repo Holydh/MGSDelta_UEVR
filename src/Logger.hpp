@@ -2,7 +2,6 @@
 #include "uevr/API.hpp"
 #include "Globals.hpp"
 #include <cstdarg>
-#include <codecvt>
 
 
 #define PLUGIN_LOG_ONCE(...) { \
