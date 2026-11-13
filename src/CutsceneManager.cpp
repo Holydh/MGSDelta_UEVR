@@ -119,7 +119,6 @@ void CutsceneManager::SpawnCustom2DScreen()
 		return;
 
 	static ue::ClassRef staticMesh_c{ L"Class /Script/Engine.StaticMesh" };
-	static ue::ClassRef staticMeshComponent_c{ L"Class /Script/Engine.StaticMeshComponent" };
 
     // 1. Find the assets already loaded in memory. Checked before spawning the actor: this runs every
 	// frame of a cutscene until it succeeds, so a failure must not leave an actor behind.
@@ -156,46 +155,13 @@ void CutsceneManager::SpawnCustom2DScreen()
 	// create 5 planes for the box
 	for (int i = 0; i < 5; i++)
 	{
-		auto staticMeshComponent = ue::call<ue::UObject*>(actor, L"AddComponentByClass",
-			staticMeshComponent_c.get(),
-			false,            // bManualAttachment
-			ue::FTransform{}, // RelativeTransform
-			false);           // bDeferredFinish
-
+		auto staticMeshComponent = Utilities::AddMeshComponent(actor, staticMesh, true);
 		if (!staticMeshComponent)
 		{
-			Logger::DebugPrint("Failed to create UStaticMeshComponent");
 			ue::call(actor, L"K2_DestroyActor");
 			return;
 		}
-		Logger::DebugPrint(L"Created StaticMeshComponent: " + staticMeshComponent->get_full_name());
-		// 3. Assign the mesh asset to our new component instance
-		ue::call(staticMeshComponent, L"SetStaticMesh", staticMesh);
-		Logger::DebugPrint("Assigned mesh to StaticMeshComponent");
-
-		// 4. Attach the new component to the Actor's root component
-		ue::call(staticMeshComponent, L"K2_AttachToComponent",
-			ue::call<ue::UObject*>(actor, L"K2_GetRootComponent"), // Parent
-			ue::FName{},                                          // SocketName (none)
-			ue::EAttachmentRule::KeepRelative,                    // Use the relative location we just set
-			ue::EAttachmentRule::KeepRelative,                    // Use the relative rotation we just set
-			ue::EAttachmentRule::KeepRelative,                    // Use the relative scale we just set
-			false);                                               // bWeldSimulatedBodies
-		Logger::DebugPrint("Attached StaticMeshComponent to Actor's root component");
-
-		// 6. Register the component to make it "live" and renderable in the world
-		ue::call(staticMeshComponent, L"Activate", true);
-		Logger::DebugPrint("Activated StaticMeshComponent");
-
-		// Optional: Disable collision if it's just for visuals
-		ue::call(staticMeshComponent, L"SetCollisionEnabled", ue::ECollisionEnabled::NoCollision);
-		ue::call(staticMeshComponent, L"Activate", true);
-		ue::call(staticMeshComponent, L"SetVisibility", true, false);
-		ue::call(staticMeshComponent, L"SetHiddenInGame", false, false);
-		ue::call(staticMeshComponent, L"SetWorldScale3D", ue::FVector{ 1, 1, 1 });
 		ue::call(staticMeshComponent, L"SetMobility", ue::EComponentMobility::Movable);
-
-		ue::call(staticMeshComponent, L"SetRenderCustomDepth", true);
 
 		ue::set<int32_t>(staticMeshComponent, L"TranslucencySortPriority", 1000);
 		ue::call(staticMeshComponent, L"SetTranslucencySortDistanceOffset", 1000.0f);

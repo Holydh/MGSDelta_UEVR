@@ -119,9 +119,12 @@ void HookManager::ForwardEnteredState(uevr::API::UFunction* fn, void* locals)
 	if (locals == nullptr)
 		return;
 
-	auto true_locals = (char*)locals - 0x50;
-	auto nextStateName = ue::param<ue::FName>(fn, true_locals, L"NextStateName");
-	auto stateMachineName = ue::param<ue::FName>(fn, true_locals, L"StateMachineName");
+	// `locals` is the call's FFrame (UEVR passes the frame), not the parameters. The parameters were found
+	// 0x50 bytes before it, empirically: most likely ProcessEvent's stack copy of them (what FFrame::Locals points to).
+	constexpr ptrdiff_t paramsOffset = 0x50;
+	auto params = (char*)locals - paramsOffset;
+	auto nextStateName = ue::param<ue::FName>(fn, params, L"NextStateName");
+	auto stateMachineName = ue::param<ue::FName>(fn, params, L"StateMachineName");
 	if (nextStateName && stateMachineName)
 		s_playerManager->ProcessPlayerCharacterState(*nextStateName, *stateMachineName);
 }

@@ -27,6 +27,8 @@ public:
 
 	static void InitHelperClasses();
 	static uevr::API::UObject* SpawnActor(UEVR_Vector3d Position, uevr::API::UObject* Owner);
+	// A visible mesh component without collision, attached to the actor's root. Null if it couldn't be created.
+	static ue::UObject* AddMeshComponent(ue::UObject* actor, ue::UObject* mesh, bool isStaticMesh);
 	static uevr::API::UObject* SpawnMesh(const ue::FTransform& worldTransform, std::wstring_view meshFullName, uevr::API::UObject*& outMeshComponent);
 
 	static ue::UObject* FirstObjectOf(ue::ClassRef& cls);

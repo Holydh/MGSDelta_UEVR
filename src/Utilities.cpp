@@ -65,8 +65,6 @@ uevr::API::UObject* Utilities::SpawnMesh(const ue::FTransform& worldTransform, s
 {
 	static ue::ClassRef StaticMesh_c{ L"Class /Script/Engine.StaticMesh" };
 	static ue::ClassRef SkeletalMesh_c{ L"Class /Script/Engine.SkeletalMesh" };
-	static ue::ClassRef StaticMeshComponent_c{ L"Class /Script/Engine.StaticMeshComponent" };
-	static ue::ClassRef SkeletalMeshComponent_c{ L"Class /Script/Engine.SkeletalMeshComponent" };
 
 	// 1. Find the mesh asset already loaded in memory. Checked before spawning the actor: a failure
 	// must not leave an actor behind (the caller retries every frame).
@@ -100,60 +98,58 @@ uevr::API::UObject* Utilities::SpawnMesh(const ue::FTransform& worldTransform, s
 		return nullptr;
 	}
 
-	// 2. Create a new mesh component as a sub-object of the Actor
-	// This makes the Actor the "owner" of the new component.
-	auto meshComponent = ue::call<ue::UObject*>(actor, L"AddComponentByClass",
-		isStaticMesh ? StaticMeshComponent_c.get() : SkeletalMeshComponent_c.get(),
-		false,            // bManualAttachment
-		ue::FTransform{}, // RelativeTransform
-		false);           // bDeferredFinish
-
+	auto meshComponent = AddMeshComponent(actor, mesh, isStaticMesh);
 	if (!meshComponent)
 	{
-		Logger::DebugPrint("Failed to create mesh component");
 		ue::call(actor, L"K2_DestroyActor");
 		return nullptr;
 	}
-	Logger::DebugPrint(L"Created mesh component: " + meshComponent->get_full_name());
-
-	// 3. Assign the mesh asset to our new component instance
-	if (isStaticMesh)
-		ue::call(meshComponent, L"SetStaticMesh", mesh);
-	else
-		ue::call(meshComponent, L"SetSkeletalMeshAsset", mesh);
-	Logger::DebugPrint("Assigned mesh to component");
-
-	// 4. Attach the new component to the Actor's root component
-	ue::call(meshComponent, L"K2_AttachToComponent",
-		ue::call<ue::UObject*>(actor, L"K2_GetRootComponent"), // Parent
-		ue::FName{},                                          // SocketName (none)
-		ue::EAttachmentRule::KeepRelative,                    // Use the relative location we just set
-		ue::EAttachmentRule::KeepRelative,                    // Use the relative rotation we just set
-		ue::EAttachmentRule::KeepRelative,                    // Use the relative scale we just set
-		true);                                                // bWeldSimulatedBodies
-	Logger::DebugPrint("Attached mesh component to Actor's root component");
-
-	// 5. Register the component to make it "live" and renderable in the world
-	ue::call(meshComponent, L"Activate", true);
-	Logger::DebugPrint("Activated mesh component");
-
-	// Optional: Disable collision if it's just for visuals
-	ue::call(meshComponent, L"SetCollisionEnabled", ue::ECollisionEnabled::NoCollision);
-
-	ue::call(meshComponent, L"Activate", true);
-	ue::call(meshComponent, L"SetVisibility", true, false);
-	ue::call(meshComponent, L"SetHiddenInGame", false, false);
-	ue::call(meshComponent, L"SetRenderCustomDepth", true);
-	ue::call(meshComponent, L"SetWorldScale3D", ue::FVector{ 1, 1, 1 });
 	outMeshComponent = meshComponent;
 
 	ue::FHitResult outHit;
 	ue::call(actor, L"K2_SetActorTransform", worldTransform, false, &outHit, true);
 
-	Logger::DebugPrint("Disabled collision on mesh component");
-	// Store the actor reference for later use (e.g., to destroy it)
-	Logger::DebugPrint("Successfully spawned debug mesh component!\n");
+	Logger::DebugPrint("Mesh actor spawned");
 	return actor;
+}
+
+ue::UObject* Utilities::AddMeshComponent(ue::UObject* actor, ue::UObject* mesh, bool isStaticMesh)
+{
+	static ue::ClassRef StaticMeshComponent_c{ L"Class /Script/Engine.StaticMeshComponent" };
+	static ue::ClassRef SkeletalMeshComponent_c{ L"Class /Script/Engine.SkeletalMeshComponent" };
+
+	auto meshComponent = ue::call<ue::UObject*>(actor, L"AddComponentByClass",
+		isStaticMesh ? StaticMeshComponent_c.get() : SkeletalMeshComponent_c.get(),
+		false,            // bManualAttachment
+		ue::FTransform{}, // RelativeTransform
+		false);           // bDeferredFinish
+	if (!meshComponent)
+	{
+		Logger::DebugPrint("Failed to create mesh component");
+		return nullptr;
+	}
+	Logger::DebugPrint(L"Created mesh component: " + meshComponent->get_full_name());
+
+	if (isStaticMesh)
+		ue::call(meshComponent, L"SetStaticMesh", mesh);
+	else
+		ue::call(meshComponent, L"SetSkeletalMeshAsset", mesh);
+
+	ue::call(meshComponent, L"K2_AttachToComponent",
+		ue::call<ue::UObject*>(actor, L"K2_GetRootComponent"),
+		ue::FName{},
+		ue::EAttachmentRule::KeepRelative,
+		ue::EAttachmentRule::KeepRelative,
+		ue::EAttachmentRule::KeepRelative,
+		true); // bWeldSimulatedBodies
+
+	ue::call(meshComponent, L"Activate", true);
+	ue::call(meshComponent, L"SetCollisionEnabled", ue::ECollisionEnabled::NoCollision);
+	ue::call(meshComponent, L"SetVisibility", true, false);
+	ue::call(meshComponent, L"SetHiddenInGame", false, false);
+	ue::call(meshComponent, L"SetRenderCustomDepth", true);
+	ue::call(meshComponent, L"SetWorldScale3D", ue::FVector{ 1, 1, 1 });
+	return meshComponent;
 }
 
 ue::UObject* Utilities::FirstObjectOf(ue::ClassRef& cls)

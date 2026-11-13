@@ -1,5 +1,20 @@
 #include "CameraController.hpp"
 
+namespace {
+// Share of the remaining distance covered this frame by an exponential smoothing at this speed:
+// the same smoothing whatever the frame rate
+float expAlpha(float speed, float deltaTime)
+{
+	return 1.0f - expf(-speed * deltaTime);
+}
+
+// Horizontal and vertical axes smoothed at their own rate
+glm::fvec3 mixXYZ(const glm::fvec3& from, const glm::fvec3& to, float alphaXY, float alphaZ)
+{
+	return { glm::mix(from.x, to.x, alphaXY), glm::mix(from.y, to.y, alphaXY), glm::mix(from.z, to.z, alphaZ) };
+}
+}
+
 void CameraController::SetCameraWobblingControllerEnabled(bool enabled) {
 	static ue::ClassRef wobblingController_c{ L"Class /Script/Gsr.GsrWobblingController" };
 	auto wobblingController = wobblingController_c.get() ? wobblingController_c.get()->get_first_object_matching(false) : nullptr;
@@ -137,14 +152,11 @@ void CameraController::ProcessCamera(float deltaTime)
 				// prevent camera yeeting into orbit on low fps
 				float remappedCutscenePositionLerpMultiplier = Utilities::Remap(settingsManager->Settings.cutsceneCameraPositionLerp, 0.0f, 10.0f, 4.0f, 0.1f);
 				float speedXY = 11.25f * remappedCutscenePositionLerpMultiplier;
-				float alphaXY = 1.0f - expf(-speedXY * deltaTime);
+				float alphaXY = expAlpha(speedXY, deltaTime);
 				float speedZ = 2.25f * remappedCutscenePositionLerpMultiplier;
-				float alphaZ = 1.0f - expf(-speedZ * deltaTime);
+				float alphaZ = expAlpha(speedZ, deltaTime);
 				newPosition = settingsManager->Settings.smoothCameraMovementsInImmersiveCutscenes ?
-					glm::fvec3(
-						glm::mix(LastCameraPosition.x, originalCamLocation.x, alphaXY),
-						glm::mix(LastCameraPosition.y, originalCamLocation.y, alphaXY),
-						glm::mix(LastCameraPosition.z, originalCamLocation.z, alphaZ)) :
+					mixXYZ(LastCameraPosition, originalCamLocation, alphaXY, alphaZ) :
 					originalCamLocation;
 
 				NewCameraPosition = { newPosition.x, newPosition.y, newPosition.z };
@@ -152,7 +164,7 @@ void CameraController::ProcessCamera(float deltaTime)
 
 				float remappedRotationLerpMultiplier = Utilities::Remap(settingsManager->Settings.cutsceneCameraRotationLerp, 0.0f, 10.0f, 2.0f, 0.1f);
 				float speed = 10.25f * remappedRotationLerpMultiplier;
-				float alpha = 1.0f - expf(-speed * deltaTime);
+				float alpha = expAlpha(speed, deltaTime);
 
 
 				// 1. Calculate Deltas
@@ -278,7 +290,7 @@ void CameraController::ProcessCamera(float deltaTime)
 				glm::fvec3(headColliderPosition.x, headColliderPosition.y, pawnPosition.z + CameraHeightOffset);
 			// prevent camera yeeting into orbit on low fps
 			constexpr float speed = 3.0f;
-			float alpha = 1.0f - expf(-speed * deltaTime);
+			float alpha = expAlpha(speed, deltaTime);
 			newPosition = settingsManager->Settings.smoothCameraPosition ?
 				glm::mix(LastCameraPosition, tempPosition, alpha) :
 				tempPosition;
@@ -290,14 +302,11 @@ void CameraController::ProcessCamera(float deltaTime)
 				glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
 			// prevent camera yeeting into orbit on low fps
 			float speedXY = 4.5f * remappedLerpXYMultiplier;
-			float alphaXY = 1.0f - expf(-speedXY * deltaTime);
+			float alphaXY = expAlpha(speedXY, deltaTime);
 			float speedZ = 2.25f * remappedLerpZMultiplier;
-			float alphaZ = 1.0f - expf(-speedZ * deltaTime);
+			float alphaZ = expAlpha(speedZ, deltaTime);
 			newPosition = settingsManager->Settings.smoothCameraPosition ?
-				glm::fvec3(
-					glm::mix(LastCameraPosition.x, tempPosition.x, alphaXY),
-					glm::mix(LastCameraPosition.y, tempPosition.y, alphaXY),
-					glm::mix(LastCameraPosition.z, tempPosition.z, alphaZ)) :
+				mixXYZ(LastCameraPosition, tempPosition, alphaXY, alphaZ) :
 				tempPosition;
 		}
 
@@ -308,14 +317,11 @@ void CameraController::ProcessCamera(float deltaTime)
 				glm::fvec3(pawnPosition.x, pawnPosition.y, pawnPosition.z + CameraHeightOffset);
 			// prevent camera yeeting into orbit on low fps
 			float speedXY = 11.25f * remappedLerpXYMultiplier;
-			float alphaXY = 1.0f - expf(-speedXY * deltaTime);
+			float alphaXY = expAlpha(speedXY, deltaTime);
 			float speedZ = (items->IsCardboardBoxEquipped() ? 5.0f : 2.25f) * remappedLerpZMultiplier;
-			float alphaZ = 1.0f - expf(-speedZ * deltaTime);
+			float alphaZ = expAlpha(speedZ, deltaTime);
 			newPosition = settingsManager->Settings.smoothCameraPosition ?
-				glm::fvec3(
-					glm::mix(LastCameraPosition.x, tempPosition.x, alphaXY),
-					glm::mix(LastCameraPosition.y, tempPosition.y, alphaXY),
-					glm::mix(LastCameraPosition.z, tempPosition.z, alphaZ)) :
+				mixXYZ(LastCameraPosition, tempPosition, alphaXY, alphaZ) :
 				tempPosition;
 		}
 
@@ -337,7 +343,7 @@ void CameraController::ProcessCamera(float deltaTime)
 		float remappedRotationLerpMultiplier = Utilities::Remap(settingsManager->Settings.cameraYawLerp, 0.0f, 10.0f, 2.0f, 0.1f);
 		// prevent camera yeeting into orbit on low fps
 		float speed = 10.25f * remappedRotationLerpMultiplier;
-		float alpha = 1.0f - expf(-speed * deltaTime);
+		float alpha = expAlpha(speed, deltaTime);
 		NewCameraRotation.yaw = settingsManager->Settings.smoothCameraRotation ?
 			glm::mix(LastCameraRotation.yaw, CurrentYaw, alpha) :
 			CurrentYaw;

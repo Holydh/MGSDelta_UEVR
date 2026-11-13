@@ -62,7 +62,8 @@ bool GameState::PlayerLostControl() const
 
 bool GameState::IngameUI() const
 {
-	return CurrentMenuType == ue::EGsrUIMenuType::None || (int)CurrentMenuType.Get() >= 4;
+	// From WeaponLMenu up (weapon and item quick menus, radio shortcut, camo presets): shown over the game
+	return CurrentMenuType == ue::EGsrUIMenuType::None || CurrentMenuType.Get() >= ue::EGsrUIMenuType::WeaponLMenu;
 }
 
 bool GameState::CutsceneStarts() const
