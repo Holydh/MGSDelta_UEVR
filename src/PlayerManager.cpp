@@ -104,17 +104,27 @@ void PlayerManager::FetchGameState()
 
 bool PlayerManager::PlayerGotControl()
 {
-	return IsPlayerControlled && !WasPlayerControlled;
+	return IsPlayerControlled.Rose();
 }
 
 bool PlayerManager::PlayerLostControl()
 {
-	return !IsPlayerControlled && WasPlayerControlled;
+	return IsPlayerControlled.Fell();
+}
+
+void PlayerManager::EndFrame()
+{
+	IsPlayerControlled.Commit();
+	CurrentMenuType.Commit();
+	IsPeepingInternal.Commit();
+	MeleeAttackRunning.Commit();
+	IsCarrying.Commit();
+	CurrentStance.Commit();
 }
 
 bool PlayerManager::IngameUI()
 {
-	return CurrentMenuType == ue::EGsrUIMenuType::None || (int)CurrentMenuType >= 4;
+	return CurrentMenuType == ue::EGsrUIMenuType::None || (int)CurrentMenuType.Get() >= 4;
 }
 
 void PlayerManager::UpdatePeepingAndCqcGrabState(float deltaTime)
@@ -123,7 +133,7 @@ void PlayerManager::UpdatePeepingAndCqcGrabState(float deltaTime)
 		IsPeeping = true;
 
 	//Must give some more time for the camera to come back smoothly to position
-	if (!IsPeepingInternal && WasPeepingInternal)
+	if (IsPeepingInternal.Fell())
 	{
 		ExtendPeepingStateTimer = 2.0f;
 	}
@@ -150,7 +160,7 @@ void PlayerManager::GetCurrentPlayerStance(float deltaTime)
 	if (!gsrPlayer)
 		return;
 	CurrentStance = ue::call<ue::EGsrPlayerStance>(gsrPlayer, L"GetCurrentStance");
-	if (CurrentStance != PreviousStance)
+	if (CurrentStance.Changed())
 	{
 		ChangeStanceTimer = 0.0f;
 		IsChangingStance = true;
@@ -307,7 +317,7 @@ void PlayerManager::ToggleVRHandsVisibility(bool enable)
 
 void PlayerManager::ProcessVRHandsVisibility()
 {
-	if (MeleeAttackRunning != WasMeleeAttackRunning || IsCarrying != WasCarrying)
+	if (MeleeAttackRunning.Changed() || IsCarrying.Changed())
 		ToggleVRHandsVisibility(MeleeAttackRunning || IsCarrying ? false : true);
 }
 
@@ -513,7 +523,7 @@ void PlayerManager::LogCollisionAndRotation(double viewYaw)
 
 	auto capsule = ue::get<ue::UObject*>(pawn, L"CapsuleComponent");
 	Logger::DebugPrint("[Collision] camera mode %d, stance %d | capsule radius %.1f, half height %.1f | actor yaw %.1f, view yaw %.1f",
-		(int)CurrentCameraMode, (int)CurrentStance,
+		(int)CurrentCameraMode, (int)CurrentStance.Get(),
 		ue::call<float>(capsule, L"GetScaledCapsuleRadius"), ue::call<float>(capsule, L"GetScaledCapsuleHalfHeight"),
 		ue::call<ue::FRotator>(pawn, L"K2_GetActorRotation").Yaw, viewYaw);
 	Logger::DebugPrint("[Collision] wall collision enabled %d, radius %.1f, half height %.1f",

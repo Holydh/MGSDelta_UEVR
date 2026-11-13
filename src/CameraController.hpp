@@ -4,6 +4,7 @@
 #include "Logger.hpp"
 #include "magic_enum/magic_enum.hpp"
 #include "ue/Reflection.hpp"
+#include "Tracked.hpp"
 
 #include "PlayerManager.hpp"
 #include "SettingsManager.hpp"
@@ -45,6 +46,8 @@ public:
 	float InstantCameraPositionTimer = 0.25f;
 	bool InstantCameraPositionNeeded = false;
 	void ProcessCameraResetTimer(float delta);
+	// Commits this frame's tracked values: call last in the frame
+	void EndFrame();
 
 	void ProcessRoomscaleStance();
 
@@ -58,8 +61,7 @@ public:
 		Playing2D
 	};
 
-	CameraController::CutsceneState ActualCutsceneState = NotPlaying;
-	CameraController::CutsceneState PreviousCutsceneState = NotPlaying;
+	Tracked<CutsceneState> ActualCutsceneState = NotPlaying;
 	void CheckCutscenePlaying();
 	bool CutsceneStarts();
 	bool CutscenePlaying();

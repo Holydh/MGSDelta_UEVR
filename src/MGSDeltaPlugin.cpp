@@ -203,7 +203,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		weaponManager.Cleanup();
 		playerManager.Cleanup();
 		// Turns 6DOF back on below if the player still has control in the new level
-		playerManager.WasPlayerControlled = false;
+		playerManager.IsPlayerControlled.SetPrevious(false);
 		// Blueprint classes that weren't loaded at startup (or were reloaded) can be hooked now
 		hookManager.RetryFailedHooks();
 	}
@@ -242,11 +242,11 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 			cameraController.ViewRotation.Yaw, delta);
 		playerManager.UpdateCompactCollision(settingsManager.Settings.linearLocomotion, delta);
 
-		static bool wasCollisionLogKeyPressed = false;
-		const bool collisionLogKeyPressed = g_DebugEnabled && Inputs::IsKeyPressed(VK_F9);
-		if (collisionLogKeyPressed && !wasCollisionLogKeyPressed)
+		static Tracked<bool> collisionLogKeyPressed = false;
+		collisionLogKeyPressed = g_DebugEnabled && Inputs::IsKeyPressed(VK_F9);
+		if (collisionLogKeyPressed.Rose())
 			playerManager.LogCollisionAndRotation(cameraController.ViewRotation.Yaw);
-		wasCollisionLogKeyPressed = collisionLogKeyPressed;
+		collisionLogKeyPressed.Commit();
 
 		playerManager.GetCurrentPlayerStance(delta);
 		playerManager.UpdatePeepingAndCqcGrabState(delta);
@@ -265,7 +265,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		playerManager.UpdateCompactCollision(false, delta);
 
 		cameraController.CheckCutscenePlaying();
-		if (playerManager.WasPlayerControlled)
+		if (playerManager.IsPlayerControlled.Previous())
 		{
 			weaponManager.DetachHandFromWeapon();
 			weaponManager.DetachSecondHandFromWeapon();
@@ -273,12 +273,12 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 		cameraController.ApplyCutsceneSettings();
 
-		if (playerManager.CurrentMenuType == ue::EGsrUIMenuType::Radio && playerManager.PreviousMenuType != ue::EGsrUIMenuType::Radio)
+		if (playerManager.CurrentMenuType.Entered(ue::EGsrUIMenuType::Radio))
 		{
 			cameraController.FixRadioMenuRendering();
 			API::VR::set_mod_value("VR_WorldScale", settingsManager.Settings.enable3DRadio ? 1.0f : 0.0f);
 		}
-		if (playerManager.CurrentMenuType == ue::EGsrUIMenuType::SV && playerManager.PreviousMenuType != ue::EGsrUIMenuType::SV)
+		if (playerManager.CurrentMenuType.Entered(ue::EGsrUIMenuType::SV))
 		{
 			cameraController.FixSurvivalViewerMenuRendering();
 			API::VR::set_mod_value("VR_WorldScale", settingsManager.Settings.enable3DSurvivalView ? 1.0f : 0.0f);
@@ -293,18 +293,11 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 	imGuiMenu.ProcessImGui();
 
-	playerManager.WasPlayerControlled = playerManager.IsPlayerControlled;
-	playerManager.WasPeepingInternal = playerManager.IsPeepingInternal;
-	playerManager.PreviousStance = playerManager.CurrentStance;
-	playerManager.WasMeleeAttackRunning = playerManager.MeleeAttackRunning;
-	playerManager.WasCarrying = playerManager.IsCarrying;
-	playerManager.PreviousMenuType = playerManager.CurrentMenuType;
-	weaponManager.PreviousWeaponID = weaponManager.CurrentWeaponID;
-	weaponManager.PreviousItemID = weaponManager.CurrentItemID;
-	cameraController.PreviousCutsceneState = cameraController.ActualCutsceneState;
-	Inputs::WasLeftGripInputPressed = Inputs::LeftGripInputPressed;
-	if (weaponManager.AttachHandNextFrame)
-		weaponManager.NextFrame = true;
+	// Last: the tracked values become last frame's values
+	playerManager.EndFrame();
+	weaponManager.EndFrame();
+	cameraController.EndFrame();
+	Inputs::EndFrame();
 	ranOnce = false;
 	performanceMonitor.OnPreEngineTickEnd();
 }

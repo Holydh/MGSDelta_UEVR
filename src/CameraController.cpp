@@ -260,7 +260,7 @@ void CameraController::ProcessCamera(float deltaTime)
 				break;
 			case ue::EGsrPlayerStance::Crawl:
 				// playerPosition.Z actualise one frame after change stance, we need to compensate for that or it results in a sudden camera jump
-				CameraHeightOffset = playerManager->PreviousStance == ue::EGsrPlayerStance::Squat ? 83.0f : 83.0f + crawlOffset;
+				CameraHeightOffset = playerManager->CurrentStance.Previous() == ue::EGsrPlayerStance::Squat ? 83.0f : 83.0f + crawlOffset;
 				break;
 			default:
 				break;
@@ -364,7 +364,7 @@ void CameraController::ProcessCamera(float deltaTime)
 
 void CameraController::ProcessCameraResetTimer(float delta)
 {
-	if (playerManager->IsPlayerControlled && !playerManager->WasPlayerControlled)
+	if (playerManager->PlayerGotControl())
 	{
 		InstantCameraPositionTimer = 0.25f;
 		InstantCameraPositionNeeded = true;
@@ -495,10 +495,14 @@ void CameraController::CheckCutscenePlaying()
 	}
 }
 
+void CameraController::EndFrame()
+{
+	ActualCutsceneState.Commit();
+}
+
 bool CameraController::CutsceneStarts()
 {
-	return PreviousCutsceneState == CutsceneState::NotPlaying &&
-		(ActualCutsceneState == CutsceneState::Playing3D || ActualCutsceneState == CutsceneState::Playing2D);
+	return ActualCutsceneState.Previous() == CutsceneState::NotPlaying && CutscenePlaying();
 }
 
 bool CameraController::CutscenePlaying()
@@ -508,8 +512,7 @@ bool CameraController::CutscenePlaying()
 
 bool CameraController::CutsceneStops()
 {
-	return ActualCutsceneState == CutsceneState::NotPlaying &&
-		(PreviousCutsceneState == CutsceneState::Playing3D || PreviousCutsceneState == CutsceneState::Playing2D);
+	return ActualCutsceneState == CutsceneState::NotPlaying && ActualCutsceneState.Previous() != CutsceneState::NotPlaying;
 }
 
 void CameraController::ApplyCutsceneSettings()
@@ -521,7 +524,7 @@ void CameraController::ApplyCutsceneSettings()
 		{
 			SpawnCustom2DScreen();
 		}
-		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)).c_str());
+		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState.Get())).c_str());
 		uevr::API::VR::set_mod_value("VR_2DScreenMode", ActualCutsceneState == CameraController::CutsceneState::Playing2D ?	true : false);
 		uevr::API::VR::set_mod_value("VR_WorldScale", settingsManager->Settings.enable3DCutscenes ? 1.0f : 0.0f);
 		uevr::API::VR::set_mod_value("VR_DecoupledPitch", settingsManager->Settings.enableImmersiveMode);
@@ -529,7 +532,7 @@ void CameraController::ApplyCutsceneSettings()
 	if (CutsceneStops())
 	{
 		DestroyCustom2DScreen();
-		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState)).c_str());
+		Logger::DebugPrint("Cutscene State changed to : %s", std::string(magic_enum::enum_name(ActualCutsceneState.Get())).c_str());
 		uevr::API::VR::set_mod_value("VR_DecoupledPitch", true);
 		uevr::API::VR::set_mod_value("VR_2DScreenMode", false);
 		uevr::API::VR::set_mod_value("VR_WorldScale", 1.0f);

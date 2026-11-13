@@ -12,6 +12,7 @@
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
 #include "Inputs.hpp"
+#include "Tracked.hpp"
 
 class WeaponManager {
 private:
@@ -50,8 +51,7 @@ public:
 
 	ue::WeakObject ItemController; // UGsrItemController
 	ue::WeakObject CurrentItem; // UObject
-	ue::EGsrItemId CurrentItemID = ue::EGsrItemId::IT_None;
-	ue::EGsrItemId PreviousItemID = ue::EGsrItemId::IT_None;
+	Tracked<ue::EGsrItemId> CurrentItemID = ue::EGsrItemId::IT_None;
 
 	float ZoomInput = 0.0f;
 	ue::WeakObject ScopeActor; // AActor
@@ -343,8 +343,7 @@ public:
 		WP_MAX_OTHER = 73,
 		EGsrEquipId_MAX = 223,
 	};
-	EGsrEquipId CurrentWeaponID = WP_None;
-	EGsrEquipId PreviousWeaponID = WP_None;
+	Tracked<EGsrEquipId> CurrentWeaponID = WP_None;
 	
 	enum Hand
 	{
@@ -375,6 +374,8 @@ public:
 	void DestroyScope();
 
 	void Cleanup();
+	// Commits this frame's tracked values: call last in the frame
+	void EndFrame();
 
 	void ToggleThermalVisionScanline();
 	bool ToggleThermalVisionScanlineNextFrame = false;

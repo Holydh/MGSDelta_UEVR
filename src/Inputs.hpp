@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <Xinput.h>
 #include <cstdint>
+#include "Tracked.hpp"
 
 
 class Inputs {
@@ -16,8 +17,9 @@ public:
 	static bool IsActionActive(bool leftController, const char* action);
 	static void CheckSecondHandGrip(float delta);
 
-	static bool LeftGripInputPressed;
-	static bool WasLeftGripInputPressed;
+	static Tracked<bool> LeftGripInputPressed;
+	// Commits this frame's tracked values: call last in the frame
+	static void EndFrame();
 
 	
 	static bool SecondHandGripTriggeredBeforeDelay;

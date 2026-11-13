@@ -6,8 +6,7 @@ bool Inputs::isSecondHandGripInDelay = false;
 float Inputs::secondHandGripTimer = 0.0f;
 float Inputs::secondHandGripDelay = 0.2f;
 
-bool Inputs::LeftGripInputPressed = false;
-bool Inputs::WasLeftGripInputPressed = false;
+Tracked<bool> Inputs::LeftGripInputPressed = false;
 bool Inputs::SecondHandGripTriggeredBeforeDelay = false;
 
 bool Inputs::IsActionActive(bool leftController, const char* action)
@@ -50,6 +49,11 @@ void Inputs::CheckSecondHandGrip(float delta)
             SecondHandGripTriggeredBeforeDelay = true;    // only true for this frame
         }
     }
+}
+
+void Inputs::EndFrame()
+{
+	LeftGripInputPressed.Commit();
 }
 
 bool Inputs::IsKeyPressed(int vKey)

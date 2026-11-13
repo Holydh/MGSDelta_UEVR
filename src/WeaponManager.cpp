@@ -79,7 +79,7 @@ void WeaponManager::ProcessItem()
 	{
 		CurrentItemID = newItemID;
 		cameraController->CurrentItemID = CurrentItemID;
-		Logger::DebugPrint("Item changed. New Item ID : %d", CurrentItemID);
+		Logger::DebugPrint("Item changed. New Item ID : %d", (int)CurrentItemID.Get());
 
 		CurrentItem = ue::get<ue::UObject*>(ItemController, L"m_currentItem");
 		if (CurrentItem)
@@ -102,20 +102,20 @@ void WeaponManager::ProcessItem()
 			ToggleThermalVisionScanlineNextFrame = true;
 		}
 
-		if (CurrentItemID == ue::EGsrItemId::IT_Stealth && PreviousItemID != ue::EGsrItemId::IT_Stealth)
+		if (CurrentItemID.Entered(ue::EGsrItemId::IT_Stealth))
 		{
 			ApplyHandMaterialToVRHands();
 		}
-		if (CurrentItemID != ue::EGsrItemId::IT_Stealth && PreviousItemID == ue::EGsrItemId::IT_Stealth)
+		if (CurrentItemID.Left(ue::EGsrItemId::IT_Stealth))
 		{
 			ApplyHandMaterialToVRHands();
 		}
 
-		if (CurrentItemID == ue::EGsrItemId::IT_Scope && PreviousItemID != ue::EGsrItemId::IT_Scope)
+		if (CurrentItemID.Entered(ue::EGsrItemId::IT_Scope))
 		{
 			uevr::API::VR::set_decoupled_pitch_enabled(false);
 		}
-		if (CurrentItemID != ue::EGsrItemId::IT_Scope && PreviousItemID == ue::EGsrItemId::IT_Scope)
+		if (CurrentItemID.Left(ue::EGsrItemId::IT_Scope))
 		{
 			uevr::API::get()->dispatch_lua_event("HideHands", "0");
 			uevr::API::VR::set_decoupled_pitch_enabled(true);
@@ -142,7 +142,7 @@ void WeaponManager::SendHandStateToLua()
 	else
 	{
 		//Sending actual weapon to lua hands to set the pose for this weapon. Lua scripts takes a lowercase only value so we need to set it up :
-		auto weaponNameView = magic_enum::enum_name(CurrentWeaponID);
+		auto weaponNameView = magic_enum::enum_name(CurrentWeaponID.Get());
 		std::string weaponName(weaponNameView); // make a real string copy
 		std::transform(weaponName.begin(), weaponName.end(), weaponName.begin(), ::tolower);
 		uevr::API::get()->dispatch_lua_event("CurrentWeapon", weaponName);
@@ -422,7 +422,7 @@ void WeaponManager::ProcessWeapon(float delta)
 	if (CurrentWeaponID != weaponId)
 	{
 		CurrentWeaponID = weaponId;
-		Logger::DebugPrint("Weapon changed. New Weapon ID : %d", CurrentWeaponID);
+		Logger::DebugPrint("Weapon changed. New Weapon ID : %d", (int)CurrentWeaponID.Get());
 	}
 	
 
@@ -432,7 +432,8 @@ void WeaponManager::ProcessWeapon(float delta)
 	// Also set up again if the weapon's root was freed: a respawned weapon can get the address of the previous one
 	if (CurrentWeapon != currentWeapon || WeaponRoot.expired())
 	{
-		if (PreviousWeaponID == EGsrEquipId::WP_Dragnov || PreviousWeaponID == EGsrEquipId::WP_MosinNagant || PreviousWeaponID == EGsrEquipId::WP_Rpg)
+		const auto previousWeaponID = CurrentWeaponID.Previous();
+		if (previousWeaponID == EGsrEquipId::WP_Dragnov || previousWeaponID == EGsrEquipId::WP_MosinNagant || previousWeaponID == EGsrEquipId::WP_Rpg)
 			ue::call(ReceiverMesh, L"SetVisibility", false, false);
 
 		ReceiverMesh = nullptr;
@@ -559,7 +560,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 		ue::FHitResult hitResult;
 
-		if (!Inputs::LeftGripInputPressed && Inputs::WasLeftGripInputPressed)
+		if (Inputs::LeftGripInputPressed.Fell())
 		{
 			// Re-sync to current world rotation
 			auto loc = ue::call<ue::FVector>(foodMesh, L"K2_GetComponentLocation");
@@ -572,7 +573,7 @@ void WeaponManager::ProcessWeapon(float delta)
 			ActualFoodRotation = rot.Yaw;
 		}
 
-		if (Inputs::LeftGripInputPressed && !Inputs::WasLeftGripInputPressed)
+		if (Inputs::LeftGripInputPressed.Rose())
 		{
 			auto foodT = ue::call<ue::FTransform>(foodMesh, L"K2_GetComponentToWorld");
 			auto handT = ue::call<ue::FTransform>(playerManager->LeftHandMesh, L"K2_GetComponentToWorld");
@@ -696,14 +697,14 @@ void WeaponManager::ProcessWeapon(float delta)
 	}
 
 	// detach hands when melee attack
-	if (!playerManager->WasMeleeAttackRunning && playerManager->MeleeAttackRunning)
+	if (playerManager->MeleeAttackRunning.Rose())
 	{
 		if (playerManager->SecondHandAttachedToWeapon)
 		{
 			DetachSecondHandFromWeapon();
 		}
 	}
-	if (playerManager->WasMeleeAttackRunning && !playerManager->MeleeAttackRunning)
+	if (playerManager->MeleeAttackRunning.Fell())
 	{
 		AttachSecondHandToWeapon();
 	}
@@ -1030,6 +1031,14 @@ void WeaponManager::DestroyScope()
 	MosinScopeWidget = nullptr;
 	SourceRpgScopeWidget = nullptr;
 	RpgScopeWidget = nullptr;
+}
+
+void WeaponManager::EndFrame()
+{
+	CurrentItemID.Commit();
+	CurrentWeaponID.Commit();
+	if (AttachHandNextFrame)
+		NextFrame = true;
 }
 
 void WeaponManager::Cleanup()

@@ -3,6 +3,7 @@
 #include "uevr/API.hpp"
 #include "Utilities.hpp"
 #include "ue/Reflection.hpp"
+#include "Tracked.hpp"
 
 
 class PlayerManager {
@@ -11,20 +12,19 @@ public:
 	void ToggleMeshesVisibility(bool visible);
 	void ToggleReticleVisibility(bool visible);
 
-	bool WasPlayerControlled = false;
-    bool IsPlayerControlled = false;
+    Tracked<bool> IsPlayerControlled = false;
     void FetchGameState();
+    // Commits this frame's tracked values: call last in the frame
+    void EndFrame();
 
 	bool PlayerGotControl();
 	bool PlayerLostControl();
 
 	ue::EGsrGameStatus CurrentGameStatus = ue::EGsrGameStatus::InGame;
-	ue::EGsrUIMenuType CurrentMenuType = ue::EGsrUIMenuType::None;
-	ue::EGsrUIMenuType PreviousMenuType = ue::EGsrUIMenuType::None;
+	Tracked<ue::EGsrUIMenuType> CurrentMenuType = ue::EGsrUIMenuType::None;
 	bool IngameUI();
 
-	bool IsPeepingInternal = false;
-	bool WasPeepingInternal = false;
+	Tracked<bool> IsPeepingInternal = false;
 	bool IsPeeping = false;
 	float ExtendPeepingStateTimer = 0.0f;
 	void UpdatePeepingAndCqcGrabState(float deltaTime);
@@ -34,15 +34,12 @@ public:
 	bool IsRolling = false;
 	bool IsAiming = false;
 	bool IsFirstPersonView = false;
-	bool MeleeAttackRunning = false;
-	bool WasMeleeAttackRunning = false;
+	Tracked<bool> MeleeAttackRunning = false;
 	bool IsKnifeOrFork = false;
 	bool IsCqcGrab = false;
-	bool IsCarrying = false;
-	bool WasCarrying = false;
+	Tracked<bool> IsCarrying = false;
 
-	ue::EGsrPlayerStance CurrentStance = ue::EGsrPlayerStance::Stand;
-	ue::EGsrPlayerStance PreviousStance = ue::EGsrPlayerStance::Stand;
+	Tracked<ue::EGsrPlayerStance> CurrentStance = ue::EGsrPlayerStance::Stand;
 	float ChangeStanceTimer = 0.0f;
 
 	void GetCurrentPlayerStance(float deltaTime);
