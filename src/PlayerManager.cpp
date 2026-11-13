@@ -93,11 +93,13 @@ void PlayerManager::FetchGameState()
 
 	// Some scripted sequences (e.g. the intro backpack drop) hide the player body, play a stand-in Snake and park
 	// the hidden pawn underground while still reporting player control: hand the camera to the game meanwhile.
-	// The plugin never hides the body this way (it uses SetOnlyOwnerSee).
+	// The plugin never hides the body this way (it uses SetOnlyOwnerSee); the game also hides it in first person view.
 	if (IsPlayerControlled)
 	{
-		auto body = ue::get<ue::UObject*>(uevr::API::get()->get_local_pawn(0), L"SkeletalMesh_Body");
-		IsPlayerControlled = ue::get<bool>(body, L"bVisible", true);
+		auto pawn = uevr::API::get()->get_local_pawn(0);
+		auto body = ue::get<ue::UObject*>(pawn, L"SkeletalMesh_Body");
+		IsPlayerControlled = ue::get<bool>(body, L"bVisible", true) ||
+			ue::call<ue::EGsrPlayerCameraControllerCameraMode>(pawn, L"GetCameraMode") == ue::EGsrPlayerCameraControllerCameraMode::Subjective;
 	}
 
 	CurrentMenuType = ue::call<ue::EGsrUIMenuType>(gsrGameStateSubsystem, L"GetUIMenuType");
