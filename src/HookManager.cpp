@@ -92,7 +92,7 @@ void HookManager::OnSetEnableWallCollision(uevr::API::UObject* character, bool e
 
 void* HookManager::OnFireModded(uevr::API::UObject* equipController, void* fireRequest) {
 
-	s_weaponManager->IsShooting = true;
+	s_weaponManager->Recoil.IsShooting = true;
 
 	static uevr::API::UScriptStruct* fireRequestStruct = nullptr;
 	if (fireRequestStruct == nullptr)

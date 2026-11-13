@@ -16,6 +16,7 @@
 #include "Tracked.hpp"
 #include "WeaponTraits.hpp"
 #include "ScopeSystem.hpp"
+#include "WeaponRecoil.hpp"
 
 class WeaponManager {
 private:
@@ -26,7 +27,6 @@ private:
 
 	ue::WeakObject playerCameraManager; // BP_PlayerCameraManager_C
 
-	float randomRange(float min, float max);
 
 	ue::FName tntSocketFname;
 	ue::FName cqcKnifeSocketFname;
@@ -36,13 +36,12 @@ private:
 	
 
 public:
-	WeaponManager(const GameState* gs, SettingsManager* sm, PlayerManager* pm, CameraController* cc) : gameState(gs), settingsManager(sm), playerManager(pm), cameraController(cc), Scope(gs, sm) {};
+	WeaponManager(const GameState* gs, SettingsManager* sm, PlayerManager* pm, CameraController* cc) : gameState(gs), settingsManager(sm), playerManager(pm), cameraController(cc), Scope(gs, sm), Recoil(sm) {};
 
 	void InitWeaponManager();
 
 	void ApplyHandMaterialToVRHands();
 
-	bool IsShooting = false;
 	ue::WeakObject EquipController;
 	ue::WeakObject CurrentWeapon;
 	ue::WeakObject WeaponRoot;
@@ -55,15 +54,11 @@ public:
 
 	float ZoomInput = 0.0f;
 	ScopeSystem Scope;
+	WeaponRecoil Recoil;
 
 
 	glm::fquat DefaultUevrHookWeaponRotation{};
 	glm::fvec3 DefaultUevrHookWeaponPosition{};
-	glm::fquat CurrentRelativeWeaponRotation = {};
-	glm::fvec3 CurrentRelativeWeaponRotationEuler {0.0f, 0.0f, 0.0f};
-	glm::fvec3 CurrentRelativeWeaponPosition {0.0f, 0.0f, 0.0f};
-	glm::fvec3 DefaultRelativeWeaponPosition {0.0f, 0.0f, 0.0f};
-	glm::fquat DefaultRelativeWeaponRotation { 1.0f, 0.0f, 0.0f, 0.0f };
 	ue::FRotator RightHandRotationOffset{};
 	ue::FVector LeftHandLocationOffset{};
 	ue::FRotator LeftHandRotationOffset{};
