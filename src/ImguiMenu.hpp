@@ -40,7 +40,6 @@ private:
     std::recursive_mutex m_imgui_mutex;
 
     bool initializeImGui();
-    void onDeviceReset();
     void internalFrame();
     void handleVRcursor();
     void checkMouseFocus(float delta);
@@ -56,6 +55,7 @@ public:
     void InitializeImGuiSettings();
 
     void RenderImGuiFrame();
+    void onDeviceReset();
     void RenderImGuiVRFrameDX11(ID3D11DeviceContext* context, ID3D11Texture2D* texture, ID3D11RenderTargetView* rtv);
     void RenderImGuiVRFrameDX12(ID3D12GraphicsCommandList* command_list, ID3D12Resource* rt, D3D12_CPU_DESCRIPTOR_HANDLE* rtv);
 

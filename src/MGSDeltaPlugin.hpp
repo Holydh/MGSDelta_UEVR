@@ -60,6 +60,7 @@ public:
     //void on_dllmain(HMODULE hmod) override;
 	void on_detach(HMODULE hmod) override;
     void on_present() override;
+    void on_device_reset() override;
     void reset_height();
     void on_post_render_vr_framework_dx11(ID3D11DeviceContext* context, ID3D11Texture2D* texture, ID3D11RenderTargetView* rtv) override;
     void on_post_render_vr_framework_dx12(ID3D12GraphicsCommandList* command_list, ID3D12Resource* rt, D3D12_CPU_DESCRIPTOR_HANDLE* rtv) override;

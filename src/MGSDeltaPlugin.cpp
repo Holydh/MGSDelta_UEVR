@@ -90,6 +90,11 @@ void MGSDeltaPlugin::on_present() {
 	imGuiMenu.RenderImGuiFrame();
 }
 
+// Called before the swapchain is resized: release our backbuffer references or ResizeBuffers fails
+void MGSDeltaPlugin::on_device_reset() {
+	imGuiMenu.onDeviceReset();
+}
+
 void MGSDeltaPlugin::reset_height() {
 	auto& api = API::get();
 	auto vr = api->param()->vr;
