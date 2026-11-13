@@ -18,31 +18,6 @@ void WeaponManager::InitWeaponManager()
 	DummyCqcKnifeMeshActor = nullptr;
 }
 
-void WeaponManager::ApplyHandMaterialToVRHands()
-{
-	auto pawn = uevr::API::get()->get_local_pawn(0);
-	auto pawnHandMesh = ue::get<ue::UObject*>(pawn, L"SkeletalMesh_Hand");
-	if (!pawnHandMesh || !playerManager->LeftHandMesh || !playerManager->RightHandMesh)
-		return;
-	auto handMaterial = ue::call<ue::TArray<ue::UObject*>>(pawnHandMesh, L"GetMaterials");
-	auto previousMaterialCount = ue::call<int32_t>(playerManager->LeftHandMesh, L"GetNumMaterials");
-	// Cleanup additional override material slots (left over from a hand material with more slots)
-	for (int i = handMaterial.count; i < previousMaterialCount; i++)
-	{
-		ue::call(playerManager->LeftHandMesh, L"SetMaterial", i, nullptr);
-		ue::call(playerManager->RightHandMesh, L"SetMaterial", i, nullptr);
-	}
-
-	for (int i = 0; i < handMaterial.count; i++)
-	{
-		ue::call(playerManager->LeftHandMesh, L"SetMaterial", i, handMaterial.data[i]);
-		ue::call(playerManager->RightHandMesh, L"SetMaterial", i, handMaterial.data[i]);
-	}
-	auto handOverlayMaterial = ue::call<ue::UObject*>(pawnHandMesh, L"GetOverlayMaterial");
-	ue::call(playerManager->RightHandMesh, L"SetOverlayMaterial", handOverlayMaterial);
-	ue::call(playerManager->LeftHandMesh, L"SetOverlayMaterial", handOverlayMaterial);
-}
-
 void WeaponManager::ProcessItem()
 {
 	if (ItemController == NULL)
@@ -81,11 +56,11 @@ void WeaponManager::ProcessItem()
 
 		if (CurrentItemID.Entered(ue::EGsrItemId::IT_Stealth))
 		{
-			ApplyHandMaterialToVRHands();
+			hands->ApplyPawnHandMaterial();
 		}
 		if (CurrentItemID.Left(ue::EGsrItemId::IT_Stealth))
 		{
-			ApplyHandMaterialToVRHands();
+			hands->ApplyPawnHandMaterial();
 		}
 
 		cameraController->CardBoardEquipped = CurrentItemID == ue::EGsrItemId::IT_CBoxA || CurrentItemID == ue::EGsrItemId::IT_CBoxB ||
@@ -161,7 +136,7 @@ void WeaponManager::SpawnDummyCqcKnifeMesh()
 	if (!LeftHandWeaponRoot || DummyCqcKnifeMeshActor)
 		return;
 
-	if (DummyCqcKnifeMeshActor == nullptr && playerManager->LeftHandMesh)
+	if (DummyCqcKnifeMeshActor == nullptr && hands->LeftHandMesh)
 	{
 		constexpr ue::FVector cqcKnifeRelativeLocation = { 1.248f, -2.072f, -4.754f };
 		constexpr ue::FRotator cqcKnifeRelativeRotation = { 7.228f, -169.534f, 58.205f};
@@ -171,7 +146,7 @@ void WeaponManager::SpawnDummyCqcKnifeMesh()
 		DummyCqcKnifeMeshActor = Utilities::SpawnMesh(leftWeaponRootTransform, L"SkeletalMesh /Game/Gsr/Weapon/cqck/Mesh/SM_Cqck.SM_Cqck", meshComponent); //L"SkeletalMesh /Game/Gsr/Weapon/cqck/Mesh/SM_Cqck.SM_Cqck"
 		if (!DummyCqcKnifeMeshActor)
 			return;
-		ue::call(DummyCqcKnifeMeshActor, L"K2_AttachRootComponentTo", playerManager->LeftHandMesh, ue::FName(L"None"), ue::EAttachLocation::SnapToTarget, false);
+		ue::call(DummyCqcKnifeMeshActor, L"K2_AttachRootComponentTo", hands->LeftHandMesh, ue::FName(L"None"), ue::EAttachLocation::SnapToTarget, false);
 		ue::call(DummyCqcKnifeMeshActor, L"K2_SetActorRelativeLocation", cqcKnifeRelativeLocation, false, nullptr, true);
 		ue::call(DummyCqcKnifeMeshActor, L"K2_SetActorRelativeRotation", cqcKnifeRelativeRotation, false, nullptr, true);
 		DummyCqcKnifeMesh = meshComponent;
@@ -203,7 +178,7 @@ void WeaponManager::ToggleDummyCQCKnifeMeshVisibility()
 
 	// While the left hand holds the weapon, the dummy knife (attached to the VR left hand)
 	// replaces the game's left hand CQC knife.
-	const bool showDummyKnife = currentWeaponTraits().holdCQCKnifeInLeftHand && playerManager->SecondHandAttachedToWeapon && playerManager->LeftHandMesh;
+	const bool showDummyKnife = currentWeaponTraits().holdCQCKnifeInLeftHand && hands->SecondHandAttachedToWeapon() && hands->LeftHandMesh;
 
 	if (showDummyKnife && LeftHandWeaponRoot && !ue::is_valid(DummyCqcKnifeMesh))
 	{
@@ -233,7 +208,7 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 	else if (Inputs::SecondHandGripTriggeredBeforeDelay && secondHandShouldAttachToWeapon)
 	{
 		secondHandShouldAttachToWeapon = false;
-		DetachSecondHandFromWeapon();
+		hands->DetachSecondHand();
 	}
 }
 
@@ -241,8 +216,8 @@ void WeaponManager::ProcessTwoHandsGrabWeaponLocationAndRotation()
 {
 	// Pivot disabled: the weapon stays held by the right hand only (UEVR attachment)
 	if (currentWeaponTraits().twoHandedPivot && settingsManager->Settings.enableTwoHandsPivot && WeaponRoot) {
-		auto rightCtrlPos = ue::call<ue::FVector>(playerManager->RightController, L"K2_GetComponentLocation");
-		auto leftCtrlPos = ue::call<ue::FVector>(playerManager->LeftController, L"K2_GetComponentLocation");
+		auto rightCtrlPos = ue::call<ue::FVector>(hands->RightController, L"K2_GetComponentLocation");
+		auto leftCtrlPos = ue::call<ue::FVector>(hands->LeftController, L"K2_GetComponentLocation");
 
 		auto weaponUpVector = ue::call<ue::FVector>(CurrentWeapon, L"GetActorUpVector");
 
@@ -363,11 +338,11 @@ void WeaponManager::ProcessWeapon(float delta)
 		WeaponRoot = nullptr;
 		LeftHandWeaponRoot = nullptr;
 		
-		if (playerManager->MainHandAttachedToWeapon)
-			DetachHandFromWeapon();
-		if (playerManager->SecondHandAttachedToWeapon)
+		if (hands->MainHandAttachedToWeapon())
+			hands->DetachMainHand();
+		if (hands->SecondHandAttachedToWeapon())
 		{
-			DetachSecondHandFromWeapon();
+			hands->DetachSecondHand();
 		}
 
 
@@ -446,7 +421,7 @@ void WeaponManager::ProcessWeapon(float delta)
 
 	if (CurrentWeaponID == EGsrEquipId::WP_MAX_PLAYER_WEAPONS)
 	{
-		Food.Update(WeaponRoot, playerManager->LeftHandMesh, cameraController->YawProcessed, delta);
+		Food.Update(WeaponRoot, hands->LeftHandMesh, cameraController->YawProcessed, delta);
 		return;
 	}
 		
@@ -485,9 +460,9 @@ void WeaponManager::ProcessWeapon(float delta)
 	// detach hands when melee attack
 	if (playerManager->MeleeAttackRunning.Rose())
 	{
-		if (playerManager->SecondHandAttachedToWeapon)
+		if (hands->SecondHandAttachedToWeapon())
 		{
-			DetachSecondHandFromWeapon();
+			hands->DetachSecondHand();
 		}
 	}
 	if (playerManager->MeleeAttackRunning.Fell())
@@ -513,7 +488,7 @@ void WeaponManager::ProcessWeapon(float delta)
 		}
 
 		//Apply recoil if one handed, two handed is processed later in frame
-		if (CurrentWeapon != NULL && !playerManager->SecondHandAttachedToWeapon)
+		if (CurrentWeapon != NULL && !hands->SecondHandAttachedToWeapon())
 			ApplyRecoil(delta);
 
 		if (!settingsManager->Settings.enableWeaponsScopes)
@@ -540,66 +515,25 @@ void WeaponManager::AttachMainHandToWeapon()
 		AttachHandNextFrame = false;
 		return;
 	}
-	if (!playerManager->RightHandMesh)
+	if (!hands->RightHandMesh)
 	{
-		playerManager->FetchMotionControllers();
+		hands->FetchMotionControllers();
 		return;
 	}
 
-	if (!playerManager->MainHandAttachedToWeapon && currentWeaponTraits().mainHandShouldAttachToWeapon)
+	if (!hands->MainHandAttachedToWeapon() && currentWeaponTraits().mainHandShouldAttachToWeapon)
 	{
-		Logger::DebugPrint("attach Main Hand to weapon");
-		ue::call(playerManager->RightHandMesh, L"DetachFromParent", true, false);
-		ue::call(playerManager->RightHandMesh, L"K2_AttachToComponent",
-			ReceiverMesh == nullptr ? WeaponRoot : ReceiverMesh,
-			ue::FName(L"None"),
-			ue::EAttachmentRule::KeepRelative,
-			ue::EAttachmentRule::KeepRelative,
-			ue::EAttachmentRule::KeepRelative,
-			false
-		);
-
-		ue::FVector rightHandLocation = {-DefaultUevrHookWeaponPosition.z, DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y };
-		ue::FHitResult outHit;
-		ue::call(playerManager->RightHandMesh, L"K2_SetRelativeLocationAndRotation", rightHandLocation, RightHandRotationOffset, false, &outHit, true);
-		playerManager->MainHandAttachedToWeapon = true;
-
-		ue::call(playerManager->RightHandMesh, L"SetVisibility", true, true);
-		ue::call(playerManager->LeftHandMesh, L"SetVisibility", true, true);
+		const ue::FVector rightHandLocation = {-DefaultUevrHookWeaponPosition.z, DefaultUevrHookWeaponPosition.x, DefaultUevrHookWeaponPosition.y };
+		hands->AttachMainHand(ReceiverMesh == nullptr ? WeaponRoot : ReceiverMesh, rightHandLocation, RightHandRotationOffset);
 		AttachHandNextFrame = false;
 	}
 }
 
-bool WeaponManager::DetachHandFromWeapon()
-{
-	if (playerManager->RightHandMesh && playerManager->MainHandAttachedToWeapon)
-	{
-		Logger::DebugPrint("Detach Main Hand from weapon");
-		ue::call(playerManager->RightHandMesh, L"DetachFromParent", true, false);
-		ue::call(playerManager->RightHandMesh, L"K2_AttachToComponent",
-			playerManager->RightController,
-			ue::FName(L"None"),
-			ue::EAttachmentRule::KeepWorld,
-			ue::EAttachmentRule::KeepWorld,
-			ue::EAttachmentRule::KeepRelative,
-			true
-		);
-		ue::FHitResult outHit;
-		ue::call(playerManager->RightHandMesh, L"K2_SetRelativeLocation", ue::FVector{ 0.0f,0.0f,0.0f }, false, &outHit, false);
-		ue::call(playerManager->RightHandMesh, L"K2_SetRelativeRotation", ue::FRotator{ 0.0f,-90.0f,0.0f }, false, &outHit, false);
-		playerManager->MainHandAttachedToWeapon = false;
-		ue::call(playerManager->RightHandMesh, L"SetVisibility", true, true);
-		ue::call(playerManager->LeftHandMesh, L"SetVisibility", true, true);
-		return true;
-	}
-	return false;
-}
-
 void WeaponManager::AttachSecondHandToWeapon()
 {
-	if (!playerManager->LeftHandMesh)
+	if (!hands->LeftHandMesh)
 	{
-		playerManager->FetchMotionControllers();
+		hands->FetchMotionControllers();
 		return;
 	}
 
@@ -609,54 +543,12 @@ void WeaponManager::AttachSecondHandToWeapon()
 		return;
 	}
 
-	if (!playerManager->SecondHandAttachedToWeapon && secondHandShouldAttachToWeapon)
+	if (!hands->SecondHandAttachedToWeapon() && secondHandShouldAttachToWeapon)
 	{
-		Logger::DebugPrint("attach Second Hand to weapon");
-		ue::call(playerManager->LeftHandMesh, L"DetachFromParent", true, false);
-		ue::call(playerManager->LeftHandMesh, L"K2_AttachToComponent",
-			ReceiverMesh,
-			ue::FName(L"None"),
-			ue::EAttachmentRule::KeepRelative,
-			ue::EAttachmentRule::KeepRelative,
-			ue::EAttachmentRule::KeepRelative,
-			false
-		);
-		ue::FHitResult outHit;
-		ue::call(playerManager->LeftHandMesh, L"K2_SetRelativeLocation", LeftHandLocationOffset, false, &outHit, false);
-		ue::call(playerManager->LeftHandMesh, L"K2_SetRelativeRotation", LeftHandRotationOffset, false, &outHit, false);
-		ue::call(playerManager->RightHandMesh, L"SetVisibility", true, true);
-		ue::call(playerManager->LeftHandMesh, L"SetVisibility", true, true);
-		playerManager->SetSecondHandAttachedToWeapon(true);
+		hands->AttachSecondHand(ReceiverMesh, LeftHandLocationOffset, LeftHandRotationOffset);
 		AttachSecondHandNextFrame = false;
 	}
 }
-
-bool WeaponManager::DetachSecondHandFromWeapon()
-{
-	if (playerManager->LeftHandMesh && playerManager->SecondHandAttachedToWeapon)
-	{
-		Logger::DebugPrint("Detach Second Hand from weapon");
-		ue::call(playerManager->LeftHandMesh, L"DetachFromParent", true, false);
-		ue::call(playerManager->LeftHandMesh, L"K2_AttachToComponent",
-			playerManager->LeftController,
-			ue::FName(L"None"),
-			ue::EAttachmentRule::KeepWorld,
-			ue::EAttachmentRule::KeepWorld,
-			ue::EAttachmentRule::KeepRelative,
-			true
-		);
-		ue::FHitResult outHit;
-		ue::call(playerManager->LeftHandMesh, L"K2_SetRelativeLocation", ue::FVector{ 0.0f,0.0f,0.0f }, false, &outHit, false);
-		ue::call(playerManager->LeftHandMesh, L"K2_SetRelativeRotation", ue::FRotator{ 0.0f,-90.0f,0.0f }, false, &outHit, false);
-		ue::call(playerManager->RightHandMesh, L"SetVisibility", true, true);
-		ue::call(playerManager->LeftHandMesh, L"SetVisibility", true, true);
-		playerManager->SetSecondHandAttachedToWeapon(false);
-		return true;
-	}
-	return false;
-}
-
-
 
 void WeaponManager::FetchWeaponMeshAimData()
 {
@@ -741,8 +633,8 @@ void WeaponManager::EndFrame()
 
 void WeaponManager::Cleanup()
 {
-	DetachHandFromWeapon();
-	DetachSecondHandFromWeapon();
+	hands->DetachMainHand();
+	hands->DetachSecondHand();
 	Scope.DestroyScope();
 	if (DummyCqcKnifeMeshActor) ue::call(DummyCqcKnifeMeshActor, L"K2_DestroyActor");
 	DummyCqcKnifeMeshActor = nullptr;
@@ -774,7 +666,7 @@ void WeaponManager::ToggleThermalVisionScanline()
 
 void WeaponManager::ApplyRecoil(float delta)
 {
-	Recoil.Apply(CurrentWeaponID, ReceiverMesh, playerManager->SecondHandAttachedToWeapon, delta);
+	Recoil.Apply(CurrentWeaponID, ReceiverMesh, hands->SecondHandAttachedToWeapon(), delta);
 }
 
 

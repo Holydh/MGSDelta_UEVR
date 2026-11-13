@@ -8,8 +8,8 @@ std::unique_ptr<MGSDeltaPlugin> g_plugin = std::make_unique<MGSDeltaPlugin>();
 MGSDeltaPlugin::MGSDeltaPlugin() : imGuiMenu(&gameState, &settingsManager, &weaponManager, &cameraController, &cutsceneManager, &performanceManager, &performanceMonitor),
 cameraController(&gameState, &playerManager, &settingsManager),
 cutsceneManager(&gameState, &settingsManager),
-weaponManager(&gameState, &settingsManager, &playerManager, &cameraController),
-hookManager(&weaponManager, &cameraController, &playerManager), 
+weaponManager(&gameState, &settingsManager, &playerManager, &vrHands, &cameraController),
+hookManager(&weaponManager, &cameraController, &playerManager, &vrHands), 
 playerManager(&gameState) {}; //Constructor
 MGSDeltaPlugin::~MGSDeltaPlugin() {}//Destructor
 
@@ -98,14 +98,14 @@ void MGSDeltaPlugin::on_custom_event(const char* event_name, const char* event_d
 	{
 		// "0": the Lua script destroyed the VR hands
 		if (strcmp(event_data, "0") == 0)
-			playerManager.Cleanup();
+			vrHands.Cleanup();
 		if (strcmp(event_data, "1") == 0)
 		{
-			playerManager.FetchMotionControllers();
+			vrHands.FetchMotionControllers();
 			sentHideHands.reset(); // sent again to the new hands
 			weaponManager.SendHandStateToLua();
 			weaponManager.AttachHandNextFrame = true;
-			weaponManager.ApplyHandMaterialToVRHands();
+			vrHands.ApplyPawnHandMaterial();
 		}
 	}
 	// strtof: never throws on unexpected data (std::stof does, and an exception here crashes the game)
@@ -231,7 +231,7 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		Toggle6DOF(false);
 		cutsceneManager.DestroyCustom2DScreen();
 		weaponManager.Cleanup();
-		playerManager.Cleanup();
+		vrHands.Cleanup();
 		// Turns 6DOF back on below if the player still has control in the new level
 		gameState.IsPlayerControlled.SetPrevious(false);
 		// Blueprint classes that weren't loaded at startup (or were reloaded) can be hooked now
@@ -287,8 +287,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 
 		if (gameState.IsPlayerControlled.Previous())
 		{
-			weaponManager.DetachHandFromWeapon();
-			weaponManager.DetachSecondHandFromWeapon();
+			vrHands.DetachMainHand();
+			vrHands.DetachSecondHand();
 		}
 
 		cutsceneManager.ApplyCutsceneSettings();
@@ -380,7 +380,7 @@ void MGSDeltaPlugin::on_post_calculate_stereo_view_offset(UEVR_StereoRenderingDe
 		cameraController.ViewRotation = { rotation->pitch, rotation->yaw, rotation->roll };
 
 	//we need to override uevr attachement controls so we're running this later
-	if (gameState.IsPlayerControlled && playerManager.SecondHandAttachedToWeapon && ranOnce)
+	if (gameState.IsPlayerControlled && vrHands.SecondHandAttachedToWeapon() && ranOnce)
 	{
 		weaponManager.ApplyRecoil(deltaTime);
 		weaponManager.ProcessTwoHandsGrabWeaponLocationAndRotation();

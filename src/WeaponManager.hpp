@@ -18,12 +18,14 @@
 #include "ScopeSystem.hpp"
 #include "WeaponRecoil.hpp"
 #include "FoodHandling.hpp"
+#include "VRHands.hpp"
 
 class WeaponManager {
 private:
 	const GameState* const gameState;
 	SettingsManager* const settingsManager;
 	PlayerManager* const playerManager;
+	VRHands* const hands;
 	CameraController* const cameraController;
 
 	ue::WeakObject playerCameraManager; // BP_PlayerCameraManager_C
@@ -37,11 +39,9 @@ private:
 	
 
 public:
-	WeaponManager(const GameState* gs, SettingsManager* sm, PlayerManager* pm, CameraController* cc) : gameState(gs), settingsManager(sm), playerManager(pm), cameraController(cc), Scope(gs, sm), Recoil(sm) {};
+	WeaponManager(const GameState* gs, SettingsManager* sm, PlayerManager* pm, VRHands* vh, CameraController* cc) : gameState(gs), settingsManager(sm), playerManager(pm), hands(vh), cameraController(cc), Scope(gs, sm), Recoil(sm) {};
 
 	void InitWeaponManager();
-
-	void ApplyHandMaterialToVRHands();
 
 	ue::WeakObject EquipController;
 	ue::WeakObject CurrentWeapon;
@@ -112,9 +112,7 @@ public:
 	void ProcessItem();
 	void SendHandStateToLua();
 	void AttachMainHandToWeapon();
-	bool DetachHandFromWeapon();
 	void AttachSecondHandToWeapon();
-	bool DetachSecondHandFromWeapon();
 	bool AttachHandNextFrame = false;
 	bool NextFrame = false;
 	bool AttachSecondHandNextFrame = false;

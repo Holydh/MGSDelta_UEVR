@@ -20,6 +20,7 @@
 #include "MemoryManager.hpp"
 #include "HookManager.hpp"
 #include "PlayerManager.hpp"
+#include "VRHands.hpp"
 #include "Logger.hpp"
 #include "ue/Reflection.hpp"
 #include "ModValue.hpp"
@@ -63,6 +64,7 @@ public:
 	HookManager hookManager;
 	SettingsManager settingsManager;
 	PlayerManager playerManager;
+	VRHands vrHands;
 	PerformanceManager performanceManager;
 	PerformanceMonitor performanceMonitor;
 

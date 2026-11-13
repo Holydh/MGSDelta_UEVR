@@ -201,49 +201,6 @@ void PlayerManager::SetPlayerStance(ue::EGsrPlayerStance NewStance)
 	ue::call(gsrPlayerActionCore, L"RequestChangeStance", NewStance);
 }
 
-void PlayerManager::FetchMotionControllers()
-{
-	static ue::ClassRef motionControllerComponent_c{ L"Class /Script/HeadMountedDisplay.MotionControllerComponent" };
-	static const ue::FName leftSource{ L"Left" };
-	static const ue::FName rightSource{ L"Right" };
-	if (!motionControllerComponent_c.get())
-		return;
-
-	LeftController = nullptr;
-	LeftHandMesh = nullptr;
-	RightController = nullptr;
-	RightHandMesh = nullptr;
-	for (auto motionControllerComponent : motionControllerComponent_c.get()->get_objects_matching(false))
-	{
-		// Skip the previous hands' controllers: destroyed by the Lua script, but not garbage collected yet
-		if (!ue::is_valid(motionControllerComponent))
-			continue;
-		const auto motionSource = ue::get<ue::FName>(motionControllerComponent, L"MotionSource");
-		if (motionSource != leftSource && motionSource != rightSource)
-			continue;
-
-		auto handMesh = ue::call<ue::UObject*>(motionControllerComponent, L"GetChildComponent", 0);
-		if (motionSource == leftSource)
-		{
-			LeftController = motionControllerComponent;
-			LeftHandMesh = handMesh;
-			Logger::DebugPrint(L"Found Left Motion Controller: " + motionControllerComponent->get_full_name());
-			if (handMesh)
-				Logger::DebugPrint(L"Found Left Hand Mesh: " + handMesh->get_full_name());
-		}
-		else
-		{
-			RightController = motionControllerComponent;
-			RightHandMesh = handMesh;
-			Logger::DebugPrint(L"Found Right Motion Controller: " + motionControllerComponent->get_full_name());
-			if (handMesh)
-				Logger::DebugPrint(L"Found Right Hand Mesh: " + handMesh->get_full_name());
-		}
-			
-		
-	}
-}
-
 void PlayerManager::ToggleGameHandsVisibility(bool visible)
 {
 	if (auto handsSkeletalMesh = ue::get<ue::UObject*>(gameState->Pawn, L"SkeletalMesh_Hand"))
@@ -255,14 +212,6 @@ void PlayerManager::ProcessGameHandsVisibility()
 	// The game's hands replace the VR hands (hidden meanwhile) during melee attacks and while carrying
 	if (MeleeAttackRunning.Changed() || IsCarrying.Changed())
 		ToggleGameHandsVisibility(MeleeAttackRunning || IsCarrying);
-}
-
-void PlayerManager::SetSecondHandAttachedToWeapon(bool attached)
-{
-	if (SecondHandAttachedToWeapon == attached)
-		return;
-	SecondHandAttachedToWeapon = attached;
-	uevr::API::get()->dispatch_lua_event("TwoHandsHandling", attached ? "1" : "0");
 }
 
 void PlayerManager::FindBasicAction(float deltaTime)
@@ -490,16 +439,4 @@ void PlayerManager::LogCollisionAndRotation(double viewYaw)
 			ue::call<ue::FName>(subCollisions, L"GetBaseSocketName", i).ToString().c_str(),
 			ue::call<float>(subCollisions, L"GetFromOffsetZ", i), ue::call<bool>(subCollisions, L"IsAdjustZToActorBase", i));
 	}
-}
-
-void PlayerManager::Cleanup()
-{
-	// The VR hands are gone (destroyed by the Lua script, or with the level): forget them and their
-	// weapon attachment, so the hands get attached again once new ones are created.
-	LeftController = nullptr;
-	LeftHandMesh = nullptr;
-	RightController = nullptr;
-	RightHandMesh = nullptr;
-	MainHandAttachedToWeapon = false;
-	SetSecondHandAttachedToWeapon(false);
 }

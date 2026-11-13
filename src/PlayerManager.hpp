@@ -37,23 +37,11 @@ public:
 	void UpdateStanceChange(float deltaTime);
 	void ProcessPlayerCharacterState(const ue::FName& StateName, const ue::FName& StateMachineName);
 
-	ue::WeakObject LeftController;  // MotionControllerComponent
-	ue::WeakObject LeftHandMesh;    // PoseableMeshComponent
-	ue::WeakObject RightController; // MotionControllerComponent
-	ue::WeakObject RightHandMesh;   // PoseableMeshComponent
-
-	void FetchMotionControllers();
-	bool MainHandAttachedToWeapon = false;
-	bool SecondHandAttachedToWeapon = false;
-	// The only writer of SecondHandAttachedToWeapon: also tells the Lua hands script (TwoHandsHandling)
-	void SetSecondHandAttachedToWeapon(bool attached);
-
 	void ToggleGameHandsVisibility(bool visible);
 	void ProcessGameHandsVisibility();
 	void UpdateForkAndKnifeMeleeState(float delta);
 
 	void SetPlayerStance(ue::EGsrPlayerStance NewStance);
-	void Cleanup();
 
 	// Linear head-relative locomotion: replaces the root motion velocity of the basic action
 	float MoveStickX = 0.0f; // left stick, -1..1, written by the XInput callback

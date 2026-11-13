@@ -9,6 +9,7 @@
 #include "WeaponManager.hpp"
 #include "CameraController.hpp"
 #include "PlayerManager.hpp"
+#include "VRHands.hpp"
 #include "ue/Reflection.hpp"
 
 class HookManager {
@@ -16,9 +17,11 @@ private:
     WeaponManager* const weaponManager;
     CameraController* const cameraController;
     PlayerManager* const playerManager;
+    VRHands* const vrHands;
     static WeaponManager* s_weaponManager;
     static CameraController* s_cameraController;
     static PlayerManager* s_playerManager;
+    static VRHands* s_vrHands;
 
 
     static void* OnFireModded(uevr::API::UObject* equipcontroller, void* FireRequest);
@@ -50,7 +53,7 @@ private:
     static bool apply_bp_hook(BlueprintHook& hook);
 
 public:
-    HookManager(WeaponManager* wm, CameraController* cc, PlayerManager* pm) : weaponManager(wm), cameraController(cc), playerManager(pm) {};
+    HookManager(WeaponManager* wm, CameraController* cc, PlayerManager* pm, VRHands* vh) : weaponManager(wm), cameraController(cc), playerManager(pm), vrHands(vh) {};
     void Initialize();
     void HookFireFunction();
     void HookSetEnableWallCollision();

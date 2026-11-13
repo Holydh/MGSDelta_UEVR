@@ -3,12 +3,14 @@
 WeaponManager* HookManager::s_weaponManager = nullptr;
 CameraController* HookManager::s_cameraController = nullptr;
 PlayerManager* HookManager::s_playerManager = nullptr;
+VRHands* HookManager::s_vrHands = nullptr;
 
 void HookManager::Initialize()
 {
 	s_weaponManager = weaponManager;
 	s_cameraController = cameraController;
 	s_playerManager = playerManager;
+	s_vrHands = vrHands;
 }
 
 
@@ -169,7 +171,7 @@ bool HookManager::mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn
 bool HookManager::mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
 {
 	// The Lua script destroys the VR hands and creates new ones: forget the current ones now
-	s_playerManager->Cleanup();
+	s_vrHands->Cleanup();
 	uevr::API::get()->dispatch_lua_event("HandsReset", "0");
 	return true;
 }
