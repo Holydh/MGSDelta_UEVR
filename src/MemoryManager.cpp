@@ -14,8 +14,9 @@ std::vector<MemoryBlock> cameraPitchInstructionsAddresses = {
 	{0x5DA5667, 7, 0x0F118730010000},
 };
 
+// Address found by InitMemoryManager's scan (0 = not found: never patched)
 std::vector<MemoryBlock> frameOffsetCutsceneFixInstructionsAddresses = {
-	{0x5DAE48F, 7, 0x0F118330010000},
+	{0, 7, 0x0F118330010000},
 };
 
 std::vector<unsigned int> aimPositionXOffsets = { 0x0C7DE270, 0x10, 0x18, 0xE8, 0xA8, 0x98, 0x280, 0x370 };
@@ -58,9 +59,9 @@ void MemoryManager::InitMemoryManager()
 	//}
 	//cameraPitchInstructionsAddresses[2].address = cameraPitchFunctionAddress2.value();
 
-	auto frameOffsetCutsceneFixFunctionAddress = utility::scan((uintptr_t)baseAddressGameEXE, 0x9999999, "0F 11 83 ? ? ? ? 41 0F 28 48 ? 0F 11 8B ? ? ? ? 41 0F 28 40 ? 0F 11 83 ? ? ? ? 41 0F 28 48 ? 0F 11 8B ? ? ? ? E8 ? ? ? ?");
+	auto frameOffsetCutsceneFixFunctionAddress = utility::scan(GetModuleHandle(nullptr), "0F 11 83 ? ? ? ? 41 0F 28 48 ? 0F 11 8B ? ? ? ? 41 0F 28 40 ? 0F 11 83 ? ? ? ? 41 0F 28 48 ? 0F 11 8B ? ? ? ? E8 ? ? ? ?");
 	if (!frameOffsetCutsceneFixFunctionAddress) {
-		Logger::DebugPrint("Failed to find the instruction");
+		uevr::API::get()->log_error("[MGSDelta] Cutscene frame offset fix: instruction pattern not found, fix disabled");
 		return;
 	}
 	else
@@ -130,18 +131,24 @@ void MemoryManager::ToggleFrameOffsetCutsceneFixMemoryInstructions(bool enableOr
 	}
 }
 
-// Function to NOP a batch of addresses
-void MemoryManager::NopMemory(const std::vector<MemoryBlock>& memoryBlocks) {
-	for (const auto& [address, size, bytes] : memoryBlocks) {
+// NOPs a batch of instructions. Their current bytes are saved first, for RestoreMemory.
+void MemoryManager::NopMemory(std::vector<MemoryBlock>& memoryBlocks) {
+	for (auto& block : memoryBlocks) {
 		DWORD oldProtect;
-		VirtualProtect((LPVOID)address, size, PAGE_EXECUTE_READWRITE, &oldProtect);
-
-		for (size_t i = 0; i < size; ++i) {
-			uintptr_t currentAddr = address + i;
-			*reinterpret_cast<uint8_t*>(currentAddr) = 0x90; // Write NOP
+		if (block.address == 0) // not found by the scan (already logged)
+			continue;
+		if (!VirtualProtect((LPVOID)block.address, block.size, PAGE_EXECUTE_READWRITE, &oldProtect)) {
+			uevr::API::get()->log_error("[MGSDelta] Can't patch the code at 0x%p", (void*)block.address);
+			continue;
 		}
 
-		VirtualProtect((LPVOID)address, size, oldProtect, &oldProtect);
+		for (size_t i = 0; i < block.size; ++i) {
+			block.bytes[i] = *reinterpret_cast<uint8_t*>(block.address + i);
+			*reinterpret_cast<uint8_t*>(block.address + i) = 0x90; // Write NOP
+		}
+
+		VirtualProtect((LPVOID)block.address, block.size, oldProtect, &oldProtect);
+		FlushInstructionCache(GetCurrentProcess(), (LPCVOID)block.address, block.size);
 	}
 }
 
@@ -149,13 +156,15 @@ void MemoryManager::NopMemory(const std::vector<MemoryBlock>& memoryBlocks) {
 void MemoryManager::RestoreMemory(const std::vector<MemoryBlock>& memoryBlocks) {
 	for (const auto& block : memoryBlocks) {
 		DWORD oldProtect;
-		VirtualProtect((LPVOID)block.address, block.size, PAGE_EXECUTE_READWRITE, &oldProtect);
+		if (block.address == 0 || !VirtualProtect((LPVOID)block.address, block.size, PAGE_EXECUTE_READWRITE, &oldProtect))
+			continue;
 
 		for (size_t i = 0; i < block.size; ++i) {
             *reinterpret_cast<uint8_t*>(block.address + i) = block.bytes[i];
         }
 
 		VirtualProtect((LPVOID)block.address, block.size, oldProtect, &oldProtect);
+		FlushInstructionCache(GetCurrentProcess(), (LPCVOID)block.address, block.size);
 	}
 }
 

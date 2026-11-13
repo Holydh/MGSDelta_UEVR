@@ -366,6 +366,7 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 {
 	if (enable && !vr_enabled)
 	{
+		appliedRoomscaleMovement.reset(); // written again by UpdateRoomscaleMovement
 		//cameraController.DisableGrassFading();
 		cameraController.ToggleCameraWobblingController(false);
 		//memoryManager.ToggleAimRelatedMemoryInstructions(false);
@@ -376,7 +377,6 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		cameraController.AttachCameraToAttachementActor();
 		API::VR::set_mod_value("VR_2DScreenMode", false);
 		API::VR::set_mod_value("VR_WorldScale", 1.0f);
-		uevr::API::VR::set_mod_value("VR_RoomscaleMovement", true);
 		//Utilities::DebugCigar0 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 		//Utilities::DebugCigar1 = Utilities::SpawnDebugCigars(UEVR_Vector3d{114.0f, -3495.0f, 500.0f});
 		API::get()->dispatch_lua_event("PlayerTookControl", "1");
@@ -398,6 +398,17 @@ void MGSDeltaPlugin::Toggle6DOF(bool enable)
 		vr_enabled = enable;
 	}
 	//Logger::DebugPrint("%i", API::VR::get_mod_value<bool>("VR_2DScreenMode"));
+}
+
+// The only writer of VR_RoomscaleMovement: off while the game moves the view around Snake (peeking,
+// CQC grab, cardboard box). Written only when it changes, so the UEVR menu value isn't fought every frame.
+void MGSDeltaPlugin::UpdateRoomscaleMovement()
+{
+	const bool roomscale = !(playerManager.IsPeepingInternal || playerManager.IsCqcGrab || cameraController.CardBoardEquipped);
+	if (appliedRoomscaleMovement == roomscale)
+		return;
+	API::VR::set_mod_value("VR_RoomscaleMovement", roomscale);
+	appliedRoomscaleMovement = roomscale;
 }
 
 void MGSDeltaPlugin::CheckLevelChange()
@@ -518,6 +529,8 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 		cameraController.ProcessRoomscaleStance();
 
 		weaponManager.ProcessTwoHandsGrabWeapon();
+
+		UpdateRoomscaleMovement();
 	}
 	else
 	{
@@ -566,7 +579,6 @@ void MGSDeltaPlugin::on_pre_engine_tick(API::UGameEngine* engine, float delta) {
 	playerManager.PreviousCameraMode = playerManager.CurrentCameraMode;
 	playerManager.WasMeleeAttackRunning = playerManager.MeleeAttackRunning;
 	playerManager.WasPeeping = playerManager.IsPeeping;
-	playerManager.WasCqcGrab = playerManager.IsCqcGrab;
 	playerManager.WasCarrying = playerManager.IsCarrying;
 	playerManager.PreviousMenuType = playerManager.CurrentMenuType;
 	weaponManager.PreviousWeaponID = weaponManager.CurrentWeaponID;
@@ -600,13 +612,8 @@ void MGSDeltaPlugin::on_early_calculate_stereo_view_offset(UEVR_StereoRenderingD
 {
 	PLUGIN_LOG_ONCE("Early Calculate Stereo View Offset");
 	static ue::SingletonRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
-	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get();
-	if (!cobraCutsceneCameraCtrlMngr)
-	{
-		Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");
-		return;
-	}
-	if (playerManager.IsPlayerControlled || 
+	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get(); // may be null: ue::get then returns false
+	if (playerManager.IsPlayerControlled ||
 		(cameraController.ActualCutsceneState == CameraController::CutsceneState::Playing3D && (*settingsManager.EnableImmersiveModePtr || ue::get<bool>(cobraCutsceneCameraCtrlMngr, L"bIsFpv"))))
 	{
 		UEVR_Vector3d* pos = (UEVR_Vector3d*)position;
@@ -719,10 +726,7 @@ void MGSDeltaPlugin::on_xinput_get_state(uint32_t* retval, uint32_t user_index, 
 	float rawRightYInput = (float)state->Gamepad.sThumbRY / 32768.0f * 2.0f; // Normalize to -1.0 to 1.0 and scale
 	weaponManager.ZoomInput = rawRightYInput > 0.5f || rawRightYInput < -0.5f ? rawRightYInput : 0.0f;
 
-	float triggerInput = (float)state->Gamepad.bRightTrigger / 255.0f; // Normalize to 0.0 to 1.0
-	Inputs::LeftGripInputPressed = triggerInput > 0.5f ? true : false;
-
-	Inputs::LeftGripInputPressed = state->Gamepad.wButtons == 256 ? true : false;
+	Inputs::LeftGripInputPressed = (state->Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0;
 
 	playerManager.MoveStickX = (float)state->Gamepad.sThumbLX / 32768.0f;
 	playerManager.MoveStickY = (float)state->Gamepad.sThumbLY / 32768.0f;

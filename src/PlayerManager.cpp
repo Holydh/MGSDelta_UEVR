@@ -140,16 +140,6 @@ void PlayerManager::UpdatePeepingAndCqcGrabState(float deltaTime)
 		IsPeeping = false;
 		ExtendPeepingStateTimer = 0.0f;
 	}
-
-	if (IsPeepingInternal != WasPeepingInternal)
-	{
-		uevr::API::VR::set_mod_value("VR_RoomscaleMovement", !IsPeepingInternal);
-	}
-
-	if (IsCqcGrab != WasCqcGrab)
-	{
-		uevr::API::VR::set_mod_value("VR_RoomscaleMovement", !IsCqcGrab);
-	}
 }
 
 void PlayerManager::GetCurrentPlayerStance(float deltaTime)

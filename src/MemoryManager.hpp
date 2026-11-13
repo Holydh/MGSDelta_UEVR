@@ -36,7 +36,7 @@ class MemoryManager {
 private:
 	uintptr_t GetModuleBaseAddress(LPCTSTR moduleName);
 	uintptr_t FindAddressFromPointerOffsets(uintptr_t baseAddress, const std::vector<unsigned int>& offsets);
-	void NopMemory(const std::vector<MemoryBlock>& memoryBlocks);
+	void NopMemory(std::vector<MemoryBlock>& memoryBlocks);
 	void RestoreMemory(const std::vector<MemoryBlock>& memoryBlocks);
 	uintptr_t baseAddressGameEXE = NULL;
 

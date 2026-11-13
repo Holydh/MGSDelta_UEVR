@@ -1,5 +1,10 @@
 #include "SettingsManager.hpp"
 
+#include <algorithm>
+#include <iomanip>
+#include <optional>
+#include <sstream>
+
 bool debugMod = true;
 
 std::unordered_map<std::string, WeaponConfig> SettingsManager::g_weaponConfigs{};
@@ -318,316 +323,143 @@ void SettingsManager::GetOrCreateConfigFile()
 	return;
 }
 
-void SettingsManager::SetBoolValueToFile(const std::string& filePath, const std::string& key, bool value)
+namespace {
+std::optional<std::string> readFile(const std::string& filePath)
 {
-	if (debugMod) Logger::DebugPrint("SetBoolValueToFile()");
-
-	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hFile == INVALID_HANDLE_VALUE)
+	std::ifstream file(filePath, std::ios::binary);
+	if (!file.is_open())
 	{
-		Logger::DebugPrint("Failed to open %s for reading", filePath.c_str());
+		Logger::DebugPrint("Failed to open %s", filePath.c_str());
+		return std::nullopt;
+	}
+	return std::string{ std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
+}
+
+// Position of the '=' of the line "key=value". The key must be a whole name at the start of a line:
+// a plain search would also find it inside another key.
+size_t findKeyEquals(const std::string& contents, const std::string& key)
+{
+	for (size_t lineStart = 0; lineStart < contents.size();)
+	{
+		const size_t lineEnd = std::min(contents.find_first_of("\r\n", lineStart), contents.size());
+		if (contents.compare(lineStart, key.size(), key) == 0)
+		{
+			const size_t equalPos = contents.find_first_not_of(" \t", lineStart + key.size());
+			if (equalPos < lineEnd && contents[equalPos] == '=')
+				return equalPos;
+		}
+		lineStart = lineEnd + 1;
+	}
+	return std::string::npos;
+}
+
+// Value of the key without surrounding spaces, nullopt if the file or the key is missing
+std::optional<std::string> readValue(const std::string& filePath, const std::string& key)
+{
+	const auto contents = readFile(filePath);
+	if (!contents)
+		return std::nullopt;
+	const size_t equalPos = findKeyEquals(*contents, key);
+	if (equalPos == std::string::npos)
+		return std::nullopt;
+	const size_t lineEnd = std::min(contents->find_first_of("\r\n", equalPos), contents->size());
+	std::string value = contents->substr(equalPos + 1, lineEnd - equalPos - 1);
+	value.erase(0, value.find_first_not_of(" \t"));
+	value.erase(value.find_last_not_of(" \t") + 1);
+	return value;
+}
+
+// Replaces the key's value. Appended if missing: config files created before a plugin update don't have the new settings.
+void writeValue(const std::string& filePath, const std::string& key, const std::string& value)
+{
+	auto contents = readFile(filePath);
+	if (!contents)
+		return;
+	const size_t equalPos = findKeyEquals(*contents, key);
+	if (equalPos != std::string::npos)
+	{
+		const size_t lineEnd = std::min(contents->find_first_of("\r\n", equalPos), contents->size());
+		contents->replace(equalPos + 1, lineEnd - equalPos - 1, value);
+	}
+	else
+	{
+		if (!contents->empty() && contents->back() != '\n')
+			*contents += '\n';
+		*contents += key + '=' + value + '\n';
+	}
+
+	std::ofstream file(filePath, std::ios::binary | std::ios::trunc);
+	if (!file.is_open())
+	{
+		Logger::DebugPrint("Failed to open %s for writing", filePath.c_str());
 		return;
 	}
+	file << *contents;
+}
+}
 
-	DWORD bytesRead;
-	char buffer[1024];
-	std::string fileContents;
-
-	while (ReadFile(hFile, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0)
-	{
-		buffer[bytesRead] = '\0';
-		fileContents.append(buffer);
-	}
-	CloseHandle(hFile);
-
-	size_t pos = fileContents.find(key);
-	if (pos != std::string::npos)
-	{
-		size_t equalPos = fileContents.find('=', pos);
-		if (equalPos != std::string::npos)
-		{
-			size_t endOfLine = fileContents.find_first_of("\r\n", equalPos);
-			std::string before = fileContents.substr(0, equalPos + 1);
-			std::string after = (endOfLine != std::string::npos) ? fileContents.substr(endOfLine) : "";
-
-			// Replace value
-			std::string newContents = before + (value ? "true" : "false") + after;
-			
-			// Write it back
-			HANDLE hWriteFile = CreateFileA(filePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-			if (hWriteFile != INVALID_HANDLE_VALUE)
-			{
-				DWORD bytesWritten;
-				WriteFile(hWriteFile, newContents.c_str(), static_cast<DWORD>(newContents.size()), &bytesWritten, NULL);
-				CloseHandle(hWriteFile);
-				if (debugMod) (Logger::DebugPrint("Updated %s to %s", key.c_str(), value ? "true" : "false"));
-			}
-			else
-			{
-				Logger::DebugPrint("Failed to open %s for writing", filePath.c_str());
-			}
-			return;
-		}
-	}
+void SettingsManager::SetBoolValueToFile(const std::string& filePath, const std::string& key, bool value)
+{
+	writeValue(filePath, key, value ? "true" : "false");
 }
 
 bool SettingsManager::GetBoolValueFromFile(const std::string& filePath, const std::string& key, bool defaultValue)
 {
-	if (debugMod) Logger::DebugPrint("GetBoolValueFromFile()");
-
-	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hFile == INVALID_HANDLE_VALUE)
-	{
-		Logger::DebugPrint("Failed to open %s", filePath.c_str());
+	auto valueStr = readValue(filePath, key);
+	if (!valueStr)
 		return defaultValue;
-	}
 
-	DWORD bytesRead;
-	char buffer[1024];  // Buffer to read the file content
-	std::string fileContents;
+	std::transform(valueStr->begin(), valueStr->end(), valueStr->begin(), ::tolower);
+	if (*valueStr == "true") return true;
+	if (*valueStr == "false") return false;
 
-	// Read the file into memory
-	while (ReadFile(hFile, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0)
-	{
-		buffer[bytesRead] = '\0'; // Null terminate the string
-		fileContents.append(buffer);
-	}
-	CloseHandle(hFile);
-
-	// Look for the key in the file contents
-	size_t pos = fileContents.find(key);
-	if (pos != std::string::npos)
-	{
-		size_t equalPos = fileContents.find('=', pos);
-		if (equalPos != std::string::npos)
-		{
-			// Find the end of the line after the '='
-			size_t endOfLine = fileContents.find_first_of("\r\n", equalPos);
-			std::string valueStr = fileContents.substr(equalPos + 1, endOfLine - (equalPos + 1));
-
-			// Trim whitespace
-			valueStr.erase(0, valueStr.find_first_not_of(" \t\n\r"));
-			valueStr.erase(valueStr.find_last_not_of(" \t\n\r") + 1);
-
-			// Convert to lowercase
-			std::transform(valueStr.begin(), valueStr.end(), valueStr.begin(), ::tolower);
-
-			if (debugMod) Logger::DebugPrint("Extracted value: %s", valueStr.c_str());
-
-			if (valueStr == "true") return true;
-			if (valueStr == "false") return false;
-
-			Logger::DebugPrint("Error: Invalid bool value for key: %s", key.c_str());
-		}
-	}
-
-	return defaultValue;  // Return default if the key is not found or invalid
+	Logger::DebugPrint("Error: Invalid bool value for key: %s", key.c_str());
+	return defaultValue;
 }
 
 void SettingsManager::SetFloatValueToFile(const std::string& filePath, const std::string& key, float value)
 {
-	if (debugMod) Logger::DebugPrint("SetFloatValueToFile()");
-
-	// Open file for reading first
-	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hFile == INVALID_HANDLE_VALUE)
-	{
-		Logger::DebugPrint("Failed to open %s for reading", filePath.c_str());
-		return;
-	}
-
-	DWORD bytesRead;
-	char buffer[1024];
-	std::string fileContents;
-
-	while (ReadFile(hFile, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0)
-	{
-		buffer[bytesRead] = '\0';
-		fileContents.append(buffer);
-	}
-	CloseHandle(hFile);
-
-	// Find key in the file
-	size_t pos = fileContents.find(key);
-	if (pos != std::string::npos)
-	{
-		size_t equalPos = fileContents.find('=', pos);
-		if (equalPos != std::string::npos)
-		{
-			size_t endOfLine = fileContents.find_first_of("\r\n", equalPos);
-			std::string before = fileContents.substr(0, equalPos + 1);
-			std::string after = (endOfLine != std::string::npos) ? fileContents.substr(endOfLine) : "";
-
-			// Replace value (use limited precision to keep float clean)
-			std::ostringstream oss;
-			oss << std::fixed << std::setprecision(6) << value;
-			std::string newContents = before + oss.str() + after;
-
-			// Write back
-			HANDLE hWriteFile = CreateFileA(filePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-			if (hWriteFile != INVALID_HANDLE_VALUE)
-			{
-				DWORD bytesWritten;
-				WriteFile(hWriteFile, newContents.c_str(), static_cast<DWORD>(newContents.size()), &bytesWritten, NULL);
-				CloseHandle(hWriteFile);
-				if (debugMod)(Logger::DebugPrint("Updated %s to %s", key.c_str(), oss.str().c_str()));
-			}
-			else
-			{
-				Logger::DebugPrint("Failed to open %s for writing", filePath.c_str());
-			}
-			return;
-		}
-	}
-
-	Logger::DebugPrint("Key %s not found in %s", key.c_str(), filePath.c_str());
+	// Limited precision keeps the float clean
+	std::ostringstream oss;
+	oss << std::fixed << std::setprecision(6) << value;
+	writeValue(filePath, key, oss.str());
 }
 
 float SettingsManager::GetFloatValueFromFile(const std::string& filePath, const std::string& key, float defaultValue)
 {
-	if (debugMod) Logger::DebugPrint("GetFloatValueFromFile()");
-
-	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hFile == INVALID_HANDLE_VALUE)
+	const auto valueStr = readValue(filePath, key);
+	if (!valueStr)
+		return defaultValue;
+	try
 	{
-		Logger::DebugPrint("Failed to open %s", filePath.c_str());
+		return std::stof(*valueStr);
+	}
+	catch (const std::logic_error&) // invalid_argument or out_of_range
+	{
+		Logger::DebugPrint("Error: Invalid float value for key: %s", key.c_str());
 		return defaultValue;
 	}
-
-	DWORD bytesRead;
-	char buffer[1024];  // Buffer to read the file content
-	std::string fileContents;
-
-	// Read the file into memory
-	while (ReadFile(hFile, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0)
-	{
-		buffer[bytesRead] = '\0'; // Null terminate the string
-		fileContents.append(buffer);
-	}
-	CloseHandle(hFile);
-
-	// Look for the key in the file contents
-	size_t pos = fileContents.find(key);
-	if (pos != std::string::npos)
-	{
-		size_t equalPos = fileContents.find('=', pos);
-		if (equalPos != std::string::npos)
-		{
-			std::string valueStr = fileContents.substr(equalPos + 1);
-			try
-			{
-				return std::stof(valueStr); // Convert the string to float
-			}
-			catch (const std::logic_error&) // invalid_argument or out_of_range
-			{
-				Logger::DebugPrint("Error: Invalid float value for key: %s", key.c_str());
-				return defaultValue;
-			}
-		}
-	}
-
-	return defaultValue;  // Return default if the key is not found
 }
 
 void SettingsManager::SetIntValueToFile(const std::string& filePath, const std::string& key, int value)
 {
-	if (debugMod) Logger::DebugPrint("SetIntValueToFile()");
-
-	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hFile == INVALID_HANDLE_VALUE)
-	{
-		Logger::DebugPrint("Failed to open %s for reading", filePath.c_str());
-		return;
-	}
-
-	DWORD bytesRead;
-	char buffer[1024];
-	std::string fileContents;
-
-	while (ReadFile(hFile, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0)
-	{
-		buffer[bytesRead] = '\0';
-		fileContents.append(buffer);
-	}
-	CloseHandle(hFile);
-
-	size_t pos = fileContents.find(key);
-	if (pos != std::string::npos)
-	{
-		size_t equalPos = fileContents.find('=', pos);
-		if (equalPos != std::string::npos)
-		{
-			size_t endOfLine = fileContents.find_first_of("\r\n", equalPos);
-			std::string before = fileContents.substr(0, equalPos + 1);
-			std::string after = (endOfLine != std::string::npos) ? fileContents.substr(endOfLine) : "";
-
-			std::string newContents = before + std::to_string(value) + after;
-
-			HANDLE hWriteFile = CreateFileA(filePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-			if (hWriteFile != INVALID_HANDLE_VALUE)
-			{
-				DWORD bytesWritten;
-				WriteFile(hWriteFile, newContents.c_str(), static_cast<DWORD>(newContents.size()), &bytesWritten, NULL);
-				CloseHandle(hWriteFile);
-				if (debugMod) Logger::DebugPrint("Updated %s to %d", key.c_str(), value);
-			}
-			else
-			{
-				Logger::DebugPrint("Failed to open %s for writing", filePath.c_str());
-			}
-			return;
-		}
-	}
-
-	Logger::DebugPrint("Key %s not found in %s", key.c_str(), filePath.c_str());
+	writeValue(filePath, key, std::to_string(value));
 }
 
 int SettingsManager::GetIntValueFromFile(const std::string& filePath, const std::string& key, int defaultValue)
 {
-	if (debugMod) Logger::DebugPrint("GetIntValueFromFile()");
-
-	HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hFile == INVALID_HANDLE_VALUE)
+	const auto valueStr = readValue(filePath, key);
+	if (!valueStr)
+		return defaultValue;
+	try
 	{
-		Logger::DebugPrint("Failed to open %s", filePath.c_str());
+		return std::stoi(*valueStr);
+	}
+	catch (const std::logic_error&) // invalid_argument or out_of_range
+	{
+		Logger::DebugPrint("Error: Invalid int value for key: %s", key.c_str());
 		return defaultValue;
 	}
-
-	DWORD bytesRead;
-	char buffer[1024];
-	std::string fileContents;
-
-	while (ReadFile(hFile, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0)
-	{
-		buffer[bytesRead] = '\0';
-		fileContents.append(buffer);
-	}
-	CloseHandle(hFile);
-
-	size_t pos = fileContents.find(key);
-	if (pos != std::string::npos)
-	{
-		size_t equalPos = fileContents.find('=', pos);
-		if (equalPos != std::string::npos)
-		{
-			size_t endOfLine = fileContents.find_first_of("\r\n", equalPos);
-			std::string valueStr = (endOfLine != std::string::npos)
-				? fileContents.substr(equalPos + 1, endOfLine - equalPos - 1)
-				: fileContents.substr(equalPos + 1);
-
-			try
-			{
-				return std::stoi(valueStr);
-			}
-			catch (const std::logic_error&) // invalid_argument or out_of_range
-			{
-				Logger::DebugPrint("Error: Invalid int value for key: %s", key.c_str());
-				return defaultValue;
-			}
-		}
-	}
-
-	return defaultValue;
 }
 
 std::string GetDLLDirectory()

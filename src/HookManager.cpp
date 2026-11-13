@@ -23,21 +23,21 @@ int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* d
 	auto obj = (uevr::API::UClass*)uevr::API::get()->find_uobject(class_name);
 
 	if (obj == nullptr) {
-		PLUGIN_LOG_ONCE_ERROR("Failed to find %ls", class_name.data());
+		uevr::API::get()->log_error("[MGSDelta] Hook: class %ls not found", class_name.data());
 		return -1;
 	}
 
 	auto fn = obj->find_function(fn_name);
 
 	if (fn == nullptr) {
-		PLUGIN_LOG_ONCE_ERROR("Failed to find %ls", fn_name.data());
+		uevr::API::get()->log_error("[MGSDelta] Hook: function %ls not found", fn_name.data());
 		return -1;
 	}
 
 	auto native = fn->get_native_function();
 
 	if (native == nullptr) {
-		PLUGIN_LOG_ONCE_ERROR("Failed to get native function");
+		uevr::API::get()->log_error("[MGSDelta] Hook: no native function for %ls", fn_name.data());
 		return -1;
 	}
 
@@ -50,15 +50,14 @@ int32_t hook_fn(std::wstring_view class_name, std::wstring_view fn_name, void* d
 	auto insn = utility::scan_disasm((uintptr_t)native, 0x1000, realCallPattern);
 
 	if (!insn) {
-		PLUGIN_LOG_ONCE_ERROR("Failed to find the instruction");
-		Logger::DebugPrint("Not found");
+		uevr::API::get()->log_error("[MGSDelta] Hook: instruction pattern not found in %ls", fn_name.data());
 		return -1;
 	}
 
 	uintptr_t insn_val = insn.value() + callOffset;
 
 	if (*(uint8_t*)insn_val != 0xE8) {
-		PLUGIN_LOG_ONCE_ERROR("No call after the instruction found for %ls", fn_name.data());
+		uevr::API::get()->log_error("[MGSDelta] Hook: no call after the instruction found for %ls", fn_name.data());
 		return -1;
 	}
 

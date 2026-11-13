@@ -71,7 +71,6 @@ void WeaponManager::ProcessItem()
 	if (ItemController == NULL)
 	{
 		CurrentItemID = ue::EGsrItemId::IT_None;
-		Logger::DebugPrint("No equipController found");
 		return;
 	}
 
@@ -122,16 +121,8 @@ void WeaponManager::ProcessItem()
 			uevr::API::VR::set_decoupled_pitch_enabled(true);
 		}
 
-		if (CurrentItemID == ue::EGsrItemId::IT_CBoxA || CurrentItemID == ue::EGsrItemId::IT_CBoxB || CurrentItemID == ue::EGsrItemId::IT_CBoxC || CurrentItemID == ue::EGsrItemId::IT_CBoxD)
-		{
-			cameraController->CardBoardEquipped = true;
-			uevr::API::VR::set_mod_value("VR_RoomscaleMovement", false);
-		}
-		else
-		{
-			cameraController->CardBoardEquipped = false;
-			uevr::API::VR::set_mod_value("VR_RoomscaleMovement", true);
-		}
+		cameraController->CardBoardEquipped = CurrentItemID == ue::EGsrItemId::IT_CBoxA || CurrentItemID == ue::EGsrItemId::IT_CBoxB ||
+			CurrentItemID == ue::EGsrItemId::IT_CBoxC || CurrentItemID == ue::EGsrItemId::IT_CBoxD;
 	}
 	if (CurrentItemID == ue::EGsrItemId::IT_Scope)
 	{
@@ -335,15 +326,12 @@ void WeaponManager::ProcessTwoHandsGrabWeapon()
 		DetachSecondHandFromWeapon();
 		//Utilities::DestroyDebugCigars();
 	}
-
-	//Logger::DebugPrint("Right Hand Pos : x=%f, y=%f, z=%f", rightHandPos.X, rightHandPos.Y, rightHandPos.Z);
-	if (!*settingsManager->EnableTwoHandsPivotPtr)
-		return;
 }
 
 void WeaponManager::ProcessTwoHandsGrabWeaponLocationAndRotation()
 {
-	if (twoHandedPivot && WeaponRoot) {
+	// Pivot disabled: the weapon stays held by the right hand only (UEVR attachment)
+	if (twoHandedPivot && *settingsManager->EnableTwoHandsPivotPtr && WeaponRoot) {
 		auto rightCtrlPos = ue::call<ue::FVector>(playerManager->RightController, L"K2_GetComponentLocation");
 		auto leftCtrlPos = ue::call<ue::FVector>(playerManager->LeftController, L"K2_GetComponentLocation");
 
@@ -973,10 +961,7 @@ void WeaponManager::FetchWeaponMeshAimData()
 {
 	//Logger::DebugPrint(CurrentWeapon->get_full_name());
 	if (CurrentWeapon == nullptr)
-	{
-		Logger::DebugPrint("No CurrentWeapon found");
 		return;
-	}
 	auto root_component = ue::get<ue::UObject*>(CurrentWeapon, L"RootComponent");
 	//Logger::DebugPrint(root_component->get_full_name());
 	if (root_component != nullptr)
@@ -1062,11 +1047,13 @@ void WeaponManager::FetchWeaponMeshAimData()
 			break;
 		}
 
-		AimPosition = { 
-			FirePosition.x + forward_params.X * scaler, 
-			FirePosition.y + forward_params.Y * scaler - aimOffsetValueHorizontal,
-			FirePosition.z + forward_params.Z * scaler - aimOffsetValueVertical
-		};
+		// Offsets relative to the weapon, so they follow its orientation. Right = Up x Forward (Unreal: X forward, Y right, Z up)
+		const ue::FVector rightVector{
+			upVector.Y * forward_params.Z - upVector.Z * forward_params.Y,
+			upVector.Z * forward_params.X - upVector.X * forward_params.Z,
+			upVector.X * forward_params.Y - upVector.Y * forward_params.X };
+		const ue::FVector aimOffset = forward_params * scaler - rightVector * aimOffsetValueHorizontal - upVector * aimOffsetValueVertical;
+		AimPosition = { FirePosition.x + aimOffset.X, FirePosition.y + aimOffset.Y, FirePosition.z + aimOffset.Z };
 		//Logger::DebugPrint("AimPosition.x : %f, AimPosition.y : %f, AimPosition.z : %f", AimPosition.x, AimPosition.y, AimPosition.z);
 	}
 }

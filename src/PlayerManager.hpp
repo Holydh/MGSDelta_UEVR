@@ -56,7 +56,6 @@ public:
 	bool WasMeleeAttackRunning = false;
 	bool IsKnifeOrFork = false;
 	bool IsCqcGrab = false;
-	bool WasCqcGrab = false;
 	bool IsCarrying = false;
 	bool WasCarrying = false;
 

@@ -31,7 +31,7 @@ class SettingsManager {
 public:
 	bool debugMod = false;
 
-	bool SettingsModifiedThisFrame = false;
+	bool SettingsModified = false;
 
 	void InitSettingsManager();
 	void GetOrCreateConfigFile();

@@ -122,12 +122,7 @@ void CameraController::ProcessCamera(float deltaTime)
 	float remappedLerpZMultiplier = Utilities::Remap(*settingsManager->CameraPositionZLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
 
 	static ue::SingletonRef cobraCutsceneCameraCtrlMngr_c{ L"Class /Script/CobraCutScene.CobraCutsceneCameraControlManagerComponent" };
-	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get();
-	if (!cobraCutsceneCameraCtrlMngr)
-	{
-		Logger::DebugPrint("CobraCutsceneCameraCtrlMngr not found");
-		return;
-	}
+	auto cobraCutsceneCameraCtrlMngr = cobraCutsceneCameraCtrlMngr_c.get(); // may be null: ue::get then returns false
 
 	static ue::SingletonRef playerCameraManager_c{ L"Class /Script/Cobra.CobraPlayerCameraManager" };
 	auto playerCameraManager = playerCameraManager_c.get();
@@ -179,9 +174,10 @@ void CameraController::ProcessCamera(float deltaTime)
 			if (*settingsManager->SmoothCameraMovementsInImmersiveCutscenesPtr)
 			{
 				// prevent camera yeeting into orbit on low fps
-				float speedXY = 11.25f * remappedLerpXYMultiplier;
+				float remappedCutscenePositionLerpMultiplier = Utilities::Remap(*settingsManager->CutsceneCameraPositionLerpPtr, 0.0f, 10.0f, 4.0f, 0.1f);
+				float speedXY = 11.25f * remappedCutscenePositionLerpMultiplier;
 				float alphaXY = 1.0f - expf(-speedXY * deltaTime);
-				float speedZ = 2.25f * remappedLerpZMultiplier;
+				float speedZ = 2.25f * remappedCutscenePositionLerpMultiplier;
 				float alphaZ = 1.0f - expf(-speedZ * deltaTime);
 				newPosition = *settingsManager->SmoothCameraMovementsInImmersiveCutscenesPtr ?
 					glm::fvec3(
@@ -193,7 +189,7 @@ void CameraController::ProcessCamera(float deltaTime)
 				NewCameraPosition = { newPosition.x, newPosition.y, newPosition.z };
 				LastCameraPosition = newPosition;
 
-				float remappedRotationLerpMultiplier = Utilities::Remap(*settingsManager->CameraYawLerpPtr, 0.0f, 10.0f, 2.0f, 0.1f);
+				float remappedRotationLerpMultiplier = Utilities::Remap(*settingsManager->CutsceneCameraRotationLerpPtr, 0.0f, 10.0f, 2.0f, 0.1f);
 				float speed = 10.25f * remappedRotationLerpMultiplier;
 				float alpha = 1.0f - expf(-speed * deltaTime);
 

@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include <filesystem>
+#include <optional>
 
 //#include <memory>
 #include "uevr/API.hpp"
@@ -31,6 +32,8 @@ extern std::unique_ptr<MGSDeltaPlugin> g_plugin;
 class MGSDeltaPlugin : public uevr::Plugin {
 private:
 	void Toggle6DOF(bool enable);
+	void UpdateRoomscaleMovement();
+	std::optional<bool> appliedRoomscaleMovement; // last value written to VR_RoomscaleMovement
     void CheckLevelChange();
 	ue::WeakObject currentWorld;
 	ue::WeakObject currentLevel;
