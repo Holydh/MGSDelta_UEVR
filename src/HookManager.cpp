@@ -114,22 +114,26 @@ void* HookManager::OnFireModded(uevr::API::UObject* equipController, void* fireR
 	return result;
 }
 
-void HookManager::ForwardEnteredState(uevr::API::UFunction* fn, void* locals)
+void HookManager::ForwardEnteredState(uevr::API::UFunction* fn, void* frame)
 {
-	if (locals == nullptr)
+	if (frame == nullptr)
 		return;
 
-	// `locals` is the call's FFrame (UEVR passes the frame), not the parameters. The parameters were found
-	// 0x50 bytes before it, empirically: most likely ProcessEvent's stack copy of them (what FFrame::Locals points to).
-	constexpr ptrdiff_t paramsOffset = 0x50;
-	auto params = (char*)locals - paramsOffset;
+	// UEVR passes the call's FFrame. Its Locals member points to the parameters when the function is called through
+	// ProcessEvent (events called by C++, like this one) or is a Blueprint function. Not for a C++ function called from
+	// Blueprint bytecode: the frame is then the caller's, the arguments are still in its bytecode.
+	// FFrame layout (UE4/UE5): FOutputDevice base 0x00, Node 0x10, Object 0x18, Code 0x20, Locals 0x28
+	constexpr ptrdiff_t localsOffset = 0x28;
+	auto params = *reinterpret_cast<uint8_t**>(static_cast<char*>(frame) + localsOffset);
+	if (params == nullptr)
+		return;
 	auto nextStateName = ue::param<ue::FName>(fn, params, L"NextStateName");
 	auto stateMachineName = ue::param<ue::FName>(fn, params, L"StateMachineName");
 	if (nextStateName && stateMachineName)
 		s_playerManager->ProcessPlayerCharacterState(*nextStateName, *stateMachineName);
 }
 
-bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result)
 {
 	if (ue::is_a(obj, Utilities::ABP_SnakeBasicAction_C) || 
 		ue::is_a(obj, Utilities::ABP_PlayerRollingAction_C) || 
@@ -137,43 +141,43 @@ bool HookManager::mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::U
 		ue::is_a(obj, Utilities::ABP_PlayerMeleeAction_C) ||
 		ue::is_a(obj, Utilities::ABP_PlayerCarryAction_C))
 	{
-		ForwardEnteredState(fn, locals);
+		ForwardEnteredState(fn, frame);
 	}
 
 	return true;
 }
 
-bool HookManager::mod_PlayerKnife_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+bool HookManager::mod_PlayerKnife_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result)
 {	
 	if (!ue::is_a(obj, Utilities::ABP_PlayerKnifeReadyAction_C))
 		return true;
 
-	ForwardEnteredState(fn, locals);
+	ForwardEnteredState(fn, frame);
 
 	return true;
 }
 
-bool HookManager::mod_PlayerCqcAction_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+bool HookManager::mod_PlayerCqcAction_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result)
 {	
 	if (!ue::is_a(obj, Utilities::ABP_EnemyCqc_C))
 		return true;
 
-	ForwardEnteredState(fn, locals);
+	ForwardEnteredState(fn, frame);
 
 	return true;
 }
 
-bool HookManager::mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+bool HookManager::mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result)
 {
 	if (!ue::is_a(obj, Utilities::ABP_PlayerEludeAction_C))
 		return true;
 
-	ForwardEnteredState(fn, locals);
+	ForwardEnteredState(fn, frame);
 
 	return true;
 }
 
-bool HookManager::mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+bool HookManager::mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result)
 {
 	// The Lua script destroys the VR hands and creates new ones: forget the current ones now
 	s_vrHands->Cleanup();
@@ -181,14 +185,14 @@ bool HookManager::mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunctio
 	return true;
 }
 
-bool HookManager::mod_CobraLevelSequence_OnCameraCut_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+bool HookManager::mod_CobraLevelSequence_OnCameraCut_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result)
 {
 	s_cameraController->InstantCameraPositionTimer = 0.05f;
 	s_cameraController->InstantCameraPositionNeeded = true;
 	return true;
 }
 
-bool HookManager::mod_IcsActorActionModule_OnOverrideRootMotionVelocity_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result)
+bool HookManager::mod_IcsActorActionModule_OnOverrideRootMotionVelocity_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result)
 {
 	if (result == nullptr || obj == nullptr || obj != s_locomotion->BasicAction.get() || !s_locomotion->LinearLocomotionActive)
 		return true;

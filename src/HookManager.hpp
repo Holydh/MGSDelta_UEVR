@@ -40,7 +40,7 @@ private:
     inline static SetEnableWallCollisionFn m_set_enable_wall_collision_fn{};
 
     // Reads the state names from an OnEnteredState call and forwards them to the PlayerManager
-    static void ForwardEnteredState(uevr::API::UFunction* fn, void* locals);
+    static void ForwardEnteredState(uevr::API::UFunction* fn, void* frame);
 
     // Blueprint hooks are kept so they can be applied again: a Blueprint class may not be loaded
     // yet when the plugin starts, or get unloaded and reloaded with the levels.
@@ -65,14 +65,14 @@ public:
     bool hook_bp_fn(std::wstring_view class_name, std::wstring_view fn_name, UEVR_UFunction_NativePreFn pre, UEVR_UFunction_NativePostFn post, bool use_native);
     // Applies the hooks whose class wasn't found yet, or whose function was unloaded since
     void RetryFailedHooks();
-    static bool mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
-    static bool mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
-    static bool mod_PlayerKnife_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
-    static bool mod_PlayerCqcAction_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result);
+    static bool mod_PlayerFalling_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result);
+    static bool mod_PlayerKnife_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result);
+    static bool mod_PlayerCqcAction_OnEnteredState_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result);
     
-    static bool mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_GsrPlayer_OnChangeCamouflageApply_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result);
     
-    static bool mod_CobraLevelSequence_OnCameraCut_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_CobraLevelSequence_OnCameraCut_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result);
 
-    static bool mod_IcsActorActionModule_OnOverrideRootMotionVelocity_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* locals, void* result);
+    static bool mod_IcsActorActionModule_OnOverrideRootMotionVelocity_post(uevr::API::UFunction* fn, uevr::API::UObject* obj, void* frame, void* result);
 };
